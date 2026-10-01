@@ -4,6 +4,49 @@
 Docker Compose и полностью контролируете данные. Ниже — кратчайший путь от пустого
 сервера до работающего экземпляра с HTTPS.
 
+## Автоматическая установка
+
+Для чистого Debian/Ubuntu (VM, VPS, Proxmox LXC) есть установщик одной командой. Он ставит
+Docker, клонирует репозиторий в `/opt/puls`, генерирует `.env` с секретами, собирает стек,
+дожидается готовности и создаёт первого администратора (пароль — в `/root/puls-credentials.txt`).
+
+**С доменом и HTTPS** (Let's Encrypt через Caddy; оба DNS-имени должны вести на сервер, порты 80/443 открыты):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh \
+  | sudo bash -s -- --domain puls.example.com --sandbox-domain usercontent.example.com --email me@example.com
+```
+
+**Без домена, по http в локальной сети** (сайт на `http://<IP>`, песочница на порту 8080):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh \
+  | sudo bash -s -- --http
+```
+
+Адрес сервера определяется автоматически, либо задайте `--host 192.168.1.50`. Без опций режима
+в интерактивном терминале установщик спросит, что нужно. Полезные опции: `--dir`, `--branch`,
+`--admin-email`, `--admin-nickname`, `--no-admin`, `--smtp-url`, `--registration open|invite|closed`,
+`-y`, `--dry-run` (показать план). `--help` — полный список. Повторный запуск безопасен:
+код обновляется, существующий `.env` не изменяется.
+
+::: tip Proxmox LXC
+Для Docker в непривилегированном контейнере включите в настройках LXC
+**Options → Features: `nesting=1,keyctl=1`** и выделите минимум 2 ГБ RAM (или swap) — сборка
+образов требует около 2 ГБ.
+:::
+
+::: warning Без SMTP
+Если SMTP не задан, письма подтверждения не отправляются, и новые пользователи не смогут
+подтвердить email. Поэтому установщик переводит регистрацию в режим «по приглашениям»
+(`--registration open` отменяет это). Администратор создаётся уже с подтверждённым email.
+Позже задайте `SMTP_URL` в `.env` и выполните `docker compose up -d api`.
+:::
+
+Обновление: `cd /opt/puls && sudo bash scripts/upgrade.sh` (делает бэкап, `git pull --ff-only`,
+пересборку). Бэкапы лежат в `/opt/puls/backups`. Логи: `docker compose logs -f api web caddy`.
+Ручная установка по шагам описана ниже.
+
 ## Требования
 
 - **Docker с плагином Compose** (команда `docker compose`).

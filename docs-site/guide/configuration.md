@@ -68,6 +68,16 @@
 | `HTTPS_PORT` | `443` | Внешний порт HTTPS (Caddy знает о нём и ведёт редирект корректно) |
 | `PUBLIC_ORIGIN` | `http://localhost` | Публичный origin основного сайта; отсюда берутся `CORS_ORIGIN`, `WEB_APP_URL` и CSP `frame-ancestors` песочницы |
 | `PUBLIC_API_URL` | `http://localhost` | Публичный адрес API — передаётся web как `NEXT_PUBLIC_API_URL` |
+| `CADDYFILE` | `Caddyfile` | Какой конфиг Caddy монтировать. `Caddyfile.http` — режим http в локальной сети без домена и сертификатов (сайт на :80, песочница на :8080) |
+| `SANDBOX_HTTP_PORT` | `8080` | Порт песочницы на хосте в режиме `Caddyfile.http` |
+| `SANDBOX_ORIGIN` | пусто (`https://SANDBOX_DOMAIN`) | Полный origin песочницы, например `http://192.168.1.50:8080`. Используется API для ссылок на страницы и передаётся web при сборке как `NEXT_PUBLIC_SANDBOX_URL` (после смены пересоберите web) |
+| `COOKIE_SECURE` | пусто | `true`/`false` — флаг Secure у cookie. Пусто: определяется по схеме `PUBLIC_ORIGIN` (https → true), иначе по `NODE_ENV=production`. По http Secure-cookie браузер отбрасывает — войти нельзя, поэтому в режиме http нужно `false` |
+
+::: warning Режим http
+`Caddyfile.http` не шифрует трафик: пароли и сессии идут открытым текстом. Используйте только
+в доверенной локальной сети. Без SMTP письма подтверждения не отправляются — оставьте
+регистрацию в режиме «по приглашениям» (или `closed`) и создавайте пользователей через админку.
+:::
 
 ## Почта (SMTP)
 
