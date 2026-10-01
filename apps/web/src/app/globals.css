@@ -117,3 +117,41 @@ h3 {
     scroll-behavior: auto !important;
   }
 }
+
+/* Конфетти при получении достижения (ТЗ §4, §8): слой поверх интерфейса,
+   чисто декоративный. При prefers-reduced-motion полностью скрывается. */
+@keyframes puls-confetti-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--puls-confetti-drift, 0), 108vh, 0) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.puls-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.puls-confetti__piece {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  animation-name: puls-confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .puls-confetti {
+    display: none;
+  }
+}

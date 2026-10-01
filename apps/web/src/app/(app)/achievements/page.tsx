@@ -1,0 +1,206 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  achievementByCode,
+  type AchievementCode,
+  type AchievementsResponse,
+} from '@puls/shared';
+import { useT } from '@/components/locale-provider';
+import { Confetti } from '@/components/confetti';
+import { Card, ProgressBar } from '@/components/ui';
+import { groupAchievements, recentlyEarnedCodes, streakProgress } from '@/lib/achievements';
+import { achievementsApi } from '@/lib/achievements-client';
+import { CHECKIN_CHANGED_EVENT } from '@/lib/checkin-client';
+import { formatDate } from '@/lib/format';
+
+/** Пиктограмма бейджа (ТЗ §8): эмодзи по коду. */
+const BADGE_EMOJI: Record<AchievementCode, string> = {
+  first_checkin: '🌱',
+  checkin_streak_7: '🔥',
+  checkin_streak_30: '🏅',
+  checkin_streak_100: '💯',
+  first_transaction: '🧾',
+  first_budget_closed: '📊',
+  first_goal: '🎯',
+  goal_half: '⛰️',
+  goal_complete: '🏆',
+};
+
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  checkins: 'achievements.group.checkins',
+  finance: 'achievements.group.finance',
+  goals: 'achievements.group.goals',
+};
+
+const CELEBRATION_MS = 3000;
+
+/** Экран достижений (ТЗ §4, §8): сетка бейджей, стрик и прогресс до награды. */
+export default function AchievementsPage() {
+  const { t, locale } = useT();
+  const [data, setData] = useState<AchievementsResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
+  const celebrated = useRef(false);
+
+  const load = useCallback(async (): Promise<void> => {
+    try {
+      const response = await achievementsApi.list();
+      setData(response);
+      setError(null);
+
+      if (!celebrated.current) {
+        const fresh = recentlyEarnedCodes(response.achievements, Date.now());
+        if (fresh.length > 0) {
+          celebrated.current = true;
+          setCelebrate(true);
+          window.setTimeout(() => setCelebrate(false), CELEBRATION_MS);
+        }
+      }
+    } catch {
+      setError(t('achievements.error'));
+    }
+  }, [t]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    function onChanged(): void {
+      void load();
+    }
+    window.addEventListener(CHECKIN_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(CHECKIN_CHANGED_EVENT, onChanged);
+  }, [load]);
+
+  const groups = useMemo(
+    () => (data ? groupAchievements(data.achievements) : []),
+    [data],
+  );
+
+  if (!data) {
+    return (
+      <div className="flex flex-col gap-4" data-testid="achievements-page">
+        <h1 className="text-3xl font-extrabold">{t('achievements.title')}</h1>
+        {error ? (
+          <p role="alert" className="text-sm text-[var(--puls-warning)]">
+            {error}
+          </p>
+        ) : (
+          <p className="text-sm text-[var(--puls-ink-muted)]">{t('common.loading')}</p>
+        )}
+      </div>
+    );
+  }
+
+  const { streak } = data;
+
+  return (
+    <div className="flex flex-col gap-5" data-testid="achievements-page">
+      {celebrate ? <Confetti /> : null}
+
+      <div>
+        <h1 className="text-3xl font-extrabold">{t('achievements.title')}</h1>
+        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('achievements.subtitle')}</p>
+      </div>
+
+      <Card>
+        <div className="flex flex-col gap-3" data-testid="achievements-streak">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-lg font-bold">{t('achievements.streak.title')}</h2>
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {streak.checkedToday
+                ? t('achievements.streak.todayDone')
+                : t('achievements.streak.todayPending')}
+            </span>
+          </div>
+
+          {streak.current > 0 ? (
+            <p className="text-2xl font-extrabold text-[var(--puls-wellbeing-text)]">
+              {streak.current === 1
+                ? t('achievements.streak.one')
+                : t('achievements.streak.current', { days: streak.current })}
+            </p>
+          ) : (
+            <p className="text-sm text-[var(--puls-ink-muted)]">{t('achievements.streak.none')}</p>
+          )}
+
+          <p className="text-xs text-[var(--puls-ink-muted)]">
+            {t('achievements.streak.longest', { days: streak.longest })}
+          </p>
+
+          {streak.nextMilestone ? (
+            <ProgressBar
+              value={Math.round(streakProgress(streak) * streak.nextMilestone.threshold)}
+              max={streak.nextMilestone.threshold}
+              label={t('achievements.streak.next', {
+                title: t(achievementByCode(streak.nextMilestone.code)?.titleKey ?? 'achievements.title'),
+                days: Math.max(0, streak.nextMilestone.threshold - Math.max(streak.current, streak.longest)),
+              })}
+            />
+          ) : null}
+        </div>
+      </Card>
+
+      {groups.map((view) => (
+        <section key={view.group} className="flex flex-col gap-3">
+          <h2 className="text-lg font-bold">{t(GROUP_LABEL_KEYS[view.group] ?? 'achievements.title')}</h2>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid={`achievements-group-${view.group}`}>
+            {view.items.map((item) => {
+              const definition = achievementByCode(item.code);
+              const emoji = BADGE_EMOJI[item.code] ?? '⭐';
+              return (
+                <li
+                  key={item.code}
+                  data-testid={`achievement-${item.code}`}
+                  data-earned={item.earned}
+                  className={`flex flex-col gap-2 rounded-[var(--radius-card)] border p-4 ${
+                    item.earned
+                      ? 'border-[var(--puls-finance)] bg-[var(--puls-surface)]'
+                      : 'border-[var(--puls-ink-muted)]/25 bg-[var(--puls-surface)] opacity-70'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden="true" className="text-2xl">
+                      {emoji}
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="font-semibold">
+                        {t(definition?.titleKey ?? 'achievements.title')}
+                      </span>
+                      <span className="text-xs text-[var(--puls-ink-muted)]">
+                        {t(definition?.descriptionKey ?? 'achievements.title')}
+                      </span>
+                    </span>
+                  </div>
+
+                  {item.earned ? (
+                    <p className="text-xs font-medium text-[var(--puls-finance-text)]">
+                      {t('achievements.earned')}
+                      {item.earnedAt
+                        ? ` · ${formatDate(item.earnedAt, locale, { dateStyle: 'medium' })}`
+                        : ''}
+                    </p>
+                  ) : definition?.threshold && definition.group === 'checkins' && item.progress > 0 ? (
+                    <ProgressBar
+                      value={Math.round(item.progress * definition.threshold)}
+                      max={definition.threshold}
+                      label={t('achievements.progress', {
+                        current: Math.round(item.progress * definition.threshold),
+                        target: definition.threshold,
+                      })}
+                    />
+                  ) : (
+                    <p className="text-xs text-[var(--puls-ink-muted)]">{t('achievements.locked')}</p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
