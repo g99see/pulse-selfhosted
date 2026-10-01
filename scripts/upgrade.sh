@@ -13,6 +13,12 @@ set -euo pipefail
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT_DIR"
 
+# Код: если каталог — git-репозиторий, подтягиваем свежую версию (только fast-forward).
+if [ -d "$ROOT_DIR/.git" ] && command -v git >/dev/null 2>&1; then
+  echo '==> Шаг 0/3: git pull --ff-only'
+  git -C "$ROOT_DIR" pull --ff-only
+fi
+
 if [ "${SKIP_BACKUP:-0}" = '1' ]; then
   echo '==> Шаг 1/3: резервная копия пропущена (SKIP_BACKUP=1)'
 else
