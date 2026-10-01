@@ -195,7 +195,7 @@ export default function CheckInPage() {
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <form
-          className="flex flex-col gap-5 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm sm:p-6"
+          className="flex min-w-0 flex-col gap-5 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm sm:p-6"
           onSubmit={(event) => void submit(event)}
         >
           <div className="flex flex-col gap-3">

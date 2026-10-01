@@ -20,7 +20,11 @@ export function MoodScale({
   size?: 'md' | 'lg';
 }) {
   const { t } = useT();
-  const dimension = size === 'lg' ? 'h-16 w-16 text-3xl' : 'h-14 w-14 text-2xl';
+  // На узких экранах кружки сжимаются (aspect-square), чтобы пять лиц всегда помещались в строку.
+  const dimension =
+    size === 'lg'
+      ? 'aspect-square w-16 min-w-0 shrink text-2xl sm:text-3xl'
+      : 'aspect-square w-14 min-w-0 shrink text-2xl';
 
   return (
     <div
