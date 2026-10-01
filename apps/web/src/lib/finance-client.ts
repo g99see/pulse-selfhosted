@@ -12,6 +12,8 @@ import type {
   CategoryCreateValues,
   CategoryDto,
   CategoryUpdateInput,
+  ExchangeRateCreateValues,
+  ExchangeRateDto,
   FinanceOverviewResponse,
   TransactionCreateValues,
   TransactionDto,
@@ -93,6 +95,16 @@ export const financeApi = {
     authFetch<BudgetDto>('/api/finance/budgets', { method: 'PUT', body: JSON.stringify(input) }),
 
   removeBudget: (id: string) => authFetch<void>(`/api/finance/budgets/${id}`, { method: 'DELETE' }),
+
+  /* ----- Курсы валют (ТЗ §3.2) ----- */
+
+  rates: (filter: { date?: string; base?: string; quote?: string } = {}) =>
+    authFetch<{ rates: ExchangeRateDto[] }>(`/api/finance/rates${query({ ...filter })}`),
+
+  upsertRate: (input: ExchangeRateCreateValues) =>
+    authFetch<ExchangeRateDto>('/api/finance/rates', { method: 'PUT', body: JSON.stringify(input) }),
+
+  removeRate: (id: string) => authFetch<void>(`/api/finance/rates/${id}`, { method: 'DELETE' }),
 };
 
 /** Событие «данные финансов изменились» — страница перечитывает сводку. */

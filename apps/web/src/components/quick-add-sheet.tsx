@@ -27,6 +27,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
   const [type, setType] = useState<TransactionKind>('expense');
   const [categoryId, setCategoryId] = useState('');
   const [accountId, setAccountId] = useState('');
+  const [currencyFilter, setCurrencyFilter] = useState('');
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,18 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
   const visibleCategories = categories.filter((category) =>
     effectiveType === 'income' ? category.kind === 'income' : category.kind === 'expense',
   );
+
+  // Валюты счетов и выбор валюты в форме транзакции (ТЗ §3.2). Валюта
+  // транзакции равна валюте выбранного счёта, поэтому выбор валюты сужает счёт.
+  const accountCurrencies = [...new Set(accounts.map((account) => account.currency))].sort();
+  const effectiveCurrency =
+    currencyFilter && accountCurrencies.includes(currencyFilter)
+      ? currencyFilter
+      : accounts.find((account) => account.id === accountId)?.currency ?? accountCurrencies[0] ?? '';
+  const visibleAccounts =
+    accountCurrencies.length > 1
+      ? accounts.filter((account) => account.currency === effectiveCurrency)
+      : accounts;
 
   async function submit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -209,21 +222,46 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         </div>
 
         {accounts.length > 1 ? (
-          <label htmlFor="quick-account" className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">{t('finance.filter.account')}</span>
-            <select
-              id="quick-account"
-              value={accountId}
-              onChange={(event) => setAccountId(event.target.value)}
-              className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base"
-            >
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="flex flex-col gap-3">
+            {accountCurrencies.length > 1 ? (
+              <label htmlFor="quick-currency" className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium">{t('finance.tx.currency')}</span>
+                <select
+                  id="quick-currency"
+                  data-testid="quick-add-currency"
+                  value={effectiveCurrency}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setCurrencyFilter(next);
+                    const match = accounts.find((account) => account.currency === next);
+                    if (match) setAccountId(match.id);
+                  }}
+                  className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base"
+                >
+                  {accountCurrencies.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <label htmlFor="quick-account" className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium">{t('finance.filter.account')}</span>
+              <select
+                id="quick-account"
+                value={accountId}
+                onChange={(event) => setAccountId(event.target.value)}
+                className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base"
+              >
+                {visibleAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         ) : null}
 
         <label htmlFor="quick-comment" className="flex flex-col gap-1.5">
