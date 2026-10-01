@@ -2,6 +2,8 @@
 
 # Пульс
 
+**Русский** · [English](README.en.md)
+
 **Self-hosted трекер личных финансов, самочувствия и достижений.**  
 Деньги, настроение, привычки и цели — в одной спокойной ленте. Ваши данные остаются на вашем сервере.
 
@@ -9,7 +11,7 @@
 [![CI](https://github.com/g99see/pulse-selfhosted/actions/workflows/ci.yml/badge.svg)](https://github.com/g99see/pulse-selfhosted/actions/workflows/ci.yml)
 ![self-hosted](https://img.shields.io/badge/self--hosted-yes-5b50c8.svg)
 
-<img src="docs/screenshots/landing.png" alt="Лендинг Пульса" width="720">
+<img src="docs/screenshots/ru/landing.png" alt="Лендинг Пульса" width="720">
 
 </div>
 
@@ -17,15 +19,15 @@
 
 |                                  Сегодня                                  |                              Финансы                               |
 | :-----------------------------------------------------------------------: | :----------------------------------------------------------------: |
-|              <img src="docs/screenshots/dashboard.png" width="420">              |            <img src="docs/screenshots/finance.png" width="420">             |
+|              <img src="docs/screenshots/ru/dashboard.png" width="420">              |            <img src="docs/screenshots/ru/finance.png" width="420">             |
 |                                Статистика                                 |                              Чек-ин                                |
-|               <img src="docs/screenshots/stats.png" width="420">               |            <img src="docs/screenshots/checkin.png" width="420">             |
+|               <img src="docs/screenshots/ru/stats.png" width="420">               |            <img src="docs/screenshots/ru/checkin.png" width="420">             |
 |                                   Цели                                    |                            Тёмная тема                             |
-|               <img src="docs/screenshots/goals.png" width="420">               |         <img src="docs/screenshots/dashboard-dark.png" width="420">         |
+|               <img src="docs/screenshots/ru/goals.png" width="420">               |         <img src="docs/screenshots/ru/dashboard-dark.png" width="420">         |
 
 <p align="center">
-  <img src="docs/screenshots/mobile-dashboard.png" alt="Мобильная версия: главная" width="240">
-  <img src="docs/screenshots/mobile-finance.png" alt="Мобильная версия: финансы" width="240">
+  <img src="docs/screenshots/ru/mobile-dashboard.png" alt="Мобильная версия: главная" width="240">
+  <img src="docs/screenshots/ru/mobile-finance.png" alt="Мобильная версия: финансы" width="240">
 </p>
 
 ## Возможности
@@ -145,6 +147,7 @@ pnpm --filter @puls/docs dev     # документация (VitePress) лока
 ```bash
 scripts/dev-run.sh start        # api и web без Docker
 node scripts/demo/seed.mjs      # нужен DATABASE_URL (в окружении, .env или ~/.config/puls/env)
+node scripts/demo/seed.mjs --locale en --currency EUR   # демо на английском и в евро
 ```
 
 Сценарий демонстрации на 10 минут — [`docs/PRESENTATION.md`](docs/PRESENTATION.md). Автозапуск без Docker через systemd — [`deploy/systemd/`](deploy/systemd/).
@@ -182,20 +185,3 @@ deploy/systemd/          пользовательские systemd-юниты
 
 **AGPL-3.0-or-later** — см. [`LICENSE`](LICENSE). Если вы запускаете изменённую версию как публичный сервис,
 вы обязаны открыть свои изменения. Пользовательский контент (HTML-страницы, тексты) лицензией кода не покрывается.
-
-## In English
-
-**Puls** ("Pulse") is a self-hosted personal finance, wellbeing and achievements tracker: budgets and
-transactions, 5-second mood check-ins, habits, savings goals, streaks, a small social layer, and an optional
-AI assistant that uses your own API key (Anthropic, OpenAI, OpenRouter or local Ollama). Stack: Next.js 15,
-NestJS, Prisma, PostgreSQL, Valkey, Docker Compose, Caddy. The UI is in Russian and English.
-
-Install on Debian 12/13 or Ubuntu 22.04/24.04:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash
-```
-
-Options: `--domain`, `--sandbox-domain`, `--email` for HTTPS, or `--http --host <ip>` for LAN. Update with
-`sudo /opt/puls/scripts/upgrade.sh`. Manual setup: [`docs-site/guide/installation.md`](docs-site/guide/installation.md).
-Licensed under AGPL-3.0-or-later. Contributions: [`CONTRIBUTING.md`](CONTRIBUTING.md); security: [`SECURITY.md`](SECURITY.md).
