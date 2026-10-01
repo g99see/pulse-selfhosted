@@ -16,6 +16,7 @@ const NAV: Array<{ key: string; href: string | null; testId?: string }> = [
   { key: 'app.nav.finance', href: '/finance' },
   { key: 'app.nav.add', href: null },
   { key: 'app.nav.stats', href: '/stats' },
+  { key: 'app.nav.habits', href: '/habits' },
   { key: 'app.nav.insights', href: '/insights' },
   { key: 'app.nav.achievements', href: '/achievements' },
   { key: 'app.nav.feed', href: '/feed' },

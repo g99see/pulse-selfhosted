@@ -13,6 +13,7 @@ import {
   type Mood,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { HabitsToday } from '@/components/habits-today';
 import { MetricScale, MoodScale } from '@/components/mood-scale';
 import { VoiceInputButton } from '@/components/voice-input-button';
 import { formatDate } from '@/lib/format';
@@ -351,6 +352,10 @@ export default function CheckInPage() {
           </p>
         ) : null}
       </form>
+
+      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm" data-testid="checkin-habits">
+        <HabitsToday />
+      </section>
 
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t('checkin.history')}</h2>

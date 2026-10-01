@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CheckInDto, Mood, StreakDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
+import { HabitsToday } from '@/components/habits-today';
 import { MoodScale } from '@/components/mood-scale';
 import { Card } from '@/components/ui';
 import { recentlyEarnedCodes } from '@/lib/achievements';
@@ -132,6 +133,8 @@ export function CheckInCard() {
             {error}
           </p>
         ) : null}
+
+        <HabitsToday />
 
         <Link
           href="/checkin"
