@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Схема Prisma для «Пульса». Фаза 0: минимальный срез сущностей из ТЗ §7
+// (User + CheckIn), чтобы проверить миграции и подключение к PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  nickname     String   @unique
+  timezone     String   @default("UTC")
+  currency     String   @default("RUB")
+  locale       String   @default("ru")
+  twoFaEnabled Boolean  @default(false) @map("two_fa_enabled")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  checkIns CheckIn[]
+
+  @@map("users")
+}
+
+model CheckIn {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mood       Int
+  energy     Int?
+  stress     Int?
+  sleepHours Float?   @map("sleep_hours")
+  tags       String[] @default([])
+  note       String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("check_ins")
+}

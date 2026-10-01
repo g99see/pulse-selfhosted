@@ -1,0 +1,40 @@
+{
+  "name": "@puls/api",
+  "version": "0.1.0",
+  "description": "REST API «Пульса» (NestJS + Prisma + PostgreSQL).",
+  "license": "AGPL-3.0-or-later",
+  "private": true,
+  "scripts": {
+    "build": "prisma generate && nest build",
+    "start": "node dist/main.js",
+    "dev": "prisma generate && nest start --watch",
+    "test": "vitest run",
+    "test:smoke": "vitest run --config vitest.smoke.config.mts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint src test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.1.2",
+    "@nestjs/core": "^12.1.2",
+    "@nestjs/platform-express": "^12.1.2",
+    "@prisma/client": "6.19.3",
+    "@puls/shared": "workspace:*",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^12.0.8",
+    "@nestjs/schematics": "^12.0.4",
+    "@nestjs/testing": "^12.1.2",
+    "@types/express": "^5.0.5",
+    "@types/node": "^26.6.3",
+    "@types/supertest": "^6.0.3",
+    "prisma": "6.19.3",
+    "supertest": "^7.3.0",
+    "vitest": "^4.1.11"
+  }
+}
