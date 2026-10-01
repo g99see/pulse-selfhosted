@@ -31,6 +31,10 @@ model User {
   onboardingStep       Int       @default(0) @map("onboarding_step")
   onboardingCompletedAt DateTime? @map("onboarding_completed_at")
 
+  // Расписание чек-инов (ТЗ §3.3): 3 раза в день по умолчанию, настраивается 1–6.
+  checkinTimesPerDay Int      @default(3) @map("checkin_times_per_day")
+  checkinTimes       String[] @default(["09:00", "15:00", "21:00"]) @map("checkin_times")
+
   twoFaEnabled Boolean  @default(false) @map("two_fa_enabled")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -42,6 +46,8 @@ model User {
   categories         Category[]
   transactions       Transaction[]
   budgets            Budget[]
+  notificationRules  NotificationRule[]
+  pushSubscriptions  PushSubscription[]
 
   @@map("users")
 }
@@ -104,10 +110,19 @@ model CheckIn {
   energy     Int?
   stress     Int?
   sleepHours Float?   @map("sleep_hours")
+  water      Int?
+  steps      Int?
   tags       String[] @default([])
   note       String?
+  /// Вечерний итог дня — одна строка (ТЗ §3.3).
+  daySummary String?  @map("day_summary")
+  /// Провал дня: morning / day / evening.
+  slot       String?
+  /// Фактический момент чек-ина; заполнение задним числом — до 24 часов (ТЗ §3.3).
+  occurredAt DateTime @default(now()) @map("occurred_at")
   createdAt  DateTime @default(now()) @map("created_at")
 
+  @@index([userId, occurredAt])
   @@index([userId, createdAt])
   @@map("check_ins")
 }
