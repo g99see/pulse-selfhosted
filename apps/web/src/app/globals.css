@@ -5,8 +5,13 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-heading: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Семейства собираются из self-hosted сабсетов (см. app/layout.tsx). */
+  --font-sans:
+    var(--font-inter-cyrillic), var(--font-inter-latin), ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --font-heading:
+    var(--font-manrope-cyrillic), var(--font-manrope-latin), var(--font-inter-cyrillic),
+    var(--font-inter-latin), ui-sans-serif, system-ui, sans-serif;
   --radius-card: 16px;
   --radius-button: 12px;
   --radius-chip: 999px;

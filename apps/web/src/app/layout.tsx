@@ -2,6 +2,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { cookies } from 'next/headers';
+import localFont from 'next/font/local';
 import { LocaleProvider } from '@/components/locale-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { t } from '@/lib/i18n';
@@ -14,6 +15,65 @@ import {
   themeInitScript,
 } from '@/lib/theme';
 import './globals.css';
+
+/**
+ * Шрифты self-hosted (ТЗ §8): Manrope для заголовков, Inter для текста.
+ * Файлы лежат в public/fonts (их кладёт `pnpm fonts:sync` из @fontsource),
+ * поэтому ни сборка, ни браузер не обращаются к fonts.googleapis.com.
+ * Кириллица и латиница — отдельные сабсеты с unicode-range, поэтому браузер
+ * качает только то, что реально нужно странице.
+ * Значения unicode-range заданы литералами: next/font не принимает переменные.
+ */
+const interCyrillic = localFont({
+  src: '../../public/fonts/inter-cyrillic-wght-normal.woff2',
+  display: 'swap',
+  variable: '--font-inter-cyrillic',
+  declarations: [
+    { prop: 'unicode-range', value: 'U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116' },
+  ],
+});
+
+const interLatin = localFont({
+  src: '../../public/fonts/inter-latin-wght-normal.woff2',
+  display: 'swap',
+  variable: '--font-inter-latin',
+  declarations: [
+    {
+      prop: 'unicode-range',
+      value:
+        'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD',
+    },
+  ],
+});
+
+const manropeCyrillic = localFont({
+  src: '../../public/fonts/manrope-cyrillic-wght-normal.woff2',
+  display: 'swap',
+  variable: '--font-manrope-cyrillic',
+  declarations: [
+    { prop: 'unicode-range', value: 'U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116' },
+  ],
+});
+
+const manropeLatin = localFont({
+  src: '../../public/fonts/manrope-latin-wght-normal.woff2',
+  display: 'swap',
+  variable: '--font-manrope-latin',
+  declarations: [
+    {
+      prop: 'unicode-range',
+      value:
+        'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD',
+    },
+  ],
+});
+
+const FONT_VARIABLES = [
+  interCyrillic.variable,
+  interLatin.variable,
+  manropeCyrillic.variable,
+  manropeLatin.variable,
+].join(' ');
 
 export const viewport: Viewport = {
   themeColor: [
@@ -43,17 +103,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html
       lang={locale}
-      className={serverTheme === 'dark' ? DARK_CLASS : undefined}
+      className={`${FONT_VARIABLES} ${serverTheme === 'dark' ? DARK_CLASS : ''}`.trim()}
       suppressHydrationWarning
     >
       <head>
-        {/* Шрифты по ТЗ §8: Manrope для заголовков, Inter для текста. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
-        />
         {/* Тема до первой отрисовки — без вспышки неверной палитры (ТЗ §8). */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
       </head>
