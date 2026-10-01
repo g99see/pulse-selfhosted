@@ -7,9 +7,24 @@ import { LOCALE_NAMES } from '@/lib/locale';
 
 const LOCALES: Locale[] = ['ru', 'en'];
 
-/** Переключатель языка (ТЗ §6): радиогруппа доступна с клавиатуры. */
-export function LocaleSwitcher({ className = '' }: { className?: string }) {
+/**
+ * Переключатель языка (ТЗ §6): радиогруппа доступна с клавиатуры.
+ * `reloadOnChange` нужен на серверных экранах (лендинг): там текст рендерит
+ * сервер, поэтому после смены языка страницу нужно перезапросить.
+ */
+export function LocaleSwitcher({
+  className = '',
+  reloadOnChange = false,
+}: {
+  className?: string;
+  reloadOnChange?: boolean;
+}) {
   const { locale, setLocale, t } = useT();
+
+  function choose(next: Locale): void {
+    setLocale(next);
+    if (reloadOnChange) window.location.reload();
+  }
 
   return (
     <fieldset className={`flex flex-col gap-2 ${className}`}>
@@ -31,7 +46,7 @@ export function LocaleSwitcher({ className = '' }: { className?: string }) {
               name="puls-locale"
               value={item}
               checked={locale === item}
-              onChange={() => setLocale(item)}
+              onChange={() => choose(item)}
               className="sr-only"
             />
             {LOCALE_NAMES[item]}

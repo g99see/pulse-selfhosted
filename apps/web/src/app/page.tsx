@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { moodAverage } from '@puls/shared';
 import Link from 'next/link';
+import { LocaleSwitcher } from '@/components/locale-switcher';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { API_BASE_URL, healthUrl } from '@/lib/api';
 import { budgetLevel } from '@/lib/budget';
 import { formatMoneyLocale } from '@/lib/format';
@@ -97,6 +99,19 @@ export default async function LandingPage() {
         <p className="mt-2 text-sm text-[var(--puls-ink-muted)]">
           {t('landing.phase.apiBase', locale, { base: API_BASE_URL })}
         </p>
+      </section>
+
+      <section
+        aria-labelledby="appearance-heading"
+        className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6"
+      >
+        <h2 id="appearance-heading" className="text-xl font-bold">
+          {t('settings.appearance', locale)}
+        </h2>
+        <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:gap-10">
+          <ThemeToggle />
+          <LocaleSwitcher reloadOnChange />
+        </div>
       </section>
 
       <footer className="text-sm text-[var(--puls-ink-muted)]">

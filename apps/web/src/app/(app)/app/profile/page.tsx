@@ -3,9 +3,10 @@
 
 import { useT } from '@/components/locale-provider';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Card } from '@/components/ui';
 
-/** Профиль и настройки: пока язык и установка PWA (ТЗ §7, §8). */
+/** Профиль и настройки: тема, язык и установка PWA (ТЗ §7, §8). */
 export default function ProfileSettingsPage() {
   const { t } = useT();
 
@@ -15,6 +16,7 @@ export default function ProfileSettingsPage() {
 
       <Card className="flex flex-col gap-5">
         <h2 className="text-lg font-bold">{t('settings.appearance')}</h2>
+        <ThemeToggle />
         <LocaleSwitcher />
       </Card>
     </div>
