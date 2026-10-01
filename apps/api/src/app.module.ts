@@ -27,6 +27,7 @@ import { ShareModule } from './share/share.module';
 import { SocialModule } from './social/social.module';
 import { StatsModule } from './stats/stats.module';
 import { TelegramModule } from './telegram/telegram.module';
+import { WrappedModule } from './wrapped/wrapped.module';
 import { WidgetsModule } from './widgets/widgets.module';
 
 @Module({
@@ -40,8 +41,8 @@ import { WidgetsModule } from './widgets/widgets.module';
     FinanceModule,
     RecurringModule,
     GoalsModule,
-    ChallengesModule,
     HabitsModule,
+    ChallengesModule,
     CheckinsModule,
     CapsulesModule,
     FamilyModule,
@@ -59,8 +60,7 @@ import { WidgetsModule } from './widgets/widgets.module';
     SocialModule,
     ApiAccessModule,
     WidgetsModule,
+    WrappedModule,
   ],
 })
 export class AppModule {}
-import { WrappedModule } from './wrapped/wrapped.module';
-    WrappedModule,

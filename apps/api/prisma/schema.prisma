@@ -119,16 +119,17 @@ model User {
   /// Капсулы времени пользователя (ТЗ §4, P2).
   timeCapsules         TimeCapsule[]
 
-  /// Привычки пользователя (ТЗ §4, P2).
-  habits               Habit[]
-  /// Отметки привычек по дням (ТЗ §4, P2).
-  habitLogs            HabitLog[]
   /// Челленджи, созданные пользователем (ТЗ §4, P2).
   ownedChallenges      Challenge[]          @relation("ChallengeOwner")
   /// Участие пользователя в челленджах (ТЗ §4).
   challengeParticipations ChallengeParticipant[]
   /// Ежедневные отметки «держусь» (ТЗ §4).
   challengeChecks      ChallengeCheck[]
+
+  /// Привычки пользователя (ТЗ §4, P2).
+  habits               Habit[]
+  /// Отметки привычек по дням (ТЗ §4, P2).
+  habitLogs            HabitLog[]
 
   @@map("users")
 }
@@ -1122,46 +1123,26 @@ model FamilyGoalDeposit {
   @@map("family_goal_deposits")
 }
 
-/// Привычка (ТЗ §4, P2): вода, спорт, чтение. goal_type = daily — цель каждый
-/// день; weekly — per_week раз в неделю. archived прячет привычку в архив,
-/// не удаляя историю отметок.
-model Habit {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  /// Иконка — эмодзи из пресета (файлы не загружаются).
-  icon      String   @default("✅")
-  /// daily | weekly.
-  goalType  String   @default("daily") @map("goal_type")
-  /// Сколько раз в неделю для weekly (1–7); у daily не используется.
-  perWeek   Int      @default(1) @map("per_week")
-  archived  Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+/// Капсула времени (ТЗ §4, P2): письмо себе, которое открывается в заданный
+/// момент вместе со снимком статистики за период [created_at, open_at]. Тело
+/// хранится зашифрованным (SecretBox, суффикс *_encrypted), пока капсула
+/// закрыта — API отдаёт только метаданные (title, open_at).
+model TimeCapsule {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  /// Тело письма, зашифрованное AES-256-GCM (см. crypto/secret-box.ts).
+  bodyEncrypted String    @map("body_encrypted")
+  /// Снимок статистики за период [created_at, open_at], заполняется при открытии.
+  snapshot      Json?
+  openAt        DateTime  @map("open_at")
+  openedAt      DateTime? @map("opened_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
 
-  logs HabitLog[]
-
-  @@index([userId])
-  @@map("habits")
-}
-
-/// Отметка привычки за день (ТЗ §4, P2): пара (habit_id, date) уникальна —
-/// повторная отметка идемпотентна. done = false снимает отметку.
-model HabitLog {
-  id        String   @id @default(cuid())
-  habitId   String   @map("habit_id")
-  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date      DateTime @db.Date
-  done      Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([habitId, date])
-  @@index([userId, date])
-  @@map("habit_logs")
+  @@index([userId, openAt])
+  @@index([openedAt])
+  @@map("time_capsules")
 }
 
 /// Челлендж (ТЗ §4, P2): «30 дней без доставки», «Неделя без импульсных
@@ -1223,24 +1204,44 @@ model ChallengeCheck {
   @@map("challenge_checks")
 }
 
-/// Капсула времени (ТЗ §4, P2): письмо себе, которое открывается в заданный
-/// момент вместе со снимком статистики за период [created_at, open_at]. Тело
-/// хранится зашифрованным (SecretBox, суффикс *_encrypted), пока капсула
-/// закрыта — API отдаёт только метаданные (title, open_at).
-model TimeCapsule {
-  id            String    @id @default(cuid())
-  userId        String    @map("user_id")
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title         String
-  /// Тело письма, зашифрованное AES-256-GCM (см. crypto/secret-box.ts).
-  bodyEncrypted String    @map("body_encrypted")
-  /// Снимок статистики за период [created_at, open_at], заполняется при открытии.
-  snapshot      Json?
-  openAt        DateTime  @map("open_at")
-  openedAt      DateTime? @map("opened_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
+/// Привычка (ТЗ §4, P2): вода, спорт, чтение. goal_type = daily — цель каждый
+/// день; weekly — per_week раз в неделю. archived прячет привычку в архив,
+/// не удаляя историю отметок.
+model Habit {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  /// Иконка — эмодзи из пресета (файлы не загружаются).
+  icon      String   @default("✅")
+  /// daily | weekly.
+  goalType  String   @default("daily") @map("goal_type")
+  /// Сколько раз в неделю для weekly (1–7); у daily не используется.
+  perWeek   Int      @default(1) @map("per_week")
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([userId, openAt])
-  @@index([openedAt])
-  @@map("time_capsules")
+  logs HabitLog[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+/// Отметка привычки за день (ТЗ §4, P2): пара (habit_id, date) уникальна —
+/// повторная отметка идемпотентна. done = false снимает отметку.
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String   @map("habit_id")
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  done      Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+  @@map("habit_logs")
 }
