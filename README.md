@@ -139,6 +139,27 @@ scripts/restore.sh backups/backup-....tar.gz --migrate
 Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN` и поддомена песочницы
 `$SANDBOX_DOMAIN`. Миграции применяются контейнером `api` при старте.
 
+## Демо
+
+Быстрый запуск демо-стенда с готовыми данными:
+
+```bash
+scripts/dev-run.sh start          # поднять api (3001) и web (3000) для демо
+# загрузить демо-данные (демо-пользователь, транзакции, чек-ины, цели, семья, посты)
+# скрипт seed из scripts/demo/ — точную команду см. в scripts/demo/
+```
+
+Логин и пароль демо-пользователя seed записывает в `~/.config/puls/demo-credentials`.
+
+Автозапуск после перезагрузки — systemd **user**-юниты в [`deploy/systemd/`](deploy/systemd/):
+
+```bash
+systemctl --user enable --now puls-dev-run.service   # имя юнита — см. deploy/systemd/
+systemctl --user status puls-dev-run.service
+```
+
+Пошаговый сценарий демонстрации на 10 минут по экранам — [`docs/PRESENTATION.md`](docs/PRESENTATION.md).
+
 ## Лицензия
 
 Код распространяется по **AGPL-3.0-or-later**. Если вы запускаете изменённую версию как
