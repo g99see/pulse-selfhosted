@@ -55,7 +55,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
         type="button"
         data-testid="quick-add-open"
         onClick={() => setAddOpen(true)}
-        className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 py-3 text-center font-semibold text-white"
+        className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 py-3 text-center font-semibold text-[var(--puls-on-primary)]"
       >
         {t(item.key)}
       </button>

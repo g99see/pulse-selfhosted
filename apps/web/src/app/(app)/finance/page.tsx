@@ -222,7 +222,7 @@ export default function FinancePage() {
           <button
             type="submit"
             disabled={busy}
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-white disabled:opacity-50"
+            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
           >
             {t('finance.account.add')}
           </button>
@@ -401,7 +401,7 @@ export default function FinancePage() {
           <button
             type="submit"
             disabled={busy}
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-white disabled:opacity-50"
+            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
           >
             {t('finance.budget.add')}
           </button>

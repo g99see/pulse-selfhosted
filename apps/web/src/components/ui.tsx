@@ -79,7 +79,7 @@ export function PrimaryButton({
   return (
     <button
       {...props}
-      className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {children}
     </button>

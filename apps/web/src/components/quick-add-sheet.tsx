@@ -251,7 +251,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
           type="submit"
           data-testid="quick-add-submit"
           disabled={busy}
-          className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-white disabled:opacity-50"
+          className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
         >
           {t('finance.quick.submit')}
         </button>
