@@ -160,7 +160,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
         data-testid={item.testId}
         aria-current={active ? 'page' : undefined}
         className={`flex items-center gap-3 rounded-[var(--radius-button)] px-3 font-medium transition-colors duration-150 ${
-          compact ? 'py-3' : 'py-2.5'
+          compact ? 'py-3' : 'py-2'
         } ${
           active
             ? 'bg-[var(--puls-primary-soft)] text-[var(--puls-primary-text)]'
@@ -176,7 +176,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const groupList = (compact: boolean) =>
     groups.map((group) => (
       <div key={group.key} className="flex flex-col gap-0.5">
-        <p className="px-3 pt-4 pb-1.5 text-xs font-semibold tracking-wide text-[var(--puls-ink-muted)] uppercase">
+        <p className="px-3 pt-3.5 pb-1 text-[11px] font-semibold tracking-wider text-[var(--puls-ink-muted)] uppercase">
           {t(group.key)}
         </p>
         {group.items.map((item) => renderLink(item, compact))}
@@ -190,7 +190,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   return (
     <div className="puls-backdrop min-h-screen md:flex">
       {/* Десктоп: боковое меню с логотипом, «Добавить» и группами разделов. */}
-      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:overflow-y-auto md:px-4 md:py-6">
+      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:overflow-y-auto md:px-4 md:py-5">
         <Link href="/app" className="mb-5 flex items-center gap-2.5 px-3">
           <Logo size={34} />
           <span className="font-heading text-xl font-extrabold">{t('brand.name')}</span>
