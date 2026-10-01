@@ -27,13 +27,14 @@ else
 fi
 
 echo '==> Шаг 2/3: обновляю образы'
-if ! docker compose pull; then
-  echo '    pull не удался — собираю образы локально'
-  docker compose build
-fi
+# Сторонние образы (postgres, valkey, caddy) — pull; api и web собираются из
+# исходников. Раньше build запускался только при ошибке pull, а pull для
+# сервисов со `build:` молча успешен — новый код в образы не попадал.
+docker compose pull --ignore-buildable || echo '    pull сторонних образов не удался — продолжаю с локальными'
+docker compose build api web
 
 echo '==> Шаг 3/3: применяю обновление'
-docker compose up -d
+docker compose up -d --remove-orphans
 
 echo
 echo 'Готово. Миграции Prisma применены контейнером api при старте.'
