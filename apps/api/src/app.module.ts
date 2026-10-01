@@ -8,6 +8,7 @@ import { ApiAccessModule } from './api-access/api-access.module';
 import { AuthModule } from './auth/auth.module';
 import { ExternalAuthModule } from './auth/external/external-auth.module';
 import { CheckinsModule } from './checkins/checkins.module';
+import { FamilyModule } from './family/family.module';
 import { FinanceModule } from './finance/finance.module';
 import { GoalsModule } from './goals/goals.module';
 import { HealthModule } from './health/health.module';
@@ -35,6 +36,7 @@ import { TelegramModule } from './telegram/telegram.module';
     RecurringModule,
     GoalsModule,
     CheckinsModule,
+    FamilyModule,
     NotificationsModule,
     StatsModule,
     AccountModule,
