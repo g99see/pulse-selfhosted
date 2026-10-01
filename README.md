@@ -144,18 +144,26 @@ Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN
 Быстрый запуск демо-стенда с готовыми данными:
 
 ```bash
-scripts/dev-run.sh start          # поднять api (3001) и web (3000) для демо
-# загрузить демо-данные (демо-пользователь, транзакции, чек-ины, цели, семья, посты)
-# скрипт seed из scripts/demo/ — точную команду см. в scripts/demo/
+# 1. Поднять api (:3001) и web (:3000) без Docker:
+scripts/dev-run.sh start
+
+# 2. Загрузить демо-данные (идемпотентно): демо-пользователь demo, ~90 дней
+#    транзакций и чек-инов, цели, привычки, семья, профиль, челлендж.
+. ~/.config/hermes/puls-test.env && node scripts/demo/seed.mjs
 ```
 
-Логин и пароль демо-пользователя seed записывает в `~/.config/puls/demo-credentials`.
+Скрипт seed создаёт демо-пользователя `demo@puls.local` (ник `demo`) и второго
+пользователя `friend` для подписки и семьи. Пароли он записывает в
+`~/.config/puls/demo-credentials` (права 600) — в репозиторий они не попадают.
 
-Автозапуск после перезагрузки — systemd **user**-юниты в [`deploy/systemd/`](deploy/systemd/):
+Автозапуск после перезагрузки — systemd **user**-юниты в [`deploy/systemd/`](deploy/systemd/)
+(инструкция — в `deploy/systemd/README.md`):
 
 ```bash
-systemctl --user enable --now puls-dev-run.service   # имя юнита — см. deploy/systemd/
-systemctl --user status puls-dev-run.service
+cp deploy/systemd/puls-*.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now puls-api.service puls-web.service
+sudo loginctl enable-linger "$USER"   # старт без входа в систему
 ```
 
 Пошаговый сценарий демонстрации на 10 минут по экранам — [`docs/PRESENTATION.md`](docs/PRESENTATION.md).
