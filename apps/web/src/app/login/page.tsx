@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { LoginSchema, isTwoFactorRequired } from '@puls/shared';
+import { AuthShell } from '@/components/auth-shell';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
 import { ProviderButtons } from '@/components/provider-buttons';
 import { SetupGuard } from '@/components/setup-guard';
@@ -70,13 +71,10 @@ export default function LoginPage() {
   }
 
   return (
-    <main id="content" className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
+    <AuthShell brand={t('landing.brand')}>
       <SetupGuard />
-      <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary-text)]">
-          ← {t('app.nav.home')}
-        </Link>
-        <h1 className="text-3xl font-extrabold">{t('auth.login.title')}</h1>
+      <header className="flex flex-col gap-2 text-center">
+        <h1 className="font-heading text-3xl font-extrabold">{t('auth.login.title')}</h1>
         <p className="text-[var(--puls-ink-muted)]">{t('auth.login.subtitle')}</p>
       </header>
 
@@ -152,6 +150,9 @@ export default function LoginPage() {
           {t('auth.login.goRegister')}
         </Link>
       </p>
-    </main>
+    <Link href="/" className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]">
+        ← {t('app.nav.home')}
+      </Link>
+    </AuthShell>
   );
 }

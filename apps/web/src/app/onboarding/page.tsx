@@ -12,8 +12,10 @@ import {
   type OnboardingInputValues,
   type ProfileVisibility,
 } from '@puls/shared';
+import { AuthShell } from '@/components/auth-shell';
+import { type IconName } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
-import { Alert, Card, Field, PrimaryButton, ProgressBar, Select } from '@/components/ui';
+import { Alert, Card, Field, GhostButton, IconBubble, PrimaryButton, ProgressBar, Select } from '@/components/ui';
 import { AuthApiError, authApi } from '@/lib/auth-client';
 import { authErrorKey } from '@/lib/i18n';
 import { LOCALE_NAMES } from '@/lib/locale';
@@ -23,6 +25,13 @@ const GOALS: GoalKind[] = ['money', 'health', 'habits'];
 const VISIBILITIES: ProfileVisibility[] = ['private', 'subscribers', 'public'];
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const LOCALES: Locale[] = ['ru', 'en'];
+const STEP_ICONS: IconName[] = ['wallet', 'sparkle', 'target', 'home'];
+const STEP_TONES: Array<'finance' | 'primary' | 'wellbeing' | 'warning'> = [
+  'finance',
+  'primary',
+  'wellbeing',
+  'finance',
+];
 
 /** Курированный список зон + текущая — без расхождений гидрации. */
 const TIMEZONES = [
@@ -137,12 +146,9 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main
-      id="content"
-      className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 px-5 py-10"
-    >
+    <AuthShell brand={t('landing.brand')} align="top">
       <header className="flex flex-col gap-3">
-        <h1 className="text-2xl font-extrabold">{t('auth.onboarding.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('auth.onboarding.title')}</h1>
         <ProgressBar
           value={step}
           max={TOTAL_STEPS}
@@ -151,9 +157,12 @@ export default function OnboardingPage() {
       </header>
 
       <Card>
-        <h2 className="mb-4 text-xl font-bold" data-testid={`onboarding-step-${step}`}>
-          {stepTitle}
-        </h2>
+        <div className="mb-5 flex items-center gap-3">
+          <IconBubble name={STEP_ICONS[step - 1]} tone={STEP_TONES[step - 1]} size={44} />
+          <h2 className="font-heading text-xl font-bold" data-testid={`onboarding-step-${step}`}>
+            {stepTitle}
+          </h2>
+        </div>
 
         {step === 1 ? (
           <div className="flex flex-col gap-4">
@@ -307,13 +316,13 @@ export default function OnboardingPage() {
 
       <div className="flex gap-3">
         {step > 1 ? (
-          <button
+          <GhostButton
             type="button"
             onClick={() => setStep((current) => Math.max(1, current - 1))}
-            className="h-12 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
+            className="flex-1"
           >
             {t('common.back')}
-          </button>
+          </GhostButton>
         ) : null}
 
         {step < TOTAL_STEPS ? (
@@ -337,6 +346,6 @@ export default function OnboardingPage() {
           </PrimaryButton>
         )}
       </div>
-    </main>
+    </AuthShell>
   );
 }

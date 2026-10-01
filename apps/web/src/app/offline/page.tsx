@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { AuthShell } from '@/components/auth-shell';
+import { Card, EmptyState } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/locale-server';
 
@@ -14,18 +16,23 @@ export default async function OfflinePage() {
   const locale = await getRequestLocale();
 
   return (
-    <main
-      id="content"
-      className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center gap-4 px-5 py-10 text-center"
-    >
-      <h1 className="text-2xl font-extrabold">{t('offline.title', locale)}</h1>
-      <p className="text-[var(--puls-ink-muted)]">{t('offline.body', locale)}</p>
-      <Link
-        href="/app"
-        className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 py-3 font-semibold text-[var(--puls-on-primary)] transition-opacity duration-150 hover:opacity-90"
-      >
-        {t('offline.home', locale)}
-      </Link>
-    </main>
+    <AuthShell brand={t('landing.brand', locale)}>
+      <Card>
+        <EmptyState
+          icon="pulse"
+          tone="primary"
+          title={<span className="text-2xl font-extrabold">{t('offline.title', locale)}</span>}
+          text={t('offline.body', locale)}
+          action={
+            <Link
+              href="/app"
+              className="inline-flex h-12 items-center rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] transition-opacity duration-150 hover:opacity-95"
+            >
+              {t('offline.home', locale)}
+            </Link>
+          }
+        />
+      </Card>
+    </AuthShell>
   );
 }

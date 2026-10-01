@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 import { SetupSchema, type RegistrationMode } from '@puls/shared';
+import { AuthShell } from '@/components/auth-shell';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
 import { useT } from '@/components/locale-provider';
 import { AuthApiError } from '@/lib/auth-client';
@@ -77,25 +78,22 @@ export default function SetupPage() {
 
   if (phase === 'checking') {
     return (
-      <main id="content" className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-5">
-        <p className="text-[var(--puls-ink-muted)]" data-testid="setup-checking">
+      <AuthShell brand={t('landing.brand')}>
+        <p className="text-center text-[var(--puls-ink-muted)]" data-testid="setup-checking">
           {t('setup.checking')}
         </p>
-      </main>
+      </AuthShell>
     );
   }
 
   if (phase === 'already') {
     return (
-      <main
-        id="content"
-        className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10"
-      >
-        <header className="flex flex-col gap-2">
-          <p className="text-sm font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
+      <AuthShell brand={t('landing.brand')}>
+        <header className="flex flex-col gap-2 text-center">
+          <p className="mx-auto w-fit rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 text-xs font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
             {t('setup.badge')}
           </p>
-          <h1 className="text-3xl font-extrabold" data-testid="setup-already">
+          <h1 className="font-heading text-3xl font-extrabold" data-testid="setup-already">
             {t('setup.already.title')}
           </h1>
         </header>
@@ -111,18 +109,15 @@ export default function SetupPage() {
         >
           {t('setup.already.login')}
         </Link>
-      </main>
+      </AuthShell>
     );
   }
 
   if (phase === 'done') {
     return (
-      <main
-        id="content"
-        className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10"
-      >
-        <header className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold" data-testid="setup-done">
+      <AuthShell brand={t('landing.brand')}>
+        <header className="flex flex-col gap-2 text-center">
+          <h1 className="font-heading text-3xl font-extrabold" data-testid="setup-done">
             {t('setup.done.title')}
           </h1>
         </header>
@@ -133,20 +128,17 @@ export default function SetupPage() {
         >
           {t('setup.done.login')}
         </Link>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main
-      id="content"
-      className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10"
-    >
-      <header className="flex flex-col gap-2">
-        <p className="text-sm font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
+    <AuthShell brand={t('landing.brand')}>
+      <header className="flex flex-col gap-2 text-center">
+        <p className="mx-auto w-fit rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 text-xs font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
           {t('setup.badge')}
         </p>
-        <h1 className="text-3xl font-extrabold">{t('setup.title')}</h1>
+        <h1 className="font-heading text-3xl font-extrabold">{t('setup.title')}</h1>
         <p className="text-[var(--puls-ink-muted)]">{t('setup.subtitle')}</p>
       </header>
 
@@ -192,6 +184,6 @@ export default function SetupPage() {
           </PrimaryButton>
         </form>
       </Card>
-    </main>
+    </AuthShell>
   );
 }
