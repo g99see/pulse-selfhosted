@@ -101,6 +101,28 @@ export interface NotificationEmail {
   link?: string;
 }
 
+/** Данные напоминания о регулярном платеже (ТЗ §3.2). */
+export interface RecurringReminderInfo {
+  name: string;
+  /** Уже отформатированная сумма с валютой, например «30 000 ₽». */
+  amount: string;
+  /** Локальная дата списания, YYYY-MM-DD. */
+  dueDate: string;
+}
+
+/** Напоминание за день до списания регулярного платежа (ТЗ §3.2). */
+export function buildRecurringReminder(info: RecurringReminderInfo): {
+  title: string;
+  body: string;
+  url: string;
+} {
+  return {
+    title: 'Скоро регулярный платёж',
+    body: `${info.name}: ${info.amount}, списание ${info.dueDate}. Проверьте, что на счёте хватает денег.`,
+    url: '/app/finance',
+  };
+}
+
 /** Письмо-уведомление по типу (ТЗ §3.6, канал email). */
 export function buildNotificationEmail(
   type: NotificationType,

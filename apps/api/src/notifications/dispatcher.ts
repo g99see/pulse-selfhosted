@@ -4,12 +4,19 @@
  * пользователя (просроченные удаляются), email — через существующий MailService.
  */
 import { Injectable, Logger } from '@nestjs/common';
-import type { NotificationType } from '@puls/shared';
+import type { NotificationChannel, NotificationType } from '@puls/shared';
 import { MailService } from '../auth/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { moodKeyboard } from '../telegram/commands';
+import { TelegramService } from '../telegram/telegram.service';
 import type { DueDelivery } from './due';
-import { buildNotificationEmail, buildPushPayload } from './messages';
-import { PushService } from './push.service';
+import {
+  buildNotificationEmail,
+  buildPushPayload,
+  buildRecurringReminder,
+  type RecurringReminderInfo,
+} from './messages';
+import { PushService, type PushPayload } from './push.service';
 
 export interface DeliveryContext {
   now: Date;
@@ -29,11 +36,15 @@ export class NotificationDispatcher implements DeliveryDispatcher {
     private readonly prisma: PrismaService,
     private readonly push: PushService,
     private readonly mail: MailService,
+    private readonly telegram: TelegramService,
   ) {}
 
   async dispatch(delivery: DueDelivery, context: DeliveryContext): Promise<boolean> {
     if (delivery.channel === 'email') {
       return this.sendEmail(delivery.type, context);
+    }
+    if (delivery.channel === 'telegram') {
+      return this.sendTelegram(delivery, context);
     }
     return this.sendPush(delivery, context);
   }
@@ -48,15 +59,64 @@ export class NotificationDispatcher implements DeliveryDispatcher {
   }
 
   private async sendPush(delivery: DueDelivery, context: DeliveryContext): Promise<boolean> {
-    const subscriptions = await this.prisma.pushSubscription.findMany({
-      where: { userId: delivery.userId },
-    });
-    if (subscriptions.length === 0) return false;
-
     const payload = buildPushPayload(delivery.type, {
       now: context.now,
       timezone: context.timezone,
     });
+    return this.deliverPush(delivery.userId, payload);
+  }
+
+  /**
+   * Канал telegram (ТЗ §3.6): отправка в привязанный чат. Чек-ин-вопрос несёт
+   * inline-кнопки 1–5, чтобы ответить прямо из сообщения (ТЗ §3.3).
+   */
+  private async sendTelegram(delivery: DueDelivery, context: DeliveryContext): Promise<boolean> {
+    const payload = buildPushPayload(delivery.type, {
+      now: context.now,
+      timezone: context.timezone,
+    });
+    const buttons = delivery.type === 'checkins' ? moodKeyboard() : undefined;
+    return this.telegram.sendToUser(
+      delivery.userId,
+      `${payload.title}\n${payload.body}`,
+      buttons,
+    );
+  }
+
+  /**
+   * Напоминание о конкретном регулярном платеже за день до списания (ТЗ §3.2).
+   * Канал берётся из правил пользователя; текст — из buildRecurringReminder.
+   */
+  async sendRecurringReminder(
+    userId: string,
+    context: DeliveryContext & { channel: NotificationChannel },
+    info: RecurringReminderInfo,
+  ): Promise<boolean> {
+    const reminder = buildRecurringReminder(info);
+    if (context.channel === 'email') {
+      await this.mail.sendNotification(context.email, {
+        subject: `Пульс: ${reminder.title}`,
+        text: `${reminder.title}\n\n${reminder.body}`,
+        kind: 'notification:payments',
+        link: reminder.url,
+      });
+      return true;
+    }
+    const payload: PushPayload = {
+      type: 'payments',
+      title: reminder.title,
+      body: reminder.body,
+      data: { url: reminder.url },
+    };
+    return this.deliverPush(userId, payload);
+  }
+
+  /** Отправляет payload по всем подпискам пользователя, удаляя просроченные. */
+  private async deliverPush(userId: string, payload: PushPayload): Promise<boolean> {
+    const subscriptions = await this.prisma.pushSubscription.findMany({
+      where: { userId },
+    });
+    if (subscriptions.length === 0) return false;
 
     let delivered = false;
     for (const subscription of subscriptions) {
