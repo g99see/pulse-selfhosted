@@ -77,7 +77,7 @@ export function MetricScale({
   return (
     <fieldset className="flex flex-col gap-2" data-testid={testId}>
       <legend className="text-sm font-medium">{labels.legend}</legend>
-      <div className="flex gap-2">
+      <div className="flex gap-1 rounded-[var(--radius-chip)] bg-[var(--puls-surface-2)] p-1">
         {MOOD_SCALE.map((level) => {
           const active = value === level;
           return (
@@ -88,21 +88,18 @@ export function MetricScale({
               aria-label={labels.option(level)}
               disabled={disabled}
               onClick={() => onChange(level)}
-              className="h-11 flex-1 rounded-[var(--radius-button)] border text-sm font-semibold transition-colors duration-150 disabled:opacity-60"
-              style={{
-                borderColor: active ? 'var(--puls-primary)' : 'color-mix(in srgb, var(--puls-ink-muted) 30%, transparent)',
-                backgroundColor: active ? 'var(--puls-primary)' : 'transparent',
-                color: active ? 'var(--puls-on-primary)' : 'inherit',
-              }}
+              className={`h-10 flex-1 rounded-[var(--radius-chip)] text-sm font-semibold transition-colors duration-150 disabled:opacity-60 ${
+                active
+                  ? 'bg-[var(--puls-wellbeing-soft)] text-[var(--puls-wellbeing-text)] shadow-sm ring-2 ring-[var(--puls-wellbeing)]'
+                  : 'text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface)]'
+              }`}
             >
               {level}
             </button>
           );
         })}
       </div>
-      <span className="text-xs text-[var(--puls-ink-muted)]">
-        {t('checkin.scale.hint')}
-      </span>
+      <span className="text-xs text-[var(--puls-ink-muted)]">{t('checkin.scale.hint')}</span>
     </fieldset>
   );
 }

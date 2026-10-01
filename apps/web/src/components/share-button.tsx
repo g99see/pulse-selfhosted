@@ -4,11 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ShareCardFormat, ShareCardType } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import {
-  fetchShareCardPng,
-  shareCardFilename,
-  type ShareCardRequest,
-} from '@/lib/share-client';
+import { fetchShareCardPng, shareCardFilename, type ShareCardRequest } from '@/lib/share-client';
 
 export interface ShareButtonProps {
   type: ShareCardType;
@@ -24,7 +20,11 @@ export interface ShareButtonProps {
 function canShareFiles(file: File): boolean {
   if (typeof navigator === 'undefined') return false;
   const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
-  return typeof nav.share === 'function' && typeof nav.canShare === 'function' && nav.canShare({ files: [file] });
+  return (
+    typeof nav.share === 'function' &&
+    typeof nav.canShare === 'function' &&
+    nav.canShare({ files: [file] })
+  );
 }
 
 /**
@@ -123,7 +123,7 @@ export function ShareButton({ type, id, shareText, label, className }: ShareButt
         onClick={() => setOpen(true)}
         className={
           className ??
-          'h-9 rounded-[var(--radius-button)] border border-[var(--puls-primary)] px-3 text-xs font-semibold text-[var(--puls-primary-text)]'
+          'h-9 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-xs font-semibold text-[var(--puls-primary-text)] transition-colors hover:opacity-90'
         }
       >
         {label ?? t('share.button')}
@@ -179,7 +179,11 @@ export function ShareButton({ type, id, shareText, label, className }: ShareButt
                 </p>
               ) : null}
               {status === 'error' ? (
-                <p role="alert" className="text-sm text-[var(--puls-warning-text)]" data-testid="share-error">
+                <p
+                  role="alert"
+                  className="text-sm text-[var(--puls-warning-text)]"
+                  data-testid="share-error"
+                >
                   {t('share.error')}
                 </p>
               ) : null}
@@ -215,7 +219,7 @@ export function ShareButton({ type, id, shareText, label, className }: ShareButt
                   event.preventDefault();
                   download();
                 }}
-                className="flex h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)]"
+                className="flex h-11 items-center justify-center rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)]"
               >
                 {t('share.download')}
               </a>

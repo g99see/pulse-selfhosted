@@ -2,14 +2,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  achievementByCode,
-  type AchievementCode,
-  type AchievementsResponse,
-} from '@puls/shared';
+import { achievementByCode, type AchievementCode, type AchievementsResponse } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
-import { Card, ProgressBar } from '@/components/ui';
+import { Card, IconBubble, ProgressBar } from '@/components/ui';
 import { ShareButton } from '@/components/share-button';
 import { groupAchievements, recentlyEarnedCodes, streakProgress } from '@/lib/achievements';
 import { achievementsApi } from '@/lib/achievements-client';
@@ -76,10 +72,7 @@ export default function AchievementsPage() {
     return () => window.removeEventListener(CHECKIN_CHANGED_EVENT, onChanged);
   }, [load]);
 
-  const groups = useMemo(
-    () => (data ? groupAchievements(data.achievements) : []),
-    [data],
-  );
+  const groups = useMemo(() => (data ? groupAchievements(data.achievements) : []), [data]);
 
   if (!data) {
     return (
@@ -102,9 +95,12 @@ export default function AchievementsPage() {
     <div className="flex flex-col gap-5" data-testid="achievements-page">
       {celebrate ? <Confetti /> : null}
 
-      <div>
-        <h1 className="text-3xl font-extrabold">{t('achievements.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('achievements.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="trophy" tone="wellbeing" size={44} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('achievements.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('achievements.subtitle')}</p>
+        </div>
       </div>
 
       <Card>
@@ -119,7 +115,7 @@ export default function AchievementsPage() {
           </div>
 
           {streak.current > 0 ? (
-            <p className="text-2xl font-extrabold text-[var(--puls-wellbeing-text)]">
+            <p className="w-fit rounded-[var(--radius-chip)] bg-[var(--puls-wellbeing-soft)] px-4 py-1.5 text-2xl font-extrabold text-[var(--puls-wellbeing-text)]">
               {streak.current === 1
                 ? t('achievements.streak.one')
                 : t('achievements.streak.current', { days: streak.current })}
@@ -142,8 +138,13 @@ export default function AchievementsPage() {
               value={Math.round(streakProgress(streak) * streak.nextMilestone.threshold)}
               max={streak.nextMilestone.threshold}
               label={t('achievements.streak.next', {
-                title: t(achievementByCode(streak.nextMilestone.code)?.titleKey ?? 'achievements.title'),
-                days: Math.max(0, streak.nextMilestone.threshold - Math.max(streak.current, streak.longest)),
+                title: t(
+                  achievementByCode(streak.nextMilestone.code)?.titleKey ?? 'achievements.title',
+                ),
+                days: Math.max(
+                  0,
+                  streak.nextMilestone.threshold - Math.max(streak.current, streak.longest),
+                ),
               })}
             />
           ) : null}
@@ -152,8 +153,13 @@ export default function AchievementsPage() {
 
       {groups.map((view) => (
         <section key={view.group} className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold">{t(GROUP_LABEL_KEYS[view.group] ?? 'achievements.title')}</h2>
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid={`achievements-group-${view.group}`}>
+          <h2 className="text-lg font-bold">
+            {t(GROUP_LABEL_KEYS[view.group] ?? 'achievements.title')}
+          </h2>
+          <ul
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            data-testid={`achievements-group-${view.group}`}
+          >
             {view.items.map((item) => {
               const definition = achievementByCode(item.code);
               const emoji = BADGE_EMOJI[item.code] ?? '⭐';
@@ -162,18 +168,27 @@ export default function AchievementsPage() {
                   key={item.code}
                   data-testid={`achievement-${item.code}`}
                   data-earned={item.earned}
-                  className={`flex flex-col gap-2 rounded-[var(--radius-card)] border p-4 ${
+                  className={`flex flex-col items-center gap-3 rounded-[var(--radius-card)] p-5 text-center ${
                     item.earned
-                      ? 'border-[var(--puls-finance)] bg-[var(--puls-surface)]'
-                      : 'border-[var(--puls-line)] bg-[var(--puls-surface)] opacity-70'
+                      ? 'bg-[var(--puls-wellbeing-soft)] shadow-sm'
+                      : 'bg-[var(--puls-surface-2)] text-[var(--puls-ink-muted)]'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span aria-hidden="true" className="text-2xl">
+                  <div className="flex flex-col items-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl ${
+                        item.earned
+                          ? 'bg-[var(--puls-surface)] shadow-sm'
+                          : 'bg-[var(--puls-line)] opacity-60 grayscale'
+                      }`}
+                    >
                       {emoji}
                     </span>
-                    <span className="flex flex-col">
-                      <span className="font-semibold">
+                    <span className="flex flex-col gap-0.5">
+                      <span
+                        className={`font-semibold ${item.earned ? 'text-[var(--puls-ink)]' : ''}`}
+                      >
                         {t(definition?.titleKey ?? 'achievements.title')}
                       </span>
                       <span className="text-xs text-[var(--puls-ink-muted)]">
@@ -184,7 +199,7 @@ export default function AchievementsPage() {
 
                   {item.earned ? (
                     <>
-                      <p className="text-xs font-medium text-[var(--puls-finance-text)]">
+                      <p className="text-xs font-semibold text-[var(--puls-wellbeing-text)]">
                         {t('achievements.earned')}
                         {item.earnedAt
                           ? ` · ${formatDate(item.earnedAt, locale, { dateStyle: 'medium' })}`
@@ -198,17 +213,23 @@ export default function AchievementsPage() {
                         })}
                       />
                     </>
-                  ) : definition?.threshold && definition.group === 'checkins' && item.progress > 0 ? (
-                    <ProgressBar
-                      value={Math.round(item.progress * definition.threshold)}
-                      max={definition.threshold}
-                      label={t('achievements.progress', {
-                        current: Math.round(item.progress * definition.threshold),
-                        target: definition.threshold,
-                      })}
-                    />
+                  ) : definition?.threshold &&
+                    definition.group === 'checkins' &&
+                    item.progress > 0 ? (
+                    <div className="w-full">
+                      <ProgressBar
+                        value={Math.round(item.progress * definition.threshold)}
+                        max={definition.threshold}
+                        label={t('achievements.progress', {
+                          current: Math.round(item.progress * definition.threshold),
+                          target: definition.threshold,
+                        })}
+                      />
+                    </div>
                   ) : (
-                    <p className="text-xs text-[var(--puls-ink-muted)]">{t('achievements.locked')}</p>
+                    <p className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('achievements.locked')}
+                    </p>
                   )}
                 </li>
               );

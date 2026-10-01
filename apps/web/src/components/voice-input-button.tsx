@@ -118,12 +118,16 @@ export function VoiceInputButton({
         aria-pressed={listening}
         aria-label={label}
         onClick={() => (listening ? recognitionRef.current?.stop() : start())}
-        className="rounded-[var(--radius-chip)] border border-[var(--puls-primary)] px-3 py-1.5 text-xs font-semibold text-[var(--puls-primary-text)]"
+        className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3.5 py-1.5 text-xs font-semibold text-[var(--puls-primary-text)]"
       >
         {listening ? t('checkin.voice.stop') : t('checkin.voice.start')}
       </button>
       {error ? (
-        <span role="alert" data-testid={`${testId}-error`} className="text-xs text-[var(--puls-warning-text)]">
+        <span
+          role="alert"
+          data-testid={`${testId}-error`}
+          className="text-xs text-[var(--puls-warning-text)]"
+        >
           {t('checkin.voice.error')}
         </span>
       ) : null}

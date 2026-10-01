@@ -2,10 +2,15 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import type { InsightDto, InsightFeedback, InsightsFeedResponse, SupportResourceDto } from '@puls/shared';
+import type {
+  InsightDto,
+  InsightFeedback,
+  InsightsFeedResponse,
+  SupportResourceDto,
+} from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
-import { Card, GhostButton, PrimaryButton } from '@/components/ui';
+import { Badge, Card, EmptyState, GhostButton, IconBubble, PrimaryButton } from '@/components/ui';
 import { FINANCE_CHANGED_EVENT, notifyFinanceChanged } from '@/lib/finance-client';
 import { formatDate, formatMoneyLocale, formatNumber } from '@/lib/format';
 import { insightsApi } from '@/lib/insights-client';
@@ -57,7 +62,10 @@ export default function InsightsPage() {
   function patchInsight(updated: InsightDto): void {
     setFeed((current) =>
       current
-        ? { ...current, insights: current.insights.map((item) => (item.id === updated.id ? updated : item)) }
+        ? {
+            ...current,
+            insights: current.insights.map((item) => (item.id === updated.id ? updated : item)),
+          }
         : current,
     );
   }
@@ -66,8 +74,10 @@ export default function InsightsPage() {
     const params: Record<string, string | number> = { ...insight.params };
     if (typeof params.amount === 'number')
       params.amount = quiet ? MASKED_AMOUNT : formatMoneyLocale(params.amount, locale, CURRENCY);
-    if (typeof params.percent === 'number') params.percent = formatNumber(params.percent, locale, { maximumFractionDigits: 1 });
-    if (typeof params.delta === 'number') params.delta = formatNumber(params.delta, locale, { maximumFractionDigits: 1 });
+    if (typeof params.percent === 'number')
+      params.percent = formatNumber(params.percent, locale, { maximumFractionDigits: 1 });
+    if (typeof params.delta === 'number')
+      params.delta = formatNumber(params.delta, locale, { maximumFractionDigits: 1 });
     return t(insight.textKey, params);
   }
 
@@ -102,9 +112,12 @@ export default function InsightsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-3xl font-extrabold">{t('insights.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('insights.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="sparkle" tone="primary" size={44} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('insights.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('insights.subtitle')}</p>
+        </div>
       </div>
 
       {error ? (
@@ -126,9 +139,9 @@ export default function InsightsPage() {
 
       {!loading && insights.length === 0 ? (
         <Card>
-          <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="insights-empty">
-            {t('insights.empty')}
-          </p>
+          <div data-testid="insights-empty">
+            <EmptyState icon="sparkle" tone="primary" title={t('insights.empty')} />
+          </div>
         </Card>
       ) : null}
 
@@ -138,9 +151,9 @@ export default function InsightsPage() {
             <li key={insight.id} data-testid="insight-card" data-insight-type={insight.type}>
               <Card className="flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs uppercase tracking-wide text-[var(--puls-ink-muted)]">
+                  <Badge tone={insight.source === 'weekly' ? 'primary' : 'wellbeing'}>
                     {insight.source === 'weekly' ? t('insights.week') : t('insights.rule')}
-                  </span>
+                  </Badge>
                   <span className="text-xs text-[var(--puls-ink-muted)]">
                     {formatDate(insight.createdAt, locale, { day: '2-digit', month: 'short' })}
                   </span>
@@ -156,7 +169,7 @@ export default function InsightsPage() {
                         data-testid="insight-feedback-useful"
                         disabled={busyId === insight.id}
                         onClick={() => void rate(insight, 'useful')}
-                        className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                        className="rounded-[var(--radius-chip)] bg-[var(--puls-surface-2)] px-3.5 py-1.5 text-sm font-semibold hover:bg-[var(--puls-primary-soft)] hover:text-[var(--puls-primary-text)] disabled:opacity-50"
                       >
                         {t('insights.feedback.useful')}
                       </button>
@@ -165,13 +178,16 @@ export default function InsightsPage() {
                         data-testid="insight-feedback-not-useful"
                         disabled={busyId === insight.id}
                         onClick={() => void rate(insight, 'not_useful')}
-                        className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                        className="rounded-[var(--radius-chip)] bg-[var(--puls-surface-2)] px-3.5 py-1.5 text-sm font-semibold hover:bg-[var(--puls-primary-soft)] hover:text-[var(--puls-primary-text)] disabled:opacity-50"
                       >
                         {t('insights.feedback.notUseful')}
                       </button>
                     </>
                   ) : (
-                    <span className="text-sm text-[var(--puls-ink-muted)]" data-testid="insight-feedback-given">
+                    <span
+                      className="text-sm text-[var(--puls-ink-muted)]"
+                      data-testid="insight-feedback-given"
+                    >
                       {insight.feedback === 'useful'
                         ? t('insights.feedback.useful')
                         : t('insights.feedback.notUseful')}
@@ -189,7 +205,10 @@ export default function InsightsPage() {
                     </PrimaryButton>
                   ) : null}
                   {insight.appliedAt !== null ? (
-                    <span className="text-sm text-[var(--puls-finance-text)]" data-testid="insight-applied">
+                    <span
+                      className="text-sm text-[var(--puls-finance-text)]"
+                      data-testid="insight-applied"
+                    >
                       {t('insights.applied')}
                     </span>
                   ) : null}
@@ -219,17 +238,33 @@ function SupportSection({ resources }: { resources: SupportResourceDto[] }) {
   if (resources.length === 0) return null;
 
   return (
-    <Card className="flex flex-col gap-3" data-testid="insights-support">
-      <h2 className="text-lg font-bold">{t('insights.support.title')}</h2>
+    <div
+      data-testid="insights-support"
+      className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-wellbeing-soft)] p-5 sm:p-6"
+    >
+      <div className="flex items-center gap-3">
+        <IconBubble name="shield" tone="wellbeing" size={36} />
+        <h2 className="text-lg font-bold text-[var(--puls-wellbeing-text)]">
+          {t('insights.support.title')}
+        </h2>
+      </div>
       <p className="text-sm text-[var(--puls-ink-muted)]">{t('insights.support.hint')}</p>
       <ul className="flex flex-col gap-3">
         {resources.map((resource) => (
-          <li key={resource.country} className="flex flex-col gap-1">
+          <li
+            key={resource.country}
+            className="flex flex-col gap-1 rounded-[18px] bg-[var(--puls-surface)] p-4"
+          >
             <span className="font-medium">{t(resource.nameKey)}</span>
-            <span className="text-sm text-[var(--puls-ink-muted)]">{t(resource.descriptionKey)}</span>
+            <span className="text-sm text-[var(--puls-ink-muted)]">
+              {t(resource.descriptionKey)}
+            </span>
             <span className="flex flex-wrap gap-3 text-sm">
               {resource.phone ? (
-                <a href={`tel:${resource.phone.replace(/[^+\d]/g, '')}`} className="font-medium text-[var(--puls-primary-text)]">
+                <a
+                  href={`tel:${resource.phone.replace(/[^+\d]/g, '')}`}
+                  className="font-medium text-[var(--puls-primary-text)]"
+                >
                   {resource.phone}
                 </a>
               ) : null}
@@ -247,6 +282,6 @@ function SupportSection({ resources }: { resources: SupportResourceDto[] }) {
           </li>
         ))}
       </ul>
-    </Card>
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { WrappedResponse } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Money } from '@/components/money';
-import { Card } from '@/components/ui';
+import { IconBubble } from '@/components/ui';
 import { formatDate, formatNumber } from '@/lib/format';
 import { wrappedApi } from '@/lib/wrapped-client';
 
@@ -15,6 +15,19 @@ interface Slide {
   key: string;
   node: ReactNode;
 }
+
+/** Мягкие пастельные фоны слайдов в цветах областей; текст — основные чернила (AA на светлых и тёмных токенах). */
+const SLIDE_BG: Record<string, string> = {
+  cover: 'linear-gradient(160deg, var(--puls-primary-soft), var(--puls-wellbeing-soft))',
+  empty: 'var(--puls-surface)',
+  money: 'linear-gradient(160deg, var(--puls-finance-soft), var(--puls-surface))',
+  categories: 'linear-gradient(160deg, var(--puls-primary-soft), var(--puls-surface))',
+  days: 'linear-gradient(160deg, var(--puls-warning-soft), var(--puls-surface))',
+  mood: 'linear-gradient(160deg, var(--puls-wellbeing-soft), var(--puls-surface))',
+  checkins: 'linear-gradient(160deg, var(--puls-wellbeing-soft), var(--puls-primary-soft))',
+  goals: 'linear-gradient(160deg, var(--puls-finance-soft), var(--puls-primary-soft))',
+  share: 'linear-gradient(160deg, var(--puls-primary-soft), var(--puls-finance-soft))',
+};
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -82,7 +95,9 @@ export default function WrappedPage() {
             <p className="text-sm font-semibold uppercase tracking-wide text-[var(--puls-primary-text)]">
               {t('wrapped.cover.tagline')}
             </p>
-            <p className="text-6xl font-extrabold [font-variant-numeric:tabular-nums]">{data.year}</p>
+            <p className="text-6xl font-extrabold [font-variant-numeric:tabular-nums]">
+              {data.year}
+            </p>
             <p className="text-lg text-[var(--puls-ink-muted)]">{t('wrapped.cover.subtitle')}</p>
           </div>
         ),
@@ -141,7 +156,10 @@ export default function WrappedPage() {
           ) : (
             <ol className="flex flex-col gap-3" data-testid="wrapped-categories">
               {data.topCategories.map((category, index) => (
-                <li key={category.categoryId ?? 'none'} className="flex items-center justify-between gap-3">
+                <li
+                  key={category.categoryId ?? 'none'}
+                  className="flex items-center justify-between gap-3"
+                >
                   <span className="flex items-center gap-2">
                     <span className="text-2xl font-extrabold text-[var(--puls-primary-text)]">
                       {index + 1}
@@ -170,7 +188,9 @@ export default function WrappedPage() {
           <h2 className="text-xl font-bold">{t('wrapped.day.title')}</h2>
           {data.mostExpensiveDay ? (
             <div className="flex flex-col gap-1">
-              <p className="text-sm text-[var(--puls-ink-muted)]">{t('wrapped.day.mostExpensive')}</p>
+              <p className="text-sm text-[var(--puls-ink-muted)]">
+                {t('wrapped.day.mostExpensive')}
+              </p>
               <p className="text-lg font-bold">
                 {formatDate(data.mostExpensiveDay.day, locale, { day: 'numeric', month: 'long' })}
               </p>
@@ -204,7 +224,10 @@ export default function WrappedPage() {
           {data.avgMood === null ? (
             <p className="text-[var(--puls-ink-muted)]">{t('wrapped.mood.none')}</p>
           ) : (
-            <p className="text-5xl font-extrabold [font-variant-numeric:tabular-nums]" data-testid="wrapped-mood">
+            <p
+              className="text-5xl font-extrabold [font-variant-numeric:tabular-nums]"
+              data-testid="wrapped-mood"
+            >
               {number(data.avgMood)}
             </p>
           )}
@@ -233,7 +256,10 @@ export default function WrappedPage() {
       node: (
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-bold">{t('wrapped.checkins.title')}</h2>
-          <p className="text-5xl font-extrabold [font-variant-numeric:tabular-nums]" data-testid="wrapped-checkins">
+          <p
+            className="text-5xl font-extrabold [font-variant-numeric:tabular-nums]"
+            data-testid="wrapped-checkins"
+          >
             {number(data.checkins)}
           </p>
           <p className="text-[var(--puls-ink-muted)]">
@@ -334,13 +360,24 @@ export default function WrappedPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-extrabold">{t('wrapped.title')}</h1>
-        <Link href="/stats" className="text-sm font-medium text-[var(--puls-primary-text)]" data-testid="wrapped-to-stats">
+        <div className="flex items-center gap-3">
+          <IconBubble name="sparkle" tone="primary" size={44} />
+          <h1 className="text-3xl font-extrabold">{t('wrapped.title')}</h1>
+        </div>
+        <Link
+          href="/stats"
+          className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 py-2 text-sm font-semibold text-[var(--puls-primary-text)]"
+          data-testid="wrapped-to-stats"
+        >
           {t('stats.title')}
         </Link>
       </div>
 
-      <div className="flex items-center justify-center gap-3" role="group" aria-label={t('wrapped.year.label')}>
+      <div
+        className="flex items-center justify-center gap-3"
+        role="group"
+        aria-label={t('wrapped.year.label')}
+      >
         <button
           type="button"
           data-testid="wrapped-year-prev"
@@ -348,7 +385,7 @@ export default function WrappedPage() {
             setSlide(0);
             setYear((value) => value - 1);
           }}
-          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1 text-sm"
+          className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-4 py-1.5 text-sm font-semibold shadow-sm"
         >
           {t('wrapped.year.prev')}
         </button>
@@ -363,7 +400,7 @@ export default function WrappedPage() {
             setSlide(0);
             setYear((value) => value + 1);
           }}
-          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1 text-sm disabled:opacity-40"
+          className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-4 py-1.5 text-sm font-semibold shadow-sm disabled:opacity-40"
         >
           {t('wrapped.year.next')}
         </button>
@@ -382,7 +419,10 @@ export default function WrappedPage() {
       ) : null}
 
       {data && current ? (
-        <Card className="flex min-h-72 flex-col gap-6">
+        <div
+          className="flex min-h-80 flex-col gap-6 rounded-[32px] p-6 shadow-sm sm:p-8"
+          style={{ background: SLIDE_BG[current.key] ?? SLIDE_BG.cover }}
+        >
           <div
             role="group"
             aria-roledescription={t('wrapped.slide.role')}
@@ -405,7 +445,7 @@ export default function WrappedPage() {
               data-testid="wrapped-prev"
               disabled={slide === 0}
               onClick={() => go(slide - 1)}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-40"
+              className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-5 py-2 text-sm font-semibold shadow-sm disabled:opacity-40"
             >
               {t('common.back')}
             </button>
@@ -417,12 +457,12 @@ export default function WrappedPage() {
               data-testid="wrapped-next"
               disabled={slide >= total - 1}
               onClick={() => go(slide + 1)}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-40"
+              className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-5 py-2 text-sm font-semibold shadow-sm disabled:opacity-40"
             >
               {t('common.next')}
             </button>
           </div>
-        </Card>
+        </div>
       ) : null}
     </div>
   );
