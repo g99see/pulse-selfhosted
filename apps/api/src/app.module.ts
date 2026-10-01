@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { AccountModule } from './account/account.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { AiAssistantModule } from './ai-assistant/ai-assistant.module';
 import { AiModule } from './ai/ai.module';
 import { AuthModule } from './auth/auth.module';
 import { ExternalAuthModule } from './auth/external/external-auth.module';
@@ -37,6 +38,7 @@ import { TelegramModule } from './telegram/telegram.module';
     StatsModule,
     AccountModule,
     AchievementsModule,
+    AiAssistantModule,
     TelegramModule,
     SetupModule,
     InsightsModule,
