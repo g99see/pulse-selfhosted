@@ -12,6 +12,7 @@ import {
   type TransactionKind,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { CategoryManager } from '@/components/category-manager';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { financeApi, FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 
@@ -228,6 +229,8 @@ export default function FinancePage() {
           </button>
         </form>
       </section>
+
+      <CategoryManager categories={categories} onChanged={() => void reload()} />
 
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t('finance.transactions')}</h2>
