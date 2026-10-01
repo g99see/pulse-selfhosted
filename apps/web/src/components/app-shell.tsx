@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import type { PublicUser } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { QuickAddSheet } from '@/components/quick-add-sheet';
 import { authApi } from '@/lib/auth-client';
 import { isLocale, localeFromCookieString } from '@/lib/locale';
 
 const NAV: Array<{ key: string; href: string | null }> = [
   { key: 'app.nav.home', href: '/app' },
-  { key: 'app.nav.finance', href: null },
+  { key: 'app.nav.finance', href: '/finance' },
   { key: 'app.nav.add', href: null },
   { key: 'app.nav.stats', href: null },
   { key: 'app.nav.profile', href: '/app/profile' },
@@ -25,6 +26,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const router = useRouter();
   const [greeting, setGreeting] = useState<Greeting>('day');
   const [busy, setBusy] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -47,7 +49,17 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   }
 
   const items = NAV.map((item) =>
-    item.href ? (
+    item.key === 'app.nav.add' ? (
+      <button
+        key={item.key}
+        type="button"
+        data-testid="quick-add-open"
+        onClick={() => setAddOpen(true)}
+        className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 py-3 text-center font-semibold text-white"
+      >
+        {t(item.key)}
+      </button>
+    ) : item.href ? (
       <Link
         key={item.key}
         href={item.href}
@@ -104,6 +116,8 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
       >
         {items}
       </nav>
+
+      <QuickAddSheet open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
   );
 }
