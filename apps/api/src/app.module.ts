@@ -11,6 +11,7 @@ import { CheckinsModule } from './checkins/checkins.module';
 import { FamilyModule } from './family/family.module';
 import { FinanceModule } from './finance/finance.module';
 import { GoalsModule } from './goals/goals.module';
+import { HabitsModule } from './habits/habits.module';
 import { HealthModule } from './health/health.module';
 import { HtmlPageModule } from './html-page/html-page.module';
 import { InsightsModule } from './insights/insights.module';
@@ -36,6 +37,7 @@ import { TelegramModule } from './telegram/telegram.module';
     FinanceModule,
     RecurringModule,
     GoalsModule,
+    HabitsModule,
     CheckinsModule,
     FamilyModule,
     NotificationsModule,

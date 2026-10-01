@@ -117,6 +117,10 @@ model User {
   /// Взносы пользователя в общие цели семьи (ТЗ §4).
   familyGoalDeposits   FamilyGoalDeposit[]
 
+  /// Привычки пользователя (ТЗ §4, P2).
+  habits               Habit[]
+  /// Отметки привычек по дням (ТЗ §4, P2).
+  habitLogs            HabitLog[]
   @@map("users")
 }
 
@@ -1107,4 +1111,46 @@ model FamilyGoalDeposit {
   @@index([goalId])
   @@index([userId, date])
   @@map("family_goal_deposits")
+}
+
+/// Привычка (ТЗ §4, P2): вода, спорт, чтение. goal_type = daily — цель каждый
+/// день; weekly — per_week раз в неделю. archived прячет привычку в архив,
+/// не удаляя историю отметок.
+model Habit {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  /// Иконка — эмодзи из пресета (файлы не загружаются).
+  icon      String   @default("✅")
+  /// daily | weekly.
+  goalType  String   @default("daily") @map("goal_type")
+  /// Сколько раз в неделю для weekly (1–7); у daily не используется.
+  perWeek   Int      @default(1) @map("per_week")
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  logs HabitLog[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+/// Отметка привычки за день (ТЗ §4, P2): пара (habit_id, date) уникальна —
+/// повторная отметка идемпотентна. done = false снимает отметку.
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String   @map("habit_id")
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  done      Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+  @@map("habit_logs")
 }

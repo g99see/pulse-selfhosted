@@ -32,6 +32,10 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'budgets', entity: 'budgets', keyColumn: 'user_id', orderBy: '"month"' },
   { table: 'goals', entity: 'goals', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'goal_deposits', entity: 'goalDeposits', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Привычки (ТЗ §4, P2): название, иконка и цель — данные пользователя.
+  { table: 'habits', entity: 'habits', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Отметки привычек (ТЗ §4, P2): день и флаг — действия пользователя.
+  { table: 'habit_logs', entity: 'habitLogs', keyColumn: 'user_id', orderBy: '"date"' },
   {
     table: 'recurring_payments',
     entity: 'recurringPayments',
