@@ -2,6 +2,7 @@
 'use client';
 
 import { DataPrivacySection } from '@/components/data-privacy-section';
+import { AiKeySection } from '@/components/ai-key-section';
 import { LinkedAccountsSection } from '@/components/linked-accounts-section';
 import { TelegramSection } from '@/components/telegram-section';
 import { TwoFactorSection } from '@/components/two-factor-section';
@@ -19,6 +20,7 @@ export default function SettingsPage() {
       <h1 className="text-3xl font-extrabold">{t('settings.title')}</h1>
 
       <DataPrivacySection />
+      <AiKeySection />
       <LinkedAccountsSection />
       <TelegramSection />
       <TwoFactorSection />
