@@ -10,6 +10,7 @@ import {
 import { useT } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
 import { Card, ProgressBar } from '@/components/ui';
+import { ShareButton } from '@/components/share-button';
 import { groupAchievements, recentlyEarnedCodes, streakProgress } from '@/lib/achievements';
 import { achievementsApi } from '@/lib/achievements-client';
 import { CHECKIN_CHANGED_EVENT } from '@/lib/checkin-client';
@@ -131,6 +132,11 @@ export default function AchievementsPage() {
             {t('achievements.streak.longest', { days: streak.longest })}
           </p>
 
+          <ShareButton
+            type="checkin_streak"
+            shareText={t('share.text.streak', { days: streak.current })}
+          />
+
           {streak.nextMilestone ? (
             <ProgressBar
               value={Math.round(streakProgress(streak) * streak.nextMilestone.threshold)}
@@ -177,12 +183,21 @@ export default function AchievementsPage() {
                   </div>
 
                   {item.earned ? (
-                    <p className="text-xs font-medium text-[var(--puls-finance-text)]">
-                      {t('achievements.earned')}
-                      {item.earnedAt
-                        ? ` · ${formatDate(item.earnedAt, locale, { dateStyle: 'medium' })}`
-                        : ''}
-                    </p>
+                    <>
+                      <p className="text-xs font-medium text-[var(--puls-finance-text)]">
+                        {t('achievements.earned')}
+                        {item.earnedAt
+                          ? ` · ${formatDate(item.earnedAt, locale, { dateStyle: 'medium' })}`
+                          : ''}
+                      </p>
+                      <ShareButton
+                        type="achievement"
+                        id={item.code}
+                        shareText={t('share.text.achievement', {
+                          title: t(definition?.titleKey ?? 'achievements.title'),
+                        })}
+                      />
+                    </>
                   ) : definition?.threshold && definition.group === 'checkins' && item.progress > 0 ? (
                     <ProgressBar
                       value={Math.round(item.progress * definition.threshold)}

@@ -8,11 +8,16 @@ import { CheckinsModule } from './checkins/checkins.module';
 import { FinanceModule } from './finance/finance.module';
 import { GoalsModule } from './goals/goals.module';
 import { HealthModule } from './health/health.module';
+import { HtmlPageModule } from './html-page/html-page.module';
 import { InsightsModule } from './insights/insights.module';
+import { ModerationModule } from './moderation/moderation.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProfileModule } from './profile/profile.module';
 import { RecurringModule } from './finance/recurring.module';
 import { SetupModule } from './setup/setup.module';
+import { ShareModule } from './share/share.module';
+import { SocialModule } from './social/social.module';
 import { StatsModule } from './stats/stats.module';
 import { TelegramModule } from './telegram/telegram.module';
 
@@ -33,6 +38,11 @@ import { TelegramModule } from './telegram/telegram.module';
     TelegramModule,
     SetupModule,
     InsightsModule,
+    ProfileModule,
+    ModerationModule,
+    ShareModule,
+    HtmlPageModule,
+    SocialModule,
   ],
 })
 export class AppModule {}

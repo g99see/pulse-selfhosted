@@ -12,6 +12,7 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { ProgressRing } from '@/components/progress-ring';
+import { ShareButton } from '@/components/share-button';
 import { financeApi } from '@/lib/finance-client';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { goalsApi, notifyGoalsChanged } from '@/lib/goals-client';
@@ -342,6 +343,11 @@ export default function GoalsPage() {
                   {t('goals.milestone', { percent: milestone })}
                 </span>
               ))}
+              <ShareButton
+                type="goal_progress"
+                id={goal.id}
+                shareText={t('share.text.goal', { percent: goal.percent, title: goal.title })}
+              />
             </div>
 
             <form
