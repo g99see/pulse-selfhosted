@@ -2,6 +2,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
+const apiURL = process.env.E2E_API_URL ?? 'http://localhost:3001';
 
 export default defineConfig({
   testDir: './e2e',
@@ -15,12 +16,22 @@ export default defineConfig({
     locale: 'ru-RU',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: process.env.E2E_BASE_URL
-    ? undefined
-    : {
-        command: 'pnpm start',
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
+  // Регистрация и онбординг требуют живого API (ТЗ §7, Фаза 1.1).
+  webServer:
+    process.env.E2E_BASE_URL
+      ? undefined
+      : [
+          {
+            command: 'pnpm --filter @puls/api build && pnpm --filter @puls/api start',
+            url: `${apiURL}/health`,
+            reuseExistingServer: !process.env.CI,
+            timeout: 180_000,
+          },
+          {
+            command: 'pnpm start',
+            url: baseURL,
+            reuseExistingServer: !process.env.CI,
+            timeout: 120_000,
+          },
+        ],
 });

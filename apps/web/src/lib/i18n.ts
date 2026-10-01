@@ -1,0 +1,221 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+/**
+ * Все тексты интерфейса в одном месте (ТЗ §6: ru/en на старте, архитектура
+ * i18n для добавления языков). Компоненты берут строки только отсюда.
+ */
+import type { Locale } from '@puls/shared';
+
+export const DEFAULT_LOCALE: Locale = 'ru';
+
+export const MESSAGES: Record<Locale, Record<string, string>> = {
+  ru: {
+    'common.loading': 'Загружаем…',
+    'common.retry': 'Попробовать снова',
+    'common.back': 'Назад',
+    'common.next': 'Дальше',
+    'common.skip': 'Пропустить',
+
+    'auth.register.title': 'Создайте аккаунт',
+    'auth.register.subtitle': 'Минута — и вы внутри. Данные остаются на вашем сервере.',
+    'auth.register.email': 'Email',
+    'auth.register.password': 'Пароль',
+    'auth.register.passwordHint': 'Минимум 8 символов',
+    'auth.register.nickname': 'Никнейм',
+    'auth.register.nicknameHint': 'Латиница, цифры, дефис или подчёркивание — адрес вашего профиля',
+    'auth.register.submit': 'Зарегистрироваться',
+    'auth.register.haveAccount': 'Уже есть аккаунт?',
+    'auth.register.goLogin': 'Войти',
+    'auth.register.sent': 'Письмо с подтверждением отправлено на {email}.',
+
+    'auth.login.title': 'Вход в «Пульс»',
+    'auth.login.subtitle': 'Рады видеть снова.',
+    'auth.login.email': 'Email',
+    'auth.login.password': 'Пароль',
+    'auth.login.submit': 'Войти',
+    'auth.login.noAccount': 'Ещё нет аккаунта?',
+    'auth.login.goRegister': 'Зарегистрироваться',
+    'auth.login.unverified': 'Email не подтверждён. Проверьте почту или отправьте письмо снова.',
+
+    'auth.verify.title': 'Подтверждение email',
+    'auth.verify.checking': 'Проверяем ссылку…',
+    'auth.verify.success': 'Email подтверждён! Переходим к настройке.',
+    'auth.verify.failed': 'Ссылка недействительна или устарела.',
+    'auth.verify.needEmail': 'Введите email, и мы отправим новое письмо.',
+    'auth.verify.resend': 'Отправить письмо снова',
+    'auth.verify.resent': 'Если такой адрес есть в системе, письмо отправлено.',
+    'auth.verify.goLogin': 'К входу',
+
+    'auth.onboarding.title': 'Настроим «Пульс» под вас',
+    'auth.onboarding.step1': 'Валюта и часовой пояс',
+    'auth.onboarding.step2': 'Язык интерфейса',
+    'auth.onboarding.step3': 'Цели и напоминания',
+    'auth.onboarding.step4': 'Первый счёт',
+    'auth.onboarding.currency': 'Валюта',
+    'auth.onboarding.timezone': 'Часовой пояс',
+    'auth.onboarding.locale': 'Язык',
+    'auth.onboarding.goals': 'Что хотите наладить?',
+    'auth.onboarding.goalMoney': 'Деньги',
+    'auth.onboarding.goalHealth': 'Здоровье',
+    'auth.onboarding.goalHabits': 'Привычки',
+    'auth.onboarding.goalsHint': 'Выберите хотя бы одно направление',
+    'auth.onboarding.notifications': 'Напоминания о чек-инах',
+    'auth.onboarding.quietHours': 'Тихие часы',
+    'auth.onboarding.quietFrom': 'с',
+    'auth.onboarding.quietTo': 'до',
+    'auth.onboarding.visibility': 'Приватность профиля по умолчанию',
+    'auth.onboarding.visibilityPublic': 'Публичный',
+    'auth.onboarding.visibilitySubscribers': 'Только подписчикам',
+    'auth.onboarding.visibilityPrivate': 'Только мне',
+    'auth.onboarding.accountName': 'Название счёта',
+    'auth.onboarding.accountType': 'Тип счёта',
+    'auth.onboarding.accountCard': 'Карта',
+    'auth.onboarding.accountCash': 'Наличные',
+    'auth.onboarding.accountSavings': 'Сбережения',
+    'auth.onboarding.balance': 'Начальный остаток',
+    'auth.onboarding.finish': 'Готово, начать',
+    'auth.onboarding.progress': 'Шаг {current} из {total}',
+
+    'auth.error.generic': 'Что-то пошло не так. Попробуйте ещё раз.',
+    'auth.error.network': 'Нет связи с сервером. Проверьте подключение.',
+    'auth.error.email_taken': 'Этот email уже зарегистрирован.',
+    'auth.error.nickname_taken': 'Этот никнейм уже занят.',
+    'auth.error.invalid_credentials': 'Неверный email или пароль.',
+    'auth.error.email_not_verified': 'Подтвердите email — мы отправили ссылку письмом.',
+    'auth.error.rate_limited': 'Слишком много попыток. Попробуйте позже.',
+    'auth.error.invalid_token': 'Ссылка недействительна или устарела.',
+    'auth.error.csrf_failed': 'Сессия формы устарела. Обновите страницу.',
+    'auth.error.validation_error': 'Проверьте заполненные поля.',
+    'auth.error.unauthorized': 'Нужно войти заново.',
+
+    'auth.logout': 'Выйти',
+
+    'app.nav.home': 'Главная',
+    'app.nav.finance': 'Финансы',
+    'app.nav.add': 'Добавить',
+    'app.nav.stats': 'Статистика',
+    'app.nav.profile': 'Профиль',
+    'app.nav.soon': 'Скоро',
+    'app.greeting.morning': 'Доброе утро',
+    'app.greeting.day': 'Добрый день',
+    'app.greeting.evening': 'Добрый вечер',
+    'app.greeting.night': 'Доброй ночи',
+    'app.today.title': 'Сегодня',
+    'app.today.onboardingDone': 'Настройка завершена — можно вести финансы и чек-ины.',
+    'app.today.nextPhase': 'Финансы и чек-ины появятся в следующих шагах Фазы 1.',
+  },
+
+  en: {
+    'common.loading': 'Loading…',
+    'common.retry': 'Try again',
+    'common.back': 'Back',
+    'common.next': 'Next',
+    'common.skip': 'Skip',
+
+    'auth.register.title': 'Create your account',
+    'auth.register.subtitle': 'A minute and you are in. Your data stays on your server.',
+    'auth.register.email': 'Email',
+    'auth.register.password': 'Password',
+    'auth.register.passwordHint': 'At least 8 characters',
+    'auth.register.nickname': 'Nickname',
+    'auth.register.nicknameHint': 'Latin letters, digits, hyphen or underscore — your profile address',
+    'auth.register.submit': 'Sign up',
+    'auth.register.haveAccount': 'Already have an account?',
+    'auth.register.goLogin': 'Sign in',
+    'auth.register.sent': 'A confirmation email was sent to {email}.',
+
+    'auth.login.title': 'Sign in to Puls',
+    'auth.login.subtitle': 'Good to see you again.',
+    'auth.login.email': 'Email',
+    'auth.login.password': 'Password',
+    'auth.login.submit': 'Sign in',
+    'auth.login.noAccount': 'No account yet?',
+    'auth.login.goRegister': 'Sign up',
+    'auth.login.unverified': 'Email is not verified. Check your inbox or resend the email.',
+
+    'auth.verify.title': 'Email confirmation',
+    'auth.verify.checking': 'Checking the link…',
+    'auth.verify.success': 'Email confirmed! Moving on to setup.',
+    'auth.verify.failed': 'The link is invalid or expired.',
+    'auth.verify.needEmail': 'Enter your email and we will send a new letter.',
+    'auth.verify.resend': 'Resend the email',
+    'auth.verify.resent': 'If the address exists, the email has been sent.',
+    'auth.verify.goLogin': 'Go to sign in',
+
+    'auth.onboarding.title': 'Set up Puls for you',
+    'auth.onboarding.step1': 'Currency and time zone',
+    'auth.onboarding.step2': 'Interface language',
+    'auth.onboarding.step3': 'Goals and reminders',
+    'auth.onboarding.step4': 'First account',
+    'auth.onboarding.currency': 'Currency',
+    'auth.onboarding.timezone': 'Time zone',
+    'auth.onboarding.locale': 'Language',
+    'auth.onboarding.goals': 'What do you want to improve?',
+    'auth.onboarding.goalMoney': 'Money',
+    'auth.onboarding.goalHealth': 'Health',
+    'auth.onboarding.goalHabits': 'Habits',
+    'auth.onboarding.goalsHint': 'Pick at least one direction',
+    'auth.onboarding.notifications': 'Check-in reminders',
+    'auth.onboarding.quietHours': 'Quiet hours',
+    'auth.onboarding.quietFrom': 'from',
+    'auth.onboarding.quietTo': 'to',
+    'auth.onboarding.visibility': 'Default profile privacy',
+    'auth.onboarding.visibilityPublic': 'Public',
+    'auth.onboarding.visibilitySubscribers': 'Subscribers only',
+    'auth.onboarding.visibilityPrivate': 'Only me',
+    'auth.onboarding.accountName': 'Account name',
+    'auth.onboarding.accountType': 'Account type',
+    'auth.onboarding.accountCard': 'Card',
+    'auth.onboarding.accountCash': 'Cash',
+    'auth.onboarding.accountSavings': 'Savings',
+    'auth.onboarding.balance': 'Starting balance',
+    'auth.onboarding.finish': 'Done, start',
+    'auth.onboarding.progress': 'Step {current} of {total}',
+
+    'auth.error.generic': 'Something went wrong. Please try again.',
+    'auth.error.network': 'Cannot reach the server. Check your connection.',
+    'auth.error.email_taken': 'This email is already registered.',
+    'auth.error.nickname_taken': 'This nickname is taken.',
+    'auth.error.invalid_credentials': 'Wrong email or password.',
+    'auth.error.email_not_verified': 'Confirm your email — we sent you a link.',
+    'auth.error.rate_limited': 'Too many attempts. Try again later.',
+    'auth.error.invalid_token': 'The link is invalid or expired.',
+    'auth.error.csrf_failed': 'The form session expired. Reload the page.',
+    'auth.error.validation_error': 'Please check the fields.',
+    'auth.error.unauthorized': 'Please sign in again.',
+
+    'auth.logout': 'Sign out',
+
+    'app.nav.home': 'Home',
+    'app.nav.finance': 'Finance',
+    'app.nav.add': 'Add',
+    'app.nav.stats': 'Stats',
+    'app.nav.profile': 'Profile',
+    'app.nav.soon': 'Soon',
+    'app.greeting.morning': 'Good morning',
+    'app.greeting.day': 'Good afternoon',
+    'app.greeting.evening': 'Good evening',
+    'app.greeting.night': 'Good night',
+    'app.today.title': 'Today',
+    'app.today.onboardingDone': 'Setup is done — you can track money and check-ins.',
+    'app.today.nextPhase': 'Finance and check-ins arrive in the next Phase 1 steps.',
+  },
+};
+
+/** Перевод по ключу с подстановкой {placeholders}. */
+export function t(
+  key: string,
+  locale: Locale = DEFAULT_LOCALE,
+  params: Record<string, string | number> = {},
+): string {
+  const dictionary = MESSAGES[locale] ?? MESSAGES[DEFAULT_LOCALE];
+  const template = dictionary[key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    params[name] === undefined ? match : String(params[name]),
+  );
+}
+
+/** Код ошибки API → ключ перевода (используется формами). */
+export function authErrorKey(code: string): string {
+  const known = `auth.error.${code}`;
+  return known in MESSAGES[DEFAULT_LOCALE] ? known : 'auth.error.generic';
+}

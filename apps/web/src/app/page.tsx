@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { formatMoney, moodAverage } from '@puls/shared';
+import Link from 'next/link';
 import { budgetLevel } from '@/lib/budget';
 import { API_BASE_URL, healthUrl } from '@/lib/api';
 
@@ -30,18 +31,18 @@ export default function LandingPage() {
           энергию. Все данные остаются на вашем сервере.
         </p>
         <div className="flex flex-wrap gap-3">
-          <a
-            href="#start"
+          <Link
+            href="/register"
             className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 py-3 font-semibold text-white"
           >
             Начать
-          </a>
-          <a
-            href="https://github.com/"
+          </Link>
+          <Link
+            href="/login"
             className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-6 py-3 font-semibold"
           >
-            Исходный код
-          </a>
+            Войти
+          </Link>
         </div>
       </header>
 
