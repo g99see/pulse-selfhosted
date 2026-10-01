@@ -11,13 +11,20 @@ import { formatMoneyLocale } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/locale-server';
 
-const DEMO = {
-  spent: 41_500,
-  budget: 50_000,
-  incomes: [3, 4, 4, 5, 2, 3, 4],
-  savingsGoal: 120_000,
-  savingsSaved: 60_000,
-};
+/**
+ * Пример на лендинге — в евро для обоих языков: валюта нейтральная для
+ * международной аудитории (раньше англоязычный гость видел «RUB 41,500»).
+ * Формат числа и знака валюты всё равно зависит от локали.
+ */
+const DEMO_EXAMPLE = {
+  currency: 'EUR',
+  spent: 415,
+  budget: 500,
+  savingsGoal: 1_200,
+  savingsSaved: 600,
+} as const;
+const DEMO_BY_LOCALE = { ru: DEMO_EXAMPLE, en: DEMO_EXAMPLE } as const;
+const DEMO_MOODS = [3, 4, 4, 5, 2, 3, 4];
 
 const FEATURES: Array<{ key: string; icon: IconName; tone: Exclude<Tone, 'neutral'> }> = [
   { key: 'money', icon: 'wallet', tone: 'finance' },
@@ -29,10 +36,11 @@ const FEATURES: Array<{ key: string; icon: IconName; tone: Exclude<Tone, 'neutra
 /** Лендинг (docs/REDESIGN.md): герой, превью «Сегодня» на демо-данных, возможности, оформление. */
 export default async function LandingPage() {
   const locale = await getRequestLocale();
+  const DEMO = DEMO_BY_LOCALE[locale];
   const budget = budgetLevel(DEMO.budget, DEMO.spent);
-  const mood = moodAverage(DEMO.incomes);
+  const mood = moodAverage(DEMO_MOODS);
   const goalPercent = Math.round((DEMO.savingsSaved / DEMO.savingsGoal) * 100);
-  const money = (amount: number) => formatMoneyLocale(amount, locale);
+  const money = (amount: number) => formatMoneyLocale(amount, locale, DEMO.currency);
 
   return (
     <main id="content" className="puls-backdrop min-h-screen">
@@ -93,7 +101,7 @@ export default async function LandingPage() {
                 icon="heart"
                 label={t('landing.demo.moodTitle', locale)}
                 value={`${mood ?? '—'} / 5`}
-                hint={t('landing.demo.moodCheckins', locale, { count: DEMO.incomes.length })}
+                hint={t('landing.demo.moodCheckins', locale, { count: DEMO_MOODS.length })}
               />
               <StatTile
                 tone="finance"

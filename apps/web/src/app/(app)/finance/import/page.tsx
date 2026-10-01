@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { AccountDto, ImportColumnMapping, ImportColumn } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { Alert, Card, IconBubble, PrimaryButton } from '@/components/ui';
 import { formatNumber } from '@/lib/format';
 import { financeApi, notifyFinanceChanged } from '@/lib/finance-client';
@@ -267,7 +268,9 @@ export default function ImportPage() {
                         {row.type ? t(`finance.type.${row.type}`) : '—'}
                       </td>
                       <td className="py-1 pr-3">{row.description || '—'}</td>
-                      <td className="py-1 pr-3">{row.categoryName ?? '—'}</td>
+                      <td className="py-1 pr-3">
+                        {row.categoryName ? categoryLabel({ name: row.categoryName }, t) : '—'}
+                      </td>
                       <td className="py-1">{t(statusKey(row))}</td>
                     </tr>
                   ))}

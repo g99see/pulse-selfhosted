@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { CategoryDto, CategoryKind } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { financeApi } from '@/lib/finance-client';
 import { FormToggle } from '@/components/finance-form-toggle';
 import { Card, PrimaryButton } from '@/components/ui';
@@ -324,7 +325,7 @@ export function CategoryManager({
                     {iconGlyph(category.icon)}
                   </span>
                   <span className="flex flex-col">
-                    <span className="font-medium">{category.name}</span>
+                    <span className="font-medium">{categoryLabel(category, t)}</span>
                     <span className="text-xs text-[var(--puls-ink-muted)]">
                       {t(`finance.type.${category.kind}`)}
                     </span>
@@ -436,7 +437,7 @@ export function CategoryManager({
               className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border border-[var(--puls-line)] px-2.5 py-1 text-xs text-[var(--puls-ink-muted)]"
             >
               <span aria-hidden="true">{iconGlyph(category.icon)}</span>
-              <span>{category.name}</span>
+              <span>{categoryLabel(category, t)}</span>
             </li>
           ))}
         </ul>

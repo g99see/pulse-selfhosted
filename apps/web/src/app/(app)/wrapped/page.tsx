@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import Link from 'next/link';
 import type { WrappedResponse } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { Money } from '@/components/money';
 import { IconBubble } from '@/components/ui';
 import { formatDate, formatNumber } from '@/lib/format';
@@ -165,7 +166,9 @@ export default function WrappedPage() {
                       {index + 1}
                     </span>
                     <span className="font-medium">
-                      {category.categoryName ?? t('wrapped.categories.other')}
+                      {category.categoryName
+                        ? categoryLabel({ id: category.categoryId, name: category.categoryName }, t)
+                        : t('wrapped.categories.other')}
                     </span>
                   </span>
                   <Money

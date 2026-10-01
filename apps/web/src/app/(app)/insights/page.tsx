@@ -9,6 +9,7 @@ import type {
   SupportResourceDto,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { MASKED_AMOUNT } from '@/components/money';
 import { Badge, Card, EmptyState, GhostButton, IconBubble, PrimaryButton } from '@/components/ui';
 import { FINANCE_CHANGED_EVENT, notifyFinanceChanged } from '@/lib/finance-client';
@@ -78,6 +79,8 @@ export default function InsightsPage() {
       params.percent = formatNumber(params.percent, locale, { maximumFractionDigits: 1 });
     if (typeof params.delta === 'number')
       params.delta = formatNumber(params.delta, locale, { maximumFractionDigits: 1 });
+    if (typeof params.category === 'string' && params.category)
+      params.category = categoryLabel({ name: params.category }, t);
     return t(insight.textKey, params);
   }
 

@@ -14,6 +14,7 @@ import {
   type TransactionKind,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { Money, MASKED_AMOUNT } from '@/components/money';
 import { CategoryManager } from '@/components/category-manager';
 import { RecurringSection } from '@/components/recurring-section';
@@ -323,7 +324,7 @@ export function FinanceScreen({
                 <option value="">{t('finance.filter.all')}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.name}
+                    {categoryLabel(category, t)}
                   </option>
                 ))}
               </Select>
@@ -371,7 +372,12 @@ export function FinanceScreen({
                               className="truncate font-medium"
                               data-testid="transaction-category"
                             >
-                              {transaction.categoryName ?? t('finance.noCategory')}
+                              {transaction.categoryName
+                                ? categoryLabel(
+                                    { id: transaction.categoryId, name: transaction.categoryName },
+                                    t,
+                                  )
+                                : t('finance.noCategory')}
                             </span>
                             <span className="truncate text-xs text-[var(--puls-ink-muted)]">
                               {transaction.comment ? `${transaction.comment} · ` : ''}
@@ -463,7 +469,7 @@ export function FinanceScreen({
                   <ProgressBar
                     value={budget.spent}
                     max={Math.max(budget.limit, 1)}
-                    label={budget.categoryName}
+                    label={categoryLabel({ id: budget.categoryId, name: budget.categoryName }, t)}
                     tone={budgetTone(budget)}
                   />
                   <span className="text-xs text-[var(--puls-ink-muted)]">
@@ -511,7 +517,7 @@ export function FinanceScreen({
                   <option value="">{t('finance.filter.all')}</option>
                   {expenseCategories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name}
+                      {categoryLabel(category, t)}
                     </option>
                   ))}
                 </Select>
