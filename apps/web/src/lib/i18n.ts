@@ -301,6 +301,14 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'goals.error.generic': 'Не удалось выполнить действие.',
     'goals.error.titleRequired': 'Введите название.',
     'goals.error.amount': 'Введите сумму больше нуля.',
+    'goals.embed.button': 'Встроить',
+    'goals.embed.hint': 'Вставьте этот код на свой сайт — прогресс цели будет обновляться сам.',
+    'goals.embed.iframeTitle': 'Прогресс цели',
+    'goals.embed.copy': 'Скопировать код',
+    'goals.embed.copied': 'Скопировано',
+    'goals.embed.link': 'Открыть виджет',
+    'goals.embed.onlyPublic':
+      'Встроить можно только публичную цель. Смените приватность цели на «Публично».',
 
     'app.nav.family': 'Семья',
     'family.title': 'Семья',
@@ -942,6 +950,13 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'profile.public.empty': 'Профиль пока пуст',
     'profile.public.notFound': 'Профиль не найден',
 
+    'widget.title': 'Прогресс цели',
+    'widget.owner': 'Цель @{nickname}',
+    'widget.percent': '{percent}%',
+    'widget.milestone': 'Веха {percent}%',
+    'widget.deadline': 'Срок: {date}',
+    'widget.notFound': 'Виджет недоступен',
+
     // Лента, подписки, реакции и комментарии (ТЗ §3.7).
     'feed.title': 'Лента',
     'feed.subtitle': 'Обновления людей, на которых вы подписаны.',
@@ -1376,6 +1391,13 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'goals.error.generic': 'Something went wrong.',
     'goals.error.titleRequired': 'Enter a title.',
     'goals.error.amount': 'Enter an amount greater than zero.',
+    'goals.embed.button': 'Embed',
+    'goals.embed.hint': 'Paste this code into your site — the goal progress updates itself.',
+    'goals.embed.iframeTitle': 'Goal progress',
+    'goals.embed.copy': 'Copy code',
+    'goals.embed.copied': 'Copied',
+    'goals.embed.link': 'Open widget',
+    'goals.embed.onlyPublic': 'Only a public goal can be embedded. Set the goal privacy to “Public”.',
 
     'app.nav.family': 'Family',
     'family.title': 'Family',
@@ -2015,6 +2037,13 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'profile.public.goals.empty': 'No goals yet',
     'profile.public.empty': 'The profile is empty for now',
     'profile.public.notFound': 'Profile not found',
+
+    'widget.title': 'Goal progress',
+    'widget.owner': 'Goal by @{nickname}',
+    'widget.percent': '{percent}%',
+    'widget.milestone': 'Milestone {percent}%',
+    'widget.deadline': 'Deadline: {date}',
+    'widget.notFound': 'Widget unavailable',
 
     // Feed, follows, reactions and comments (spec §3.7).
     'feed.title': 'Feed',

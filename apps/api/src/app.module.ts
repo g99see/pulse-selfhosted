@@ -25,6 +25,7 @@ import { ShareModule } from './share/share.module';
 import { SocialModule } from './social/social.module';
 import { StatsModule } from './stats/stats.module';
 import { TelegramModule } from './telegram/telegram.module';
+import { WidgetsModule } from './widgets/widgets.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { TelegramModule } from './telegram/telegram.module';
     HtmlPageModule,
     SocialModule,
     ApiAccessModule,
+    WidgetsModule,
   ],
 })
 export class AppModule {}

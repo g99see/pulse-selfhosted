@@ -230,3 +230,24 @@ export interface GoalDepositResult {
 export interface GoalsListResponse {
   goals: GoalDto[];
 }
+
+/* ----- Публичный виджет цели (ТЗ §4, P3) ----- */
+
+/**
+ * Виджет прогресса цели для блога или портфолио. Публичный и анонимный:
+ * суммы по умолчанию скрыты, показываются только проценты и вехи.
+ */
+export interface GoalWidgetDto {
+  id: string;
+  title: string;
+  percent: number;
+  image: string | null;
+  milestones: GoalMilestone[];
+  deadline: string | null;
+  /** Никнейм владельца — подпись виджета. */
+  nickname: string;
+}
+
+export interface GoalWidgetResponse {
+  widget: GoalWidgetDto;
+}

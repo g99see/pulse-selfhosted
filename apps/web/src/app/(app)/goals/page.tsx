@@ -60,6 +60,9 @@ export default function GoalsPage() {
 
   const [depositGoal, setDepositGoal] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState('');
+  const [embedGoal, setEmbedGoal] = useState<string | null>(null);
+  const [embedCopied, setEmbedCopied] = useState(false);
+  const [origin, setOrigin] = useState('');
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -78,6 +81,11 @@ export default function GoalsPage() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Origin нужен для готового сниппета и ссылки на виджет — только в браузере.
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const money = useCallback(
     (amount: number, currency = 'RUB'): string => formatMoneyLocale(amount, locale, currency as Currency),
@@ -168,6 +176,20 @@ export default function GoalsPage() {
   }
 
   const savingsAccounts = accounts.filter((account) => account.type === 'savings');
+
+  /** Готовый iframe-сниппет для вставки в блог или портфолио (ТЗ §4, P3). */
+  function embedSnippet(goalId: string): string {
+    return `<iframe src="${origin}/widget/goal/${goalId}" width="360" height="150" style="border:0" loading="lazy" title="${t('goals.embed.iframeTitle')}"></iframe>`;
+  }
+
+  async function copyEmbed(snippet: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(snippet);
+      setEmbedCopied(true);
+    } catch {
+      // Буфер обмена может быть недоступен — код всё равно видно в поле.
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -348,7 +370,64 @@ export default function GoalsPage() {
                 id={goal.id}
                 shareText={t('share.text.goal', { percent: goal.percent, title: goal.title })}
               />
+              <button
+                type="button"
+                data-testid="goal-embed"
+                onClick={() => {
+                  setEmbedCopied(false);
+                  setEmbedGoal(embedGoal === goal.id ? null : goal.id);
+                }}
+                className="rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)] px-3 py-1 text-xs font-medium"
+              >
+                {t('goals.embed.button')}
+              </button>
             </div>
+
+            {embedGoal === goal.id ? (
+              <div
+                data-testid="goal-embed-panel"
+                className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 p-3"
+              >
+                {goal.visibility === 'public' ? (
+                  <>
+                    <p className="text-xs text-[var(--puls-ink-muted)]">{t('goals.embed.hint')}</p>
+                    <textarea
+                      readOnly
+                      data-testid="goal-embed-snippet"
+                      rows={2}
+                      value={embedSnippet(goal.id)}
+                      className="w-full rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-2 py-1 font-mono text-xs"
+                    />
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        data-testid="goal-embed-copy"
+                        onClick={() => void copyEmbed(embedSnippet(goal.id))}
+                        className="text-xs font-semibold text-[var(--puls-primary-text)]"
+                      >
+                        {embedCopied ? t('goals.embed.copied') : t('goals.embed.copy')}
+                      </button>
+                      <a
+                        href={`${origin}/widget/goal/${goal.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        data-testid="goal-embed-link"
+                        className="text-xs font-medium text-[var(--puls-primary-text)]"
+                      >
+                        {t('goals.embed.link')}
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <p
+                    data-testid="goal-embed-private"
+                    className="text-xs text-[var(--puls-ink-muted)]"
+                  >
+                    {t('goals.embed.onlyPublic')}
+                  </p>
+                )}
+              </div>
+            ) : null}
 
             <form
               className="flex flex-wrap items-end gap-2"
