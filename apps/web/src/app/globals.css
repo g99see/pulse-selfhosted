@@ -22,6 +22,19 @@
   --puls-warning: #e5484d;
   --puls-ink: #1c1c24;
   --puls-ink-muted: #6e6e7a;
+  /* Текстовые варианты: контраст ≥ 4.5:1 на фоне и поверхности (ТЗ §6, WCAG AA). */
+  --puls-on-primary: #ffffff;
+  --puls-primary-text: #5b5bd6;
+  --puls-finance-text: #17705a;
+  --puls-wellbeing-text: #a85a12;
+  --puls-warning-text: #b3261e;
+  --puls-focus: #5b5bd6;
+  /* Анимации 150–250 мс (ТЗ §8) и запас для скрытой skip-ссылки. */
+  --puls-duration-fast: 150ms;
+  --puls-duration-base: 200ms;
+  --puls-duration-slow: 250ms;
+  --puls-duration-min: 0.01ms;
+  --puls-space-skip: 4rem;
   color-scheme: light;
 }
 
@@ -34,6 +47,12 @@
   --puls-warning: #ff6369;
   --puls-ink: #ededf2;
   --puls-ink-muted: #9a9aa8;
+  --puls-on-primary: #14141a;
+  --puls-primary-text: #8b8bf5;
+  --puls-finance-text: #3dd6ae;
+  --puls-wellbeing-text: #f7b87e;
+  --puls-warning-text: #ff6369;
+  --puls-focus: #8b8bf5;
   color-scheme: dark;
 }
 
@@ -50,4 +69,46 @@ h2,
 h3 {
   font-family: var(--font-heading);
   letter-spacing: -0.01em;
+}
+
+/* Доступность (ТЗ §6): видимый фокус с клавиатуры, skip-link, уважение к настройкам ОС. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--puls-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-button);
+}
+
+/* Ссылка «к основному содержимому»: видна только при фокусе с клавиатуры. */
+.skip-link {
+  position: absolute;
+  top: calc(-1 * var(--puls-space-skip));
+  left: 1rem;
+  z-index: 50;
+  border-radius: var(--radius-button);
+  background-color: var(--puls-primary);
+  color: var(--puls-on-primary);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  transition: top var(--puls-duration-fast) ease-out;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ТЗ §8: мягкие тени в светлой теме, тонкие обводки в тёмной. */
+.dark .shadow-sm {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.07);
+}
+
+/* ТЗ §8: анимации 150–250 мс; при prefers-reduced-motion движение убирается. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: var(--puls-duration-min) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--puls-duration-min) !important;
+    scroll-behavior: auto !important;
+  }
 }

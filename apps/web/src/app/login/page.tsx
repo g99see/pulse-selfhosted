@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { LoginSchema } from '@puls/shared';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
+import { useT } from '@/components/locale-provider';
 import { AuthApiError, authApi } from '@/lib/auth-client';
-import { authErrorKey, t } from '@/lib/i18n';
+import { authErrorKey } from '@/lib/i18n';
 
 export default function LoginPage() {
+  const { t } = useT();
   const router = useRouter();
   const [values, setValues] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +44,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
+    <main id="content" className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary)]">
+        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary-text)]">
           ← {t('app.nav.home')}
         </Link>
         <h1 className="text-3xl font-extrabold">{t('auth.login.title')}</h1>
@@ -83,7 +85,7 @@ export default function LoginPage() {
       {unverified ? (
         <Link
           href={`/verify-email?email=${encodeURIComponent(values.email)}`}
-          className="text-center text-sm font-semibold text-[var(--puls-primary)]"
+          className="text-center text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('auth.verify.resend')}
         </Link>
@@ -91,7 +93,7 @@ export default function LoginPage() {
 
       <p className="text-center text-sm text-[var(--puls-ink-muted)]">
         {t('auth.login.noAccount')}{' '}
-        <Link href="/register" className="font-semibold text-[var(--puls-primary)]">
+        <Link href="/register" className="font-semibold text-[var(--puls-primary-text)]">
           {t('auth.login.goRegister')}
         </Link>
       </p>

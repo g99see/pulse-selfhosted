@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { RegisterSchema } from '@puls/shared';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
+import { useT } from '@/components/locale-provider';
 import { AuthApiError, authApi } from '@/lib/auth-client';
-import { authErrorKey, t } from '@/lib/i18n';
+import { authErrorKey } from '@/lib/i18n';
 
 export default function RegisterPage() {
+  const { t } = useT();
   const router = useRouter();
   const [values, setValues] = useState({ email: '', password: '', nickname: '' });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -43,9 +45,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
+    <main id="content" className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary)]">
+        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary-text)]">
           ← {t('app.nav.home')}
         </Link>
         <h1 className="text-3xl font-extrabold">{t('auth.register.title')}</h1>
@@ -97,7 +99,7 @@ export default function RegisterPage() {
 
       <p className="text-center text-sm text-[var(--puls-ink-muted)]">
         {t('auth.register.haveAccount')}{' '}
-        <Link href="/login" className="font-semibold text-[var(--puls-primary)]">
+        <Link href="/login" className="font-semibold text-[var(--puls-primary-text)]">
           {t('auth.register.goLogin')}
         </Link>
       </p>

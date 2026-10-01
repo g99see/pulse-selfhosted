@@ -12,14 +12,17 @@ import {
   type OnboardingInputValues,
   type ProfileVisibility,
 } from '@puls/shared';
+import { useT } from '@/components/locale-provider';
 import { Alert, Card, Field, PrimaryButton, ProgressBar, Select } from '@/components/ui';
 import { AuthApiError, authApi } from '@/lib/auth-client';
-import { authErrorKey, t } from '@/lib/i18n';
+import { authErrorKey } from '@/lib/i18n';
+import { LOCALE_NAMES } from '@/lib/locale';
 
 const TOTAL_STEPS = 4;
 const GOALS: GoalKind[] = ['money', 'health', 'habits'];
 const VISIBILITIES: ProfileVisibility[] = ['private', 'subscribers', 'public'];
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
+const LOCALES: Locale[] = ['ru', 'en'];
 
 /** Курированный список зон + текущая — без расхождений гидрации. */
 const TIMEZONES = [
@@ -43,18 +46,18 @@ const TIMEZONES = [
 ];
 
 export default function OnboardingPage() {
+  const { t, locale, setLocale } = useT();
   const router = useRouter();
   const [step, setStep] = useState(1);
 
   const [currency, setCurrency] = useState('RUB');
   const [timezone, setTimezone] = useState('UTC');
-  const [locale, setLocale] = useState<Locale>('ru');
   const [goals, setGoals] = useState<GoalKind[]>(['money']);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [quietHoursStart, setQuietHoursStart] = useState(22);
   const [quietHoursEnd, setQuietHoursEnd] = useState(8);
   const [profileVisibility, setProfileVisibility] = useState<ProfileVisibility>('private');
-  const [accountName, setAccountName] = useState('Основной счёт');
+  const [accountName, setAccountName] = useState(() => t('auth.onboarding.accountNameDefault'));
   const [accountType, setAccountType] = useState<AccountType>('card');
   const [balance, setBalance] = useState('0');
 
@@ -76,7 +79,7 @@ export default function OnboardingPage() {
       });
   }, [router]);
 
-  const stepTitle = t(`auth.onboarding.step${step}`, locale);
+  const stepTitle = t(`auth.onboarding.step${step}`);
 
   function toggleGoal(goal: GoalKind): void {
     setGoals((previous) =>
@@ -134,13 +137,16 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 px-5 py-10">
+    <main
+      id="content"
+      className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 px-5 py-10"
+    >
       <header className="flex flex-col gap-3">
         <h1 className="text-2xl font-extrabold">{t('auth.onboarding.title')}</h1>
         <ProgressBar
           value={step}
           max={TOTAL_STEPS}
-          label={t('auth.onboarding.progress', locale, { current: step, total: TOTAL_STEPS })}
+          label={t('auth.onboarding.progress', { current: step, total: TOTAL_STEPS })}
         />
       </header>
 
@@ -153,7 +159,7 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-4">
             <Select
               id="currency"
-              label={t('auth.onboarding.currency', locale)}
+              label={t('auth.onboarding.currency')}
               value={currency}
               onChange={(event) => setCurrency(event.target.value)}
             >
@@ -165,7 +171,7 @@ export default function OnboardingPage() {
             </Select>
             <Select
               id="timezone"
-              label={t('auth.onboarding.timezone', locale)}
+              label={t('auth.onboarding.timezone')}
               value={timezone}
               onChange={(event) => setTimezone(event.target.value)}
             >
@@ -182,12 +188,15 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-3">
             <Select
               id="locale"
-              label={t('auth.onboarding.locale', locale)}
+              label={t('auth.onboarding.locale')}
               value={locale}
               onChange={(event) => setLocale(event.target.value as Locale)}
             >
-              <option value="ru">Русский</option>
-              <option value="en">English</option>
+              {LOCALES.map((code) => (
+                <option key={code} value={code}>
+                  {LOCALE_NAMES[code]}
+                </option>
+              ))}
             </Select>
           </div>
         ) : null}
@@ -195,7 +204,7 @@ export default function OnboardingPage() {
         {step === 3 ? (
           <div className="flex flex-col gap-4">
             <fieldset className="flex flex-col gap-2">
-              <legend className="mb-2 text-sm font-medium">{t('auth.onboarding.goals', locale)}</legend>
+              <legend className="mb-2 text-sm font-medium">{t('auth.onboarding.goals')}</legend>
               {GOALS.map((goal) => (
                 <label key={goal} className="flex items-center gap-3 text-base">
                   <input
@@ -204,13 +213,13 @@ export default function OnboardingPage() {
                     onChange={() => toggleGoal(goal)}
                     className="h-5 w-5"
                   />
-                  {t(`auth.onboarding.goal${goal[0].toUpperCase()}${goal.slice(1)}`, locale)}
+                  {t(`auth.onboarding.goal${goal[0].toUpperCase()}${goal.slice(1)}`)}
                 </label>
               ))}
             </fieldset>
 
             <label className="flex items-center justify-between gap-3 text-base">
-              {t('auth.onboarding.notifications', locale)}
+              {t('auth.onboarding.notifications')}
               <input
                 type="checkbox"
                 checked={notificationsEnabled}
@@ -222,7 +231,7 @@ export default function OnboardingPage() {
             <div className="flex items-end gap-2">
               <Select
                 id="quietFrom"
-                label={`${t('auth.onboarding.quietHours', locale)} ${t('auth.onboarding.quietFrom', locale)}`}
+                label={`${t('auth.onboarding.quietHours')} ${t('auth.onboarding.quietFrom')}`}
                 value={String(quietHoursStart)}
                 onChange={(event) => setQuietHoursStart(Number(event.target.value))}
               >
@@ -232,7 +241,7 @@ export default function OnboardingPage() {
               </Select>
               <Select
                 id="quietTo"
-                label={t('auth.onboarding.quietTo', locale)}
+                label={t('auth.onboarding.quietTo')}
                 value={String(quietHoursEnd)}
                 onChange={(event) => setQuietHoursEnd(Number(event.target.value))}
               >
@@ -244,16 +253,13 @@ export default function OnboardingPage() {
 
             <Select
               id="visibility"
-              label={t('auth.onboarding.visibility', locale)}
+              label={t('auth.onboarding.visibility')}
               value={profileVisibility}
               onChange={(event) => setProfileVisibility(event.target.value as ProfileVisibility)}
             >
               {VISIBILITIES.map((visibility) => (
                 <option key={visibility} value={visibility}>
-                  {t(
-                    `auth.onboarding.visibility${visibility[0].toUpperCase()}${visibility.slice(1)}`,
-                    locale,
-                  )}
+                  {t(`auth.onboarding.visibility${visibility[0].toUpperCase()}${visibility.slice(1)}`)}
                 </option>
               ))}
             </Select>
@@ -265,19 +271,19 @@ export default function OnboardingPage() {
             <Field
               id="accountName"
               type="text"
-              label={t('auth.onboarding.accountName', locale)}
+              label={t('auth.onboarding.accountName')}
               value={accountName}
               onChange={(event) => setAccountName(event.target.value)}
             />
             <Select
               id="accountType"
-              label={t('auth.onboarding.accountType', locale)}
+              label={t('auth.onboarding.accountType')}
               value={accountType}
               onChange={(event) => setAccountType(event.target.value as AccountType)}
             >
-              <option value="card">{t('auth.onboarding.accountCard', locale)}</option>
-              <option value="cash">{t('auth.onboarding.accountCash', locale)}</option>
-              <option value="savings">{t('auth.onboarding.accountSavings', locale)}</option>
+              <option value="card">{t('auth.onboarding.accountCard')}</option>
+              <option value="cash">{t('auth.onboarding.accountCash')}</option>
+              <option value="savings">{t('auth.onboarding.accountSavings')}</option>
             </Select>
             <Field
               id="balance"
@@ -285,14 +291,18 @@ export default function OnboardingPage() {
               inputMode="decimal"
               min="0"
               step="0.01"
-              label={t('auth.onboarding.balance', locale)}
+              label={t('auth.onboarding.balance')}
               value={balance}
               onChange={(event) => setBalance(event.target.value)}
             />
           </div>
         ) : null}
 
-        {error ? <div className="mt-4">{<Alert>{error}</Alert>}</div> : null}
+        {error ? (
+          <div className="mt-4">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
       </Card>
 
       <div className="flex gap-3">
@@ -300,15 +310,20 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={() => setStep((current) => Math.max(1, current - 1))}
-            className="h-12 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 font-semibold"
+            className="h-12 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
           >
-            {t('common.back', locale)}
+            {t('common.back')}
           </button>
         ) : null}
 
         {step < TOTAL_STEPS ? (
-          <PrimaryButton type="button" data-testid="onboarding-next" onClick={next} style={{ flex: 1 }}>
-            {t('common.next', locale)}
+          <PrimaryButton
+            type="button"
+            data-testid="onboarding-next"
+            onClick={next}
+            style={{ flex: 1 }}
+          >
+            {t('common.next')}
           </PrimaryButton>
         ) : (
           <PrimaryButton
@@ -318,7 +333,7 @@ export default function OnboardingPage() {
             disabled={busy}
             style={{ flex: 1 }}
           >
-            {busy ? t('common.loading', locale) : t('auth.onboarding.finish', locale)}
+            {busy ? t('common.loading') : t('auth.onboarding.finish')}
           </PrimaryButton>
         )}
       </div>

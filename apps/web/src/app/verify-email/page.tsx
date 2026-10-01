@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
+import { useT } from '@/components/locale-provider';
 import { authApi } from '@/lib/auth-client';
-import { t } from '@/lib/i18n';
 import { useQueryParams } from '@/lib/use-query';
 
 type Status = 'idle' | 'checking' | 'ok' | 'failed';
 
 export default function VerifyEmailPage() {
+  const { t } = useT();
   const router = useRouter();
   const { ready, get } = useQueryParams();
   const started = useRef(false);
@@ -57,9 +58,9 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
+    <main id="content" className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary)]">
+        <Link href="/" className="text-sm font-semibold text-[var(--puls-primary-text)]">
           ← {t('app.nav.home')}
         </Link>
         <h1 className="text-3xl font-extrabold">{t('auth.verify.title')}</h1>
@@ -94,7 +95,7 @@ export default function VerifyEmailPage() {
         ) : null}
       </Card>
 
-      <Link href="/login" className="text-center text-sm font-semibold text-[var(--puls-primary)]">
+      <Link href="/login" className="text-center text-sm font-semibold text-[var(--puls-primary-text)]">
         {t('auth.verify.goLogin')}
       </Link>
     </main>

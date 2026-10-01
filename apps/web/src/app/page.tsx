@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { formatMoney, moodAverage } from '@puls/shared';
+import { moodAverage } from '@puls/shared';
 import Link from 'next/link';
-import { budgetLevel } from '@/lib/budget';
 import { API_BASE_URL, healthUrl } from '@/lib/api';
+import { budgetLevel } from '@/lib/budget';
+import { formatMoneyLocale } from '@/lib/format';
+import { t } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/locale-server';
 
 const DEMO = {
   spent: 41_500,
@@ -12,77 +15,92 @@ const DEMO = {
   savingsSaved: 60_000,
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const locale = await getRequestLocale();
   const budget = budgetLevel(DEMO.budget, DEMO.spent);
   const mood = moodAverage(DEMO.incomes);
   const goalPercent = Math.round((DEMO.savingsSaved / DEMO.savingsGoal) * 100);
+  const money = (amount: number) => formatMoneyLocale(amount, locale);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-10 px-6 py-16">
+    <main id="content" className="mx-auto flex min-h-screen max-w-3xl flex-col gap-10 px-6 py-16">
       <header className="flex flex-col gap-4">
-        <p className="text-sm font-semibold tracking-wide text-[var(--puls-primary)] uppercase">
-          self-hosted · AGPL-3.0
+        <p className="text-sm font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
+          {t('landing.badge', locale)}
         </p>
-        <h1 className="text-4xl font-extrabold sm:text-5xl">
-          Пульс — деньги и самочувствие в одной ленте
-        </h1>
-        <p className="max-w-2xl text-lg text-[var(--puls-ink-muted)]">
-          Отмечайте состояние за 5 секунд, вносите траты и замечайте, что влияет на настроение и
-          энергию. Все данные остаются на вашем сервере.
-        </p>
+        <h1 className="text-4xl font-extrabold sm:text-5xl">{t('landing.title', locale)}</h1>
+        <p className="max-w-2xl text-lg text-[var(--puls-ink-muted)]">{t('landing.lead', locale)}</p>
         <div className="flex flex-wrap gap-3">
           <Link
             href="/register"
-            className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 py-3 font-semibold text-white"
+            className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 py-3 font-semibold text-[var(--puls-on-primary)] transition-opacity duration-150 hover:opacity-90"
           >
-            Начать
+            {t('landing.cta.start', locale)}
           </Link>
           <Link
             href="/login"
-            className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-6 py-3 font-semibold"
+            className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-6 py-3 font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
           >
-            Войти
+            {t('landing.cta.login', locale)}
           </Link>
         </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
         <article className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-          <h2 className="text-sm text-[var(--puls-ink-muted)]">Бюджет месяца</h2>
-          <p className="mt-2 text-2xl font-bold">{formatMoney(DEMO.spent)}</p>
+          <h2 className="text-sm text-[var(--puls-ink-muted)]">
+            {t('landing.demo.budgetTitle', locale)}
+          </h2>
+          <p className="mt-2 text-2xl font-bold">{money(DEMO.spent)}</p>
           <p className="text-sm text-[var(--puls-ink-muted)]">
-            {budget.percent}% из {formatMoney(DEMO.budget)}
+            {t('landing.demo.budgetShare', locale, {
+              percent: budget.percent,
+              total: money(DEMO.budget),
+            })}
           </p>
         </article>
 
         <article className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-          <h2 className="text-sm text-[var(--puls-ink-muted)]">Настроение за неделю</h2>
-          <p className="mt-2 text-2xl font-bold text-[var(--puls-wellbeing)]">{mood ?? '—'} / 5</p>
-          <p className="text-sm text-[var(--puls-ink-muted)]">{DEMO.incomes.length} чек-инов</p>
+          <h2 className="text-sm text-[var(--puls-ink-muted)]">
+            {t('landing.demo.moodTitle', locale)}
+          </h2>
+          <p className="mt-2 text-2xl font-bold text-[var(--puls-wellbeing-text)]">
+            {mood ?? '—'} / 5
+          </p>
+          <p className="text-sm text-[var(--puls-ink-muted)]">
+            {t('landing.demo.moodCheckins', locale, { count: DEMO.incomes.length })}
+          </p>
         </article>
 
         <article className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-          <h2 className="text-sm text-[var(--puls-ink-muted)]">Цель «Ноутбук»</h2>
-          <p className="mt-2 text-2xl font-bold text-[var(--puls-finance)]">{goalPercent}%</p>
+          <h2 className="text-sm text-[var(--puls-ink-muted)]">
+            {t('landing.demo.goalTitle', locale)}
+          </h2>
+          <p className="mt-2 text-2xl font-bold text-[var(--puls-finance-text)]">{goalPercent}%</p>
           <p className="text-sm text-[var(--puls-ink-muted)]">
-            {formatMoney(DEMO.savingsSaved)} из {formatMoney(DEMO.savingsGoal)}
+            {t('landing.demo.goalProgress', locale, {
+              saved: money(DEMO.savingsSaved),
+              target: money(DEMO.savingsGoal),
+            })}
           </p>
         </article>
       </section>
 
       <section id="start" className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6">
-        <h2 className="text-xl font-bold">Фаза 0 пройдена</h2>
+        <h2 className="text-xl font-bold">{t('landing.phase.title', locale)}</h2>
         <p className="mt-2 text-[var(--puls-ink-muted)]">
-          Монорепо, API и web собраны. Живой статус API:{' '}
-          <code className="rounded bg-black/5 px-2 py-1 text-sm">{healthUrl()}</code>
+          {t('landing.phase.body', locale)}{' '}
+          <code className="rounded bg-[var(--puls-ink-muted)]/10 px-2 py-1 text-sm">
+            {healthUrl()}
+          </code>
         </p>
         <p className="mt-2 text-sm text-[var(--puls-ink-muted)]">
-          База API: {API_BASE_URL}. Следующий шаг — регистрация, онбординг и финансы (Фаза 1).
+          {t('landing.phase.apiBase', locale, { base: API_BASE_URL })}
         </p>
       </section>
 
       <footer className="text-sm text-[var(--puls-ink-muted)]">
-        © {new Date().getFullYear()} Пульс. Лицензия AGPL-3.0-or-later.
+        {t('landing.footer', locale, { year: new Date().getFullYear() })}
       </footer>
     </main>
   );
