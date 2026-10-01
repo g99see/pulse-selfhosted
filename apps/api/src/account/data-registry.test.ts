@@ -18,6 +18,7 @@ describe('isSecretColumn', () => {
     expect(isSecretColumn('two_fa_secret')).toBe(true);
     expect(isSecretColumn('p256dh')).toBe(true);
     expect(isSecretColumn('auth')).toBe(true);
+    expect(isSecretColumn('api_key_encrypted')).toBe(true);
   });
 
   it('не трогает обычные поля', () => {

@@ -118,6 +118,8 @@ const SECRET_COLUMN_PATTERNS: readonly RegExp[] = [
   /^auth$/,
   /^p256dh$/,
   /^private_key$/,
+  // Зашифрованные ключи (AI, ТЗ §3.9): api_key_encrypted и подобные.
+  /_encrypted$/,
 ];
 
 export function isSecretColumn(column: string): boolean {
