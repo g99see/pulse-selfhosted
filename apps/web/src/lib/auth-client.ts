@@ -4,13 +4,20 @@
  * Все запросы идут с credentials: 'include'.
  */
 import type {
+  IdentitiesResponse,
   LoginInputValues,
+  LoginResult,
   MeResponse,
   OnboardingInputValues,
   OnboardingResponse,
+  ProvidersResponse,
   PublicUser,
   RegisterInputValues,
   SessionsResponse,
+  TelegramAuthInput,
+  TwoFactorEnableResponse,
+  TwoFactorSetupResponse,
+  TwoFactorStatus,
 } from '@puls/shared';
 import { API_BASE_URL } from './api';
 
@@ -122,9 +129,33 @@ export const authApi = {
     }),
 
   login: (input: LoginInputValues) =>
-    authFetch<{ user: PublicUser }>('/api/auth/login', {
+    authFetch<LoginResult>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(input),
+    }),
+
+  /** Второй шаг входа: код TOTP или резервный код (ТЗ §6). */
+  loginTwoFactor: (challengeToken: string, code: string) =>
+    authFetch<{ user: PublicUser }>('/api/auth/login/2fa', {
+      method: 'POST',
+      body: JSON.stringify({ challengeToken, code }),
+    }),
+
+  twoFactorStatus: () => authFetch<TwoFactorStatus>('/api/auth/2fa'),
+
+  twoFactorSetup: () =>
+    authFetch<TwoFactorSetupResponse>('/api/auth/2fa/setup', { method: 'POST' }),
+
+  twoFactorEnable: (code: string) =>
+    authFetch<TwoFactorEnableResponse>('/api/auth/2fa/enable', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+
+  twoFactorDisable: (password: string, code: string) =>
+    authFetch<void>('/api/auth/2fa/disable', {
+      method: 'POST',
+      body: JSON.stringify({ password, code }),
     }),
 
   logout: () => authFetch<void>('/api/auth/logout', { method: 'POST' }),
@@ -152,4 +183,36 @@ export const authApi = {
   sessions: () => authFetch<SessionsResponse>('/api/auth/sessions'),
 
   revokeSession: (id: string) => authFetch<void>(`/api/auth/sessions/${id}`, { method: 'DELETE' }),
+
+  /** Включённые владельцем внешние провайдеры (ТЗ §3.1). */
+  providers: () => authFetch<ProvidersResponse>('/api/auth/providers'),
+
+  /** Вход через Telegram Login Widget: данные подписывает Telegram. */
+  telegram: (input: TelegramAuthInput) =>
+    authFetch<{ user: PublicUser; needsEmail: boolean }>('/api/auth/telegram', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  /** Привязанные способы входа текущего пользователя. */
+  identities: () => authFetch<IdentitiesResponse>('/api/auth/identities'),
+
+  linkTelegram: (input: TelegramAuthInput) =>
+    authFetch<IdentitiesResponse>('/api/auth/link/telegram', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  unlinkIdentity: (provider: string) =>
+    authFetch<void>(`/api/auth/identities/${provider}`, { method: 'DELETE' }),
 };
+
+/** Полностраничный переход на Google: state и PKCE API держит у себя. */
+export function googleLoginUrl(): string {
+  return `${API_BASE_URL}/api/auth/google/start`;
+}
+
+/** Привязка Google из настроек — тот же поток, но с намерением link. */
+export function googleLinkUrl(): string {
+  return `${API_BASE_URL}/api/auth/link/google/start`;
+}
