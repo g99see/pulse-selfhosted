@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import type { PublicUser } from '@puls/shared';
+import { canModerate, type PublicUser } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { QuickAddSheet } from '@/components/quick-add-sheet';
 import { authApi } from '@/lib/auth-client';
@@ -17,7 +17,9 @@ const NAV: Array<{ key: string; href: string | null }> = [
   { key: 'app.nav.stats', href: '/stats' },
   { key: 'app.nav.insights', href: '/insights' },
   { key: 'app.nav.achievements', href: '/achievements' },
+  { key: 'app.nav.moderation', href: '/moderation' },
   { key: 'app.nav.profile', href: '/app/profile' },
+  { key: 'app.nav.page', href: '/page-editor' },
 ];
 
 type Greeting = 'morning' | 'day' | 'evening' | 'night';
@@ -50,7 +52,10 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
     }
   }
 
-  const items = NAV.map((item) =>
+  // Ссылку на модерацию видят только модератор и администратор (ТЗ §2, §3.8).
+  const items = NAV.filter(
+    (item) => item.key !== 'app.nav.moderation' || canModerate(user.role),
+  ).map((item) =>
     item.key === 'app.nav.add' ? (
       <button
         key={item.key}
