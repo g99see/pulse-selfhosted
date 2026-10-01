@@ -55,12 +55,19 @@ export const financeApi = {
   categories: () => authFetch<{ categories: CategoryDto[] }>('/api/finance/categories'),
 
   createCategory: (input: CategoryCreateValues) =>
-    authFetch<CategoryDto>('/api/finance/categories', { method: 'POST', body: JSON.stringify(input) }),
+    authFetch<CategoryDto>('/api/finance/categories', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 
   updateCategory: (id: string, input: CategoryUpdateInput) =>
-    authFetch<CategoryDto>(`/api/finance/categories/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+    authFetch<CategoryDto>(`/api/finance/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 
-  removeCategory: (id: string) => authFetch<void>(`/api/finance/categories/${id}`, { method: 'DELETE' }),
+  removeCategory: (id: string) =>
+    authFetch<void>(`/api/finance/categories/${id}`, { method: 'DELETE' }),
 
   accounts: () => authFetch<AccountsResponse>('/api/finance/accounts'),
 
@@ -68,15 +75,24 @@ export const financeApi = {
     authFetch<AccountDto>('/api/finance/accounts', { method: 'POST', body: JSON.stringify(input) }),
 
   updateAccount: (id: string, input: AccountUpdateInput) =>
-    authFetch<AccountDto>(`/api/finance/accounts/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+    authFetch<AccountDto>(`/api/finance/accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 
-  removeAccount: (id: string) => authFetch<void>(`/api/finance/accounts/${id}`, { method: 'DELETE' }),
+  removeAccount: (id: string) =>
+    authFetch<void>(`/api/finance/accounts/${id}`, { method: 'DELETE' }),
 
   transactions: (filter: TransactionsFilter = {}) =>
-    authFetch<{ transactions: TransactionDto[] }>(`/api/finance/transactions${query({ ...filter })}`),
+    authFetch<{ transactions: TransactionDto[] }>(
+      `/api/finance/transactions${query({ ...filter })}`,
+    ),
 
   createTransaction: (input: TransactionCreateValues) =>
-    authFetch<TransactionDto>('/api/finance/transactions', { method: 'POST', body: JSON.stringify(input) }),
+    authFetch<TransactionDto>('/api/finance/transactions', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 
   quickTransaction: (text: string, accountId?: string) =>
     authFetch<TransactionDto>('/api/finance/transactions/quick', {
@@ -84,12 +100,17 @@ export const financeApi = {
       body: JSON.stringify({ text, accountId }),
     }),
 
-  removeTransaction: (id: string) => authFetch<void>(`/api/finance/transactions/${id}`, { method: 'DELETE' }),
+  removeTransaction: (id: string) =>
+    authFetch<void>(`/api/finance/transactions/${id}`, { method: 'DELETE' }),
 
   transfer: (input: TransferCreateInput) =>
-    authFetch<TransactionDto>('/api/finance/transfers', { method: 'POST', body: JSON.stringify(input) }),
+    authFetch<TransactionDto>('/api/finance/transfers', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 
-  budgets: (month: string) => authFetch<{ budgets: BudgetDto[]; month: string }>(`/api/finance/budgets${query({ month })}`),
+  budgets: (month: string) =>
+    authFetch<{ budgets: BudgetDto[]; month: string }>(`/api/finance/budgets${query({ month })}`),
 
   upsertBudget: (input: BudgetUpsertInput) =>
     authFetch<BudgetDto>('/api/finance/budgets', { method: 'PUT', body: JSON.stringify(input) }),
@@ -102,7 +123,10 @@ export const financeApi = {
     authFetch<{ rates: ExchangeRateDto[] }>(`/api/finance/rates${query({ ...filter })}`),
 
   upsertRate: (input: ExchangeRateCreateValues) =>
-    authFetch<ExchangeRateDto>('/api/finance/rates', { method: 'PUT', body: JSON.stringify(input) }),
+    authFetch<ExchangeRateDto>('/api/finance/rates', {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 
   removeRate: (id: string) => authFetch<void>(`/api/finance/rates/${id}`, { method: 'DELETE' }),
 };

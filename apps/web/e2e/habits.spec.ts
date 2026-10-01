@@ -26,7 +26,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -92,7 +94,9 @@ test('трекер привычек: отметка в чек-ине, серия
 
   // Серия выросла на экране привычек.
   await page.goto('/habits');
-  await expect(page.getByTestId('habit-card').first().getByTestId('habit-streak')).toContainText('Серия: 1');
+  await expect(page.getByTestId('habit-card').first().getByTestId('habit-streak')).toContainText(
+    'Серия: 1',
+  );
 
   // Архивация убирает привычку из чек-ина, но оставляет в архиве.
   await page.getByTestId('habit-archive').click();

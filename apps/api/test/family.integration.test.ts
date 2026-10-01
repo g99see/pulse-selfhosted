@@ -98,7 +98,11 @@ describe('Family API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -212,7 +216,11 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       const owner = await signUp('fam-acc@example.com', 'famacc');
       await createFamily(owner);
 
-      const created = await owner.post('/api/family/accounts', { name: 'Общий', type: 'card', balance: 1000 });
+      const created = await owner.post('/api/family/accounts', {
+        name: 'Общий',
+        type: 'card',
+        balance: 1000,
+      });
       expect(created.status).toBe(201);
       const account = created.body as FamilyAccountDto;
       expect(account).toMatchObject({ name: 'Общий', type: 'card', balance: 1000 });
@@ -224,7 +232,11 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       });
       expect(income.status).toBe(201);
       expect(income.body.account.balance).toBe(6000);
-      expect(income.body.transaction).toMatchObject({ kind: 'income', amount: 5000, note: 'Зарплата' });
+      expect(income.body.transaction).toMatchObject({
+        kind: 'income',
+        amount: 5000,
+        note: 'Зарплата',
+      });
 
       const expense = await owner.post(`/api/family/accounts/${account.id}/transactions`, {
         kind: 'expense',
@@ -246,13 +258,21 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       const owner = await signUp('fam-acc2@example.com', 'famacc2');
       const member = await signUp('fam-acc2m@example.com', 'famacc2m');
       await createFamily(owner);
-      const account = (await owner.post('/api/family/accounts', { name: 'Общий' })).body as FamilyAccountDto;
+      const account = (await owner.post('/api/family/accounts', { name: 'Общий' }))
+        .body as FamilyAccountDto;
 
       const outsider = await signUp('fam-acc3@example.com', 'famacc3');
       await createFamily(outsider, 'Другая');
-      expect((await outsider.get(`/api/family/accounts/${account.id}/transactions`)).status).toBe(404);
+      expect((await outsider.get(`/api/family/accounts/${account.id}/transactions`)).status).toBe(
+        404,
+      );
       expect(
-        (await outsider.post(`/api/family/accounts/${account.id}/transactions`, { kind: 'income', amount: 1 })).status,
+        (
+          await outsider.post(`/api/family/accounts/${account.id}/transactions`, {
+            kind: 'income',
+            amount: 1,
+          })
+        ).status,
       ).toBe(404);
 
       await member.post('/api/family/join', { code: await invite(owner) });
@@ -264,7 +284,10 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       expect(contributed.body.transaction.userId).toBeTruthy();
       expect(contributed.body.account.balance).toBe(2000);
 
-      expect((await owner.put(`/api/family/accounts/${account.id}`, { name: 'Общий+', balance: 3000 })).status).toBe(200);
+      expect(
+        (await owner.put(`/api/family/accounts/${account.id}`, { name: 'Общий+', balance: 3000 }))
+          .status,
+      ).toBe(200);
       expect((await owner.del(`/api/family/accounts/${account.id}`)).status).toBe(204);
     });
   });
@@ -288,7 +311,11 @@ describe('Family API (интеграция с PostgreSQL)', () => {
 
       const first = await member.post(`/api/family/goals/${goal.id}/deposit`, { amount: 100000 });
       expect(first.status).toBe(201);
-      expect(first.body.goal).toMatchObject({ savedAmount: 100000, percent: 50, remaining: 100000 });
+      expect(first.body.goal).toMatchObject({
+        savedAmount: 100000,
+        percent: 50,
+        remaining: 100000,
+      });
       expect(first.body.goal.milestones).toEqual([25, 50]);
       expect(first.body.goal.deposits).toHaveLength(1);
 
@@ -299,7 +326,9 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       expect(goals.body.goals).toHaveLength(1);
       expect(goals.body.goals[0].savedAmount).toBe(150000);
 
-      expect((await owner.put(`/api/family/goals/${goal.id}`, { targetAmount: 300000 })).status).toBe(200);
+      expect(
+        (await owner.put(`/api/family/goals/${goal.id}`, { targetAmount: 300000 })).status,
+      ).toBe(200);
       expect((await owner.del(`/api/family/goals/${goal.id}`)).status).toBe(204);
     });
 
@@ -308,11 +337,16 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       const outsider = await signUp('fam-goal3@example.com', 'famgoal3');
       await createFamily(owner);
       await createFamily(outsider, 'Другая');
-      const goal = (await owner.post('/api/family/goals', { title: 'Цель', targetAmount: 1000 })).body as FamilyGoalDto;
+      const goal = (await owner.post('/api/family/goals', { title: 'Цель', targetAmount: 1000 }))
+        .body as FamilyGoalDto;
 
       expect((await outsider.get('/api/family/goals')).body.goals).toHaveLength(0);
-      expect((await outsider.post(`/api/family/goals/${goal.id}/deposit`, { amount: 100 })).status).toBe(404);
-      expect((await outsider.put(`/api/family/goals/${goal.id}`, { title: 'Взлом' })).status).toBe(404);
+      expect(
+        (await outsider.post(`/api/family/goals/${goal.id}/deposit`, { amount: 100 })).status,
+      ).toBe(404);
+      expect((await outsider.put(`/api/family/goals/${goal.id}`, { title: 'Взлом' })).status).toBe(
+        404,
+      );
       expect((await outsider.del(`/api/family/goals/${goal.id}`)).status).toBe(404);
     });
   });
@@ -327,9 +361,16 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       // Личный дневник и личные финансы Алисы.
       const checkin = await alice.post('/api/checkins', { mood: 4, note: 'Личная заметка Алисы' });
       expect(checkin.status).toBe(201);
-      const goal = await alice.post('/api/goals', { title: 'Личная цель Алисы', targetAmount: 50000 });
+      const goal = await alice.post('/api/goals', {
+        title: 'Личная цель Алисы',
+        targetAmount: 50000,
+      });
       expect(goal.status).toBe(201);
-      const account = await alice.post('/api/finance/accounts', { name: 'Личный счёт Алисы', type: 'card', balance: 9999 });
+      const account = await alice.post('/api/finance/accounts', {
+        name: 'Личный счёт Алисы',
+        type: 'card',
+        balance: 9999,
+      });
       expect(account.status).toBe(201);
 
       // Боб — в той же семье, но личные данные Алисы ему не видны НИГДЕ.
@@ -337,7 +378,9 @@ describe('Family API (интеграция с PostgreSQL)', () => {
       expect(bobCheckins.status).toBe(200);
       expect(JSON.stringify(bobCheckins.body)).not.toContain('Личная заметка Алисы');
       expect(bobCheckins.body.checkIns).toHaveLength(0);
-      expect((await bob.get(`/api/checkins/${(checkin.body as { id: string }).id}`)).status).toBe(404);
+      expect((await bob.get(`/api/checkins/${(checkin.body as { id: string }).id}`)).status).toBe(
+        404,
+      );
 
       expect((await bob.get('/api/goals')).body.goals).toHaveLength(0);
       expect((await bob.get(`/api/goals/${(goal.body as { id: string }).id}`)).status).toBe(404);

@@ -1,5 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   AccountCreateSchema,
   AccountUpdateSchema,
@@ -140,7 +153,10 @@ export class FinanceController {
   /* ----- Транзакции ----- */
 
   @Get('transactions')
-  async listTransactions(@Req() req: AuthenticatedRequest, @Query() query: Record<string, unknown>) {
+  async listTransactions(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: Record<string, unknown>,
+  ) {
     const filter = TransactionFilterSchema.safeParse(query);
     if (!filter.success) {
       throw httpError(400, 'validation_error', 'Некорректные параметры фильтра');
@@ -168,7 +184,10 @@ export class FinanceController {
 
   @Delete('transactions/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeTransaction(@Param('id') id: string, @Req() req: AuthenticatedRequest): Promise<void> {
+  async removeTransaction(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
     await this.transactions.remove(req.user!.id, id);
   }
 

@@ -106,7 +106,11 @@ export function ReportButton({ targetType, targetId, hidden, className = '' }: R
 
             {done ? (
               <div className="mt-4 flex flex-col gap-3">
-                <p role="status" data-testid="report-success" className="text-sm font-medium text-[var(--puls-finance-text)]">
+                <p
+                  role="status"
+                  data-testid="report-success"
+                  className="text-sm font-medium text-[var(--puls-finance-text)]"
+                >
                   {t('report.success')}
                 </p>
                 <button
@@ -146,7 +150,9 @@ export function ReportButton({ targetType, targetId, hidden, className = '' }: R
                     rows={3}
                     className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3"
                   />
-                  <span className="text-xs text-[var(--puls-ink-muted)]">{t('report.dialog.detailsHint')}</span>
+                  <span className="text-xs text-[var(--puls-ink-muted)]">
+                    {t('report.dialog.detailsHint')}
+                  </span>
                 </label>
 
                 {error ? (

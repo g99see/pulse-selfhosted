@@ -37,7 +37,9 @@ export default function ChallengesPage() {
   const [visibility, setVisibility] = useState<ChallengeVisibility>('private');
   const [joinCode, setJoinCode] = useState('');
   const [boards, setBoards] = useState<Record<string, ChallengeLeaderboardDto>>({});
-  const [candidates, setCandidates] = useState<Record<string, { userId: string; nickname: string }[]>>({});
+  const [candidates, setCandidates] = useState<
+    Record<string, { userId: string; nickname: string }[]>
+  >({});
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -71,7 +73,11 @@ export default function ChallengesPage() {
       setError(t('challenges.error.titleRequired'));
       return;
     }
-    if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > CHALLENGE_DURATION_MAX) {
+    if (
+      !Number.isInteger(durationDays) ||
+      durationDays < 1 ||
+      durationDays > CHALLENGE_DURATION_MAX
+    ) {
       setError(t('challenges.error.duration'));
       return;
     }
@@ -217,9 +223,14 @@ export default function ChallengesPage() {
             </button>
           ))}
         </div>
-        <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createChallenge(event)}>
+        <form
+          className="flex flex-wrap items-end gap-3"
+          onSubmit={(event) => void createChallenge(event)}
+        >
           <label htmlFor="challenge-title" className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('challenges.form.title')}</span>
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('challenges.form.title')}
+            </span>
             <input
               id="challenge-title"
               data-testid="challenge-title"
@@ -229,7 +240,9 @@ export default function ChallengesPage() {
             />
           </label>
           <label htmlFor="challenge-kind" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('challenges.form.kind')}</span>
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('challenges.form.kind')}
+            </span>
             <select
               id="challenge-kind"
               data-testid="challenge-kind"
@@ -245,7 +258,9 @@ export default function ChallengesPage() {
             </select>
           </label>
           <label htmlFor="challenge-duration" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('challenges.form.duration')}</span>
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('challenges.form.duration')}
+            </span>
             <input
               id="challenge-duration"
               data-testid="challenge-duration"
@@ -256,7 +271,9 @@ export default function ChallengesPage() {
             />
           </label>
           <label htmlFor="challenge-visibility" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('challenges.form.visibility')}</span>
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('challenges.form.visibility')}
+            </span>
             <select
               id="challenge-visibility"
               data-testid="challenge-visibility"
@@ -314,7 +331,10 @@ export default function ChallengesPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="truncate font-heading text-lg font-bold" data-testid="challenge-card-title">
+                <span
+                  className="truncate font-heading text-lg font-bold"
+                  data-testid="challenge-card-title"
+                >
                   {challenge.title}
                 </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
@@ -339,7 +359,10 @@ export default function ChallengesPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span data-testid="challenge-progress" className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 font-semibold text-[var(--puls-primary-text)]">
+              <span
+                data-testid="challenge-progress"
+                className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 font-semibold text-[var(--puls-primary-text)]"
+              >
                 {t('challenges.progress', { percent: challenge.percent })}
               </span>
               <span className="text-[var(--puls-ink-muted)]">
@@ -417,7 +440,10 @@ export default function ChallengesPage() {
             </div>
 
             {boards[challenge.id] ? (
-              <ul className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-3" data-testid="challenge-leaderboard">
+              <ul
+                className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-3"
+                data-testid="challenge-leaderboard"
+              >
                 <li className="text-xs font-semibold uppercase text-[var(--puls-ink-muted)]">
                   {t('challenges.leaderboard.title')}
                 </li>

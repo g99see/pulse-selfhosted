@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Injectable } from '@nestjs/common';
 import { Prisma, type Account, type User } from '@prisma/client';
-import type {
-  LoginInput,
-  OnboardingInput,
-  PublicUser,
-  RegisterInput,
-} from '@puls/shared';
+import type { LoginInput, OnboardingInput, PublicUser, RegisterInput } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { INSTANCE_SETTINGS_ID } from '../common/instance';
 import { PrismaService } from '../prisma/prisma.service';
@@ -47,9 +42,7 @@ interface IssuedSession {
 }
 
 /** Результат входа: либо сессия, либо необходимость второго фактора (ТЗ §6). */
-export type LoginOutcome =
-  | IssuedSession
-  | { twoFactorRequired: true; challengeToken: string };
+export type LoginOutcome = IssuedSession | { twoFactorRequired: true; challengeToken: string };
 
 @Injectable()
 export class AuthService {
@@ -103,7 +96,9 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email: input.email } });
 
     // Не раскрываем, существует ли адрес: и на пустом месте считаем хеш.
-    const passwordHash = user?.passwordHash ?? '$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    const passwordHash =
+      user?.passwordHash ??
+      '$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
     const passwordOk = await this.passwords.verify(passwordHash, input.password);
 
     if (!user || !user.passwordHash || !passwordOk) {

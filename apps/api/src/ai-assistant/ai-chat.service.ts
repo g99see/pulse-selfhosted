@@ -72,7 +72,12 @@ export class AiChatService {
     let result: AiCompletionResult | null = null;
 
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration += 1) {
-      result = await this.provider.complete(userId, { system, messages, tools: AI_TOOLS, maxTokens: MAX_TOKENS });
+      result = await this.provider.complete(userId, {
+        system,
+        messages,
+        tools: AI_TOOLS,
+        maxTokens: MAX_TOKENS,
+      });
       if (!result.toolCalls || result.toolCalls.length === 0) {
         return this.finalize(userId, result.text, proposals);
       }
@@ -99,8 +104,15 @@ export class AiChatService {
     return this.finalize(userId, final.text, proposals);
   }
 
-  private async finalize(userId: string, text: string, proposals: AiProposalDto[]): Promise<AiCompletionRun> {
-    const [reply, usage] = await Promise.all([this.appendSupport(userId, text), this.keys.usage(userId)]);
+  private async finalize(
+    userId: string,
+    text: string,
+    proposals: AiProposalDto[],
+  ): Promise<AiCompletionRun> {
+    const [reply, usage] = await Promise.all([
+      this.appendSupport(userId, text),
+      this.keys.usage(userId),
+    ]);
     return { text: reply, proposals, usage };
   }
 

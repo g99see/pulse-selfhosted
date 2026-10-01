@@ -33,7 +33,9 @@ function parseAmount(value: string): number {
 function GoalImage({ image }: { image: string | null }) {
   if (!image) return null;
   if (isGoalImageUrl(image)) {
-    return <img src={image} alt="" className="h-8 w-8 rounded-[var(--radius-button)] object-cover" />;
+    return (
+      <img src={image} alt="" className="h-8 w-8 rounded-[var(--radius-button)] object-cover" />
+    );
   }
   return (
     <span aria-hidden="true" className="text-2xl leading-none">
@@ -164,7 +166,10 @@ export default function GoalsPage() {
   }
 
   async function removeGoal(goal: GoalDto): Promise<void> {
-    if (typeof window !== 'undefined' && !window.confirm(t('goals.deleteConfirm', { title: goal.title }))) {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(t('goals.deleteConfirm', { title: goal.title }))
+    ) {
       return;
     }
     setBusy(true);
@@ -207,279 +212,301 @@ export default function GoalsPage() {
       {notice ? <Alert tone="success">{notice}</Alert> : null}
 
       <div className="grid items-start gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
-
-      <Card className="flex flex-col gap-3 lg:sticky lg:top-4">
-        <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
-          <IconBubble name="plus" tone="finance" size={32} />
-          {t('goals.add')}
-        </h2>
-        <form className="flex flex-col gap-3" onSubmit={(event) => void addGoal(event)}>
-          <label htmlFor="goal-title" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.title')}</span>
-            <input
-              id="goal-title"
-              data-testid="goal-title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <label htmlFor="goal-target" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.target')}</span>
-            <input
-              id="goal-target"
-              data-testid="goal-target"
-              inputMode="decimal"
-              value={target}
-              onChange={(event) => setTarget(event.target.value)}
-              className="h-10 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <label htmlFor="goal-deadline" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.deadline')}</span>
-            <input
-              id="goal-deadline"
-              data-testid="goal-deadline"
-              type="date"
-              value={deadline}
-              onChange={(event) => setDeadline(event.target.value)}
-              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <label htmlFor="goal-image" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.image')}</span>
-            <select
-              id="goal-image"
-              data-testid="goal-image"
-              value={emoji}
-              onChange={(event) => setEmoji(event.target.value)}
-              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              {GOAL_EMOJI_PRESETS.map((preset) => (
-                <option key={preset} value={preset}>
-                  {preset}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label htmlFor="goal-image-url" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.imageHint')}</span>
-            <input
-              id="goal-image-url"
-              data-testid="goal-image-url"
-              value={imageUrl}
-              onChange={(event) => setImageUrl(event.target.value)}
-              placeholder="https://"
-              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <label htmlFor="goal-visibility" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.visibility')}</span>
-            <select
-              id="goal-visibility"
-              data-testid="goal-visibility"
-              value={visibility}
-              onChange={(event) => setVisibility(event.target.value as GoalVisibility)}
-              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              {VISIBILITIES.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.key)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label htmlFor="goal-account" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.account')}</span>
-            <select
-              id="goal-account"
-              data-testid="goal-account"
-              value={accountId}
-              onChange={(event) => setAccountId(event.target.value)}
-              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              <option value="">{t('goals.form.accountNone')}</option>
-              {savingsAccounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            data-testid="goal-create"
-            disabled={busy}
-            className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
-          >
-            {t('goals.form.submit')}
-          </button>
-        </form>
-      </Card>
-
-      <section className="grid gap-4 xl:grid-cols-2" data-testid="goals-list">
-        {goals.map((goal) => (
-          <article
-            key={goal.id}
-            data-testid="goal-card"
-            className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm"
-          >
-            <div className="flex items-start gap-4">
-              <ProgressRing
-                size={96}
-                stroke={10}
-                percent={goal.percent}
-                label={t('goals.card.progress', { percent: goal.percent, title: goal.title })}
+        <Card className="flex flex-col gap-3 lg:sticky lg:top-4">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
+            <IconBubble name="plus" tone="finance" size={32} />
+            {t('goals.add')}
+          </h2>
+          <form className="flex flex-col gap-3" onSubmit={(event) => void addGoal(event)}>
+            <label htmlFor="goal-title" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.title')}</span>
+              <input
+                id="goal-title"
+                data-testid="goal-title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="flex items-center gap-2">
-                  <GoalImage image={goal.image} />
-                  <span className="truncate text-lg font-bold">{goal.title}</span>
-                </span>
-                <span className="font-heading text-xl font-extrabold">
-                  {money(goal.savedAmount, goal.currency)}{' '}
-                  <span className="text-sm font-medium text-[var(--puls-ink-muted)]">
-                    / {money(goal.targetAmount, goal.currency)}
-                  </span>
-                </span>
-                <span className="text-sm text-[var(--puls-ink-muted)]">
-                  {t('goals.remaining')}: {money(goal.remaining, goal.currency)}
-                </span>
-                <span className="text-sm text-[var(--puls-ink-muted)]">
-                  {goal.requiredMonthly === null
-                    ? t('goals.monthlyUnknown')
-                    : t('goals.monthly', { amount: money(goal.requiredMonthly, goal.currency) })}
-                </span>
-                <span className="text-sm text-[var(--puls-ink-muted)]">
-                  {goal.forecastDate
-                    ? t('goals.forecast', { date: formatDate(goal.forecastDate, locale, { dateStyle: 'medium' }) })
-                    : t('goals.forecastUnknown')}
-                </span>
-              </div>
-              <button
-                type="button"
-                data-testid="goal-delete"
-                onClick={() => void removeGoal(goal)}
-                className="self-start rounded-[var(--radius-chip)] px-2 py-1 text-xs text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
-              >
-                {t('goals.delete')}
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {goal.milestones.map((milestone) => (
-                <span
-                  key={milestone}
-                  data-testid="goal-milestone"
-                  className="rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-3 py-1 text-xs font-semibold text-[var(--puls-finance-text)]"
-                >
-                  {t('goals.milestone', { percent: milestone })}
-                </span>
-              ))}
-              <ShareButton
-                type="goal_progress"
-                id={goal.id}
-                shareText={t('share.text.goal', { percent: goal.percent, title: goal.title })}
+            </label>
+            <label htmlFor="goal-target" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.target')}</span>
+              <input
+                id="goal-target"
+                data-testid="goal-target"
+                inputMode="decimal"
+                value={target}
+                onChange={(event) => setTarget(event.target.value)}
+                className="h-10 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
-              <button
-                type="button"
-                data-testid="goal-embed"
-                onClick={() => {
-                  setEmbedCopied(false);
-                  setEmbedGoal(embedGoal === goal.id ? null : goal.id);
-                }}
-                className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium hover:bg-[var(--puls-surface-2)]"
+            </label>
+            <label htmlFor="goal-deadline" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">
+                {t('goals.form.deadline')}
+              </span>
+              <input
+                id="goal-deadline"
+                data-testid="goal-deadline"
+                type="date"
+                value={deadline}
+                onChange={(event) => setDeadline(event.target.value)}
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              />
+            </label>
+            <label htmlFor="goal-image" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.image')}</span>
+              <select
+                id="goal-image"
+                data-testid="goal-image"
+                value={emoji}
+                onChange={(event) => setEmoji(event.target.value)}
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               >
-                {t('goals.embed.button')}
-              </button>
-            </div>
-
-            {embedGoal === goal.id ? (
-              <div
-                data-testid="goal-embed-panel"
-                className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-3"
+                {GOAL_EMOJI_PRESETS.map((preset) => (
+                  <option key={preset} value={preset}>
+                    {preset}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor="goal-image-url" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">
+                {t('goals.form.imageHint')}
+              </span>
+              <input
+                id="goal-image-url"
+                data-testid="goal-image-url"
+                value={imageUrl}
+                onChange={(event) => setImageUrl(event.target.value)}
+                placeholder="https://"
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              />
+            </label>
+            <label htmlFor="goal-visibility" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">
+                {t('goals.form.visibility')}
+              </span>
+              <select
+                id="goal-visibility"
+                data-testid="goal-visibility"
+                value={visibility}
+                onChange={(event) => setVisibility(event.target.value as GoalVisibility)}
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               >
-                {goal.visibility === 'public' ? (
-                  <>
-                    <p className="text-xs text-[var(--puls-ink-muted)]">{t('goals.embed.hint')}</p>
-                    <textarea
-                      readOnly
-                      data-testid="goal-embed-snippet"
-                      rows={2}
-                      value={embedSnippet(goal.id)}
-                      className="w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-2 py-1 font-mono text-xs"
-                    />
-                    <div className="flex flex-wrap items-center gap-3">
-                      <button
-                        type="button"
-                        data-testid="goal-embed-copy"
-                        onClick={() => void copyEmbed(embedSnippet(goal.id))}
-                        className="text-xs font-semibold text-[var(--puls-primary-text)]"
-                      >
-                        {embedCopied ? t('goals.embed.copied') : t('goals.embed.copy')}
-                      </button>
-                      <a
-                        href={`${origin}/widget/goal/${goal.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        data-testid="goal-embed-link"
-                        className="text-xs font-medium text-[var(--puls-primary-text)]"
-                      >
-                        {t('goals.embed.link')}
-                      </a>
-                    </div>
-                  </>
-                ) : (
-                  <p
-                    data-testid="goal-embed-private"
-                    className="text-xs text-[var(--puls-ink-muted)]"
-                  >
-                    {t('goals.embed.onlyPublic')}
-                  </p>
-                )}
-              </div>
-            ) : null}
-
-            <form
-              className="flex items-end gap-2"
-              onSubmit={(event) => void deposit(goal, event)}
+                {VISIBILITIES.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {t(option.key)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor="goal-account" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">
+                {t('goals.form.account')}
+              </span>
+              <select
+                id="goal-account"
+                data-testid="goal-account"
+                value={accountId}
+                onChange={(event) => setAccountId(event.target.value)}
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              >
+                <option value="">{t('goals.form.accountNone')}</option>
+                {savingsAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="submit"
+              data-testid="goal-create"
+              disabled={busy}
+              className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
             >
-              <label htmlFor={`goal-deposit-${goal.id}`} className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.deposit.amount')}</span>
-                <input
-                  id={`goal-deposit-${goal.id}`}
-                  data-testid="goal-deposit-amount"
-                  inputMode="decimal"
-                  value={depositGoal === goal.id ? depositAmount : ''}
-                  onFocus={() => setDepositGoal(goal.id)}
-                  onChange={(event) => {
-                    setDepositGoal(goal.id);
-                    setDepositAmount(event.target.value);
-                  }}
-                  className="h-10 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              {t('goals.form.submit')}
+            </button>
+          </form>
+        </Card>
+
+        <section className="grid gap-4 xl:grid-cols-2" data-testid="goals-list">
+          {goals.map((goal) => (
+            <article
+              key={goal.id}
+              data-testid="goal-card"
+              className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                <ProgressRing
+                  size={96}
+                  stroke={10}
+                  percent={goal.percent}
+                  label={t('goals.card.progress', { percent: goal.percent, title: goal.title })}
                 />
-              </label>
-              <button
-                type="submit"
-                data-testid="goal-deposit-submit"
-                disabled={busy || depositGoal !== goal.id}
-                className="h-10 shrink-0 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
-              >
-                {t('goals.deposit.submit')}
-              </button>
-            </form>
-          </article>
-        ))}
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="flex items-center gap-2">
+                    <GoalImage image={goal.image} />
+                    <span className="truncate text-lg font-bold">{goal.title}</span>
+                  </span>
+                  <span className="font-heading text-xl font-extrabold">
+                    {money(goal.savedAmount, goal.currency)}{' '}
+                    <span className="text-sm font-medium text-[var(--puls-ink-muted)]">
+                      / {money(goal.targetAmount, goal.currency)}
+                    </span>
+                  </span>
+                  <span className="text-sm text-[var(--puls-ink-muted)]">
+                    {t('goals.remaining')}: {money(goal.remaining, goal.currency)}
+                  </span>
+                  <span className="text-sm text-[var(--puls-ink-muted)]">
+                    {goal.requiredMonthly === null
+                      ? t('goals.monthlyUnknown')
+                      : t('goals.monthly', { amount: money(goal.requiredMonthly, goal.currency) })}
+                  </span>
+                  <span className="text-sm text-[var(--puls-ink-muted)]">
+                    {goal.forecastDate
+                      ? t('goals.forecast', {
+                          date: formatDate(goal.forecastDate, locale, { dateStyle: 'medium' }),
+                        })
+                      : t('goals.forecastUnknown')}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  data-testid="goal-delete"
+                  onClick={() => void removeGoal(goal)}
+                  className="self-start rounded-[var(--radius-chip)] px-2 py-1 text-xs text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
+                >
+                  {t('goals.delete')}
+                </button>
+              </div>
 
-        {goals.length === 0 && !loading ? (
-          <div className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm xl:col-span-2" data-testid="goals-empty">
-            <EmptyState icon="target" tone="finance" title={t('goals.empty')} />
-          </div>
-        ) : null}
-        {loading && goals.length === 0 ? (
-          <div className="min-h-40 rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm sm:col-span-2" aria-hidden="true" />
-        ) : null}
-      </section>
+              <div className="flex flex-wrap gap-2">
+                {goal.milestones.map((milestone) => (
+                  <span
+                    key={milestone}
+                    data-testid="goal-milestone"
+                    className="rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-3 py-1 text-xs font-semibold text-[var(--puls-finance-text)]"
+                  >
+                    {t('goals.milestone', { percent: milestone })}
+                  </span>
+                ))}
+                <ShareButton
+                  type="goal_progress"
+                  id={goal.id}
+                  shareText={t('share.text.goal', { percent: goal.percent, title: goal.title })}
+                />
+                <button
+                  type="button"
+                  data-testid="goal-embed"
+                  onClick={() => {
+                    setEmbedCopied(false);
+                    setEmbedGoal(embedGoal === goal.id ? null : goal.id);
+                  }}
+                  className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium hover:bg-[var(--puls-surface-2)]"
+                >
+                  {t('goals.embed.button')}
+                </button>
+              </div>
+
+              {embedGoal === goal.id ? (
+                <div
+                  data-testid="goal-embed-panel"
+                  className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-3"
+                >
+                  {goal.visibility === 'public' ? (
+                    <>
+                      <p className="text-xs text-[var(--puls-ink-muted)]">
+                        {t('goals.embed.hint')}
+                      </p>
+                      <textarea
+                        readOnly
+                        data-testid="goal-embed-snippet"
+                        rows={2}
+                        value={embedSnippet(goal.id)}
+                        className="w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-2 py-1 font-mono text-xs"
+                      />
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          data-testid="goal-embed-copy"
+                          onClick={() => void copyEmbed(embedSnippet(goal.id))}
+                          className="text-xs font-semibold text-[var(--puls-primary-text)]"
+                        >
+                          {embedCopied ? t('goals.embed.copied') : t('goals.embed.copy')}
+                        </button>
+                        <a
+                          href={`${origin}/widget/goal/${goal.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          data-testid="goal-embed-link"
+                          className="text-xs font-medium text-[var(--puls-primary-text)]"
+                        >
+                          {t('goals.embed.link')}
+                        </a>
+                      </div>
+                    </>
+                  ) : (
+                    <p
+                      data-testid="goal-embed-private"
+                      className="text-xs text-[var(--puls-ink-muted)]"
+                    >
+                      {t('goals.embed.onlyPublic')}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              <form
+                className="flex items-end gap-2"
+                onSubmit={(event) => void deposit(goal, event)}
+              >
+                <label
+                  htmlFor={`goal-deposit-${goal.id}`}
+                  className="flex min-w-0 flex-1 flex-col gap-1"
+                >
+                  <span className="text-xs text-[var(--puls-ink-muted)]">
+                    {t('goals.deposit.amount')}
+                  </span>
+                  <input
+                    id={`goal-deposit-${goal.id}`}
+                    data-testid="goal-deposit-amount"
+                    inputMode="decimal"
+                    value={depositGoal === goal.id ? depositAmount : ''}
+                    onFocus={() => setDepositGoal(goal.id)}
+                    onChange={(event) => {
+                      setDepositGoal(goal.id);
+                      setDepositAmount(event.target.value);
+                    }}
+                    className="h-10 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  data-testid="goal-deposit-submit"
+                  disabled={busy || depositGoal !== goal.id}
+                  className="h-10 shrink-0 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                >
+                  {t('goals.deposit.submit')}
+                </button>
+              </form>
+            </article>
+          ))}
+
+          {goals.length === 0 && !loading ? (
+            <div
+              className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm xl:col-span-2"
+              data-testid="goals-empty"
+            >
+              <EmptyState icon="target" tone="finance" title={t('goals.empty')} />
+            </div>
+          ) : null}
+          {loading && goals.length === 0 ? (
+            <div
+              className="min-h-40 rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm sm:col-span-2"
+              aria-hidden="true"
+            />
+          ) : null}
+        </section>
       </div>
     </div>
   );

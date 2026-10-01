@@ -78,7 +78,9 @@ function CategoryFormFields({
       </label>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.kind')}</legend>
+        <legend className="text-xs text-[var(--puls-ink-muted)]">
+          {t('finance.categories.kind')}
+        </legend>
         <div className="flex flex-wrap gap-2">
           {(['expense', 'income'] as const satisfies readonly CategoryKind[]).map((kind) => (
             <label key={kind} className="cursor-pointer">
@@ -99,7 +101,9 @@ function CategoryFormFields({
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.icon')}</legend>
+        <legend className="text-xs text-[var(--puls-ink-muted)]">
+          {t('finance.categories.icon')}
+        </legend>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_ICONS.map((icon) => (
             <label key={icon.name} className="cursor-pointer">
@@ -124,7 +128,9 @@ function CategoryFormFields({
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.color')}</legend>
+        <legend className="text-xs text-[var(--puls-ink-muted)]">
+          {t('finance.categories.color')}
+        </legend>
         <div className="flex flex-wrap gap-3">
           {CATEGORY_COLORS.map((color) => (
             <label key={color.value} className="cursor-pointer">
@@ -148,7 +154,11 @@ function CategoryFormFields({
       </fieldset>
 
       {errors.length > 0 ? (
-        <ul id={errorId} role="alert" className="flex flex-col gap-1 text-xs text-[var(--puls-warning-text)]">
+        <ul
+          id={errorId}
+          role="alert"
+          className="flex flex-col gap-1 text-xs text-[var(--puls-warning-text)]"
+        >
           {errors.map((error) => (
             <li key={error}>{t(ERROR_KEYS[error])}</li>
           ))}
@@ -265,7 +275,11 @@ export function CategoryManager({
         </p>
       ) : null}
 
-      <ul className="flex flex-col gap-2" data-testid="finance-categories" aria-label={t('finance.categories.listLabel')}>
+      <ul
+        className="flex flex-col gap-2"
+        data-testid="finance-categories"
+        aria-label={t('finance.categories.listLabel')}
+      >
         {own.map((category) => (
           <li
             key={category.id}
@@ -363,7 +377,9 @@ export function CategoryManager({
           <p className="text-sm font-medium">
             {t('finance.categories.deleteConfirm', { name: deleting.name })}
           </p>
-          <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.deleteHint')}</p>
+          <p className="text-xs text-[var(--puls-ink-muted)]">
+            {t('finance.categories.deleteHint')}
+          </p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -395,7 +411,12 @@ export function CategoryManager({
             idPrefix="category"
             onChange={(patch) => setCreateForm((previous) => ({ ...previous, ...patch }))}
           />
-          <PrimaryButton type="submit" data-testid="category-create-submit" disabled={busy} className="self-start">
+          <PrimaryButton
+            type="submit"
+            data-testid="category-create-submit"
+            disabled={busy}
+            className="self-start"
+          >
             {t('finance.categories.add')}
           </PrimaryButton>
         </form>

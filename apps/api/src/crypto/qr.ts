@@ -28,7 +28,10 @@ export interface QrResult {
 }
 
 /** Блоки данных и EC по (уровень, версия): [кол-во блоков, всего, данных]. */
-const EC_BLOCKS: Record<ErrorCorrection, Record<number, ReadonlyArray<readonly [number, number, number]>>> = {
+const EC_BLOCKS: Record<
+  ErrorCorrection,
+  Record<number, ReadonlyArray<readonly [number, number, number]>>
+> = {
   L: {
     1: [[1, 26, 19]],
     2: [[1, 44, 34]],
@@ -95,9 +98,7 @@ const EC_BLOCKS: Record<ErrorCorrection, Record<number, ReadonlyArray<readonly [
   H: {
     1: [[1, 26, 9]],
     2: [[1, 44, 16]],
-    3: [
-      [2, 35, 13],
-    ],
+    3: [[2, 35, 13]],
     4: [[4, 25, 9]],
     5: [
       [2, 33, 11],
@@ -290,7 +291,12 @@ function drawFunction(
   reserved[row][col] = true;
 }
 
-function drawFinder(modules: number[][], reserved: boolean[][], centerRow: number, centerCol: number): void {
+function drawFinder(
+  modules: number[][],
+  reserved: boolean[][],
+  centerRow: number,
+  centerCol: number,
+): void {
   const size = modules.length;
   for (let dy = -4; dy <= 4; dy += 1) {
     for (let dx = -4; dx <= 4; dx += 1) {
@@ -303,7 +309,12 @@ function drawFinder(modules: number[][], reserved: boolean[][], centerRow: numbe
   }
 }
 
-function drawAlignment(modules: number[][], reserved: boolean[][], centerRow: number, centerCol: number): void {
+function drawAlignment(
+  modules: number[][],
+  reserved: boolean[][],
+  centerRow: number,
+  centerCol: number,
+): void {
   for (let dy = -2; dy <= 2; dy += 1) {
     for (let dx = -2; dx <= 2; dx += 1) {
       const distance = Math.max(Math.abs(dy), Math.abs(dx));
@@ -418,7 +429,12 @@ function applyMask(modules: number[][], reserved: boolean[][], mask: number): vo
   }
 }
 
-function drawFormatBits(modules: number[][], reserved: boolean[][], level: ErrorCorrection, mask: number): void {
+function drawFormatBits(
+  modules: number[][],
+  reserved: boolean[][],
+  level: ErrorCorrection,
+  mask: number,
+): void {
   const size = modules.length;
   const data = (EC_FORMAT_BITS[level] << 3) | mask;
   let remainder = data;
@@ -535,7 +551,13 @@ export function encodeQr(data: string, options: QrOptions = {}): QrResult {
 
   if (options.mask !== undefined) {
     const mask = options.mask;
-    return { version, size, mask, errorCorrection: level, modules: render(size, level, version, codewords, mask) };
+    return {
+      version,
+      size,
+      mask,
+      errorCorrection: level,
+      modules: render(size, level, version, codewords, mask),
+    };
   }
 
   let bestMask = 0;
@@ -558,7 +580,10 @@ export function encodeQr(data: string, options: QrOptions = {}): QrResult {
 }
 
 /** SVG с матрицей (чёрные модули на белом фоне, quiet zone 4 по умолчанию). */
-export function qrToSvg(modules: number[][], options: { margin?: number; scale?: number } = {}): string {
+export function qrToSvg(
+  modules: number[][],
+  options: { margin?: number; scale?: number } = {},
+): string {
   const margin = options.margin ?? 4;
   const scale = options.scale ?? 1;
   const size = modules.length;

@@ -73,7 +73,12 @@ export class ClamAvInstreamScanner implements ClamAvScanner {
         settled = true;
         const text = response.replace(/\0/g, '').trim();
         if (/\bFOUND\b/.test(text)) {
-          const signature = text.split(':').slice(1).join(':').replace(/\s*FOUND.*$/, '').trim();
+          const signature = text
+            .split(':')
+            .slice(1)
+            .join(':')
+            .replace(/\s*FOUND.*$/, '')
+            .trim();
           resolve({ infected: true, signature: signature || undefined });
         } else {
           resolve({ infected: false });

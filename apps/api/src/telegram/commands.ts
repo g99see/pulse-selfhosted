@@ -19,9 +19,7 @@ export type TelegramCommand =
 
 /** Намерение по нажатой inline-кнопке. */
 export type TelegramCallback =
-  | { kind: 'mood'; mood: number }
-  | { kind: 'undo'; transactionId: string }
-  | { kind: 'unknown' };
+  { kind: 'mood'; mood: number } | { kind: 'undo'; transactionId: string } | { kind: 'unknown' };
 
 export interface InlineButton {
   text: string;
@@ -88,9 +86,7 @@ export function parseCallback(data: string): TelegramCallback {
 
 /** Inline-кнопки настроения 1–5 (ТЗ §3.3): ответ за пять секунд из чата. */
 export function moodKeyboard(): InlineButton[][] {
-  return [
-    MOOD_EMOJI.map((emoji, index) => ({ text: emoji, callbackData: `mood:${index + 1}` })),
-  ];
+  return [MOOD_EMOJI.map((emoji, index) => ({ text: emoji, callbackData: `mood:${index + 1}` }))];
 }
 
 /** Кнопка «Отменить» под подтверждением быстрой записи (ТЗ §4). */

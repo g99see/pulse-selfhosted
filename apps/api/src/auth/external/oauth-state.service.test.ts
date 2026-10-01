@@ -30,7 +30,11 @@ describe('MemoryOAuthStateStore', () => {
   it('истекает по TTL', async () => {
     let now = 1_000;
     const store = new MemoryOAuthStateStore(() => now);
-    await store.save('state-2', { intent: 'link', userId: 'u1', codeVerifier: 'v', createdAt: now }, 10);
+    await store.save(
+      'state-2',
+      { intent: 'link', userId: 'u1', codeVerifier: 'v', createdAt: now },
+      10,
+    );
 
     now += 10_001;
     expect(await store.take('state-2')).toBeNull();
@@ -38,7 +42,11 @@ describe('MemoryOAuthStateStore', () => {
 
   it('сохраняет intent и userId для привязки из настроек', async () => {
     const store = new MemoryOAuthStateStore();
-    await store.save('state-3', { intent: 'link', userId: 'user-42', codeVerifier: 'v', createdAt: Date.now() }, 600);
+    await store.save(
+      'state-3',
+      { intent: 'link', userId: 'user-42', codeVerifier: 'v', createdAt: Date.now() },
+      600,
+    );
     const taken = await store.take('state-3');
     expect(taken?.intent).toBe('link');
     expect(taken?.userId).toBe('user-42');

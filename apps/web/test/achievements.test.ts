@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
 import type { AchievementStatusDto, StreakDto } from '@puls/shared';
-import {
-  groupAchievements,
-  recentlyEarnedCodes,
-  streakProgress,
-} from '../src/lib/achievements';
+import { groupAchievements, recentlyEarnedCodes, streakProgress } from '../src/lib/achievements';
 
-function status(partial: Partial<AchievementStatusDto> & { code: AchievementStatusDto['code'] }): AchievementStatusDto {
+function status(
+  partial: Partial<AchievementStatusDto> & { code: AchievementStatusDto['code'] },
+): AchievementStatusDto {
   return { earned: false, earnedAt: null, progress: 0, ...partial };
 }
 
 describe('groupAchievements (ТЗ §4)', () => {
   it('группирует бейджи в порядке каталога и добивает отсутствующие', () => {
-    const groups = groupAchievements([status({ code: 'checkin_streak_7', earned: true, progress: 1 })]);
+    const groups = groupAchievements([
+      status({ code: 'checkin_streak_7', earned: true, progress: 1 }),
+    ]);
     expect(groups.map((view) => view.group)).toEqual(['checkins', 'finance', 'goals']);
     const checkins = groups.find((view) => view.group === 'checkins');
     expect(checkins?.items[1]?.code).toBe('checkin_streak_7');

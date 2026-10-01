@@ -17,7 +17,9 @@ const AUTH_DATE = Math.floor(NOW / 1000);
 
 function sign(payload: Record<string, unknown>, botToken = BOT_TOKEN): TelegramAuthPayload {
   const checkString = telegramDataCheckString(payload);
-  const hash = createHmac('sha256', createHash('sha256').update(botToken).digest()).update(checkString).digest('hex');
+  const hash = createHmac('sha256', createHash('sha256').update(botToken).digest())
+    .update(checkString)
+    .digest('hex');
   return { ...payload, hash } as unknown as TelegramAuthPayload;
 }
 
@@ -38,7 +40,12 @@ describe('telegramDataCheckString', () => {
 
 describe('verifyTelegramAuth', () => {
   it('принимает корректную подпись и возвращает subject', () => {
-    const payload = sign({ id: 42, first_name: 'Дмитрий', username: 'dmitro', auth_date: AUTH_DATE });
+    const payload = sign({
+      id: 42,
+      first_name: 'Дмитрий',
+      username: 'dmitro',
+      auth_date: AUTH_DATE,
+    });
     const verified = verifyTelegramAuth(payload, BOT_TOKEN, { now: NOW, maxAgeSeconds: 86_400 });
 
     expect(verified.subject).toBe('42');
@@ -59,9 +66,9 @@ describe('verifyTelegramAuth', () => {
 
   it('отклоняет просроченный auth_date', () => {
     const payload = sign({ id: 42, first_name: 'Ann', auth_date: AUTH_DATE - 90_000 });
-    expect(() => verifyTelegramAuth(payload, BOT_TOKEN, { now: NOW, maxAgeSeconds: 86_400 })).toThrow(
-      /просрочен|устарел/,
-    );
+    expect(() =>
+      verifyTelegramAuth(payload, BOT_TOKEN, { now: NOW, maxAgeSeconds: 86_400 }),
+    ).toThrow(/просрочен|устарел/);
   });
 
   it('отклоняет auth_date из будущего', () => {
@@ -71,14 +78,16 @@ describe('verifyTelegramAuth', () => {
 
   it('отклоняет отсутствие hash', () => {
     expect(() =>
-      verifyTelegramAuth({ id: 42, auth_date: AUTH_DATE } as TelegramAuthPayload, BOT_TOKEN, { now: NOW }),
+      verifyTelegramAuth({ id: 42, auth_date: AUTH_DATE } as TelegramAuthPayload, BOT_TOKEN, {
+        now: NOW,
+      }),
     ).toThrow(TelegramAuthError);
   });
 
   it('отклоняет отсутствие id и auth_date', () => {
-    expect(() => verifyTelegramAuth(sign({ auth_date: AUTH_DATE }), BOT_TOKEN, { now: NOW })).toThrow(
-      TelegramAuthError,
-    );
+    expect(() =>
+      verifyTelegramAuth(sign({ auth_date: AUTH_DATE }), BOT_TOKEN, { now: NOW }),
+    ).toThrow(TelegramAuthError);
   });
 
   it('не полагается на переданный hash как на данные подписи', () => {

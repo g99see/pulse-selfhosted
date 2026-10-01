@@ -101,7 +101,11 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -110,7 +114,11 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
     return client;
   }
 
-  async function createAccount(client: TestClient, name = 'Карта', balance = 100000): Promise<AccountDto> {
+  async function createAccount(
+    client: TestClient,
+    name = 'Карта',
+    balance = 100000,
+  ): Promise<AccountDto> {
     const response = await client.post('/api/finance/accounts', { name, type: 'card', balance });
     expect(response.status).toBe(201);
     return response.body as AccountDto;
@@ -141,7 +149,9 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
 
   describe('CRUD (ТЗ §3.2)', () => {
     it('требует вход', async () => {
-      expect((await new TestClient(server).get('/api/finance/recurring-payments')).status).toBe(401);
+      expect((await new TestClient(server).get('/api/finance/recurring-payments')).status).toBe(
+        401,
+      );
     });
 
     it('создаёт платёж и показывает его в списке', async () => {
@@ -185,9 +195,7 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
       expect(updated.status).toBe(200);
       expect(updated.body).toMatchObject({ name: 'Аренда квартиры', amount: 35000 });
 
-      expect(
-        (await client.del(`/api/finance/recurring-payments/${created.id}`)).status,
-      ).toBe(204);
+      expect((await client.del(`/api/finance/recurring-payments/${created.id}`)).status).toBe(204);
       expect((await client.get('/api/finance/recurring-payments')).body.payments).toHaveLength(0);
     });
 
@@ -258,13 +266,19 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
 
       expect((await bob.get('/api/finance/recurring-payments')).body.payments).toHaveLength(0);
       expect(
-        (await bob.put(`/api/finance/recurring-payments/${alicePayment.id}`, { name: 'Взлом' })).status,
-      ).toBe(404);
-      expect(
-        (await bob.put(`/api/finance/recurring-payments/${alicePayment.id}/active`, { active: false }))
+        (await bob.put(`/api/finance/recurring-payments/${alicePayment.id}`, { name: 'Взлом' }))
           .status,
       ).toBe(404);
-      expect((await bob.del(`/api/finance/recurring-payments/${alicePayment.id}`)).status).toBe(404);
+      expect(
+        (
+          await bob.put(`/api/finance/recurring-payments/${alicePayment.id}/active`, {
+            active: false,
+          })
+        ).status,
+      ).toBe(404);
+      expect((await bob.del(`/api/finance/recurring-payments/${alicePayment.id}`)).status).toBe(
+        404,
+      );
 
       // Чужой счёт нельзя привязать к своему платежу.
       const bobAccount = await createAccount(bob, 'Карта Боба');
@@ -333,13 +347,16 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
       const accounts = (await client.get('/api/finance/accounts')).body.accounts as AccountDto[];
       expect(accounts[0].balance).toBe(70000);
 
-      const advanced = await prisma.recurringPayment.findUniqueOrThrow({ where: { id: payment.id } });
+      const advanced = await prisma.recurringPayment.findUniqueOrThrow({
+        where: { id: payment.id },
+      });
       expect(advanced.nextRunAt.toISOString()).toBe('2026-02-28T07:00:00.000Z');
 
       // Повторный тик (и перезапуск — состояние в БД) дубль не создаёт.
       const second = await scheduler.runOnce(now);
       expect(second.created).toBe(0);
-      const after = (await client.get('/api/finance/transactions')).body.transactions as TransactionDto[];
+      const after = (await client.get('/api/finance/transactions')).body
+        .transactions as TransactionDto[];
       expect(after).toHaveLength(1);
       expect((await client.get('/api/finance/accounts')).body.accounts[0].balance).toBe(70000);
     });
@@ -367,7 +384,9 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
       expect(delivered.some((entry) => entry.payload.type === 'payments')).toBe(true);
       expect(delivered.some((entry) => entry.payload.body?.includes('Подписка'))).toBe(true);
 
-      const stamped = await prisma.recurringPayment.findUniqueOrThrow({ where: { id: payment.id } });
+      const stamped = await prisma.recurringPayment.findUniqueOrThrow({
+        where: { id: payment.id },
+      });
       expect(stamped.remindedFor?.toISOString()).toBe('2026-03-16T07:00:00.000Z');
 
       const second = await scheduler.runOnce(now);

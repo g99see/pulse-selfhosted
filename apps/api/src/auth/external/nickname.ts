@@ -15,7 +15,10 @@ export const DEFAULT_NICKNAME_ATTEMPTS = 10;
 export function generateNickname(random: () => number = Math.random): string {
   let suffix = '';
   for (let index = 0; index < SUFFIX_LENGTH; index += 1) {
-    const position = Math.min(ALPHABET.length - 1, Math.max(0, Math.floor(random() * ALPHABET.length)));
+    const position = Math.min(
+      ALPHABET.length - 1,
+      Math.max(0, Math.floor(random() * ALPHABET.length)),
+    );
     suffix += ALPHABET[position];
   }
   const candidate = `${NICKNAME_PREFIX}-${suffix}`;

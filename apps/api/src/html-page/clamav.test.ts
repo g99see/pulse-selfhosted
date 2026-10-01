@@ -3,11 +3,7 @@
 // CLAMAV_HOST и TCP-клиент clamd (INSTREAM) против фейкового сервера.
 import { createServer, type Server, type Socket } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  ClamAvInstreamScanner,
-  NoopClamAvScanner,
-  createClamAvScanner,
-} from './clamav';
+import { ClamAvInstreamScanner, NoopClamAvScanner, createClamAvScanner } from './clamav';
 
 /** Фейковый clamd: читает INSTREAM и отвечает заданной строкой. */
 function startFakeClamd(response: string): Promise<{ server: Server; port: number }> {

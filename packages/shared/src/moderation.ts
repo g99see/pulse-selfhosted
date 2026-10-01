@@ -45,7 +45,11 @@ export const ReportCreateSchema = z.object({
   targetType: ReportTargetTypeSchema,
   targetId: z.string().trim().min(1, { message: 'Не указана цель жалобы' }).max(128),
   reason: ReportReasonSchema,
-  details: z.string().trim().max(REPORT_DETAILS_MAX, { message: 'Слишком длинное пояснение' }).optional(),
+  details: z
+    .string()
+    .trim()
+    .max(REPORT_DETAILS_MAX, { message: 'Слишком длинное пояснение' })
+    .optional(),
 });
 export type ReportCreateInput = z.infer<typeof ReportCreateSchema>;
 export type ReportCreateValues = z.input<typeof ReportCreateSchema>;

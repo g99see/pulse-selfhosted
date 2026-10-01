@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   CheckInFilterSchema,
   CheckInInputSchema,
@@ -50,7 +60,10 @@ export class PublicApiController {
 
   @Get('transactions')
   @RequireApiScopes('read')
-  async listTransactions(@Req() req: AuthenticatedRequest, @Query() query: Record<string, unknown>) {
+  async listTransactions(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: Record<string, unknown>,
+  ) {
     const filter = TransactionFilterSchema.safeParse(query);
     if (!filter.success) {
       throw httpError(400, 'validation_error', 'Некорректные параметры фильтра');

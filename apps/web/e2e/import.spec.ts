@@ -33,7 +33,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -84,7 +86,9 @@ test('импорт выписки CSV создаёт транзакции из �
 
   // Подтверждаем импорт (счёт подставляется автоматически).
   await page.getByTestId('import-confirm').click();
-  await expect(page.getByTestId('import-result')).toContainText('Импортировано: 2', { timeout: 15_000 });
+  await expect(page.getByTestId('import-result')).toContainText('Импортировано: 2', {
+    timeout: 15_000,
+  });
 
   // Транзакции видны на экране финансов в подходящих категориях.
   await page.goto('/finance');

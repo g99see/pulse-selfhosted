@@ -30,7 +30,10 @@ export const habitsApi = {
 
   /** Идемпотентная отметка за дату (по умолчанию — сегодня в часовом поясе). */
   mark: (id: string, input: { date?: string; done?: boolean }) =>
-    authFetch<HabitLogResult>(`/api/habits/${id}/log`, { method: 'POST', body: JSON.stringify(input) }),
+    authFetch<HabitLogResult>(`/api/habits/${id}/log`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 };
 
 /** Событие «привычки изменились» — блок в чек-ине перечитывает отметки. */

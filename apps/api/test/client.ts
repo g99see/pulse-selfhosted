@@ -41,7 +41,9 @@ export class TestClient {
   }
 
   async csrf(): Promise<string> {
-    const response = await request(this.server).get('/api/auth/csrf').set('X-Forwarded-For', this.ip);
+    const response = await request(this.server)
+      .get('/api/auth/csrf')
+      .set('X-Forwarded-For', this.ip);
     this.absorb(response);
     return this.cookies['puls_csrf'] ?? '';
   }
@@ -99,7 +101,10 @@ export class TestClient {
   }
 }
 
-function binaryParser(response: Response, callback: (error: Error | null, body: Buffer) => void): void {
+function binaryParser(
+  response: Response,
+  callback: (error: Error | null, body: Buffer) => void,
+): void {
   const chunks: Buffer[] = [];
   response.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
   response.on('end', () => callback(null, Buffer.concat(chunks)));

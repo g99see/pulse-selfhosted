@@ -13,12 +13,16 @@ async function verificationTokenFor(
 ): Promise<string> {
   const response = await request.get(`${API_URL}/api/auth/dev/outbox`);
   expect(response.ok()).toBeTruthy();
-  const body = (await response.json()) as { messages: Array<{ to: string; link?: string; text: string; kind?: string }> };
+  const body = (await response.json()) as {
+    messages: Array<{ to: string; link?: string; text: string; kind?: string }>;
+  };
   const letter = [...body.messages]
     .reverse()
     .find((message) => message.to === email && message.kind === 'email-verification');
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token).toBeTruthy();
   return token as string;
 }

@@ -140,7 +140,14 @@ export function nextOccurrenceDate(after: DateOnly, rule: RecurrenceRule): DateO
 
 function zoneOffsetMs(date: Date, timeZone: string): number {
   const parts = localParts(date, timeZone);
-  const asUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  const asUtc = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  );
   return asUtc - (date.getTime() - date.getMilliseconds());
 }
 
@@ -207,7 +214,9 @@ function instantFor(schedule: RecurringSchedule, date: DateOnly): Date {
 /** Ближайшее списание строго после `after`. */
 export function nextOccurrence(schedule: RecurringSchedule, after: Date): Occurrence {
   const today = localDateOf(after, schedule.timezone);
-  let date = isOccurrenceDate(today, schedule.rule) ? today : nextOccurrenceDate(today, schedule.rule);
+  let date = isOccurrenceDate(today, schedule.rule)
+    ? today
+    : nextOccurrenceDate(today, schedule.rule);
 
   if (instantFor(schedule, date).getTime() <= after.getTime()) {
     date = nextOccurrenceDate(date, schedule.rule);
@@ -279,7 +288,12 @@ function refineRule(
     day: value.day,
     month: value.month,
   });
-  if (error) ctx.addIssue({ code: 'custom', path: [value.frequency === 'yearly' ? 'month' : 'day'], message: error });
+  if (error)
+    ctx.addIssue({
+      code: 'custom',
+      path: [value.frequency === 'yearly' ? 'month' : 'day'],
+      message: error,
+    });
 }
 
 export const RecurringPaymentCreateSchema = z

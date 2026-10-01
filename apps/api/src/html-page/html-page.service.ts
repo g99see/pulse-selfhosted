@@ -171,7 +171,10 @@ export class HtmlPageService {
     if (!isHtml) {
       throw httpError(400, 'invalid_file_type', 'Загрузите файл с расширением .html');
     }
-    return this.save(userId, nickname, { html: file.buffer.toString('utf8'), note: file.originalname });
+    return this.save(userId, nickname, {
+      html: file.buffer.toString('utf8'),
+      note: file.originalname,
+    });
   }
 
   /** Откат: создаёт новую версию из выбранной, не удаляя историю (ТЗ §3.8). */

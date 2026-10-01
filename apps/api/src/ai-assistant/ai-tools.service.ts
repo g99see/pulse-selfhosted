@@ -88,7 +88,9 @@ export const AI_TOOLS: AiTool[] = [
     description: 'Бюджеты месяца по категориям: лимит и потрачено.',
     parameters: {
       type: 'object',
-      properties: { month: { type: 'string', description: 'Месяц «YYYY-MM», по умолчанию текущий' } },
+      properties: {
+        month: { type: 'string', description: 'Месяц «YYYY-MM», по умолчанию текущий' },
+      },
     },
   },
   {
@@ -210,19 +212,29 @@ export class AiToolsService {
     }
   }
 
-  private async proposeBudget(userId: string, args: Record<string, unknown>): Promise<AiToolExecution> {
+  private async proposeBudget(
+    userId: string,
+    args: Record<string, unknown>,
+  ): Promise<AiToolExecution> {
     const payload = {
       categoryId: str(args.categoryId) ?? '',
       month: str(args.month) ?? '',
       limit: num(args.limit) ?? 0,
     };
     const summary =
-      str(args.summary) ?? `Бюджет ${payload.limit} на ${payload.month} по категории ${payload.categoryId}`;
+      str(args.summary) ??
+      `Бюджет ${payload.limit} на ${payload.month} по категории ${payload.categoryId}`;
     const proposal = await this.proposals.create({ userId, kind: 'budget', summary, payload });
-    return { result: { proposalId: proposal.id, kind: proposal.kind, status: proposal.status }, proposal };
+    return {
+      result: { proposalId: proposal.id, kind: proposal.kind, status: proposal.status },
+      proposal,
+    };
   }
 
-  private async proposeGoal(userId: string, args: Record<string, unknown>): Promise<AiToolExecution> {
+  private async proposeGoal(
+    userId: string,
+    args: Record<string, unknown>,
+  ): Promise<AiToolExecution> {
     const payload: Record<string, unknown> = {
       title: str(args.title) ?? '',
       targetAmount: num(args.targetAmount) ?? 0,
@@ -233,10 +245,16 @@ export class AiToolsService {
 
     const summary = str(args.summary) ?? `Цель «${payload.title}» на ${payload.targetAmount}`;
     const proposal = await this.proposals.create({ userId, kind: 'goal', summary, payload });
-    return { result: { proposalId: proposal.id, kind: proposal.kind, status: proposal.status }, proposal };
+    return {
+      result: { proposalId: proposal.id, kind: proposal.kind, status: proposal.status },
+      proposal,
+    };
   }
 
-  private async proposeReminder(userId: string, args: Record<string, unknown>): Promise<AiToolExecution> {
+  private async proposeReminder(
+    userId: string,
+    args: Record<string, unknown>,
+  ): Promise<AiToolExecution> {
     const payload: Record<string, unknown> = {
       notificationType: str(args.notificationType) ?? '',
     };
@@ -245,6 +263,9 @@ export class AiToolsService {
 
     const summary = str(args.summary) ?? `Напоминание «${payload.notificationType}»`;
     const proposal = await this.proposals.create({ userId, kind: 'reminder', summary, payload });
-    return { result: { proposalId: proposal.id, kind: proposal.kind, status: proposal.status }, proposal };
+    return {
+      result: { proposalId: proposal.id, kind: proposal.kind, status: proposal.status },
+      proposal,
+    };
   }
 }

@@ -36,7 +36,10 @@ export class GoogleTokenError extends Error {
 }
 
 /** Оба варианта издателя, которые встречаются в токенах Google. */
-export const GOOGLE_ISSUERS: readonly string[] = ['accounts.google.com', 'https://accounts.google.com'];
+export const GOOGLE_ISSUERS: readonly string[] = [
+  'accounts.google.com',
+  'https://accounts.google.com',
+];
 
 const SIGNATURE_ALGORITHM = 'RSA-SHA256';
 /** Допустимое расхождение часов при проверке iat. */

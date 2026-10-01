@@ -10,11 +10,7 @@ import type { User } from '@prisma/client';
 import { base32Encode } from '../crypto/base32';
 import { qrDataUrl, type ErrorCorrection } from '../crypto/qr';
 import { SecretBoxService } from '../crypto/secret-box';
-import {
-  generateTotpSecret,
-  matchTotpStep,
-  otpauthUri,
-} from '../crypto/totp';
+import { generateTotpSecret, matchTotpStep, otpauthUri } from '../crypto/totp';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { PasswordService } from './password.service';
@@ -151,7 +147,10 @@ export class TwoFactorService {
     await this.prisma.$transaction([
       this.prisma.twoFactorBackupCode.deleteMany({ where: { userId: user.id } }),
       this.prisma.twoFactorBackupCode.createMany({
-        data: backupCodes.map((plain) => ({ userId: user.id, codeHash: hashBackupCode(normalizeBackupCode(plain)!) })),
+        data: backupCodes.map((plain) => ({
+          userId: user.id,
+          codeHash: hashBackupCode(normalizeBackupCode(plain)!),
+        })),
       }),
       this.prisma.user.update({
         where: { id: user.id },
@@ -169,7 +168,9 @@ export class TwoFactorService {
       throw httpError(400, 'two_factor_not_enabled', 'Двухфакторная аутентификация не включена');
     }
 
-    const passwordOk = user.passwordHash ? await this.passwords.verify(user.passwordHash, password) : false;
+    const passwordOk = user.passwordHash
+      ? await this.passwords.verify(user.passwordHash, password)
+      : false;
     if (!passwordOk) {
       throw httpError(401, 'invalid_password', 'Неверный пароль');
     }

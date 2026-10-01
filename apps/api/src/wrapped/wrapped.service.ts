@@ -63,7 +63,7 @@ export class WrappedService {
       amount: Number(transaction.amountBase),
       day: transaction.date.toISOString().slice(0, 10),
       categoryId: transaction.categoryId,
-      categoryName: transaction.categoryId ? names.get(transaction.categoryId) ?? null : null,
+      categoryName: transaction.categoryId ? (names.get(transaction.categoryId) ?? null) : null,
     }));
 
     const yearStart = zonedDayBounds(`${targetYear}-01-01`, timezone).start;

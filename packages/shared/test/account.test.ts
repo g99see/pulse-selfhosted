@@ -29,13 +29,19 @@ describe('DeleteAccountSchema', () => {
   });
 
   it('обрезает пробелы в подтверждении', () => {
-    expect(DeleteAccountSchema.parse({ password: 'Secret12345', confirm: '  nick  ' }).confirm).toBe('nick');
+    expect(
+      DeleteAccountSchema.parse({ password: 'Secret12345', confirm: '  nick  ' }).confirm,
+    ).toBe('nick');
   });
 
   it('отклоняет пустой пароль, пустое подтверждение и слишком длинный пароль', () => {
     expect(DeleteAccountSchema.safeParse({ password: '', confirm: 'nick' }).success).toBe(false);
-    expect(DeleteAccountSchema.safeParse({ password: 'Secret12345', confirm: '   ' }).success).toBe(false);
-    expect(DeleteAccountSchema.safeParse({ password: 'x'.repeat(129), confirm: 'nick' }).success).toBe(false);
+    expect(DeleteAccountSchema.safeParse({ password: 'Secret12345', confirm: '   ' }).success).toBe(
+      false,
+    );
+    expect(
+      DeleteAccountSchema.safeParse({ password: 'x'.repeat(129), confirm: 'nick' }).success,
+    ).toBe(false);
     expect(DeleteAccountSchema.safeParse({ confirm: 'nick' }).success).toBe(false);
   });
 });

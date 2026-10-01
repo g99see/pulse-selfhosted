@@ -27,7 +27,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -85,7 +87,9 @@ test('редактор HTML-страницы: шаблон, сохранение
   await expect(page.getByTestId('htmlPage-notice')).toContainText('Сохранено', { timeout: 15_000 });
 
   // Меняем код и сохраняем ещё раз — в истории две версии.
-  await page.getByTestId('htmlPage-code').fill('<!DOCTYPE html><html><body><h1>Версия 2</h1></body></html>');
+  await page
+    .getByTestId('htmlPage-code')
+    .fill('<!DOCTYPE html><html><body><h1>Версия 2</h1></body></html>');
   await page.getByTestId('htmlPage-save').click();
   await expect(page.getByTestId('htmlPage-notice')).toContainText('Сохранено', { timeout: 15_000 });
 
@@ -93,7 +97,10 @@ test('редактор HTML-страницы: шаблон, сохранение
   await expect(versions).toHaveCount(2, { timeout: 15_000 });
 
   // Откатываемся к более старой версии — она снова становится текущей.
-  await versions.last().getByTestId(/htmlPage-restore-/).click();
+  await versions
+    .last()
+    .getByTestId(/htmlPage-restore-/)
+    .click();
   await expect(page.getByTestId('htmlPage-notice')).toContainText('Версия восстановлена', {
     timeout: 15_000,
   });

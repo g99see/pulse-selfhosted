@@ -26,9 +26,7 @@ export const reportApi = {
 /** Очередь и журнал модерации (ТЗ §3.8) — только для ролей модератора и admin. */
 export const moderationApi = {
   reports: (status?: ReportStatus) =>
-    authFetch<ReportsResponse>(
-      `/api/moderation/reports${status ? `?status=${status}` : ''}`,
-    ),
+    authFetch<ReportsResponse>(`/api/moderation/reports${status ? `?status=${status}` : ''}`),
 
   actions: () => authFetch<ModerationActionsResponse>('/api/moderation/actions'),
 

@@ -27,7 +27,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -71,7 +73,10 @@ test('стрик на карточке и достижения: бейджи, с
   await expect(page.getByTestId('achievements-streak')).toBeVisible();
   await expect(page.getByTestId('achievements-group-checkins')).toBeVisible();
   await expect(page.getByTestId('achievements-group-finance')).toBeVisible();
-  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute('data-earned', 'false');
+  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute(
+    'data-earned',
+    'false',
+  );
 
   // Первый чек-ин с главной: появляется серия и конфетти за первое достижение.
   await page.goto('/app');
@@ -82,6 +87,9 @@ test('стрик на карточке и достижения: бейджи, с
 
   // На экране достижений первый бейдж теперь получен.
   await page.goto('/achievements');
-  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute('data-earned', 'true');
+  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute(
+    'data-earned',
+    'true',
+  );
   await expect(page.getByTestId('achievement-first_checkin')).toContainText('Получено');
 });

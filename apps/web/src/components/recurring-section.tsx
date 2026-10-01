@@ -40,7 +40,12 @@ interface RecurringSectionProps {
 }
 
 /** Секция «Регулярные платежи» на экране финансов (ТЗ §3.2). */
-export function RecurringSection({ accounts, categories, currency, onChanged }: RecurringSectionProps) {
+export function RecurringSection({
+  accounts,
+  categories,
+  currency,
+  onChanged,
+}: RecurringSectionProps) {
   const { t, locale } = useT();
   const quiet = useQuietMode();
 
@@ -150,9 +155,16 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
         </p>
       ) : null}
 
-      <ul className={`flex flex-col divide-y divide-[var(--puls-ink-muted)]/15 ${loading ? 'min-h-11' : ''}`} data-testid="recurring-list">
+      <ul
+        className={`flex flex-col divide-y divide-[var(--puls-ink-muted)]/15 ${loading ? 'min-h-11' : ''}`}
+        data-testid="recurring-list"
+      >
         {payments.map((payment) => (
-          <li key={payment.id} className="flex items-center justify-between gap-3 py-3" data-testid="recurring-item">
+          <li
+            key={payment.id}
+            className="flex items-center justify-between gap-3 py-3"
+            data-testid="recurring-item"
+          >
             <span className="flex flex-col">
               <span className="font-medium" data-testid="recurring-name">
                 {payment.name}
@@ -171,7 +183,10 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
               </span>
             </span>
             <span className="flex items-center gap-3">
-              <span className="font-semibold [font-variant-numeric:tabular-nums]" data-testid="recurring-amount">
+              <span
+                className="font-semibold [font-variant-numeric:tabular-nums]"
+                data-testid="recurring-amount"
+              >
                 {quiet
                   ? MASKED_AMOUNT
                   : formatMoneyLocale(payment.amount, locale, payment.currency as Currency)}
@@ -206,134 +221,153 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
       </ul>
 
       <FormToggle label={t('finance.recurring.new')} testId="recurring-form-toggle">
-      <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void submit(event)}>
-        <label htmlFor="recurring-name" className="flex flex-1 flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.name')}</span>
-          <input
-            id="recurring-name"
-            data-testid="recurring-name-input"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className={inputClass}
-          />
-        </label>
-        <label htmlFor="recurring-amount" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.amount')}</span>
-          <input
-            id="recurring-amount"
-            data-testid="recurring-amount-input"
-            inputMode="decimal"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            className={`${inputClass} w-32`}
-          />
-        </label>
-        <label htmlFor="recurring-type" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.filter.type')}</span>
-          <select
-            id="recurring-type"
-            value={type}
-            onChange={(event) => {
-              setType(event.target.value as 'expense' | 'income');
-              setCategoryId('');
-            }}
-            className={inputClass}
-          >
-            <option value="expense">{t('finance.type.expense')}</option>
-            <option value="income">{t('finance.type.income')}</option>
-          </select>
-        </label>
-        <label htmlFor="recurring-account" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.account')}</span>
-          <select
-            id="recurring-account"
-            data-testid="recurring-account"
-            value={accountId}
-            onChange={(event) => setAccountId(event.target.value)}
-            className={inputClass}
-          >
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label htmlFor="recurring-category" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.category')}</span>
-          <select
-            id="recurring-category"
-            data-testid="recurring-category"
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            className={inputClass}
-          >
-            <option value="">{t('finance.noCategory')}</option>
-            {categoryOptions.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label htmlFor="recurring-frequency" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.frequency')}</span>
-          <select
-            id="recurring-frequency"
-            data-testid="recurring-frequency"
-            value={frequency}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value === 'weekly' || value === 'monthly' || value === 'yearly') setFrequency(value);
-            }}
-            className={inputClass}
-          >
-            {FREQUENCIES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {t(option.key)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label htmlFor="recurring-day" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t(DAY_LABEL[frequency])}</span>
-          <input
-            id="recurring-day"
-            data-testid="recurring-day"
-            inputMode="numeric"
-            value={day}
-            onChange={(event) => setDay(event.target.value)}
-            className={`${inputClass} w-20`}
-          />
-        </label>
-        {frequency === 'yearly' ? (
-          <label htmlFor="recurring-month" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.month')}</span>
+        <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void submit(event)}>
+          <label htmlFor="recurring-name" className="flex flex-1 flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('finance.recurring.name')}
+            </span>
             <input
-              id="recurring-month"
-              data-testid="recurring-month"
+              id="recurring-name"
+              data-testid="recurring-name-input"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className={inputClass}
+            />
+          </label>
+          <label htmlFor="recurring-amount" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('finance.recurring.amount')}
+            </span>
+            <input
+              id="recurring-amount"
+              data-testid="recurring-amount-input"
+              inputMode="decimal"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              className={`${inputClass} w-32`}
+            />
+          </label>
+          <label htmlFor="recurring-type" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.filter.type')}</span>
+            <select
+              id="recurring-type"
+              value={type}
+              onChange={(event) => {
+                setType(event.target.value as 'expense' | 'income');
+                setCategoryId('');
+              }}
+              className={inputClass}
+            >
+              <option value="expense">{t('finance.type.expense')}</option>
+              <option value="income">{t('finance.type.income')}</option>
+            </select>
+          </label>
+          <label htmlFor="recurring-account" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('finance.recurring.account')}
+            </span>
+            <select
+              id="recurring-account"
+              data-testid="recurring-account"
+              value={accountId}
+              onChange={(event) => setAccountId(event.target.value)}
+              className={inputClass}
+            >
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label htmlFor="recurring-category" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('finance.recurring.category')}
+            </span>
+            <select
+              id="recurring-category"
+              data-testid="recurring-category"
+              value={categoryId}
+              onChange={(event) => setCategoryId(event.target.value)}
+              className={inputClass}
+            >
+              <option value="">{t('finance.noCategory')}</option>
+              {categoryOptions.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label htmlFor="recurring-frequency" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('finance.recurring.frequency')}
+            </span>
+            <select
+              id="recurring-frequency"
+              data-testid="recurring-frequency"
+              value={frequency}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === 'weekly' || value === 'monthly' || value === 'yearly')
+                  setFrequency(value);
+              }}
+              className={inputClass}
+            >
+              {FREQUENCIES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.key)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label htmlFor="recurring-day" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">{t(DAY_LABEL[frequency])}</span>
+            <input
+              id="recurring-day"
+              data-testid="recurring-day"
               inputMode="numeric"
-              value={month}
-              onChange={(event) => setMonth(event.target.value)}
+              value={day}
+              onChange={(event) => setDay(event.target.value)}
               className={`${inputClass} w-20`}
             />
           </label>
-        ) : null}
-        <button
-          type="submit"
-          disabled={busy}
-          data-testid="recurring-submit"
-          className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] disabled:opacity-50"
-        >
-          {t('finance.recurring.add')}
-        </button>
-      </form>
+          {frequency === 'yearly' ? (
+            <label htmlFor="recurring-month" className="flex flex-col gap-1">
+              <span className="text-xs text-[var(--puls-ink-muted)]">
+                {t('finance.recurring.month')}
+              </span>
+              <input
+                id="recurring-month"
+                data-testid="recurring-month"
+                inputMode="numeric"
+                value={month}
+                onChange={(event) => setMonth(event.target.value)}
+                className={`${inputClass} w-20`}
+              />
+            </label>
+          ) : null}
+          <button
+            type="submit"
+            disabled={busy}
+            data-testid="recurring-submit"
+            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] disabled:opacity-50"
+          >
+            {t('finance.recurring.add')}
+          </button>
+        </form>
       </FormToggle>
 
       <h3 className="text-sm font-semibold">{t('finance.recurring.upcoming')}</h3>
-      <ul className={`flex flex-col gap-1 text-sm ${loading ? 'min-h-5' : ''}`} data-testid="recurring-upcoming">
+      <ul
+        className={`flex flex-col gap-1 text-sm ${loading ? 'min-h-5' : ''}`}
+        data-testid="recurring-upcoming"
+      >
         {upcoming.map((item) => (
-          <li key={`${item.paymentId}-${item.date}`} className="flex items-center justify-between gap-3">
+          <li
+            key={`${item.paymentId}-${item.date}`}
+            className="flex items-center justify-between gap-3"
+          >
             <span>
               <span className="font-medium">{item.name}</span>
               <span className="text-xs text-[var(--puls-ink-muted)]">

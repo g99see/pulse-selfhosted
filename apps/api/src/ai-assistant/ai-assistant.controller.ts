@@ -4,8 +4,22 @@
  * Всё под SessionGuard; пользователь берётся из сессии, из тела — никогда.
  * Без подключённого ключа AiProviderService отвечает ошибкой ai_not_configured.
  */
-import { Body, Controller, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { AiChatRequestSchema, AiReviewRequestSchema, type AiChatRequest, type AiReviewRequest } from '@puls/shared';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  AiChatRequestSchema,
+  AiReviewRequestSchema,
+  type AiChatRequest,
+  type AiReviewRequest,
+} from '@puls/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { SessionGuard } from '../auth/session.guard';
 import type { AuthenticatedRequest } from '../auth/auth.types';

@@ -97,7 +97,10 @@ export default function RatesPage() {
       ) : null}
 
       <Card>
-        <ul className="flex flex-col divide-y divide-[var(--puls-line)]" data-testid="finance-rates">
+        <ul
+          className="flex flex-col divide-y divide-[var(--puls-line)]"
+          data-testid="finance-rates"
+        >
           {rates.map((item) => (
             <li key={item.id} className="flex items-center justify-between gap-3 py-3">
               <span className="flex flex-col">
@@ -105,12 +108,19 @@ export default function RatesPage() {
                   {item.base} → {item.quote}
                 </span>
                 <span className="text-xs text-[var(--puls-ink-muted)]">
-                  {formatDate(item.date, locale, { day: '2-digit', month: 'short', year: 'numeric' })} ·{' '}
-                  {t(`finance.rates.source.${item.source}`)}
+                  {formatDate(item.date, locale, {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}{' '}
+                  · {t(`finance.rates.source.${item.source}`)}
                 </span>
               </span>
               <span className="flex items-center gap-3">
-                <span className="font-semibold [font-variant-numeric:tabular-nums]" data-testid="rate-value">
+                <span
+                  className="font-semibold [font-variant-numeric:tabular-nums]"
+                  data-testid="rate-value"
+                >
                   {formatNumber(item.rate, locale, { maximumFractionDigits: 8 })}
                 </span>
                 <button
@@ -133,7 +143,10 @@ export default function RatesPage() {
       </Card>
 
       <Card>
-        <form className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:items-end" onSubmit={(event) => void submit(event)}>
+        <form
+          className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:items-end"
+          onSubmit={(event) => void submit(event)}
+        >
           <Field
             id="rate-date"
             type="date"
@@ -176,7 +189,11 @@ export default function RatesPage() {
             value={rate}
             onChange={(event) => setRate(event.target.value)}
           />
-          <PrimaryButton type="submit" data-testid="rate-submit" disabled={busy || parseRateValue(rate) === null}>
+          <PrimaryButton
+            type="submit"
+            data-testid="rate-submit"
+            disabled={busy || parseRateValue(rate) === null}
+          >
             {t('finance.rates.add')}
           </PrimaryButton>
         </form>

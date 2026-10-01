@@ -81,12 +81,10 @@ export class ValkeyRateLimitStore implements RateLimitStore {
   constructor(private readonly redis: Redis) {}
 
   async consume(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
-    const result = (await this.redis.eval(
-      CONSUME_SCRIPT,
-      1,
-      `puls:rl:${key}`,
-      windowMs,
-    )) as [number, number];
+    const result = (await this.redis.eval(CONSUME_SCRIPT, 1, `puls:rl:${key}`, windowMs)) as [
+      number,
+      number,
+    ];
 
     const count = Number(result[0]);
     const ttl = Number(result[1]);

@@ -71,7 +71,11 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -103,7 +107,9 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       const categories = await categoriesOf(client);
 
       expect(categories.some((category) => category.name === 'Еда')).toBe(true);
-      expect(categories.some((category) => category.name === 'Зарплата' && category.kind === 'income')).toBe(true);
+      expect(
+        categories.some((category) => category.name === 'Зарплата' && category.kind === 'income'),
+      ).toBe(true);
       const food = categories.find((category) => category.name === 'Еда');
       expect(food?.icon).toBeTruthy();
       expect(food?.color).toMatch(/^#/);
@@ -120,7 +126,12 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       });
 
       expect(response.status).toBe(201);
-      expect(response.body).toMatchObject({ name: 'Дача', icon: 'trees', color: '#2BA889', isSystem: false });
+      expect(response.body).toMatchObject({
+        name: 'Дача',
+        icon: 'trees',
+        color: '#2BA889',
+        isSystem: false,
+      });
 
       const categories = await categoriesOf(client);
       expect(categories.some((category) => category.name === 'Дача')).toBe(true);
@@ -129,7 +140,10 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
 
     it('правит и удаляет только свои категории', async () => {
       const client = await signUp('edit-cat@example.com', 'editcat');
-      const created = await client.post('/api/finance/categories', { name: 'Хобби', kind: 'expense' });
+      const created = await client.post('/api/finance/categories', {
+        name: 'Хобби',
+        kind: 'expense',
+      });
       const id = created.body.id as string;
 
       const updated = await client.put(`/api/finance/categories/${id}`, { color: '#E5484D' });
@@ -140,7 +154,9 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       expect((await categoriesOf(client)).some((category) => category.id === id)).toBe(false);
 
       const system = (await categoriesOf(client)).find((category) => category.isSystem)!;
-      expect((await client.put(`/api/finance/categories/${system.id}`, { name: 'Взлом' })).status).toBe(403);
+      expect(
+        (await client.put(`/api/finance/categories/${system.id}`, { name: 'Взлом' })).status,
+      ).toBe(403);
       expect((await client.del(`/api/finance/categories/${system.id}`)).status).toBe(403);
     });
   });
@@ -164,7 +180,9 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       const client = await signUp('acc2@example.com', 'acc2user');
       const account = await createAccount(client, 'Карта', 'card', 100);
 
-      const updated = await client.put(`/api/finance/accounts/${account.id}`, { name: 'Основная карта' });
+      const updated = await client.put(`/api/finance/accounts/${account.id}`, {
+        name: 'Основная карта',
+      });
       expect(updated.status).toBe(200);
       expect(updated.body.name).toBe('Основная карта');
 
@@ -187,7 +205,12 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
         comment: 'обед',
       });
       expect(expense.status).toBe(201);
-      expect(expense.body).toMatchObject({ type: 'expense', amount: 450, categoryName: 'Еда', comment: 'обед' });
+      expect(expense.body).toMatchObject({
+        type: 'expense',
+        amount: 450,
+        categoryName: 'Еда',
+        comment: 'обед',
+      });
 
       const afterExpense = await client.get('/api/finance/accounts');
       expect(afterExpense.body.accounts[0].balance).toBe(9550);
@@ -221,7 +244,9 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       const client = await signUp('filter@example.com', 'filteruser');
       const account = await createAccount(client, 'Карта', 'card', 100000);
       const food = (await categoriesOf(client)).find((category) => category.name === 'Еда')!;
-      const transport = (await categoriesOf(client)).find((category) => category.name === 'Транспорт')!;
+      const transport = (await categoriesOf(client)).find(
+        (category) => category.name === 'Транспорт',
+      )!;
 
       await client.post('/api/finance/transactions', {
         accountId: account.id,
@@ -295,13 +320,19 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
         accountId: account.id,
       });
       expect(response.status).toBe(201);
-      expect(response.body).toMatchObject({ amount: 80000, type: 'income', categoryName: 'Зарплата' });
+      expect(response.body).toMatchObject({
+        amount: 80000,
+        type: 'income',
+        categoryName: 'Зарплата',
+      });
     });
 
     it('нераспознанный текст → 400 validation_error', async () => {
       const client = await signUp('quick3@example.com', 'quick3user');
       await createAccount(client, 'Карта');
-      const response = await client.post('/api/finance/transactions/quick', { text: 'просто текст' });
+      const response = await client.post('/api/finance/transactions/quick', {
+        text: 'просто текст',
+      });
       expect(response.status).toBe(400);
       expect(response.body.code).toBe('validation_error');
     });
@@ -319,7 +350,11 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
         amount: 2000,
       });
       expect(response.status).toBe(201);
-      expect(response.body).toMatchObject({ type: 'transfer', amount: 2000, transferAccountId: cash.id });
+      expect(response.body).toMatchObject({
+        type: 'transfer',
+        amount: 2000,
+        transferAccountId: cash.id,
+      });
 
       const accounts = (await client.get('/api/finance/accounts')).body.accounts as AccountDto[];
       expect(accounts.find((account) => account.id === card.id)?.balance).toBe(3000);
@@ -357,7 +392,13 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
         limit: 10000,
       });
       expect(budget.status).toBe(200);
-      expect(budget.body).toMatchObject({ month: '2026-10', limit: 10000, spent: 0, level: 'ok', percent: 0 });
+      expect(budget.body).toMatchObject({
+        month: '2026-10',
+        limit: 10000,
+        spent: 0,
+        level: 'ok',
+        percent: 0,
+      });
 
       await client.post('/api/finance/transactions', {
         accountId: account.id,
@@ -386,7 +427,11 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
     it('удаляет бюджет', async () => {
       const client = await signUp('budget2@example.com', 'budget2user');
       const food = (await categoriesOf(client)).find((category) => category.name === 'Еда')!;
-      const budget = await client.put('/api/finance/budgets', { categoryId: food.id, month: '2026-10', limit: 5000 });
+      const budget = await client.put('/api/finance/budgets', {
+        categoryId: food.id,
+        month: '2026-10',
+        limit: 5000,
+      });
 
       expect((await client.del(`/api/finance/budgets/${budget.body.id}`)).status).toBe(204);
       expect((await client.get('/api/finance/budgets?month=2026-10')).body.budgets).toHaveLength(0);
@@ -399,7 +444,10 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       const bob = await signUp('bob@example.com', 'bobuser');
 
       const aliceAccount = await createAccount(alice, 'Карта Алисы', 'card', 10000);
-      const aliceCategory = await alice.post('/api/finance/categories', { name: 'Алиса', kind: 'expense' });
+      const aliceCategory = await alice.post('/api/finance/categories', {
+        name: 'Алиса',
+        kind: 'expense',
+      });
       const aliceTx = await alice.post('/api/finance/transactions', {
         accountId: aliceAccount.id,
         amount: 400,
@@ -439,10 +487,14 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
       ).toBe(404);
 
       // Боб не может править/удалять чужое.
-      expect((await bob.put(`/api/finance/accounts/${aliceAccount.id}`, { name: 'Взлом' })).status).toBe(404);
+      expect(
+        (await bob.put(`/api/finance/accounts/${aliceAccount.id}`, { name: 'Взлом' })).status,
+      ).toBe(404);
       expect((await bob.del(`/api/finance/accounts/${aliceAccount.id}`)).status).toBe(404);
       expect((await bob.del(`/api/finance/transactions/${aliceTx.body.id}`)).status).toBe(404);
-      expect((await bob.put(`/api/finance/budgets/${aliceBudget.body.id}`, { limit: 1 })).status).toBe(404);
+      expect(
+        (await bob.put(`/api/finance/budgets/${aliceBudget.body.id}`, { limit: 1 })).status,
+      ).toBe(404);
 
       // Данные Алисы целы.
       expect((await alice.get('/api/finance/accounts')).body.accounts[0].balance).toBe(9600);

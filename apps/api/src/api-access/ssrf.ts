@@ -52,11 +52,7 @@ function isPrivateIpv4(ip: string): boolean {
 }
 
 function isPrivateIpv6(ip: string): boolean {
-  const value = ip
-    .replace(/^\[/, '')
-    .replace(/\]$/, '')
-    .split('%')[0]!
-    .toLowerCase();
+  const value = ip.replace(/^\[/, '').replace(/\]$/, '').split('%')[0]!.toLowerCase();
 
   if (value === '::1' || value === '::') return true;
 

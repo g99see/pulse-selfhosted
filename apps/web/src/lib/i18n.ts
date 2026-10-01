@@ -96,10 +96,12 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'auth.error.two_factor_not_enabled': 'Двухфакторная аутентификация не включена.',
     'auth.error.two_factor_enabled': 'Двухфакторная аутентификация уже включена.',
     'auth.error.two_factor_not_started': 'Сначала начните настройку двухфакторной аутентификации.',
-    'auth.error.two_factor_secret_corrupt': 'Не удалось прочитать секрет. Обратитесь к администратору.',
+    'auth.error.two_factor_secret_corrupt':
+      'Не удалось прочитать секрет. Обратитесь к администратору.',
     'auth.error.unauthorized': 'Нужно войти заново.',
     'auth.error.registration_closed': 'Регистрация на этом сервере закрыта.',
-    'auth.error.registration_invite_required': 'Регистрация — только по приглашению администратора.',
+    'auth.error.registration_invite_required':
+      'Регистрация — только по приглашению администратора.',
 
     'auth.logout': 'Выйти',
 
@@ -123,9 +125,11 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'settings.accounts.unlinking': 'Отвязываем…',
     'settings.accounts.loadError': 'Не удалось загрузить способы входа.',
     'settings.accounts.saveError': 'Не удалось сохранить изменения.',
-    'settings.accounts.lastMethod': 'Это единственный способ входа. Сначала задайте пароль или привяжите другой сервис.',
+    'settings.accounts.lastMethod':
+      'Это единственный способ входа. Сначала задайте пароль или привяжите другой сервис.',
     'settings.accounts.unlinkConfirm': 'Отвязать {provider}?',
-    'settings.accounts.needsEmail': 'Аккаунт создан через Telegram. Укажите email, чтобы не потерять доступ к профилю.',
+    'settings.accounts.needsEmail':
+      'Аккаунт создан через Telegram. Укажите email, чтобы не потерять доступ к профилю.',
 
     'app.nav.home': 'Главная',
     'app.nav.finance': 'Финансы',
@@ -212,7 +216,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.import.account': 'Счёт для импорта',
     'finance.import.confirm': 'Импортировать',
     'finance.import.committing': 'Импортируем…',
-    'finance.import.summary': 'Всего строк: {total}, готово: {valid}, дублей: {duplicates}, ошибок: {errors}',
+    'finance.import.summary':
+      'Всего строк: {total}, готово: {valid}, дублей: {duplicates}, ошибок: {errors}',
     'finance.import.result':
       'Импортировано: {imported}, пропущено дублей: {duplicates}, с ошибками: {invalid}. Баланс счёта: {balance}',
     'finance.import.showing': 'Показаны первые {shown} из {total} строк',
@@ -269,14 +274,16 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.tx.equivalent': '≈ {amount} в {currency}',
     'finance.rates.link': 'Курсы валют',
     'finance.rates.title': 'Курсы валют',
-    'finance.rates.hint': 'Курс одной единицы валюты к другой на дату. Служит для пересчёта сумм в основную валюту.',
+    'finance.rates.hint':
+      'Курс одной единицы валюты к другой на дату. Служит для пересчёта сумм в основную валюту.',
     'finance.rates.date': 'Дата',
     'finance.rates.base': 'Валюта',
     'finance.rates.quote': 'В валюту',
     'finance.rates.rate': 'Курс',
     'finance.rates.add': 'Добавить курс',
     'finance.rates.saved': 'Курс сохранён.',
-    'finance.rates.empty': 'Курсы не заданы. Без курса суммы в чужой валюте считаются один к одному.',
+    'finance.rates.empty':
+      'Курсы не заданы. Без курса суммы в чужой валюте считаются один к одному.',
     'finance.rates.delete': 'Удалить курс',
     'finance.rates.source.manual': 'Вручную',
     'finance.rates.source.provider': 'С API',
@@ -591,7 +598,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'stats.byCategory.empty': 'За период нет трат.',
     'stats.byCategory.other': 'Без категории',
     'stats.chart.spending': 'Траты по дням',
-    'stats.chart.summary': 'всего {total}, максимум {peak} в день {day}, в среднем {average} в день',
+    'stats.chart.summary':
+      'всего {total}, максимум {peak} в день {day}, в среднем {average} в день',
     'stats.chart.empty': 'Нет данных для графика.',
     'stats.heatmap.title': 'Настроение за месяц',
     'stats.heatmap.empty': 'За этот месяц чек-инов пока нет.',
@@ -626,7 +634,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'wrapped.cover.tagline': 'Ваш год',
     'wrapped.cover.subtitle': 'Как прошёл год в деньгах, настроении и целях.',
     'wrapped.empty.title': 'Пока пусто',
-    'wrapped.empty.body': 'За этот год не набралось данных. Записывайте траты и чек-ины — и история появится.',
+    'wrapped.empty.body':
+      'За этот год не набралось данных. Записывайте траты и чек-ины — и история появится.',
     'wrapped.money.title': 'Деньги за год',
     'wrapped.money.spent': 'Потрачено',
     'wrapped.money.earned': 'Получено',
@@ -667,7 +676,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'quiet.announceOn': 'Режим Тишина включён: суммы скрыты',
     'quiet.announceOff': 'Режим Тишина выключен: суммы видны',
     'quiet.settings.title': 'Режим Тишина',
-    'quiet.settings.description': 'Прячет все суммы и балансы одной маской — удобно в общественном месте.',
+    'quiet.settings.description':
+      'Прячет все суммы и балансы одной маской — удобно в общественном месте.',
     'quiet.settings.hint': 'Быстро переключить: Alt+Q или кнопка в шапке.',
 
     'a11y.skipToContent': 'К основному содержимому',
@@ -690,11 +700,14 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'landing.feature.money.title': 'Деньги без стресса',
     'landing.feature.money.text': 'Бюджет, расходы и цели накоплений — наглядно, без таблиц.',
     'landing.feature.checkin.title': 'Чек-ин за 5 секунд',
-    'landing.feature.checkin.text': 'Отметьте настроение и энергию одним касанием и видьте, как день влияет на траты.',
+    'landing.feature.checkin.text':
+      'Отметьте настроение и энергию одним касанием и видьте, как день влияет на траты.',
     'landing.feature.goals.title': 'Цели и привычки',
-    'landing.feature.goals.text': 'Маленькие шаги каждый день, мягкие напоминания и честный прогресс.',
+    'landing.feature.goals.text':
+      'Маленькие шаги каждый день, мягкие напоминания и честный прогресс.',
     'landing.feature.privacy.title': 'Ваши данные — ваши',
-    'landing.feature.privacy.text': 'Self-hosted и открытый код AGPL: разверните у себя и контролируйте всё сами.',
+    'landing.feature.privacy.text':
+      'Self-hosted и открытый код AGPL: разверните у себя и контролируйте всё сами.',
     'landing.demo.budgetTitle': 'Бюджет месяца',
     'landing.demo.budgetShare': '{percent}% из {total}',
     'landing.demo.moodTitle': 'Настроение за неделю',
@@ -823,7 +836,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'app.nav.settings': 'Профиль и настройки',
 
     'capsules.title': 'Капсулы времени',
-    'capsules.subtitle': 'Письмо себе, которое откроется через месяц или год — вместе со статистикой того периода.',
+    'capsules.subtitle':
+      'Письмо себе, которое откроется через месяц или год — вместе со статистикой того периода.',
     'capsules.form.title': 'Заголовок',
     'capsules.form.body': 'Письмо',
     'capsules.form.bodyPlaceholder': 'Что хотите сказать себе в будущее?',
@@ -871,7 +885,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'notifications.pushDisable': 'Отключить push',
     'notifications.pushHint': 'Разрешите уведомления, чтобы получать чек-ины на телефон.',
     'notifications.pushOn': 'Push включён — чек-ины придут по расписанию.',
-    'notifications.pushDenied': 'Уведомления запрещены в браузере. Разрешите их в настройках сайта.',
+    'notifications.pushDenied':
+      'Уведомления запрещены в браузере. Разрешите их в настройках сайта.',
     'notifications.pushUnsupported': 'Этот браузер не поддерживает push-уведомления.',
     'notifications.pushServerDisabled': 'Сервер не настроен для push (нет VAPID-ключей).',
 
@@ -917,13 +932,17 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'insights.applied': 'Бюджет создан',
     'insights.applyError': 'Не удалось применить предложение.',
     'insights.text.categorySpendUp': 'Траты на {category} выросли на {percent}% за неделю.',
-    'insights.text.lowEnergyStreak': '{days} дня подряд энергия ниже 2 — попробуйте лечь на час раньше.',
-    'insights.text.moodWithSport': 'В дни со спортом настроение в среднем выше: {withSport} против {withoutSport}.',
+    'insights.text.lowEnergyStreak':
+      '{days} дня подряд энергия ниже 2 — попробуйте лечь на час раньше.',
+    'insights.text.moodWithSport':
+      'В дни со спортом настроение в среднем выше: {withSport} против {withoutSport}.',
     'insights.text.budgetExceeded': 'Бюджет на {category} превышен: {percent}% от лимита.',
     'insights.text.budgetSuggestion': 'Поставьте бюджет на {category}: {amount} в неделю.',
-    'insights.text.wellbeingConcern': 'Уже {days} дней подряд настроение на самом низком уровне. Вы не одни — поддержка рядом.',
+    'insights.text.wellbeingConcern':
+      'Уже {days} дней подряд настроение на самом низком уровне. Вы не одни — поддержка рядом.',
     'insights.support.title': 'Службы поддержки',
-    'insights.support.hint': 'Если тяжело — можно просто поговорить с человеком. Это бесплатно и анонимно.',
+    'insights.support.hint':
+      'Если тяжело — можно просто поговорить с человеком. Это бесплатно и анонимно.',
     'insights.support.site': 'Сайт',
     'support.RU.name': 'Телефон доверия (Россия)',
     'support.RU.description': 'Круглосуточная бесплатная психологическая поддержка.',
@@ -1316,7 +1335,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'auth.register.password': 'Password',
     'auth.register.passwordHint': 'At least 8 characters',
     'auth.register.nickname': 'Nickname',
-    'auth.register.nicknameHint': 'Latin letters, digits, hyphen or underscore — your profile address',
+    'auth.register.nicknameHint':
+      'Latin letters, digits, hyphen or underscore — your profile address',
     'auth.register.submit': 'Sign up',
     'auth.register.haveAccount': 'Already have an account?',
     'auth.register.goLogin': 'Sign in',
@@ -1387,7 +1407,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'auth.error.invalid_code': 'Wrong code.',
     'auth.error.invalid_password': 'Wrong password.',
     'auth.error.invalid_challenge': 'The sign-in expired — please sign in again.',
-    'auth.error.two_factor_unavailable': 'Two-factor authentication is not available on the server.',
+    'auth.error.two_factor_unavailable':
+      'Two-factor authentication is not available on the server.',
     'auth.error.two_factor_not_enabled': 'Two-factor authentication is not enabled.',
     'auth.error.two_factor_enabled': 'Two-factor authentication is already enabled.',
     'auth.error.two_factor_not_started': 'Start two-factor setup first.',
@@ -1418,9 +1439,11 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'settings.accounts.unlinking': 'Unlinking…',
     'settings.accounts.loadError': 'Could not load your sign-in methods.',
     'settings.accounts.saveError': 'Could not save the changes.',
-    'settings.accounts.lastMethod': 'This is your only sign-in method. Set a password or link another service first.',
+    'settings.accounts.lastMethod':
+      'This is your only sign-in method. Set a password or link another service first.',
     'settings.accounts.unlinkConfirm': 'Unlink {provider}?',
-    'settings.accounts.needsEmail': 'This account was created via Telegram. Add an email so you never lose access to your profile.',
+    'settings.accounts.needsEmail':
+      'This account was created via Telegram. Add an email so you never lose access to your profile.',
 
     'app.nav.home': 'Home',
     'app.nav.finance': 'Finance',
@@ -1507,7 +1530,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.import.account': 'Account for import',
     'finance.import.confirm': 'Import',
     'finance.import.committing': 'Importing…',
-    'finance.import.summary': 'Rows: {total}, ready: {valid}, duplicates: {duplicates}, errors: {errors}',
+    'finance.import.summary':
+      'Rows: {total}, ready: {valid}, duplicates: {duplicates}, errors: {errors}',
     'finance.import.result':
       'Imported: {imported}, skipped duplicates: {duplicates}, with errors: {invalid}. Account balance: {balance}',
     'finance.import.showing': 'Showing the first {shown} of {total} rows',
@@ -1564,14 +1588,16 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.tx.equivalent': '≈ {amount} in {currency}',
     'finance.rates.link': 'Exchange rates',
     'finance.rates.title': 'Exchange rates',
-    'finance.rates.hint': 'Rate of one currency unit to another on a date. Used to convert amounts into your main currency.',
+    'finance.rates.hint':
+      'Rate of one currency unit to another on a date. Used to convert amounts into your main currency.',
     'finance.rates.date': 'Date',
     'finance.rates.base': 'Currency',
     'finance.rates.quote': 'To currency',
     'finance.rates.rate': 'Rate',
     'finance.rates.add': 'Add rate',
     'finance.rates.saved': 'Rate saved.',
-    'finance.rates.empty': 'No rates set. Without a rate, foreign-currency amounts are treated one-to-one.',
+    'finance.rates.empty':
+      'No rates set. Without a rate, foreign-currency amounts are treated one-to-one.',
     'finance.rates.delete': 'Delete rate',
     'finance.rates.source.manual': 'Manual',
     'finance.rates.source.provider': 'From API',
@@ -1645,7 +1671,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'goals.embed.copy': 'Copy code',
     'goals.embed.copied': 'Copied',
     'goals.embed.link': 'Open widget',
-    'goals.embed.onlyPublic': 'Only a public goal can be embedded. Set the goal privacy to “Public”.',
+    'goals.embed.onlyPublic':
+      'Only a public goal can be embedded. Set the goal privacy to “Public”.',
 
     'app.nav.family': 'Family',
     'app.nav.capsules': 'Capsules',
@@ -1765,7 +1792,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'challenges.error.inviteNotFound': 'Invitation not found.',
 
     'finance.categories.title': 'My categories',
-    'finance.categories.hint': 'Your own categories with an icon and color. System ones are read-only.',
+    'finance.categories.hint':
+      'Your own categories with an icon and color. System ones are read-only.',
     'finance.categories.name': 'Name',
     'finance.categories.kind': 'Type',
     'finance.categories.icon': 'Icon',
@@ -1920,7 +1948,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'wrapped.cover.tagline': 'Your year',
     'wrapped.cover.subtitle': 'How the year went in money, mood and goals.',
     'wrapped.empty.title': 'Nothing yet',
-    'wrapped.empty.body': 'No data for this year. Keep logging expenses and check-ins — the story will appear.',
+    'wrapped.empty.body':
+      'No data for this year. Keep logging expenses and check-ins — the story will appear.',
     'wrapped.money.title': 'Money this year',
     'wrapped.money.spent': 'Spent',
     'wrapped.money.earned': 'Earned',
@@ -1982,13 +2011,16 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'landing.preview.label': 'Sample “Today” screen',
     'landing.features.title': 'Everything that matters, in one calm place',
     'landing.feature.money.title': 'Money without stress',
-    'landing.feature.money.text': 'Budget, spending and savings goals — clear at a glance, no spreadsheets.',
+    'landing.feature.money.text':
+      'Budget, spending and savings goals — clear at a glance, no spreadsheets.',
     'landing.feature.checkin.title': '5-second check-in',
-    'landing.feature.checkin.text': 'Log mood and energy with one tap and see how your day shapes your spending.',
+    'landing.feature.checkin.text':
+      'Log mood and energy with one tap and see how your day shapes your spending.',
     'landing.feature.goals.title': 'Goals and habits',
     'landing.feature.goals.text': 'Small steps every day, gentle reminders and honest progress.',
     'landing.feature.privacy.title': 'Your data stays yours',
-    'landing.feature.privacy.text': 'Self-hosted and open source (AGPL): run it yourself and stay in control.',
+    'landing.feature.privacy.text':
+      'Self-hosted and open source (AGPL): run it yourself and stay in control.',
     'landing.demo.budgetTitle': 'Monthly budget',
     'landing.demo.budgetShare': '{percent}% of {total}',
     'landing.demo.moodTitle': 'Mood this week',
@@ -2040,7 +2072,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'settings.twoFactor.title': 'Two-factor authentication',
     'settings.twoFactor.hint': 'An extra code from your authenticator app when signing in.',
     'settings.twoFactor.enabled': 'Two-factor authentication is enabled.',
-    'settings.twoFactor.unavailable': 'The server is not configured for 2FA: no encryption key set.',
+    'settings.twoFactor.unavailable':
+      'The server is not configured for 2FA: no encryption key set.',
     'settings.twoFactor.enable': 'Enable 2FA',
     'settings.twoFactor.setupHint':
       'Scan the QR code or enter the secret manually, then type the six-digit code.',
@@ -2058,7 +2091,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'settings.twoFactor.error': 'Something went wrong. Please try again.',
 
     'settings.telegram.title': 'Telegram',
-    'settings.telegram.hint': 'Check-ins and expenses right from the chat — no need to open the site.',
+    'settings.telegram.hint':
+      'Check-ins and expenses right from the chat — no need to open the site.',
     'settings.telegram.disabled': 'The Telegram bot is not configured on the server.',
     'settings.telegram.unlinked': 'The chat is not linked.',
     'settings.telegram.linked': 'Chat linked: {chat}',
@@ -2117,7 +2151,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'app.nav.settings': 'Profile and settings',
 
     'capsules.title': 'Time capsules',
-    'capsules.subtitle': 'A letter to yourself that opens in a month or a year — together with that period’s stats.',
+    'capsules.subtitle':
+      'A letter to yourself that opens in a month or a year — together with that period’s stats.',
     'capsules.form.title': 'Title',
     'capsules.form.body': 'Letter',
     'capsules.form.bodyPlaceholder': 'What do you want to tell your future self?',
@@ -2165,7 +2200,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'notifications.pushDisable': 'Disable push',
     'notifications.pushHint': 'Allow notifications to get check-ins on your phone.',
     'notifications.pushOn': 'Push is on — check-ins arrive on schedule.',
-    'notifications.pushDenied': 'Notifications are blocked in the browser. Allow them in site settings.',
+    'notifications.pushDenied':
+      'Notifications are blocked in the browser. Allow them in site settings.',
     'notifications.pushUnsupported': 'This browser does not support push notifications.',
     'notifications.pushServerDisabled': 'The server is not configured for push (no VAPID keys).',
 
@@ -2195,7 +2231,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
 
     'insights.title': 'Recommendations',
     'insights.subtitle': 'Observations from your own data — no diagnoses, no judgement.',
-    'insights.empty': 'No observations yet. Keep logging spending and check-ins and reviews will appear.',
+    'insights.empty':
+      'No observations yet. Keep logging spending and check-ins and reviews will appear.',
     'insights.loading': 'Gathering observations…',
     'insights.error': 'Could not load recommendations.',
     'insights.more': 'All recommendations',
@@ -2211,13 +2248,17 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'insights.applied': 'Budget created',
     'insights.applyError': 'Could not apply the suggestion.',
     'insights.text.categorySpendUp': 'Spending on {category} grew by {percent}% this week.',
-    'insights.text.lowEnergyStreak': 'Energy has been below 2 for {days} days in a row — try going to bed an hour earlier.',
-    'insights.text.moodWithSport': 'On days with exercise your mood is higher on average: {withSport} versus {withoutSport}.',
+    'insights.text.lowEnergyStreak':
+      'Energy has been below 2 for {days} days in a row — try going to bed an hour earlier.',
+    'insights.text.moodWithSport':
+      'On days with exercise your mood is higher on average: {withSport} versus {withoutSport}.',
     'insights.text.budgetExceeded': 'The {category} budget is exceeded: {percent}% of the limit.',
     'insights.text.budgetSuggestion': 'Set a budget for {category}: {amount} per week.',
-    'insights.text.wellbeingConcern': 'Your mood has been at its lowest for {days} days in a row. You are not alone — support is nearby.',
+    'insights.text.wellbeingConcern':
+      'Your mood has been at its lowest for {days} days in a row. You are not alone — support is nearby.',
     'insights.support.title': 'Support services',
-    'insights.support.hint': 'If things feel heavy, you can simply talk to someone. It is free and anonymous.',
+    'insights.support.hint':
+      'If things feel heavy, you can simply talk to someone. It is free and anonymous.',
     'insights.support.site': 'Website',
     'support.RU.name': 'Helpline (Russia)',
     'support.RU.description': 'Round-the-clock free psychological support.',
@@ -2361,7 +2402,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'htmlPage.uploaded': 'The file was uploaded and saved as a new version.',
     'htmlPage.tab.code': 'Code',
     'htmlPage.tab.preview': 'Preview',
-    'htmlPage.preview.hint': 'The preview is isolated: scripts run, but site data stays out of reach.',
+    'htmlPage.preview.hint':
+      'The preview is isolated: scripts run, but site data stays out of reach.',
     'htmlPage.preview.placeholder': 'The preview will appear here.',
     'htmlPage.save': 'Save',
     'htmlPage.saving': 'Saving…',
@@ -2446,7 +2488,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     // Feed, follows, reactions and comments (spec §3.7).
     'feed.title': 'Feed',
     'feed.subtitle': 'Updates from people you follow.',
-    'feed.empty': 'Nothing here yet. Follow someone — their achievements and goals will show up here.',
+    'feed.empty':
+      'Nothing here yet. Follow someone — their achievements and goals will show up here.',
     'feed.loadMore': 'Show more',
     'feed.error': 'Could not load the feed.',
     'feed.post.achievement': 'New achievement: {title}',

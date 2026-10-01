@@ -132,9 +132,7 @@ export function sumEarned(transactions: readonly StatTransaction[]): number {
 }
 
 /** Траты по категориям, по убыванию суммы (ТЗ §3.4, «траты по категориям»). */
-export function groupSpentByCategory(
-  transactions: readonly CategorizedExpense[],
-): CategorySpend[] {
+export function groupSpentByCategory(transactions: readonly CategorizedExpense[]): CategorySpend[] {
   const groups = new Map<string, CategorySpend>();
 
   for (const transaction of transactions) {

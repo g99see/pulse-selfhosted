@@ -83,7 +83,11 @@ describe('HTML-страница профиля (интеграция с PostgreS
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -107,7 +111,12 @@ describe('HTML-страница профиля (интеграция с PostgreS
     it('сохраняет страницу как новую версию и возвращает её', async () => {
       const client = await signUp('html@example.com', 'htmluser');
       const page = await save(client, '<h1>Привет</h1>', { published: true });
-      expect(page).toMatchObject({ exists: true, published: true, checkStatus: 'ok', nickname: 'htmluser' });
+      expect(page).toMatchObject({
+        exists: true,
+        published: true,
+        checkStatus: 'ok',
+        nickname: 'htmluser',
+      });
       expect(page.html).toBe('<h1>Привет</h1>');
       expect(page.sandboxUrl).toContain('/sandbox/htmluser');
 
@@ -119,7 +128,11 @@ describe('HTML-страница профиля (интеграция с PostgreS
     it('до первого сохранения отдаёт exists=false', async () => {
       const client = await signUp('html-empty@example.com', 'htmlempty');
       const response = await client.get('/api/html-page');
-      expect((response.body as { page: PageDto }).page).toMatchObject({ exists: false, published: false, html: null });
+      expect((response.body as { page: PageDto }).page).toMatchObject({
+        exists: false,
+        published: false,
+        html: null,
+      });
     });
   });
 
@@ -137,7 +150,10 @@ describe('HTML-страница профиля (интеграция с PostgreS
 
     it('загрузка файла: только .html и до 2 МБ', async () => {
       const client = await signUp('html-upload@example.com', 'htmlupload');
-      const headers = { Cookie: cookieHeader(client), 'x-csrf-token': client.cookies['puls_csrf'] ?? '' };
+      const headers = {
+        Cookie: cookieHeader(client),
+        'x-csrf-token': client.cookies['puls_csrf'] ?? '',
+      };
 
       const ok = await request(server)
         .post('/api/html-page/upload')
@@ -173,7 +189,16 @@ describe('HTML-страница профиля (интеграция с PostgreS
       expect(versions).toHaveLength(10);
       // Самые старые (v1, v2) вытеснены, порядок — от новых к старым.
       expect(versions.map((version) => version.note)).toEqual([
-        'v12', 'v11', 'v10', 'v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3',
+        'v12',
+        'v11',
+        'v10',
+        'v9',
+        'v8',
+        'v7',
+        'v6',
+        'v5',
+        'v4',
+        'v3',
       ]);
       const count = await prisma.htmlPageVersion.count();
       expect(count).toBe(10);
@@ -184,7 +209,9 @@ describe('HTML-страница профиля (интеграция с PostgreS
       await save(client, '<h1>Первая</h1>', { note: 'первая' });
       await save(client, '<h1>Вторая</h1>', { note: 'вторая' });
 
-      const listBefore = ((await client.get('/api/html-page/versions')).body as { versions: VersionDto[] }).versions;
+      const listBefore = (
+        (await client.get('/api/html-page/versions')).body as { versions: VersionDto[] }
+      ).versions;
       const firstVersion = listBefore.find((version) => version.note === 'первая');
       expect(firstVersion).toBeTruthy();
 
@@ -193,7 +220,9 @@ describe('HTML-страница профиля (интеграция с PostgreS
       const page = (restored.body as { page: PageDto }).page;
       expect(page.html).toBe('<h1>Первая</h1>');
 
-      const listAfter = ((await client.get('/api/html-page/versions')).body as { versions: VersionDto[] }).versions;
+      const listAfter = (
+        (await client.get('/api/html-page/versions')).body as { versions: VersionDto[] }
+      ).versions;
       expect(listAfter).toHaveLength(3);
       expect(listAfter[0].id).toBe(page.currentVersionId);
       expect(listAfter[0].note).toContain('Откат');
@@ -218,11 +247,17 @@ describe('HTML-страница профиля (интеграция с PostgreS
 
     it('блокирует meta refresh и авторедирект', async () => {
       const client = await signUp('html-redirect@example.com', 'htmlredirect');
-      const page = await save(client, '<meta http-equiv="refresh" content="0;url=https://evil.example">');
+      const page = await save(
+        client,
+        '<meta http-equiv="refresh" content="0;url=https://evil.example">',
+      );
       expect(page.checkStatus).toBe('blocked');
       expect(page.checkReasons.map((reason) => reason.code)).toContain('meta_refresh');
 
-      const second = await save(client, '<script>window.location = "https://evil.example";</script>');
+      const second = await save(
+        client,
+        '<script>window.location = "https://evil.example";</script>',
+      );
       expect(second.checkStatus).toBe('blocked');
       expect(second.checkReasons.map((reason) => reason.code)).toContain('auto_redirect');
     });
@@ -277,8 +312,14 @@ describe('HTML-страница профиля (интеграция с PostgreS
     it('не отдаёт страницу, скрытую модератором (ContentFlag)', async () => {
       const client = await signUp('html-hidden@example.com', 'htmlhidden');
       await save(client, '<h1>Жалоба</h1>', { published: true });
-      const page = await prisma.htmlPage.findUniqueOrThrow({ where: { userId: (await prisma.user.findUniqueOrThrow({ where: { nickname: 'htmlhidden' } })).id } });
-      await prisma.contentFlag.create({ data: { targetType: 'html_page', targetId: page.id, hidden: true } });
+      const page = await prisma.htmlPage.findUniqueOrThrow({
+        where: {
+          userId: (await prisma.user.findUniqueOrThrow({ where: { nickname: 'htmlhidden' } })).id,
+        },
+      });
+      await prisma.contentFlag.create({
+        data: { targetType: 'html_page', targetId: page.id, hidden: true },
+      });
       expect((await request(server).get('/sandbox/htmlhidden')).status).toBe(404);
     });
   });
@@ -297,16 +338,22 @@ describe('HTML-страница профиля (интеграция с PostgreS
       const alice = await signUp('html-alice@example.com', 'htmlalice');
       const bob = await signUp('html-bob@example.com', 'htmlbob');
       const alicePage = await save(alice, '<h1>Алиса</h1>', { published: true });
-      const aliceVersions = ((await alice.get('/api/html-page/versions')).body as { versions: VersionDto[] }).versions;
+      const aliceVersions = (
+        (await alice.get('/api/html-page/versions')).body as { versions: VersionDto[] }
+      ).versions;
 
       expect((await bob.get('/api/html-page')).body.page).toMatchObject({ exists: false });
       expect((await bob.get('/api/html-page/versions')).body.versions).toEqual([]);
-      expect((await bob.post(`/api/html-page/versions/${aliceVersions[0].id}/restore`)).status).toBe(404);
+      expect(
+        (await bob.post(`/api/html-page/versions/${aliceVersions[0].id}/restore`)).status,
+      ).toBe(404);
       expect((await bob.del('/api/html-page')).status).toBe(204);
 
       // Данные Алисы целы.
       expect((await alice.get('/api/html-page')).body.page.html).toBe('<h1>Алиса</h1>');
-      expect((await alice.get('/api/html-page')).body.page.currentVersionId).toBe(alicePage.currentVersionId);
+      expect((await alice.get('/api/html-page')).body.page.currentVersionId).toBe(
+        alicePage.currentVersionId,
+      );
     });
 
     it('без сессии — 401 unauthorized', async () => {

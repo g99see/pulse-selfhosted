@@ -145,7 +145,10 @@ export function TelegramSection() {
             {code ? (
               <div className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface-2)] p-4">
                 <p className="text-sm font-medium">{t('settings.telegram.codeTitle')}</p>
-                <p data-testid="telegram-code" className="font-mono text-2xl font-bold tracking-wider">
+                <p
+                  data-testid="telegram-code"
+                  className="font-mono text-2xl font-bold tracking-wider"
+                >
                   {code.code}
                 </p>
                 <p className="text-xs text-[var(--puls-ink-muted)]">
@@ -154,7 +157,11 @@ export function TelegramSection() {
                 <p className="text-xs text-[var(--puls-ink-muted)]">
                   {t('settings.telegram.ttl', { minutes: Math.round(code.ttlSeconds / 60) })}
                 </p>
-                <GhostButton type="button" data-testid="telegram-copy" onClick={() => void copyCode()}>
+                <GhostButton
+                  type="button"
+                  data-testid="telegram-copy"
+                  onClick={() => void copyCode()}
+                >
                   {copied ? t('settings.telegram.copied') : t('settings.telegram.copy')}
                 </GhostButton>
               </div>

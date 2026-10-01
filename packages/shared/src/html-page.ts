@@ -88,7 +88,10 @@ const PHISHING_WORDS =
 
 /** Хост домена песочницы без порта и схемы. */
 function normalizeHost(domain: string): string {
-  const value = domain.trim().toLowerCase().replace(/^https?:\/\//, '');
+  const value = domain
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '');
   return (value.split('/')[0] ?? '').split(':')[0] ?? '';
 }
 
@@ -129,13 +132,17 @@ function attrValue(tag: string, name: string): string | null {
 }
 
 /** Обработка содержимого <script>: автоперенаправления и внешние запросы. */
-function inspectScript(
-  code: string,
-  sandboxHost: string,
-  reasons: HtmlCheckReason[],
-): void {
-  if (/\b(?:window\.|document\.|top\.|self\.)?location\s*(?:\.(?:href|replace|assign|reload))?\s*(?:=|\.replace\s*\(|\.assign\s*\()/i.test(code)) {
-    reasons.push({ code: 'auto_redirect', severity: 'blocked', message: REASON_MESSAGES.auto_redirect });
+function inspectScript(code: string, sandboxHost: string, reasons: HtmlCheckReason[]): void {
+  if (
+    /\b(?:window\.|document\.|top\.|self\.)?location\s*(?:\.(?:href|replace|assign|reload))?\s*(?:=|\.replace\s*\(|\.assign\s*\()/i.test(
+      code,
+    )
+  ) {
+    reasons.push({
+      code: 'auto_redirect',
+      severity: 'blocked',
+      message: REASON_MESSAGES.auto_redirect,
+    });
   }
 
   const calls = /(?:fetch|XMLHttpRequest|navigator\.sendBeacon)\s*\(\s*(['"`])([^'"`]+)\1/gi;
@@ -233,11 +240,21 @@ export function checkHtmlPage(html: string, options: HtmlCheckOptions): HtmlChec
     const href = link[2] ?? link[3] ?? link[4] ?? '';
     const text = link[5].replace(/<[^>]*>/g, ' ');
     if (isJavascriptUrl(href)) {
-      reasons.push({ code: 'javascript_url', severity: 'flagged', message: REASON_MESSAGES.javascript_url, detail: href });
+      reasons.push({
+        code: 'javascript_url',
+        severity: 'flagged',
+        message: REASON_MESSAGES.javascript_url,
+        detail: href,
+      });
       continue;
     }
     if (isExternalAddress(href, sandboxHost) && PHISHING_WORDS.test(`${href} ${text}`)) {
-      reasons.push({ code: 'suspicious_link', severity: 'blocked', message: REASON_MESSAGES.suspicious_link, detail: href });
+      reasons.push({
+        code: 'suspicious_link',
+        severity: 'blocked',
+        message: REASON_MESSAGES.suspicious_link,
+        detail: href,
+      });
     }
   }
 

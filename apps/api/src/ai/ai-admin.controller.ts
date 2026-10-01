@@ -33,14 +33,18 @@ export class AiAdminController {
 
   /** Частичное обновление настроек: пустое поле не меняется, null очищает. */
   @Put('settings')
-  async setSettings(@Body(new ZodValidationPipe(AiInstanceSettingsSchema)) body: AiInstanceSettingsInput) {
+  async setSettings(
+    @Body(new ZodValidationPipe(AiInstanceSettingsSchema)) body: AiInstanceSettingsInput,
+  ) {
     await this.keys.setInstanceSettings(body);
     return { settings: await this.keys.getInstanceSettings() };
   }
 
   /** Проверка настроек до сохранения (новый ключ может быть ещё не сохранён). */
   @Post('settings/test')
-  testSettings(@Body(new ZodValidationPipe(AiInstanceSettingsSchema)) body: AiInstanceSettingsInput) {
+  testSettings(
+    @Body(new ZodValidationPipe(AiInstanceSettingsSchema)) body: AiInstanceSettingsInput,
+  ) {
     return this.provider.testInstanceSettings(body);
   }
 

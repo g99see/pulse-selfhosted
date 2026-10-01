@@ -39,7 +39,9 @@ export class ApiTokenGuard implements CanActivate {
       throw httpError(401, 'unauthorized', 'Требуется заголовок Authorization: Bearer puls_…');
     }
 
-    const record = await this.prisma.apiToken.findUnique({ where: { tokenHash: hashToken(token) } });
+    const record = await this.prisma.apiToken.findUnique({
+      where: { tokenHash: hashToken(token) },
+    });
     if (
       !record ||
       record.revokedAt !== null ||
@@ -62,7 +64,11 @@ export class ApiTokenGuard implements CanActivate {
         : !scopes.includes(scope),
     );
     if (missing.length > 0) {
-      throw httpError(403, 'insufficient_scope', `Токену не хватает области: ${missing.join(', ')}`);
+      throw httpError(
+        403,
+        'insufficient_scope',
+        `Токену не хватает области: ${missing.join(', ')}`,
+      );
     }
 
     const limit = await this.rateLimit.consume(

@@ -119,7 +119,9 @@ export function TwoFactorSection() {
       ) : status.enabled ? (
         <div className="flex flex-col gap-3" data-testid="two-factor-enabled">
           <Alert tone="success">{t('settings.twoFactor.enabled')}</Alert>
-          <p className="text-sm text-[var(--puls-ink-muted)]">{t('settings.twoFactor.disableHint')}</p>
+          <p className="text-sm text-[var(--puls-ink-muted)]">
+            {t('settings.twoFactor.disableHint')}
+          </p>
           <Field
             id="two-factor-disable-password"
             type="password"
@@ -160,9 +162,10 @@ export function TwoFactorSection() {
         </div>
       ) : setup ? (
         <div className="flex flex-col gap-3" data-testid="two-factor-setup">
-          <p className="text-sm text-[var(--puls-ink-muted)]">{t('settings.twoFactor.setupHint')}</p>
+          <p className="text-sm text-[var(--puls-ink-muted)]">
+            {t('settings.twoFactor.setupHint')}
+          </p>
           {setup.qrDataUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={setup.qrDataUrl}
               alt={t('settings.twoFactor.qrAlt')}

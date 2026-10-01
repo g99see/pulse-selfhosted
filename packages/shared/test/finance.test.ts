@@ -55,14 +55,21 @@ describe('guessCategoryName', () => {
 
 describe('CategoryCreateSchema', () => {
   it('принимает свою категорию с иконкой и цветом', () => {
-    const parsed = CategoryCreateSchema.parse({ name: 'Дача', icon: 'trees', color: '#2BA889', kind: 'expense' });
+    const parsed = CategoryCreateSchema.parse({
+      name: 'Дача',
+      icon: 'trees',
+      color: '#2BA889',
+      kind: 'expense',
+    });
     expect(parsed.name).toBe('Дача');
     expect(parsed.kind).toBe('expense');
   });
 
   it('отклоняет пустое имя и неверный цвет', () => {
     expect(CategoryCreateSchema.safeParse({ name: '', kind: 'expense' }).success).toBe(false);
-    expect(CategoryCreateSchema.safeParse({ name: 'ok', kind: 'expense', color: 'green' }).success).toBe(false);
+    expect(
+      CategoryCreateSchema.safeParse({ name: 'ok', kind: 'expense', color: 'green' }).success,
+    ).toBe(false);
   });
 });
 
@@ -94,7 +101,11 @@ describe('TransactionCreateSchema', () => {
 
 describe('TransferCreateSchema', () => {
   it('принимает перевод между счетами', () => {
-    const parsed = TransferCreateSchema.parse({ fromAccountId: 'a1', toAccountId: 'a2', amount: 1000 });
+    const parsed = TransferCreateSchema.parse({
+      fromAccountId: 'a1',
+      toAccountId: 'a2',
+      amount: 1000,
+    });
     expect(parsed.amount).toBe(1000);
   });
 });
@@ -106,7 +117,9 @@ describe('BudgetUpsertSchema', () => {
   });
 
   it('отклоняет неверный формат месяца', () => {
-    expect(BudgetUpsertSchema.safeParse({ categoryId: 'c1', month: '10.2026', limit: 1 }).success).toBe(false);
+    expect(
+      BudgetUpsertSchema.safeParse({ categoryId: 'c1', month: '10.2026', limit: 1 }).success,
+    ).toBe(false);
   });
 });
 

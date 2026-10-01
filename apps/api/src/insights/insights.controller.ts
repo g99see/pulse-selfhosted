@@ -16,7 +16,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { InsightFeedbackInputSchema, InsightsListQuerySchema, type InsightFeedbackInput } from '@puls/shared';
+import {
+  InsightFeedbackInputSchema,
+  InsightsListQuerySchema,
+  type InsightFeedbackInput,
+} from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { SessionGuard } from '../auth/session.guard';

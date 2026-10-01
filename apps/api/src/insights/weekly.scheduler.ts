@@ -72,12 +72,17 @@ export class InsightsScheduler implements OnModuleInit, OnModuleDestroy {
         if (!isWeeklyReportDue(now, user.timezone, windowFrom)) continue;
         const { report, created } = await this.insights.weekly(user.id, now);
         if (created) {
-          results.push({ userId: user.id, insights: report.insights.length, suggestion: report.suggestion !== null });
+          results.push({
+            userId: user.id,
+            insights: report.insights.length,
+            suggestion: report.suggestion !== null,
+          });
         }
       }
 
       this.lastRunAt = now;
-      if (results.length > 0) this.logger.log(`Недельный разбор собран для ${results.length} пользователей`);
+      if (results.length > 0)
+        this.logger.log(`Недельный разбор собран для ${results.length} пользователей`);
       return results;
     } finally {
       this.running = false;
@@ -115,7 +120,11 @@ export class InsightsScheduler implements OnModuleInit, OnModuleDestroy {
         this.logger.warn(`Тик недельного разбора не прошёл: ${error.message}`);
       });
 
-      await this.queue.upsertJobScheduler('insights-tick', { every: this.tickMs }, { name: 'tick', data: {} });
+      await this.queue.upsertJobScheduler(
+        'insights-tick',
+        { every: this.tickMs },
+        { name: 'tick', data: {} },
+      );
       this.logger.log('Планировщик инсайтов: BullMQ/Valkey');
     } catch (error) {
       this.logger.warn(

@@ -21,9 +21,13 @@ const UTF8_FLAG = 0x0800;
 /** Время MS-DOS: секунды хранятся с шагом 2. */
 export function dosDateTime(date: Date): { time: number; date: number } {
   const time =
-    ((date.getHours() & 0x1f) << 11) | ((date.getMinutes() & 0x3f) << 5) | ((date.getSeconds() / 2) & 0x1f);
+    ((date.getHours() & 0x1f) << 11) |
+    ((date.getMinutes() & 0x3f) << 5) |
+    ((date.getSeconds() / 2) & 0x1f);
   const dateBits =
-    (((date.getFullYear() - 1980) & 0x7f) << 9) | (((date.getMonth() + 1) & 0x0f) << 5) | (date.getDate() & 0x1f);
+    (((date.getFullYear() - 1980) & 0x7f) << 9) |
+    (((date.getMonth() + 1) & 0x0f) << 5) |
+    (date.getDate() & 0x1f);
   return { time, date: dateBits };
 }
 
@@ -36,7 +40,9 @@ export function createZip(entries: readonly ZipEntry[], now = new Date()): Buffe
   for (const entry of entries) {
     const name = Buffer.from(entry.name, 'utf8');
     const data =
-      typeof entry.content === 'string' ? Buffer.from(entry.content, 'utf8') : Buffer.from(entry.content);
+      typeof entry.content === 'string'
+        ? Buffer.from(entry.content, 'utf8')
+        : Buffer.from(entry.content);
     const checksum = crc32(data) >>> 0;
 
     const local = Buffer.alloc(30);

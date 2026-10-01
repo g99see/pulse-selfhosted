@@ -21,7 +21,10 @@ function base64url(input: Buffer | string): string {
   return Buffer.from(input).toString('base64url');
 }
 
-function signToken(payload: Record<string, unknown>, header: Record<string, unknown> = { alg: 'RS256', kid: 'key-1', typ: 'JWT' }): string {
+function signToken(
+  payload: Record<string, unknown>,
+  header: Record<string, unknown> = { alg: 'RS256', kid: 'key-1', typ: 'JWT' },
+): string {
   const head = base64url(JSON.stringify(header));
   const body = base64url(JSON.stringify(payload));
   const signature = createSign('RSA-SHA256').update(`${head}.${body}`).sign(privateKey);
@@ -68,7 +71,9 @@ describe('verifyGoogleIdToken', () => {
 
   it('принимает издателя accounts.google.com без схемы', () => {
     const token = signToken(validClaims({ iss: 'accounts.google.com' }));
-    expect(verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW }).sub).toBe('google-subject-1');
+    expect(verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW }).sub).toBe(
+      'google-subject-1',
+    );
   });
 
   it('отклоняет подпись, подделанную другим ключом', () => {
@@ -78,7 +83,9 @@ describe('verifyGoogleIdToken', () => {
     const signature = createSign('RSA-SHA256').update(`${head}.${body}`).sign(other.privateKey);
     const token = `${head}.${body}.${base64url(signature)}`;
 
-    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(GoogleTokenError);
+    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
+      GoogleTokenError,
+    );
   });
 
   it('отклоняет изменённые claims', () => {
@@ -87,46 +94,60 @@ describe('verifyGoogleIdToken', () => {
     const forgedBody = base64url(JSON.stringify(validClaims({ sub: 'attacker' })));
     const parts = token.split('.');
     expect(() =>
-      verifyGoogleIdToken(`${head}.${forgedBody}.${parts[2]}`, { jwks: kms, clientId: CLIENT_ID, now: NOW }),
+      verifyGoogleIdToken(`${head}.${forgedBody}.${parts[2]}`, {
+        jwks: kms,
+        clientId: CLIENT_ID,
+        now: NOW,
+      }),
     ).toThrow(GoogleTokenError);
   });
 
   it('отклоняет чужую аудиторию', () => {
     const token = signToken(validClaims({ aud: 'other-client' }));
-    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(/аудитор/);
+    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
+      /аудитор/,
+    );
   });
 
   it('отклоняет истёкший токен', () => {
     const token = signToken(validClaims({ exp: NOW - 1 }));
-    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(/истёк/);
+    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
+      /истёк/,
+    );
   });
 
   it('отклоняет чужого издателя', () => {
     const token = signToken(validClaims({ iss: 'https://evil.example' }));
-    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(/издател/);
+    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
+      /издател/,
+    );
   });
 
   it('отклоняет неизвестный kid', () => {
     const token = signToken(validClaims(), { alg: 'RS256', kid: 'missing', typ: 'JWT' });
-    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(/ключ/);
+    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
+      /ключ/,
+    );
   });
 
   it('отклоняет alg=none', () => {
     const head = base64url(JSON.stringify({ alg: 'none', kid: 'key-1' }));
     const body = base64url(JSON.stringify(validClaims()));
-    expect(() => verifyGoogleIdToken(`${head}.${body}.`, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
-      GoogleTokenError,
-    );
+    expect(() =>
+      verifyGoogleIdToken(`${head}.${body}.`, { jwks: kms, clientId: CLIENT_ID, now: NOW }),
+    ).toThrow(GoogleTokenError);
   });
 
   it('отклоняет строку не из трёх частей', () => {
-    expect(() => verifyGoogleIdToken('not-a-jwt', { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
-      GoogleTokenError,
-    );
+    expect(() =>
+      verifyGoogleIdToken('not-a-jwt', { jwks: kms, clientId: CLIENT_ID, now: NOW }),
+    ).toThrow(GoogleTokenError);
   });
 
   it('отклоняет claims из будущего (iat)', () => {
     const token = signToken(validClaims({ iat: NOW + 600 }));
-    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(GoogleTokenError);
+    expect(() => verifyGoogleIdToken(token, { jwks: kms, clientId: CLIENT_ID, now: NOW })).toThrow(
+      GoogleTokenError,
+    );
   });
 });

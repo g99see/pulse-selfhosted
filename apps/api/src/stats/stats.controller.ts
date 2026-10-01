@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { StatsCalendarQuerySchema, StatsDayQuerySchema, StatsReportQuerySchema } from '@puls/shared';
+import {
+  StatsCalendarQuerySchema,
+  StatsDayQuerySchema,
+  StatsReportQuerySchema,
+} from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { SessionGuard } from '../auth/session.guard';
 import type { AuthenticatedRequest } from '../auth/auth.types';

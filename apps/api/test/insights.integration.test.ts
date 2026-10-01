@@ -103,7 +103,11 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
   }
 
   async function createAccount(client: TestClient): Promise<AccountDto> {
-    const response = await client.post('/api/finance/accounts', { name: 'Карта', type: 'card', balance: 100000 });
+    const response = await client.post('/api/finance/accounts', {
+      name: 'Карта',
+      type: 'card',
+      balance: 100000,
+    });
     expect(response.status).toBe(201);
     return response.body as AccountDto;
   }
@@ -114,7 +118,13 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
     return response.body.categories as CategoryDto[];
   }
 
-  async function addExpense(client: TestClient, accountId: string, amount: number, date: string, categoryId?: string) {
+  async function addExpense(
+    client: TestClient,
+    accountId: string,
+    amount: number,
+    date: string,
+    categoryId?: string,
+  ) {
     const response = await client.post('/api/finance/transactions', {
       accountId,
       categoryId,
@@ -158,7 +168,11 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
 
       await addExpense(client, account.id, 150, today, food.id);
       await addExpense(client, account.id, 1400, today, transport.id);
-      const budget = await client.put('/api/finance/budgets', { categoryId: food.id, month: MONTH, limit: 100 });
+      const budget = await client.put('/api/finance/budgets', {
+        categoryId: food.id,
+        month: MONTH,
+        limit: 100,
+      });
       expect(budget.status).toBe(200);
 
       const feed = await client.get('/api/insights');
@@ -188,7 +202,9 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
     it('применяет предложение кнопкой — создаёт бюджет через финансы', async () => {
       const client = await signUp('apply@example.com', 'applyuser');
       const account = await createAccount(client);
-      const transport = (await categoriesOf(client)).find((category) => category.name === 'Транспорт')!;
+      const transport = (await categoriesOf(client)).find(
+        (category) => category.name === 'Транспорт',
+      )!;
       const today = new Date().toISOString().slice(0, 10);
       await addExpense(client, account.id, 1400, today, transport.id);
 
@@ -199,7 +215,8 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       expect(applied.status).toBe(201);
       expect(applied.body.insight.appliedAt).toBeTruthy();
 
-      const budgets = (await client.get(`/api/finance/budgets?month=${MONTH}`)).body.budgets as Array<{
+      const budgets = (await client.get(`/api/finance/budgets?month=${MONTH}`)).body
+        .budgets as Array<{
         categoryId: string;
         limit: number;
       }>;
@@ -213,7 +230,8 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       const client = await signUp('energy@example.com', 'energyuser');
       await createAccount(client);
       const today = new Date().toISOString().slice(0, 10);
-      for (const day of daysEnding(today, 3)) await addCheckIn('energy@example.com', day, { energy: 1, mood: 3 });
+      for (const day of daysEnding(today, 3))
+        await addCheckIn('energy@example.com', day, { energy: 1, mood: 3 });
 
       const feed = (await client.get('/api/insights')).body as FeedBody;
       const insight = feed.insights.find((item) => item.type === 'low_energy_streak');
@@ -259,7 +277,8 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       await prisma.user.update({ where: { id: user.id }, data: { timezone: 'Europe/Moscow' } });
 
       const today = todayKeyInTimezone('Europe/Moscow');
-      for (const day of daysEnding(today, 6)) await addCheckIn('care@example.com', day, { mood: 1 });
+      for (const day of daysEnding(today, 6))
+        await addCheckIn('care@example.com', day, { mood: 1 });
 
       const feed = (await client.get('/api/insights')).body as FeedBody;
       const concern = feed.insights.find((item) => item.type === 'wellbeing_concern');
@@ -268,14 +287,17 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
 
       expect(feed.country).toBe('RU');
       expect(feed.support.map((resource) => resource.country)).toEqual(['RU', 'INT']);
-      expect(feed.support.find((resource) => resource.country === 'RU')?.phone).toBe('8-800-100-49-94');
+      expect(feed.support.find((resource) => resource.country === 'RU')?.phone).toBe(
+        '8-800-100-49-94',
+      );
     });
 
     it('не срабатывает на пяти днях подряд', async () => {
       const client = await signUp('care5@example.com', 'care5user');
       await createAccount(client);
       const today = new Date().toISOString().slice(0, 10);
-      for (const day of daysEnding(today, 5)) await addCheckIn('care5@example.com', day, { mood: 1 });
+      for (const day of daysEnding(today, 5))
+        await addCheckIn('care5@example.com', day, { mood: 1 });
 
       const feed = (await client.get('/api/insights')).body as FeedBody;
       expect(feed.insights.some((item) => item.type === 'wellbeing_concern')).toBe(false);
@@ -304,19 +326,26 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
 
       const feed = (await client.get('/api/insights')).body as FeedBody;
       const first = feed.insights.find((item) => item.type === 'low_energy_streak')!;
-      const rated = await client.post(`/api/insights/${first.id}/feedback`, { feedback: 'not_useful' });
+      const rated = await client.post(`/api/insights/${first.id}/feedback`, {
+        feedback: 'not_useful',
+      });
       expect(rated.status).toBe(200);
       expect(rated.body.insight.feedback).toBe('not_useful');
 
       const second = (await client.get('/api/insights')).body as FeedBody;
-      const other = second.insights.find((item) => item.id !== first.id && item.type === 'low_energy_streak')!;
-      const rated2 = await client.post(`/api/insights/${other.id}/feedback`, { feedback: 'not_useful' });
+      const other = second.insights.find(
+        (item) => item.id !== first.id && item.type === 'low_energy_streak',
+      )!;
+      const rated2 = await client.post(`/api/insights/${other.id}/feedback`, {
+        feedback: 'not_useful',
+      });
       expect(rated2.status).toBe(200);
 
       expect(await insights.hiddenTypes(user.id)).toContain('low_energy_streak');
 
       // Свежие данные не создают скрытый тип за сегодня.
-      for (const day of daysEnding(today, 3)) await addCheckIn('feedback@example.com', day, { energy: 1, mood: 3 });
+      for (const day of daysEnding(today, 3))
+        await addCheckIn('feedback@example.com', day, { energy: 1, mood: 3 });
       const generated = await insights.generate(user.id);
       expect(generated.map((insight) => insight.type)).not.toContain('low_energy_streak');
 
@@ -342,7 +371,11 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       await addExpense(client, account.id, 200, '2026-09-25', food.id);
       await addExpense(client, account.id, 400, '2026-10-01', food.id);
       await addExpense(client, account.id, 1400, '2026-10-02', transport.id);
-      const budget = await client.put('/api/finance/budgets', { categoryId: food.id, month: '2026-10', limit: 100 });
+      const budget = await client.put('/api/finance/budgets', {
+        categoryId: food.id,
+        month: '2026-10',
+        limit: 100,
+      });
       expect(budget.status).toBe(200);
       for (const day of ['2026-10-02', '2026-10-03', '2026-10-04']) {
         await addCheckIn('weekly@example.com', day, { energy: 1, mood: 3 });
@@ -355,13 +388,17 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       expect(first).toHaveLength(1);
       expect(first[0]).toMatchObject({ insights: 3, suggestion: true });
 
-      const stored = await prisma.insight.findMany({ where: { userId: user.id, source: 'weekly' } });
+      const stored = await prisma.insight.findMany({
+        where: { userId: user.id, source: 'weekly' },
+      });
       expect(stored).toHaveLength(4);
       expect(stored.filter((row) => row.type !== 'budget_suggestion')).toHaveLength(3);
       expect(stored.some((row) => row.type === 'budget_suggestion')).toBe(true);
       expect(stored.every((row) => row.periodKey === '2026-W40')).toBe(true);
 
-      const notifications = mail.outbox().filter((message) => message.kind === 'notification:weekly_report');
+      const notifications = mail
+        .outbox()
+        .filter((message) => message.kind === 'notification:weekly_report');
       expect(notifications).toHaveLength(1);
       expect(notifications[0].to).toBe('weekly@example.com');
 
@@ -372,7 +409,9 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       );
       expect(second).toHaveLength(0);
       expect(await prisma.insight.count({ where: { userId: user.id, source: 'weekly' } })).toBe(4);
-      expect(mail.outbox().filter((message) => message.kind === 'notification:weekly_report')).toHaveLength(1);
+      expect(
+        mail.outbox().filter((message) => message.kind === 'notification:weekly_report'),
+      ).toHaveLength(1);
     });
   });
 
@@ -380,7 +419,9 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
     it('не отдаёт инсайты чужого пользователя и защищает действия', async () => {
       const alice = await signUp('ins-alice@example.com', 'insalice');
       const aliceAccount = await createAccount(alice);
-      const transport = (await categoriesOf(alice)).find((category) => category.name === 'Транспорт')!;
+      const transport = (await categoriesOf(alice)).find(
+        (category) => category.name === 'Транспорт',
+      )!;
       const today = new Date().toISOString().slice(0, 10);
       await addExpense(alice, aliceAccount.id, 1400, today, transport.id);
 
@@ -394,7 +435,10 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       const bobFeed = (await bob.get('/api/insights')).body as FeedBody;
       expect(bobFeed.insights).toHaveLength(0);
 
-      expect((await bob.post(`/api/insights/${aliceInsight.id}/feedback`, { feedback: 'useful' })).status).toBe(404);
+      expect(
+        (await bob.post(`/api/insights/${aliceInsight.id}/feedback`, { feedback: 'useful' }))
+          .status,
+      ).toBe(404);
       expect((await bob.post(`/api/insights/${aliceInsight.id}/apply`)).status).toBe(404);
 
       const anon = new TestClient(server);
@@ -402,7 +446,9 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       // Без CSRF-токена мутирующий запрос отсекает глобальный CSRF-guard (403);
       // с токеном, но без сессии — SessionGuard (401).
       await anon.csrf();
-      expect((await anon.post('/api/insights/whatever/feedback', { feedback: 'useful' })).status).toBe(401);
+      expect(
+        (await anon.post('/api/insights/whatever/feedback', { feedback: 'useful' })).status,
+      ).toBe(401);
     });
   });
 });

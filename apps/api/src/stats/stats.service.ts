@@ -150,8 +150,12 @@ export class StatsService {
 
     const spent = Number(stat?.spent ?? 0);
     const earned = Number(stat?.earned ?? 0);
-    const budgetLimit = roundMoney(budgets.reduce((total, budget) => total + Number(budget.limit), 0));
-    const monthSpent = roundMoney(monthStats.reduce((total, entry) => total + Number(entry.spent), 0));
+    const budgetLimit = roundMoney(
+      budgets.reduce((total, budget) => total + Number(budget.limit), 0),
+    );
+    const monthSpent = roundMoney(
+      monthStats.reduce((total, entry) => total + Number(entry.spent), 0),
+    );
 
     return {
       day: dayKey,
@@ -302,7 +306,7 @@ export class StatsService {
     return grouped
       .map((group) => ({
         categoryId: group.categoryId,
-        categoryName: group.categoryId ? names.get(group.categoryId) ?? null : null,
+        categoryName: group.categoryId ? (names.get(group.categoryId) ?? null) : null,
         total: roundMoney(Number(group._sum.amountBase ?? 0)),
         count: group._count._all,
       }))

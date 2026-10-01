@@ -139,7 +139,9 @@ export default function AdminAiPage() {
           id="ai-admin-provider"
           label={t('ai.admin.provider')}
           value={provider}
-          onChange={(event) => setProvider(event.target.value as AiProvider | typeof EMPTY_PROVIDER)}
+          onChange={(event) =>
+            setProvider(event.target.value as AiProvider | typeof EMPTY_PROVIDER)
+          }
         >
           <option value={EMPTY_PROVIDER}>{t('ai.admin.providerNone')}</option>
           {AI_PROVIDERS.map((entry) => (
@@ -189,7 +191,12 @@ export default function AdminAiPage() {
         />
 
         <div>
-          <PrimaryButton type="button" data-testid="ai-admin-save" disabled={busy} onClick={() => void save()}>
+          <PrimaryButton
+            type="button"
+            data-testid="ai-admin-save"
+            disabled={busy}
+            onClick={() => void save()}
+          >
             {t('ai.admin.save')}
           </PrimaryButton>
         </div>
@@ -199,7 +206,9 @@ export default function AdminAiPage() {
       <Card className="flex flex-col gap-3">
         <h2 className="font-heading text-lg font-bold">{t('ai.admin.usage.title')}</h2>
         {usage ? (
-          <p className="text-xs text-[var(--puls-ink-muted)]">{t('ai.admin.usage.month', { month: usage.month })}</p>
+          <p className="text-xs text-[var(--puls-ink-muted)]">
+            {t('ai.admin.usage.month', { month: usage.month })}
+          </p>
         ) : null}
         {usage && usage.rows.length > 0 ? (
           <div className="overflow-x-auto">
@@ -213,10 +222,15 @@ export default function AdminAiPage() {
               </thead>
               <tbody>
                 {usage.rows.map((row) => (
-                  <tr key={row.userId} className="border-t border-[var(--puls-line)]" data-testid="ai-admin-usage-row">
+                  <tr
+                    key={row.userId}
+                    className="border-t border-[var(--puls-line)]"
+                    data-testid="ai-admin-usage-row"
+                  >
                     <td className="py-2 pr-3">@{row.nickname}</td>
                     <td className="py-2 pr-3">
-                      {formatAiTokens(row.tokensIn, locale)} / {formatAiTokens(row.tokensOut, locale)}
+                      {formatAiTokens(row.tokensIn, locale)} /{' '}
+                      {formatAiTokens(row.tokensOut, locale)}
                     </td>
                     <td className="py-2">{formatAiCost(row.costUsd)}</td>
                   </tr>

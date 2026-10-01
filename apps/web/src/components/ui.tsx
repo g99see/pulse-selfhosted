@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+} from 'react';
 import { Icon, type IconName } from '@/components/icons';
 
 /** Цветовые тона областей (docs/REDESIGN.md): деньги, самочувствие, бренд, предупреждение. */
@@ -39,7 +44,12 @@ export function Field({
   error,
   id,
   ...inputProps
-}: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string; id: string }) {
+}: InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  hint?: string;
+  error?: string;
+  id: string;
+}) {
   const describedBy = [hint ? `${id}-hint` : null, error ? `${id}-error` : null]
     .filter(Boolean)
     .join(' ');
@@ -118,7 +128,13 @@ export function GhostButton({
   );
 }
 
-export function Alert({ children, tone = 'error' }: { children: ReactNode; tone?: 'error' | 'success' }) {
+export function Alert({
+  children,
+  tone = 'error',
+}: {
+  children: ReactNode;
+  tone?: 'error' | 'success';
+}) {
   // Текст — контрастные токены *-text на мягкой заливке (WCAG AA в обеих темах).
   return (
     <p
@@ -216,7 +232,10 @@ export function StatTile({
   testId?: string;
 }) {
   return (
-    <div data-testid={testId} className={`flex flex-col gap-1 rounded-[20px] p-4 ${TONE_SOFT[tone]}`}>
+    <div
+      data-testid={testId}
+      className={`flex flex-col gap-1 rounded-[20px] p-4 ${TONE_SOFT[tone]}`}
+    >
       <div className="flex items-center gap-1.5 text-xs font-semibold">
         {icon ? <Icon name={icon} size={15} /> : null}
         <span>{label}</span>

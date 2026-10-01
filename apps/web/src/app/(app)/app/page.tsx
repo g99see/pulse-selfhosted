@@ -35,7 +35,9 @@ export default function AppHomePage() {
       {showWrapped ? (
         <Card className="flex flex-col gap-2 !bg-[var(--puls-primary-soft)]">
           <div data-testid="wrapped-banner">
-            <p className="font-bold">{t('wrapped.banner.title', { year: new Date().getFullYear() })}</p>
+            <p className="font-bold">
+              {t('wrapped.banner.title', { year: new Date().getFullYear() })}
+            </p>
             <p className="text-sm text-[var(--puls-ink-muted)]">{t('wrapped.banner.body')}</p>
             <Link
               href="/wrapped"

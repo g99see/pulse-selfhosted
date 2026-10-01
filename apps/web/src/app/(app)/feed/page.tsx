@@ -51,9 +51,7 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {error ? (
-        <Alert>{t('feed.error')}</Alert>
-      ) : null}
+      {error ? <Alert>{t('feed.error')}</Alert> : null}
 
       {page === null ? (
         <div className="min-h-32 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6 text-sm text-[var(--puls-ink-muted)] shadow-sm">

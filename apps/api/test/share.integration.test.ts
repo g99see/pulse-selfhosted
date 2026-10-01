@@ -71,7 +71,11 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -92,7 +96,9 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
     return {
       status: response.status,
       contentType: String(response.headers['content-type'] ?? ''),
-      svg: Buffer.isBuffer(response.body) ? response.body.toString('utf8') : String(response.body ?? ''),
+      svg: Buffer.isBuffer(response.body)
+        ? response.body.toString('utf8')
+        : String(response.body ?? ''),
     };
   }
 
@@ -118,7 +124,10 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
       const goal = await createGoal(client, 120000);
       await client.post(`/api/goals/${goal.id}/deposit`, { amount: 60000 });
 
-      const response = await getSvg(client, `/api/share/card?type=goal_progress&id=${goal.id}&amounts=1`);
+      const response = await getSvg(
+        client,
+        `/api/share/card?type=goal_progress&id=${goal.id}&amounts=1`,
+      );
       expect(response.status).toBe(200);
       expect(response.svg).toContain('Накоплено');
       expect(response.svg.replace(/\u00a0/g, ' ')).toContain('60 000');
@@ -151,7 +160,9 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
       const notEarned = await getSvg(client, '/api/share/card?type=achievement&id=goal_half');
       expect(notEarned.status).toBe(404);
 
-      const user = await prisma.user.findUniqueOrThrow({ where: { email: 'share-badge@example.com' } });
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email: 'share-badge@example.com' },
+      });
       await prisma.userAchievement.create({ data: { userId: user.id, code: 'goal_half' } });
 
       const earned = await getSvg(client, '/api/share/card?type=achievement&id=goal_half');
@@ -173,7 +184,9 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
       const goal = await createGoal(client, 120000);
       await client.post(`/api/goals/${goal.id}/deposit`, { amount: 60000 });
 
-      const response = await client.getBinary(`/api/share/card.png?type=goal_progress&id=${goal.id}&format=story`);
+      const response = await client.getBinary(
+        `/api/share/card.png?type=goal_progress&id=${goal.id}&format=story`,
+      );
       expect(response.status).toBe(200);
       expect(String(response.headers['content-type'])).toContain('image/png');
       const body = response.body as Buffer;
@@ -194,8 +207,12 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
       const bob = await signUp('share-bob@example.com', 'sharebob');
       const aliceGoal = await createGoal(alice, 50000);
 
-      expect((await bob.get(`/api/share/card?type=goal_progress&id=${aliceGoal.id}`)).status).toBe(404);
-      expect((await bob.get(`/api/share/card.png?type=goal_progress&id=${aliceGoal.id}`)).status).toBe(404);
+      expect((await bob.get(`/api/share/card?type=goal_progress&id=${aliceGoal.id}`)).status).toBe(
+        404,
+      );
+      expect(
+        (await bob.get(`/api/share/card.png?type=goal_progress&id=${aliceGoal.id}`)).status,
+      ).toBe(404);
     });
 
     it('отклоняет неизвестный тип и отсутствующий id цели — 400', async () => {

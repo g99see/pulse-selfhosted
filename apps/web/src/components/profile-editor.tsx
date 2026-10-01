@@ -108,7 +108,7 @@ export function ProfileEditor() {
   }
 
   return (
-    <Card className="flex flex-col gap-5" >
+    <Card className="flex flex-col gap-5">
       <div className="-m-5 mb-0 flex items-center gap-4 rounded-t-[var(--radius-card)] bg-gradient-to-br from-[var(--puls-primary-soft)] via-[var(--puls-wellbeing-soft)] to-[var(--puls-finance-soft)] p-5 sm:-m-6 sm:mb-0 sm:p-6">
         <span
           aria-hidden="true"
@@ -117,7 +117,9 @@ export function ProfileEditor() {
           {profile ? profile.nickname.slice(0, 2).toUpperCase() : '··'}
         </span>
         <div className="flex flex-col gap-1">
-          <h2 className="font-heading text-lg font-bold text-[var(--puls-ink)]">{t('profile.title')}</h2>
+          <h2 className="font-heading text-lg font-bold text-[var(--puls-ink)]">
+            {t('profile.title')}
+          </h2>
           <p className="text-sm text-[var(--puls-ink)]">
             {t('profile.subtitle', { nickname: profile?.nickname ?? MASKED })}
           </p>

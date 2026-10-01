@@ -40,7 +40,9 @@ export function toTransactionDto(
     categoryIcon: transaction.category?.icon ?? null,
     categoryColor: transaction.category?.color ?? null,
     type:
-      transaction.type === 'income' || transaction.type === 'transfer' ? transaction.type : 'expense',
+      transaction.type === 'income' || transaction.type === 'transfer'
+        ? transaction.type
+        : 'expense',
     amount: Number(transaction.amount),
     currency: transaction.currency,
     rate: Number(transaction.rate),
@@ -130,7 +132,13 @@ export class TransactionsService {
     const currency = input.currency ?? account.currency;
 
     const date = toDateOnly(input.date);
-    const rate = await this.resolveBaseRate(userId, currency, user.currency, dayKeyOf(date), input.rate);
+    const rate = await this.resolveBaseRate(
+      userId,
+      currency,
+      user.currency,
+      dayKeyOf(date),
+      input.rate,
+    );
 
     const amount = new Prisma.Decimal(input.amount);
     const amountBase = new Prisma.Decimal(convertToBase(input.amount, rate));
@@ -184,7 +192,10 @@ export class TransactionsService {
     if (targetAccountId) {
       await this.accounts.resolveOwned(userId, targetAccountId);
     } else {
-      const first = await this.prisma.account.findFirst({ where: { userId }, orderBy: { createdAt: 'asc' } });
+      const first = await this.prisma.account.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'asc' },
+      });
       if (!first) {
         throw httpError(400, 'no_account', 'Сначала создайте счёт');
       }
@@ -286,7 +297,8 @@ export class TransactionsService {
           });
         }
       } else {
-        const delta = transaction.type === 'income' ? transaction.amount.negated() : transaction.amount;
+        const delta =
+          transaction.type === 'income' ? transaction.amount.negated() : transaction.amount;
         await db.account.update({
           where: { id: transaction.accountId },
           data: { balance: { increment: delta } },

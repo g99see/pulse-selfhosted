@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { SetupSchema, type SetupInput, type SetupResponse, type SetupStatusResponse } from '@puls/shared';
+import {
+  SetupSchema,
+  type SetupInput,
+  type SetupResponse,
+  type SetupStatusResponse,
+} from '@puls/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { SetupService } from './setup.service';
 

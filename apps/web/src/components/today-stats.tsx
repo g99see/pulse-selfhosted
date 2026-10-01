@@ -63,25 +63,41 @@ export function TodayStats() {
             icon="wallet"
             label={t('stats.today.spent')}
             testId="today-spent"
-            value={<span className="[font-variant-numeric:tabular-nums]">{day ? money(day.spent) : dash}</span>}
+            value={
+              <span className="[font-variant-numeric:tabular-nums]">
+                {day ? money(day.spent) : dash}
+              </span>
+            }
           />
           <StatTile
             tone="finance"
             icon="chart"
             label={t('stats.today.earned')}
-            value={<span className="[font-variant-numeric:tabular-nums]">{day ? money(day.earned) : dash}</span>}
+            value={
+              <span className="[font-variant-numeric:tabular-nums]">
+                {day ? money(day.earned) : dash}
+              </span>
+            }
           />
           <StatTile
             tone="wellbeing"
             icon="heart"
             label={t('stats.today.mood')}
-            value={<span className="[font-variant-numeric:tabular-nums]">{day === null || day.avgMood === null ? dash : day.avgMood}</span>}
+            value={
+              <span className="[font-variant-numeric:tabular-nums]">
+                {day === null || day.avgMood === null ? dash : day.avgMood}
+              </span>
+            }
           />
           <StatTile
             tone="primary"
             icon="check"
             label={t('stats.today.checkins')}
-            value={<span className="[font-variant-numeric:tabular-nums]">{day ? day.checkins : dash}</span>}
+            value={
+              <span className="[font-variant-numeric:tabular-nums]">
+                {day ? day.checkins : dash}
+              </span>
+            }
           />
         </div>
 
@@ -96,7 +112,9 @@ export function TodayStats() {
           ) : (
             <p className="text-sm text-[var(--puls-ink-muted)]">
               {t('stats.today.budgetLeft')}:{' '}
-              <span className="font-semibold text-[var(--puls-ink)]">{t('stats.day.noBudget')}</span>
+              <span className="font-semibold text-[var(--puls-ink)]">
+                {t('stats.day.noBudget')}
+              </span>
             </p>
           )}
         </div>

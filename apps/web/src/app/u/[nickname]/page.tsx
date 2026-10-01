@@ -136,7 +136,10 @@ const CARD_TITLE_KEY: Record<ProfileCardDto['data']['kind'], string> = {
   html_page: 'profile.public.card.html',
 };
 
-function cardTitle(card: ProfileCardDto, locale: Awaited<ReturnType<typeof getRequestLocale>>): string {
+function cardTitle(
+  card: ProfileCardDto,
+  locale: Awaited<ReturnType<typeof getRequestLocale>>,
+): string {
   if (card.title) return card.title;
   return t(CARD_TITLE_KEY[card.data.kind], locale);
 }
@@ -155,7 +158,10 @@ export default async function PublicProfilePage({
   if (!profile) notFound();
 
   return (
-    <main className="puls-backdrop mx-auto min-h-screen w-full max-w-3xl px-5 py-8" data-testid="public-profile">
+    <main
+      className="puls-backdrop mx-auto min-h-screen w-full max-w-3xl px-5 py-8"
+      data-testid="public-profile"
+    >
       <div className="flex flex-col gap-4">
         <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm">
           {profile.coverUrl ? (

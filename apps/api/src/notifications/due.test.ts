@@ -44,7 +44,9 @@ describe('scheduleTimes / scheduleJson', () => {
   });
 
   it('ограничивает число слотов шестью', () => {
-    const times = scheduleTimes({ times: ['01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00'] });
+    const times = scheduleTimes({
+      times: ['01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00'],
+    });
     expect(times).toHaveLength(6);
   });
 

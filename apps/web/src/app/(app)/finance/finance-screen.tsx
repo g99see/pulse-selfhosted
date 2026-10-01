@@ -19,7 +19,20 @@ import { CategoryManager } from '@/components/category-manager';
 import { RecurringSection } from '@/components/recurring-section';
 import { Icon } from '@/components/icons';
 import { FormToggle } from '@/components/finance-form-toggle';
-import { Alert, Card, EmptyState, Field, GhostButton, IconBubble, PrimaryButton, ProgressBar, Segmented, Select, toneClasses, type Tone } from '@/components/ui';
+import {
+  Alert,
+  Card,
+  EmptyState,
+  Field,
+  GhostButton,
+  IconBubble,
+  PrimaryButton,
+  ProgressBar,
+  Segmented,
+  Select,
+  toneClasses,
+  type Tone,
+} from '@/components/ui';
 import { CURRENCY_OPTIONS } from '@/lib/currency-form';
 import { iconGlyph } from '@/lib/category-form';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
@@ -37,7 +50,11 @@ const ACCOUNT_TYPES: AccountTypeOption[] = [
   { value: 'savings', key: 'finance.account.savings' },
 ];
 
-const ACCOUNT_TONE: Record<AccountType, Tone> = { card: 'primary', cash: 'wellbeing', savings: 'finance' };
+const ACCOUNT_TONE: Record<AccountType, Tone> = {
+  card: 'primary',
+  cash: 'wellbeing',
+  savings: 'finance',
+};
 
 /** Тон полосы бюджета по заполнению: до 80% — деньги, 80–100% — самочувствие, выше — предупреждение. */
 function budgetTone(budget: BudgetDto): 'finance' | 'wellbeing' | 'warning' {
@@ -231,7 +248,9 @@ export function FinanceScreen({
           <h1 className="font-heading text-3xl font-extrabold">{t('finance.title')}</h1>
           <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.total')}</p>
           <p className="min-h-10 font-heading text-4xl font-extrabold text-[var(--puls-finance-text)] [font-variant-numeric:tabular-nums]">
-            {overview ? <Money value={overview.totalBalance} currency={currency} testId="finance-total" /> : null}
+            {overview ? (
+              <Money value={overview.totalBalance} currency={currency} testId="finance-total" />
+            ) : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -262,8 +281,16 @@ export function FinanceScreen({
         options={[
           { value: 'ops', label: t('finance.tab.ops'), testId: 'finance-tab-ops' },
           { value: 'accounts', label: t('finance.tab.accounts'), testId: 'finance-tab-accounts' },
-          { value: 'categories', label: t('finance.tab.categories'), testId: 'finance-tab-categories' },
-          { value: 'recurring', label: t('finance.tab.recurring'), testId: 'finance-tab-recurring' },
+          {
+            value: 'categories',
+            label: t('finance.tab.categories'),
+            testId: 'finance-tab-categories',
+          },
+          {
+            value: 'recurring',
+            label: t('finance.tab.recurring'),
+            testId: 'finance-tab-recurring',
+          },
         ]}
       />
 
@@ -340,7 +367,10 @@ export function FinanceScreen({
                             {iconGlyph(transaction.categoryIcon ?? '')}
                           </span>
                           <span className="flex min-w-0 flex-col">
-                            <span className="truncate font-medium" data-testid="transaction-category">
+                            <span
+                              className="truncate font-medium"
+                              data-testid="transaction-category"
+                            >
                               {transaction.categoryName ?? t('finance.noCategory')}
                             </span>
                             <span className="truncate text-xs text-[var(--puls-ink-muted)]">
@@ -356,7 +386,10 @@ export function FinanceScreen({
                               data-testid="transaction-amount"
                             >
                               {amountPrefix(transaction.type)}
-                              <Money value={transaction.amount} currency={transaction.currency as Currency} />
+                              <Money
+                                value={transaction.amount}
+                                currency={transaction.currency as Currency}
+                              />
                             </span>
                             {transaction.currency !== transaction.baseCurrency ? (
                               <span
@@ -364,7 +397,10 @@ export function FinanceScreen({
                                 data-testid="transaction-base"
                               >
                                 {t('finance.tx.equivalent', {
-                                  amount: money(transaction.amountBase, transaction.baseCurrency as Currency),
+                                  amount: money(
+                                    transaction.amountBase,
+                                    transaction.baseCurrency as Currency,
+                                  ),
                                   currency: transaction.baseCurrency,
                                 })}
                               </span>
@@ -398,7 +434,11 @@ export function FinanceScreen({
               ) : null}
               {transactions.length === 0 && !loading ? (
                 <div data-testid="transactions-empty">
-                  <EmptyState tone="finance" icon="wallet" title={t('finance.transactions.empty')} />
+                  <EmptyState
+                    tone="finance"
+                    icon="wallet"
+                    title={t('finance.transactions.empty')}
+                  />
                 </div>
               ) : null}
               {sorted.length > visible ? (
@@ -427,7 +467,10 @@ export function FinanceScreen({
                     tone={budgetTone(budget)}
                   />
                   <span className="text-xs text-[var(--puls-ink-muted)]">
-                    {t('finance.budget.spent', { spent: money(budget.spent), limit: money(budget.limit) })}
+                    {t('finance.budget.spent', {
+                      spent: money(budget.spent),
+                      limit: money(budget.limit),
+                    })}
                     {' · '}
                     {t(`finance.budget.level.${budget.level}`)}
                   </span>
@@ -435,7 +478,11 @@ export function FinanceScreen({
               ))}
               {loading && budgets.length === 0
                 ? Array.from({ length: 3 }, (_, index) => (
-                    <li key={`skeleton-${index}`} aria-hidden="true" className="flex flex-col gap-2">
+                    <li
+                      key={`skeleton-${index}`}
+                      aria-hidden="true"
+                      className="flex flex-col gap-2"
+                    >
                       <span className="h-4 w-1/3 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
                       <span className="h-2.5 w-full animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
                       <span className="h-3 w-1/2 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
@@ -450,7 +497,10 @@ export function FinanceScreen({
             </ul>
 
             <FormToggle label={t('finance.budget.new')} testId="budget-form-toggle">
-              <form className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem_auto] sm:items-end" onSubmit={(event) => void addBudget(event)}>
+              <form
+                className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem_auto] sm:items-end"
+                onSubmit={(event) => void addBudget(event)}
+              >
                 <Select
                   id="budget-category"
                   label={t('finance.filter.category')}
@@ -479,7 +529,6 @@ export function FinanceScreen({
               </form>
             </FormToggle>
           </Card>
-
         </>
       ) : null}
 
@@ -499,7 +548,9 @@ export function FinanceScreen({
                   <IconBubble name="wallet" tone={ACCOUNT_TONE[account.type]} size={36} />
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold">{account.name}</span>
-                    <span className="text-xs opacity-80">{t(`finance.account.${account.type}`)}</span>
+                    <span className="text-xs opacity-80">
+                      {t(`finance.account.${account.type}`)}
+                    </span>
                   </span>
                 </span>
                 <Money
@@ -517,7 +568,10 @@ export function FinanceScreen({
           </ul>
 
           <FormToggle label={t('finance.account.new')} testId="account-form-toggle">
-            <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={(event) => void addAccount(event)}>
+            <form
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+              onSubmit={(event) => void addAccount(event)}
+            >
               <Field
                 id="account-name"
                 label={t('finance.account.name')}
@@ -557,7 +611,11 @@ export function FinanceScreen({
                   </option>
                 ))}
               </Select>
-              <PrimaryButton type="submit" disabled={busy} className="sm:col-span-2 sm:justify-self-start">
+              <PrimaryButton
+                type="submit"
+                disabled={busy}
+                className="sm:col-span-2 sm:justify-self-start"
+              >
                 {t('finance.account.add')}
               </PrimaryButton>
             </form>
@@ -566,7 +624,11 @@ export function FinanceScreen({
       ) : null}
 
       {tab === 'categories' ? (
-        <CategoryManager categories={categories} loading={loading} onChanged={() => void reload()} />
+        <CategoryManager
+          categories={categories}
+          loading={loading}
+          onChanged={() => void reload()}
+        />
       ) : null}
 
       {tab === 'recurring' ? (

@@ -202,9 +202,18 @@ function wallTimeToInstant(
   return new Date(utcGuess - secondOffset);
 }
 
-function addDays(year: number, month: number, day: number, days: number): { year: number; month: number; day: number } {
+function addDays(
+  year: number,
+  month: number,
+  day: number,
+  days: number,
+): { year: number; month: number; day: number } {
   const shifted = new Date(Date.UTC(year, month - 1, day + days));
-  return { year: shifted.getUTCFullYear(), month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+  };
 }
 
 interface WallClock {
@@ -256,10 +265,7 @@ export function nextDeliveryTime(options: NextDeliveryOptions): Date {
   const now = options.now;
   const nowMs = now.getTime();
 
-  const times = withMorningTime(
-    normalizeTimes(options.times),
-    options.morningTime,
-  );
+  const times = withMorningTime(normalizeTimes(options.times), options.morningTime);
 
   const today = localParts(now, timezone);
 
@@ -410,10 +416,7 @@ export function typicalAnswerTime(samples: readonly (string | number)[]): string
 }
 
 /** Заменяет утренний (первый) слот на привычное время ответа (ТЗ §3.6). */
-export function withMorningTime(
-  times: readonly string[] | number,
-  morningTime?: string,
-): string[] {
+export function withMorningTime(times: readonly string[] | number, morningTime?: string): string[] {
   const normalized = normalizeTimes(times);
   if (!morningTime) return normalized;
 
@@ -423,7 +426,9 @@ export function withMorningTime(
   const replacement = formatTimeOfDay(parsed);
   if (normalized.length === 0) return [replacement];
 
-  return [replacement, ...normalized.slice(1)].sort((a, b) => (minutesOfDay(a) ?? 0) - (minutesOfDay(b) ?? 0));
+  return [replacement, ...normalized.slice(1)].sort(
+    (a, b) => (minutesOfDay(a) ?? 0) - (minutesOfDay(b) ?? 0),
+  );
 }
 
 /* ----- Правила по типам ----- */

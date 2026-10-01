@@ -32,7 +32,11 @@ export class AccountService {
     private readonly rateLimit: RateLimitService,
   ) {}
 
-  async deleteAccount(userId: string, input: DeleteAccountInput, context: DeletionContext): Promise<void> {
+  async deleteAccount(
+    userId: string,
+    input: DeleteAccountInput,
+    context: DeletionContext,
+  ): Promise<void> {
     const limit = await this.rateLimit.consume(
       `account:delete:${userId}`,
       DELETE_ATTEMPT_LIMIT,
@@ -52,7 +56,8 @@ export class AccountService {
     }
 
     const passwordOk =
-      user.passwordHash !== null && (await this.passwords.verify(user.passwordHash, input.password));
+      user.passwordHash !== null &&
+      (await this.passwords.verify(user.passwordHash, input.password));
     if (!passwordOk) {
       throw httpError(403, 'invalid_password', 'Неверный пароль');
     }

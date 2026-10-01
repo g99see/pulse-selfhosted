@@ -13,7 +13,12 @@ import {
   type WrappedTransaction,
 } from '../src/wrapped';
 
-function expense(day: string, amount: number, categoryId: string | null, categoryName: string | null): WrappedTransaction {
+function expense(
+  day: string,
+  amount: number,
+  categoryId: string | null,
+  categoryName: string | null,
+): WrappedTransaction {
   return { type: 'expense', amount, day, categoryId, categoryName };
 }
 
@@ -29,8 +34,18 @@ describe('topCategories (ТЗ §3.4, J1)', () => {
 
     const result = topCategories(transactions);
     expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject({ categoryId: 'rent', categoryName: 'Жильё', total: 500, count: 1 });
-    expect(result[1]).toMatchObject({ categoryId: 'food', categoryName: 'Еда', total: 400, count: 2 });
+    expect(result[0]).toMatchObject({
+      categoryId: 'rent',
+      categoryName: 'Жильё',
+      total: 500,
+      count: 1,
+    });
+    expect(result[1]).toMatchObject({
+      categoryId: 'food',
+      categoryName: 'Еда',
+      total: 400,
+      count: 2,
+    });
   });
 
   it('ограничивает топ-3 и группирует расходы без категории', () => {
@@ -49,7 +64,10 @@ describe('topCategories (ТЗ §3.4, J1)', () => {
   });
 
   it('округляет суммы до копеек', () => {
-    const result = topCategories([expense('2026-01-01', 0.1, 'a', 'А'), expense('2026-01-01', 0.2, 'a', 'А')]);
+    const result = topCategories([
+      expense('2026-01-01', 0.1, 'a', 'А'),
+      expense('2026-01-01', 0.2, 'a', 'А'),
+    ]);
     expect(result[0]!.total).toBe(0.3);
   });
 });
@@ -75,7 +93,9 @@ describe('mostExpensiveDay (ТЗ §3.4, J1)', () => {
   it('без расходов — null', () => {
     expect(mostExpensiveDay([])).toBeNull();
     expect(
-      mostExpensiveDay([{ type: 'income', amount: 100, day: '2026-01-01', categoryId: null, categoryName: null }]),
+      mostExpensiveDay([
+        { type: 'income', amount: 100, day: '2026-01-01', categoryId: null, categoryName: null },
+      ]),
     ).toBeNull();
   });
 });

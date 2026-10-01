@@ -15,10 +15,7 @@ import {
 
 describe('computeStreak (ТЗ §4, стрик чек-инов по дням)', () => {
   it('считает подряд идущие дни до сегодня включительно', () => {
-    const result = computeStreak(
-      ['2026-09-29', '2026-09-30', '2026-10-01'],
-      '2026-10-01',
-    );
+    const result = computeStreak(['2026-09-29', '2026-09-30', '2026-10-01'], '2026-10-01');
     expect(result.current).toBe(3);
     expect(result.checkedToday).toBe(true);
     expect(result.lastDayKey).toBe('2026-10-01');
@@ -87,7 +84,11 @@ describe('streakFromInstants (границы дня и переход на ле�
       new Date('2026-10-01T12:00:00.000Z'), // 1 октября, 15:00 MSK
       new Date('2026-10-01T22:30:00.000Z'), // уже 2 октября, 01:30 MSK
     ];
-    const result = streakFromInstants(instants, 'Europe/Moscow', new Date('2026-10-01T23:00:00.000Z'));
+    const result = streakFromInstants(
+      instants,
+      'Europe/Moscow',
+      new Date('2026-10-01T23:00:00.000Z'),
+    );
     expect(result.current).toBe(3);
     expect(result.todayKey).toBe('2026-10-02');
     expect(result.lastDayKey).toBe('2026-10-02');
@@ -98,7 +99,11 @@ describe('streakFromInstants (границы дня и переход на ле�
       new Date('2026-10-01T20:59:59.000Z'), // 1 октября, 23:59:59 MSK
       new Date('2026-10-01T21:00:00.000Z'), // ровно 00:00 2 октября MSK
     ];
-    const result = streakFromInstants(instants, 'Europe/Moscow', new Date('2026-10-02T21:00:00.000Z'));
+    const result = streakFromInstants(
+      instants,
+      'Europe/Moscow',
+      new Date('2026-10-02T21:00:00.000Z'),
+    );
     expect(result.todayKey).toBe('2026-10-03');
     expect(result.current).toBe(2);
     expect(result.checkedToday).toBe(false);
@@ -112,7 +117,11 @@ describe('streakFromInstants (границы дня и переход на ле�
       new Date('2026-03-08T16:00:00.000Z'), // 12:00 8 марта, уже EDT
       new Date('2026-03-09T04:00:00.000Z'), // 00:00 9 марта, EDT
     ];
-    const result = streakFromInstants(instants, 'America/New_York', new Date('2026-03-09T12:00:00.000Z'));
+    const result = streakFromInstants(
+      instants,
+      'America/New_York',
+      new Date('2026-03-09T12:00:00.000Z'),
+    );
     expect(result.current).toBe(3);
   });
 
@@ -124,7 +133,11 @@ describe('streakFromInstants (границы дня и переход на ле�
       new Date('2026-10-25T01:30:00.000Z'), // 02:30 CET (тот же календарный день)
       new Date('2026-10-25T23:00:00.000Z'), // 00:00 26 октября CET
     ];
-    const result = streakFromInstants(instants, 'Europe/Berlin', new Date('2026-10-26T12:00:00.000Z'));
+    const result = streakFromInstants(
+      instants,
+      'Europe/Berlin',
+      new Date('2026-10-26T12:00:00.000Z'),
+    );
     expect(result.current).toBe(3);
     expect(result.checkedToday).toBe(true);
   });
@@ -153,13 +166,18 @@ describe('evaluateAchievements (ТЗ §4, условия бейджей)', () =>
     expect(evaluateAchievements({ ...base, checkinsCount: 7, longestStreak: 7 })).toContain(
       'checkin_streak_7',
     );
-    expect(
-      evaluateAchievements({ ...base, checkinsCount: 7, longestStreak: 7 }),
-    ).not.toContain('checkin_streak_30');
+    expect(evaluateAchievements({ ...base, checkinsCount: 7, longestStreak: 7 })).not.toContain(
+      'checkin_streak_30',
+    );
 
     const hundred = evaluateAchievements({ ...base, checkinsCount: 100, longestStreak: 100 });
     expect(hundred).toEqual(
-      expect.arrayContaining(['first_checkin', 'checkin_streak_7', 'checkin_streak_30', 'checkin_streak_100']),
+      expect.arrayContaining([
+        'first_checkin',
+        'checkin_streak_7',
+        'checkin_streak_30',
+        'checkin_streak_100',
+      ]),
     );
   });
 
@@ -170,7 +188,9 @@ describe('evaluateAchievements (ТЗ §4, условия бейджей)', () =>
   });
 
   it('бейдж за первый закрытый месяц без превышения бюджета', () => {
-    expect(evaluateAchievements({ ...base, closedBudgetsCount: 1 })).toContain('first_budget_closed');
+    expect(evaluateAchievements({ ...base, closedBudgetsCount: 1 })).toContain(
+      'first_budget_closed',
+    );
   });
 
   it('все коды из определения присутствуют в списке', () => {

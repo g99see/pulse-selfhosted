@@ -51,7 +51,9 @@ function lastSent(chatId: string): OutgoingMessage | undefined {
 }
 
 function webhookUpdate(update: object, secret: string | null = 'test-secret') {
-  const call = request(WEBHOOK_SERVER as Server).post(WEBHOOK).send(update);
+  const call = request(WEBHOOK_SERVER as Server)
+    .post(WEBHOOK)
+    .send(update);
   return secret === null ? call : call.set(SECRET_HEADER, secret);
 }
 
@@ -140,7 +142,11 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     expect(codeResponse.status).toBe(201);
     const start = await webhookUpdate({
       update_id: 1,
-      message: { chat: { id: Number(chatId) }, from: { username: nickname }, text: `/start ${codeResponse.body.code}` },
+      message: {
+        chat: { id: Number(chatId) },
+        from: { username: nickname },
+        text: `/start ${codeResponse.body.code}`,
+      },
     });
     expect(start.status).toBe(200);
     return account;
@@ -309,7 +315,11 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
 
   describe('Чек-ины из чата', () => {
     it('/checkin присылает кнопки 1–5, нажатие создаёт чек-ин', async () => {
-      const { client, userId } = await signUpLinked('tg-checkin@example.com', 'tgcheckinusr', '1001');
+      const { client, userId } = await signUpLinked(
+        'tg-checkin@example.com',
+        'tgcheckinusr',
+        '1001',
+      );
 
       const prompt = await webhookUpdate({
         update_id: 2,
@@ -432,7 +442,9 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     it('/today отдаёт траты и настроение', async () => {
       const { client } = await signUpLinked('tg-today@example.com', 'tgtodayuser', '1401');
       await client.post('/api/finance/accounts', { name: 'Карта', type: 'card', balance: 500 });
-      const account = (await client.get('/api/finance/accounts')).body.accounts[0] as { id: string };
+      const account = (await client.get('/api/finance/accounts')).body.accounts[0] as {
+        id: string;
+      };
       await client.post('/api/finance/transactions', {
         accountId: account.id,
         type: 'expense',

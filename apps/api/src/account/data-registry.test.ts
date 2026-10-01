@@ -32,7 +32,9 @@ describe('isSecretColumn', () => {
 
 describe('реестр выгрузки', () => {
   it('таблицы-владельцы покрыты: выгрузка либо явное исключение', () => {
-    expect(uncoveredUserTables(['accounts', 'sessions', 'check_ins', 'budgets', 'daily_stats'])).toEqual([]);
+    expect(
+      uncoveredUserTables(['accounts', 'sessions', 'check_ins', 'budgets', 'daily_stats']),
+    ).toEqual([]);
     expect(uncoveredUserTables(['accounts', 'daily_stat'])).toEqual(['daily_stat']);
     expect(uncoveredUserTables([])).toEqual([]);
     // Telegram: привязка выгружается, одноразовые коды — секрет и исключены.

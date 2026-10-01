@@ -13,7 +13,9 @@ import { GOALS_CHANGED_EVENT, goalsApi } from '@/lib/goals-client';
 function GoalImage({ image }: { image: string | null }) {
   if (!image) return null;
   if (isGoalImageUrl(image)) {
-    return <img src={image} alt="" className="h-8 w-8 rounded-[var(--radius-button)] object-cover" />;
+    return (
+      <img src={image} alt="" className="h-8 w-8 rounded-[var(--radius-button)] object-cover" />
+    );
   }
   return (
     <span aria-hidden="true" className="text-2xl leading-none">
@@ -80,7 +82,10 @@ export function GoalsCard() {
       ) : (
         <ul className="grid gap-3" data-testid="goals-card-list">
           {featured.map((goal) => (
-            <li key={goal.id} className="flex items-center gap-3 rounded-[20px] bg-[var(--puls-finance-soft)] p-3">
+            <li
+              key={goal.id}
+              className="flex items-center gap-3 rounded-[20px] bg-[var(--puls-finance-soft)] p-3"
+            >
               <ProgressRing
                 percent={goal.percent}
                 size={56}

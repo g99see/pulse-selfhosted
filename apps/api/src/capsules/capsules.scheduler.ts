@@ -23,9 +23,7 @@ export const DEFAULT_CAPSULES_TICK_MS = 60_000;
 export class CapsulesScheduler implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CapsulesScheduler.name);
   private readonly redisUrl = process.env.REDIS_URL ?? '';
-  private readonly tickMs = Number(
-    process.env.CAPSULES_TICK_MS ?? DEFAULT_CAPSULES_TICK_MS,
-  );
+  private readonly tickMs = Number(process.env.CAPSULES_TICK_MS ?? DEFAULT_CAPSULES_TICK_MS);
   /** В тестах автостарт выключен: тесты сами вызывают runOnce(). */
   private readonly autoStart =
     process.env.NODE_ENV !== 'test' && (process.env.CAPSULES_SCHEDULER ?? 'on') !== 'off';

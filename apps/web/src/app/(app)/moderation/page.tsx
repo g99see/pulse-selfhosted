@@ -70,7 +70,11 @@ export default function ModerationPage() {
     setBusyId(report.id);
     setMessage(null);
     try {
-      await moderationApi.resolve(report.id, action, note.trim().length > 0 ? note.trim() : undefined);
+      await moderationApi.resolve(
+        report.id,
+        action,
+        note.trim().length > 0 ? note.trim() : undefined,
+      );
       setNote('');
       setMessage(t('moderation.resolve.success'));
       await load();
@@ -95,7 +99,11 @@ export default function ModerationPage() {
       <div className="flex flex-col gap-4" data-testid="moderation-page">
         <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
         <Card>
-          <p role="alert" data-testid="moderation-forbidden" className="text-sm text-[var(--puls-warning-text)]">
+          <p
+            role="alert"
+            data-testid="moderation-forbidden"
+            className="text-sm text-[var(--puls-warning-text)]"
+          >
             {t('moderation.forbidden')}
           </p>
         </Card>
@@ -161,20 +169,33 @@ export default function ModerationPage() {
 
                 <dl className="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
                   <div>
-                    <dt className="text-xs text-[var(--puls-ink-muted)]">{t('moderation.reporter')}</dt>
+                    <dt className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('moderation.reporter')}
+                    </dt>
                     <dd>@{report.reporter.nickname}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-[var(--puls-ink-muted)]">{t('moderation.reason')}</dt>
+                    <dt className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('moderation.reason')}
+                    </dt>
                     <dd>{t(`report.reason.${report.reason}`)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-[var(--puls-ink-muted)]">{t('moderation.createdAt')}</dt>
-                    <dd>{formatDate(report.createdAt, locale, { dateStyle: 'short', timeStyle: 'short' })}</dd>
+                    <dt className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('moderation.createdAt')}
+                    </dt>
+                    <dd>
+                      {formatDate(report.createdAt, locale, {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      })}
+                    </dd>
                   </div>
                   {report.details ? (
                     <div className="sm:col-span-2">
-                      <dt className="text-xs text-[var(--puls-ink-muted)]">{t('moderation.details')}</dt>
+                      <dt className="text-xs text-[var(--puls-ink-muted)]">
+                        {t('moderation.details')}
+                      </dt>
                       <dd data-testid="moderation-report-details">{report.details}</dd>
                     </div>
                   ) : null}
@@ -218,7 +239,10 @@ export default function ModerationPage() {
       <section className="flex flex-col gap-3">
         <h2 className="font-heading text-lg font-bold">{t('moderation.actions.title')}</h2>
         {actions.length === 0 ? (
-          <p data-testid="moderation-actions-empty" className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-4 text-sm text-[var(--puls-ink-muted)] shadow-sm">
+          <p
+            data-testid="moderation-actions-empty"
+            className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-4 text-sm text-[var(--puls-ink-muted)] shadow-sm"
+          >
             {t('moderation.actions.empty')}
           </p>
         ) : (
@@ -229,11 +253,12 @@ export default function ModerationPage() {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-card)] bg-[var(--puls-surface)] px-4 py-2 text-sm"
               >
                 <span>
-                  {t(`moderation.action.${action.action}`)} · {t(`report.target.${action.targetType}`)} ·{' '}
-                  {action.targetId}
+                  {t(`moderation.action.${action.action}`)} ·{' '}
+                  {t(`report.target.${action.targetType}`)} · {action.targetId}
                 </span>
                 <span className="text-xs text-[var(--puls-ink-muted)]">
-                  @{action.moderator.nickname} · {formatDate(action.createdAt, locale, { dateStyle: 'short', timeStyle: 'short' })}
+                  @{action.moderator.nickname} ·{' '}
+                  {formatDate(action.createdAt, locale, { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               </li>
             ))}

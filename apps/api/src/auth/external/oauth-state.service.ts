@@ -65,7 +65,12 @@ export class ValkeyOAuthStateStore implements OAuthStateStore {
   constructor(private readonly redis: Redis) {}
 
   async save(state: string, payload: OAuthStatePayload, ttlSeconds: number): Promise<void> {
-    await this.redis.set(`puls:oauth:${state}`, JSON.stringify(payload), 'EX', Math.max(1, ttlSeconds));
+    await this.redis.set(
+      `puls:oauth:${state}`,
+      JSON.stringify(payload),
+      'EX',
+      Math.max(1, ttlSeconds),
+    );
   }
 
   /** GETDEL недоступен на старых серверах — берём и удаляем. */

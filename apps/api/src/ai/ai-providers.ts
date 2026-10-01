@@ -62,7 +62,10 @@ function defaultModel(settings: AiProviderSettings): string {
 }
 
 function baseUrl(settings: AiProviderSettings): string {
-  const url = (settings.baseUrl || AI_DEFAULT_BASE_URL[settings.provider] || '').replace(/\/+$/, '');
+  const url = (settings.baseUrl || AI_DEFAULT_BASE_URL[settings.provider] || '').replace(
+    /\/+$/,
+    '',
+  );
   if (!url) throw new AiProviderError('unreachable');
   return url;
 }
@@ -83,12 +86,17 @@ class AnthropicAdapter implements AiProviderAdapter {
 
   constructor(private readonly http: AiHttpClient) {}
 
-  async complete(settings: AiProviderSettings, request: AiCompletionRequest): Promise<AiCompletionResult> {
+  async complete(
+    settings: AiProviderSettings,
+    request: AiCompletionRequest,
+  ): Promise<AiCompletionResult> {
     const messages = request.messages.map((message) => {
       if (message.role === 'tool') {
         return {
           role: 'user',
-          content: [{ type: 'tool_result', tool_use_id: message.toolCallId, content: message.content }],
+          content: [
+            { type: 'tool_result', tool_use_id: message.toolCallId, content: message.content },
+          ],
         };
       }
       if (message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0) {
@@ -124,7 +132,11 @@ class AnthropicAdapter implements AiProviderAdapter {
     for (const block of content) {
       const item = asRecord(block);
       if (item.type === 'text' && typeof item.text === 'string') textParts.push(item.text);
-      if (item.type === 'tool_use' && typeof item.id === 'string' && typeof item.name === 'string') {
+      if (
+        item.type === 'tool_use' &&
+        typeof item.id === 'string' &&
+        typeof item.name === 'string'
+      ) {
         toolCalls.push({ id: item.id, name: item.name, arguments: asRecord(item.input) });
       }
     }
@@ -138,10 +150,15 @@ class AnthropicAdapter implements AiProviderAdapter {
   }
 
   private async send(url: string, apiKey: string, body: unknown): Promise<unknown> {
-    return requestJson(this.http, url, {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    }, body);
+    return requestJson(
+      this.http,
+      url,
+      {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body,
+    );
   }
 }
 
@@ -152,12 +169,19 @@ class OpenAiAdapter implements AiProviderAdapter {
     private readonly http: AiHttpClient,
   ) {}
 
-  async complete(settings: AiProviderSettings, request: AiCompletionRequest): Promise<AiCompletionResult> {
+  async complete(
+    settings: AiProviderSettings,
+    request: AiCompletionRequest,
+  ): Promise<AiCompletionResult> {
     const messages: unknown[] = [{ role: 'system', content: request.system }];
     for (const message of request.messages) {
       if (message.role === 'tool') {
         messages.push({ role: 'tool', tool_call_id: message.toolCallId, content: message.content });
-      } else if (message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0) {
+      } else if (
+        message.role === 'assistant' &&
+        message.toolCalls &&
+        message.toolCalls.length > 0
+      ) {
         messages.push({
           role: 'assistant',
           content: message.content || null,
@@ -186,7 +210,9 @@ class OpenAiAdapter implements AiProviderAdapter {
 
     const headers: Record<string, string> = {};
     if (settings.apiKey) headers.authorization = `Bearer ${settings.apiKey}`;
-    const payload = asRecord(await requestJson(this.http, `${baseUrl(settings)}/chat/completions`, headers, body));
+    const payload = asRecord(
+      await requestJson(this.http, `${baseUrl(settings)}/chat/completions`, headers, body),
+    );
 
     const choices = Array.isArray(payload.choices) ? payload.choices : [];
     const message = asRecord(asRecord(choices[0]).message);

@@ -60,7 +60,11 @@ export const CHALLENGE_TEMPLATES = [
 
 export type ChallengeTemplate = (typeof CHALLENGE_TEMPLATES)[number];
 
-const titleSchema = z.string().trim().min(1, { message: 'Введите название' }).max(CHALLENGE_TITLE_MAX);
+const titleSchema = z
+  .string()
+  .trim()
+  .min(1, { message: 'Введите название' })
+  .max(CHALLENGE_TITLE_MAX);
 
 /** Дата в формате YYYY-MM-DD или ISO-строке. */
 const dateSchema = z

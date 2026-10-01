@@ -19,12 +19,7 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Alert, EmptyState, IconBubble, PrimaryButton } from '@/components/ui';
-import {
-  HtmlFileError,
-  htmlPageApi,
-  readHtmlFile,
-  sandboxPageUrl,
-} from '@/lib/html-page-client';
+import { HtmlFileError, htmlPageApi, readHtmlFile, sandboxPageUrl } from '@/lib/html-page-client';
 
 function previewPlaceholder(text: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:system-ui;color:#475569;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head><body>${text}</body></html>`;
@@ -243,7 +238,9 @@ export default function PageEditorPage() {
           data-testid="htmlPage-tab-code"
           onClick={() => setTab('code')}
           className={`flex-1 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold ${
-            tab === 'code' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'bg-[var(--puls-surface)] shadow-sm'
+            tab === 'code'
+              ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
+              : 'bg-[var(--puls-surface)] shadow-sm'
           }`}
         >
           {t('htmlPage.tab.code')}
@@ -255,7 +252,9 @@ export default function PageEditorPage() {
           data-testid="htmlPage-tab-preview"
           onClick={() => setTab('preview')}
           className={`flex-1 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold ${
-            tab === 'preview' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'bg-[var(--puls-surface)] shadow-sm'
+            tab === 'preview'
+              ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
+              : 'bg-[var(--puls-surface)] shadow-sm'
           }`}
         >
           {t('htmlPage.tab.preview')}
@@ -283,7 +282,9 @@ export default function PageEditorPage() {
           <iframe
             data-testid="htmlPage-preview"
             title={t('htmlPage.tab.preview')}
-            srcDoc={html.trim() === '' ? previewPlaceholder(t('htmlPage.preview.placeholder')) : html}
+            srcDoc={
+              html.trim() === '' ? previewPlaceholder(t('htmlPage.preview.placeholder')) : html
+            }
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             className="h-[60vh] w-full rounded-[20px] border border-[var(--puls-line-strong)] bg-white"
@@ -293,7 +294,11 @@ export default function PageEditorPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <PrimaryButton data-testid="htmlPage-save" onClick={() => void onSave()} disabled={busy || loading}>
+        <PrimaryButton
+          data-testid="htmlPage-save"
+          onClick={() => void onSave()}
+          disabled={busy || loading}
+        >
           {busy ? t('htmlPage.saving') : t('htmlPage.save')}
         </PrimaryButton>
         {page?.exists ? (
@@ -325,7 +330,10 @@ export default function PageEditorPage() {
                 : t('htmlPage.check.flagged')}
           </p>
           {reasons.length > 0 ? (
-            <ul data-testid="htmlPage-reasons" className="list-disc pl-5 text-sm text-[var(--puls-warning-text)]">
+            <ul
+              data-testid="htmlPage-reasons"
+              className="list-disc pl-5 text-sm text-[var(--puls-warning-text)]"
+            >
               {reasons.map((reason) => (
                 <li key={`${reason.code}-${reason.detail ?? ''}`}>
                   {reason.message}
@@ -341,7 +349,9 @@ export default function PageEditorPage() {
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="font-heading text-lg font-bold">{t('htmlPage.history')}</h2>
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('htmlPage.history.limit')}</span>
+          <span className="text-xs text-[var(--puls-ink-muted)]">
+            {t('htmlPage.history.limit')}
+          </span>
         </div>
         {versions.length === 0 ? (
           <div data-testid="htmlPage-history-empty">
@@ -356,7 +366,9 @@ export default function PageEditorPage() {
                 className="flex items-center justify-between gap-3 py-2 text-sm"
               >
                 <span className="flex flex-col">
-                  <span>{t('htmlPage.history.version', { date: formatDate(version.createdAt, locale) })}</span>
+                  <span>
+                    {t('htmlPage.history.version', { date: formatDate(version.createdAt, locale) })}
+                  </span>
                   <span className="text-xs text-[var(--puls-ink-muted)]">
                     {version.note ? `${version.note} · ` : ''}
                     {Math.ceil(version.sizeBytes / 1024)} {t('htmlPage.history.kb')}

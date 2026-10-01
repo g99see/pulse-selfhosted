@@ -150,7 +150,10 @@ export default function LoginPage() {
           {t('auth.login.goRegister')}
         </Link>
       </p>
-    <Link href="/" className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]">
+      <Link
+        href="/"
+        className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
+      >
         ← {t('app.nav.home')}
       </Link>
     </AuthShell>

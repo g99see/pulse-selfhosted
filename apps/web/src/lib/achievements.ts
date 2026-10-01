@@ -11,7 +11,11 @@ import {
   type StreakDto,
 } from '@puls/shared';
 
-export const ACHIEVEMENT_GROUP_ORDER: readonly AchievementGroup[] = ['checkins', 'finance', 'goals'];
+export const ACHIEVEMENT_GROUP_ORDER: readonly AchievementGroup[] = [
+  'checkins',
+  'finance',
+  'goals',
+];
 
 export interface AchievementGroupView {
   group: AchievementGroup;
@@ -19,7 +23,9 @@ export interface AchievementGroupView {
 }
 
 /** Дополняет отсутствующие статусы и группирует бейджи в порядке каталога. */
-export function groupAchievements(statuses: readonly AchievementStatusDto[]): AchievementGroupView[] {
+export function groupAchievements(
+  statuses: readonly AchievementStatusDto[],
+): AchievementGroupView[] {
   const byCode = new Map(statuses.map((status) => [status.code, status]));
 
   return ACHIEVEMENT_GROUP_ORDER.map((group) => ({

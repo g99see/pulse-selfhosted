@@ -96,7 +96,8 @@ describe('sanitizeCardHtml (ТЗ §3.8)', () => {
   });
 
   it('удаляет iframe, style и javascript:', () => {
-    const dirty = '<style>body{}</style><iframe src="x"></iframe><a href="javascript:alert(1)">x</a>';
+    const dirty =
+      '<style>body{}</style><iframe src="x"></iframe><a href="javascript:alert(1)">x</a>';
     const clean = sanitizeCardHtml(dirty);
     expect(clean).not.toContain('<style');
     expect(clean).not.toContain('<iframe');

@@ -6,7 +6,9 @@ import { sandboxCsp } from './sandbox.controller';
 describe('sandboxCsp', () => {
   it('использует https для обычного домена', () => {
     // '' вместо undefined: иначе параметр по умолчанию берёт PUBLIC_ORIGIN из окружения.
-    expect(sandboxCsp('puls.example.com', '')).toContain('frame-ancestors https://puls.example.com');
+    expect(sandboxCsp('puls.example.com', '')).toContain(
+      'frame-ancestors https://puls.example.com',
+    );
   });
   it('использует http для localhost', () => {
     expect(sandboxCsp('localhost', '')).toContain('frame-ancestors http://localhost');

@@ -129,7 +129,9 @@ export class MailService {
   }
 
   lastVerificationTokenFor(to: string): string | undefined {
-    const mail = [...this.outbox()].reverse().find((m) => m.to === to && m.kind === 'email-verification');
+    const mail = [...this.outbox()]
+      .reverse()
+      .find((m) => m.to === to && m.kind === 'email-verification');
     const match = mail ? VERIFY_LINK_RE.exec(mail.link ?? mail.text) : null;
     return match?.[1];
   }

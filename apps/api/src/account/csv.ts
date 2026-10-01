@@ -23,7 +23,10 @@ export function csvCell(value: unknown): string {
 }
 
 /** Полный CSV: заголовок и строки через CRLF. */
-export function toCsv(columns: readonly string[], rows: readonly Record<string, unknown>[]): string {
+export function toCsv(
+  columns: readonly string[],
+  rows: readonly Record<string, unknown>[],
+): string {
   const lines = [columns.map((column) => quote(column)).join(',')];
   for (const row of rows) {
     lines.push(columns.map((column) => csvCell(row[column])).join(','));

@@ -114,25 +114,42 @@ describe('снимок статистики периода', () => {
       moods: [],
       goals: [],
     });
-    expect(snapshot).toMatchObject({ spent: 0, earned: 0, net: 0, avgMood: null, checkins: 0, goals: [] });
+    expect(snapshot).toMatchObject({
+      spent: 0,
+      earned: 0,
+      net: 0,
+      avgMood: null,
+      checkins: 0,
+      goals: [],
+    });
   });
 });
 
 describe('схема создания капсулы', () => {
   it('принимает preset без openAt', () => {
-    const parsed = CapsuleCreateSchema.safeParse({ title: 'Привет', body: 'Текст', preset: 'year' });
+    const parsed = CapsuleCreateSchema.safeParse({
+      title: 'Привет',
+      body: 'Текст',
+      preset: 'year',
+    });
     expect(parsed.success).toBe(true);
   });
 
   it('требует ровно одно из полей preset или openAt', () => {
     expect(CapsuleCreateSchema.safeParse({ title: 'a', body: 'b' }).success).toBe(false);
     expect(
-      CapsuleCreateSchema.safeParse({ title: 'a', body: 'b', preset: 'month', openAt: '2026-06-15T12:00:00.000Z' })
-        .success,
+      CapsuleCreateSchema.safeParse({
+        title: 'a',
+        body: 'b',
+        preset: 'month',
+        openAt: '2026-06-15T12:00:00.000Z',
+      }).success,
     ).toBe(false);
   });
 
   it('не принимает пустое тело', () => {
-    expect(CapsuleCreateSchema.safeParse({ title: 'a', body: '', preset: 'month' }).success).toBe(false);
+    expect(CapsuleCreateSchema.safeParse({ title: 'a', body: '', preset: 'month' }).success).toBe(
+      false,
+    );
   });
 });

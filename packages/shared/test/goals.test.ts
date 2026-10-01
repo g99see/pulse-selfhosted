@@ -26,7 +26,12 @@ describe('GoalCreateSchema', () => {
       image: '💻',
       visibility: 'private',
     });
-    expect(parsed).toMatchObject({ title: 'Ноутбук', targetAmount: 120000, savedAmount: 0, visibility: 'private' });
+    expect(parsed).toMatchObject({
+      title: 'Ноутбук',
+      targetAmount: 120000,
+      savedAmount: 0,
+      visibility: 'private',
+    });
   });
 
   it('по умолчанию saved_amount = 0 и приватность «только мне»', () => {
@@ -39,13 +44,19 @@ describe('GoalCreateSchema', () => {
   it('отклоняет пустое имя, нулевую цель и неизвестную приватность', () => {
     expect(GoalCreateSchema.safeParse({ title: '', targetAmount: 100 }).success).toBe(false);
     expect(GoalCreateSchema.safeParse({ title: 'x', targetAmount: 0 }).success).toBe(false);
-    expect(GoalCreateSchema.safeParse({ title: 'x', targetAmount: 100, visibility: 'friends' }).success).toBe(false);
+    expect(
+      GoalCreateSchema.safeParse({ title: 'x', targetAmount: 100, visibility: 'friends' }).success,
+    ).toBe(false);
   });
 
   it('хранит картинку как эмодзи-пресет или URL без загрузки файлов', () => {
     expect(GoalCreateSchema.parse({ title: 'x', targetAmount: 1, image: '🎁' }).image).toBe('🎁');
     expect(
-      GoalCreateSchema.parse({ title: 'x', targetAmount: 1, image: 'https://cdn.example.com/goal.png' }).image,
+      GoalCreateSchema.parse({
+        title: 'x',
+        targetAmount: 1,
+        image: 'https://cdn.example.com/goal.png',
+      }).image,
     ).toBe('https://cdn.example.com/goal.png');
     expect(isGoalImageUrl('https://cdn.example.com/goal.png')).toBe(true);
     expect(isGoalImageUrl('🎁')).toBe(false);
@@ -91,7 +102,9 @@ describe('requiredMonthlyContribution (сценарий 2: 120 000 ₽ к 1 ма
   it('без срока возвращает null, а при достижении цели — 0', () => {
     const from = new Date(Date.UTC(2026, 9, 1));
     expect(requiredMonthlyContribution(120000, 0, null, from)).toBeNull();
-    expect(requiredMonthlyContribution(120000, 120000, new Date(Date.UTC(2027, 2, 1)), from)).toBe(0);
+    expect(requiredMonthlyContribution(120000, 120000, new Date(Date.UTC(2027, 2, 1)), from)).toBe(
+      0,
+    );
   });
 });
 
@@ -116,7 +129,9 @@ describe('goalPacePerMonth и forecastGoalDate (прогноз по фактич
 
   it('если цель уже достигнута — прогноз равен текущей дате', () => {
     const from = new Date(Date.UTC(2026, 9, 1));
-    expect(forecastGoalDate(120000, 120000, 24000, from)?.toISOString().slice(0, 10)).toBe('2026-10-01');
+    expect(forecastGoalDate(120000, 120000, 24000, from)?.toISOString().slice(0, 10)).toBe(
+      '2026-10-01',
+    );
   });
 });
 

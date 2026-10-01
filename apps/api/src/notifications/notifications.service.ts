@@ -89,10 +89,7 @@ export class NotificationsService {
   }
 
   /** Сохраняет подписку; повторная подписка на тот же endpoint обновляет её. */
-  async saveSubscription(
-    userId: string,
-    input: PushSubscriptionInput,
-  ): Promise<SubscriptionDto> {
+  async saveSubscription(userId: string, input: PushSubscriptionInput): Promise<SubscriptionDto> {
     const row = await this.prisma.pushSubscription.upsert({
       where: { endpoint: input.endpoint },
       create: {

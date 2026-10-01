@@ -4,10 +4,7 @@
  * локальному времени собирают payload для push и письма. Для чек-инов push
  * несёт кнопки ответа 1–5, чтобы ответить прямо из уведомления.
  */
-import {
-  localParts,
-  type NotificationType,
-} from '@puls/shared';
+import { localParts, type NotificationType } from '@puls/shared';
 import type { PushPayload } from './push.service';
 
 export interface NotificationBuildContext {
@@ -35,7 +32,10 @@ export function checkinGreeting(context: NotificationBuildContext): {
   const { hour } = localParts(context.now, context.timezone);
 
   if (hour >= 5 && hour < 11) {
-    return { title: 'Доброе утро! Как спалось?', body: 'Отметьте настроение — это займёт 5 секунд.' };
+    return {
+      title: 'Доброе утро! Как спалось?',
+      body: 'Отметьте настроение — это займёт 5 секунд.',
+    };
   }
   if (hour >= 11 && hour < 17) {
     return { title: 'Как проходит день?', body: 'Одно нажатие — и день записан.' };

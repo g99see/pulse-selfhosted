@@ -198,7 +198,14 @@ describe('Предложение недели — бюджет по катего
 
 describe('Мягкое предложение помощи (ТЗ §3.5)', () => {
   it('срабатывает на шести днях подряд с настроением 1', () => {
-    const days = ['2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01'];
+    const days = [
+      '2026-09-26',
+      '2026-09-27',
+      '2026-09-28',
+      '2026-09-29',
+      '2026-09-30',
+      '2026-10-01',
+    ];
     const candidates = wellbeingConcernCandidates(days.map((day) => ({ day, mood: 1 })));
 
     expect(candidates).toHaveLength(1);
@@ -327,18 +334,30 @@ describe('Недельное расписание (ТЗ §3.5: воскресе�
 
   it('берёт ближайшее воскресенье 19:00 по часовому поясу пользователя', () => {
     // 2026-10-04 17:00 UTC = 20:00 в Москве — слот уже наступил.
-    expect(weeklyReportSlot(new Date('2026-10-04T17:00:00.000Z'), 'Europe/Moscow').toISOString()).toBe(
-      '2026-10-04T16:00:00.000Z',
-    );
+    expect(
+      weeklyReportSlot(new Date('2026-10-04T17:00:00.000Z'), 'Europe/Moscow').toISOString(),
+    ).toBe('2026-10-04T16:00:00.000Z');
     // 2026-10-04 15:00 UTC = 18:00 в Москве — слот ещё не наступил, берём прошлое воскресенье.
-    expect(weeklyReportSlot(new Date('2026-10-04T15:00:00.000Z'), 'Europe/Moscow').toISOString()).toBe(
-      '2026-09-27T16:00:00.000Z',
-    );
+    expect(
+      weeklyReportSlot(new Date('2026-10-04T15:00:00.000Z'), 'Europe/Moscow').toISOString(),
+    ).toBe('2026-09-27T16:00:00.000Z');
   });
 
   it('наступает один раз в неделю в окне планировщика', () => {
-    expect(isWeeklyReportDue(new Date('2026-10-04T19:30:00.000Z'), 'UTC', new Date('2026-10-04T16:00:00.000Z'))).toBe(true);
-    expect(isWeeklyReportDue(new Date('2026-10-04T20:00:00.000Z'), 'UTC', new Date('2026-10-04T19:30:00.000Z'))).toBe(false);
+    expect(
+      isWeeklyReportDue(
+        new Date('2026-10-04T19:30:00.000Z'),
+        'UTC',
+        new Date('2026-10-04T16:00:00.000Z'),
+      ),
+    ).toBe(true);
+    expect(
+      isWeeklyReportDue(
+        new Date('2026-10-04T20:00:00.000Z'),
+        'UTC',
+        new Date('2026-10-04T19:30:00.000Z'),
+      ),
+    ).toBe(false);
   });
 });
 

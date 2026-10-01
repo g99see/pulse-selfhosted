@@ -9,12 +9,7 @@
  * лимит).
  */
 import { useCallback, useEffect, useState } from 'react';
-import {
-  AI_PROVIDERS,
-  type AiKeySetValues,
-  type AiProvider,
-  type AiStatusDto,
-} from '@puls/shared';
+import { AI_PROVIDERS, type AiKeySetValues, type AiProvider, type AiStatusDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Alert, Card, Field, GhostButton, PrimaryButton, Select } from '@/components/ui';
 import { aiApi, aiErrorKey, aiTestErrorKey, formatAiCost, formatAiTokens } from '@/lib/ai-client';
@@ -84,7 +79,11 @@ export function AiKeySection() {
     setError(null);
     try {
       const response = await aiApi.testKey();
-      setNotice(response.ok ? t('ai.key.testOk') : `${t('ai.key.testFail')} ${t(aiTestErrorKey(response.error))}`);
+      setNotice(
+        response.ok
+          ? t('ai.key.testOk')
+          : `${t('ai.key.testFail')} ${t(aiTestErrorKey(response.error))}`,
+      );
     } catch (thrown) {
       setError(thrown instanceof AuthApiError ? t(aiErrorKey(thrown.code)) : t('ai.key.error'));
     } finally {
@@ -118,7 +117,11 @@ export function AiKeySection() {
 
       {error ? <Alert>{error}</Alert> : null}
       {notice ? (
-        <p role="status" data-testid="ai-key-notice" className="text-sm font-medium text-[var(--puls-finance-text)]">
+        <p
+          role="status"
+          data-testid="ai-key-notice"
+          className="text-sm font-medium text-[var(--puls-finance-text)]"
+        >
           {notice}
         </p>
       ) : null}
@@ -148,7 +151,9 @@ export function AiKeySection() {
             type="password"
             autoComplete="off"
             label={t('ai.key.apiKey')}
-            hint={status.last4 ? t('ai.key.current', { last4: status.last4 }) : t('ai.key.apiKeyHint')}
+            hint={
+              status.last4 ? t('ai.key.current', { last4: status.last4 }) : t('ai.key.apiKeyHint')
+            }
             value={apiKey}
             onChange={(event) => setApiKey(event.target.value)}
           />
@@ -185,11 +190,21 @@ export function AiKeySection() {
             >
               {t('ai.key.save')}
             </PrimaryButton>
-            <GhostButton type="button" data-testid="ai-key-test" disabled={busy} onClick={() => void test()}>
+            <GhostButton
+              type="button"
+              data-testid="ai-key-test"
+              disabled={busy}
+              onClick={() => void test()}
+            >
               {t('ai.key.test')}
             </GhostButton>
             {status.last4 ? (
-              <GhostButton type="button" data-testid="ai-key-delete" disabled={busy} onClick={() => void remove()}>
+              <GhostButton
+                type="button"
+                data-testid="ai-key-delete"
+                disabled={busy}
+                onClick={() => void remove()}
+              >
                 {t('ai.key.delete')}
               </GhostButton>
             ) : null}

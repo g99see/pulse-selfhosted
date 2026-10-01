@@ -101,7 +101,10 @@ export function categorySpendRiseCandidates(
       const change = percentChange(entry.total, before);
       return { entry, change, before };
     })
-    .filter((row): row is { entry: CategorySpend; change: number; before: number } => row.change !== null && row.change >= minGrowth)
+    .filter(
+      (row): row is { entry: CategorySpend; change: number; before: number } =>
+        row.change !== null && row.change >= minGrowth,
+    )
     .sort((left, right) => right.change - left.change)
     .slice(0, max)
     .map(({ entry, change }) => ({
@@ -438,7 +441,14 @@ export function isoWeekKey(dayKey: string): string {
 /** Смещение зоны (мс) для момента: локальное представление минус UTC. */
 function zoneOffsetMs(instant: Date, timezone: string): number {
   const parts = localParts(instant, timezone);
-  const asUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  const asUtc = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  );
   return asUtc - (instant.getTime() - instant.getMilliseconds());
 }
 
@@ -560,10 +570,33 @@ export const SUPPORT_RESOURCES: readonly SupportResource[] = [
 ];
 
 const RU_CITIES = new Set([
-  'Moscow', 'Kaliningrad', 'Samara', 'Volgograd', 'Saratov', 'Kirov', 'Ulyanovsk',
-  'Astrakhan', 'Ufa', 'Perm', 'Chelyabinsk', 'Orenburg', 'Rostov', 'Voronezh',
-  'Yekaterinburg', 'Omsk', 'Novosibirsk', 'Krasnoyarsk', 'Irkutsk', 'Yakutsk',
-  'Vladivostok', 'Magadan', 'Khabarovsk', 'Sakhalin', 'Barnaul', 'Tomsk', 'Chita',
+  'Moscow',
+  'Kaliningrad',
+  'Samara',
+  'Volgograd',
+  'Saratov',
+  'Kirov',
+  'Ulyanovsk',
+  'Astrakhan',
+  'Ufa',
+  'Perm',
+  'Chelyabinsk',
+  'Orenburg',
+  'Rostov',
+  'Voronezh',
+  'Yekaterinburg',
+  'Omsk',
+  'Novosibirsk',
+  'Krasnoyarsk',
+  'Irkutsk',
+  'Yakutsk',
+  'Vladivostok',
+  'Magadan',
+  'Khabarovsk',
+  'Sakhalin',
+  'Barnaul',
+  'Tomsk',
+  'Chita',
 ]);
 const UA_CITIES = new Set(['Kyiv', 'Kiev', 'Uzhgorod', 'Zaporozhye', 'Simferopol']);
 const KZ_CITIES = new Set(['Almaty', 'Aqtobe', 'Atyrau', 'Qostanay', 'Qyzylorda', 'Oral', 'Aktau']);

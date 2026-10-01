@@ -26,13 +26,18 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
 
 /** Регистрация, подтверждение email и онбординг. */
-async function registerAndOnboard(page: import('@playwright/test').Page, request: import('@playwright/test').APIRequestContext): Promise<void> {
+async function registerAndOnboard(
+  page: import('@playwright/test').Page,
+  request: import('@playwright/test').APIRequestContext,
+): Promise<void> {
   const unique = Date.now().toString().slice(-9);
   const email = `share-${unique}@example.com`;
   const nickname = `share${unique}`;
@@ -72,7 +77,9 @@ test('карточка цели: предпросмотр и скачивани�
 
   await card.getByTestId('goal-deposit-amount').fill('60000');
   await card.getByTestId('goal-deposit-submit').click();
-  await expect(card.getByTestId('goal-milestone').filter({ hasText: '50' })).toBeVisible({ timeout: 15_000 });
+  await expect(card.getByTestId('goal-milestone').filter({ hasText: '50' })).toBeVisible({
+    timeout: 15_000,
+  });
 
   // Кнопка «Поделиться» открывает предпросмотр карточки.
   await card.getByTestId(/^share-goal_progress-/).click();

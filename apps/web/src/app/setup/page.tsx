@@ -143,7 +143,12 @@ export default function SetupPage() {
       </header>
 
       <Card>
-        <form className="flex flex-col gap-4" onSubmit={onSubmit} noValidate data-testid="setup-form">
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={onSubmit}
+          noValidate
+          data-testid="setup-form"
+        >
           <Field
             id="email"
             type="email"

@@ -93,10 +93,16 @@ export default function VerifyEmailPage() {
         ) : null}
       </Card>
 
-      <Link href="/login" className="text-center text-sm font-semibold text-[var(--puls-primary-text)]">
+      <Link
+        href="/login"
+        className="text-center text-sm font-semibold text-[var(--puls-primary-text)]"
+      >
         {t('auth.verify.goLogin')}
       </Link>
-    <Link href="/" className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]">
+      <Link
+        href="/"
+        className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
+      >
         ← {t('app.nav.home')}
       </Link>
     </AuthShell>

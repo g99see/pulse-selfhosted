@@ -86,11 +86,21 @@ describe('parseCsv (RFC 4180)', () => {
 
 describe('detectHeaderRow', () => {
   it('видит строку заголовков по ключевым словам', () => {
-    expect(detectHeaderRow([['Дата', 'Сумма', 'Описание'], ['01.10.2026', '450,00', 'Обед']])).toBe(true);
+    expect(
+      detectHeaderRow([
+        ['Дата', 'Сумма', 'Описание'],
+        ['01.10.2026', '450,00', 'Обед'],
+      ]),
+    ).toBe(true);
   });
 
   it('видит данные без заголовка', () => {
-    expect(detectHeaderRow([['01.10.2026', '450,00', 'Обед'], ['02.10.2026', '200,00', 'Такси']])).toBe(false);
+    expect(
+      detectHeaderRow([
+        ['01.10.2026', '450,00', 'Обед'],
+        ['02.10.2026', '200,00', 'Такси'],
+      ]),
+    ).toBe(false);
   });
 });
 
@@ -111,11 +121,14 @@ describe('detectColumnMapping', () => {
   });
 
   it('определяет колонки по данным без заголовков', () => {
-    const mapping = detectColumnMapping(['', '', ''], [
-      ['01.10.2026', '-450,00', 'Обед'],
-      ['02.10.2026', '-200,00', 'Такси'],
-      ['03.10.2026', '80000,00', 'Зарплата'],
-    ]);
+    const mapping = detectColumnMapping(
+      ['', '', ''],
+      [
+        ['01.10.2026', '-450,00', 'Обед'],
+        ['02.10.2026', '-200,00', 'Такси'],
+        ['03.10.2026', '80000,00', 'Зарплата'],
+      ],
+    );
     expect(mapping).toMatchObject({ date: 0, amount: 1, description: 2 });
   });
 });
@@ -167,7 +180,9 @@ describe('parseImportAmount', () => {
 
 describe('importRowKey', () => {
   it('нормализует описание и сумму', () => {
-    expect(importRowKey('2026-10-01', 450, '  Обед   в кафе ')).toBe('2026-10-01|450.00|обед в кафе');
+    expect(importRowKey('2026-10-01', 450, '  Обед   в кафе ')).toBe(
+      '2026-10-01|450.00|обед в кафе',
+    );
   });
 });
 
@@ -270,11 +285,15 @@ describe('схемы запросов импорта', () => {
 
   it('отклоняет пустой CSV и неверный разделитель', () => {
     expect(ImportPreviewRequestSchema.safeParse({ csv: '' }).success).toBe(false);
-    expect(ImportPreviewRequestSchema.safeParse({ csv: 'a,b', delimiter: '|' }).success).toBe(false);
+    expect(ImportPreviewRequestSchema.safeParse({ csv: 'a,b', delimiter: '|' }).success).toBe(
+      false,
+    );
   });
 
   it('для завершения импорта требует счёт', () => {
-    expect(ImportCommitRequestSchema.safeParse({ csv: 'a,b', accountId: 'acc1' }).success).toBe(true);
+    expect(ImportCommitRequestSchema.safeParse({ csv: 'a,b', accountId: 'acc1' }).success).toBe(
+      true,
+    );
     expect(ImportCommitRequestSchema.safeParse({ csv: 'a,b' }).success).toBe(false);
   });
 });

@@ -78,7 +78,11 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -87,7 +91,11 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
   }
 
   async function createAccount(client: TestClient, balance = 10000): Promise<AccountDto> {
-    const response = await client.post('/api/finance/accounts', { name: 'Карта', type: 'card', balance });
+    const response = await client.post('/api/finance/accounts', {
+      name: 'Карта',
+      type: 'card',
+      balance,
+    });
     expect(response.status).toBe(201);
     return response.body as AccountDto;
   }
@@ -141,14 +149,19 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
       const client = await signUp('commit@example.com', 'committer');
       const account = await createAccount(client, 10000);
 
-      const response = await client.post('/api/finance/import/commit', { csv: CSV, accountId: account.id });
+      const response = await client.post('/api/finance/import/commit', {
+        csv: CSV,
+        accountId: account.id,
+      });
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({ imported: 2, duplicates: 0, invalid: 1, total: 3 });
       expect(response.body.balance).toBe(89550);
 
       const transactions = await client.get('/api/finance/transactions');
       expect(transactions.body.transactions).toHaveLength(2);
-      const categories = transactions.body.transactions.map((tx: { categoryName: string | null }) => tx.categoryName);
+      const categories = transactions.body.transactions.map(
+        (tx: { categoryName: string | null }) => tx.categoryName,
+      );
       expect(categories).toContain('Еда');
       expect(categories).toContain('Зарплата');
     });
@@ -157,10 +170,16 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
       const client = await signUp('idem@example.com', 'idemuser');
       const account = await createAccount(client, 10000);
 
-      const first = await client.post('/api/finance/import/commit', { csv: CSV, accountId: account.id });
+      const first = await client.post('/api/finance/import/commit', {
+        csv: CSV,
+        accountId: account.id,
+      });
       expect(first.body).toMatchObject({ imported: 2, duplicates: 0 });
 
-      const second = await client.post('/api/finance/import/commit', { csv: CSV, accountId: account.id });
+      const second = await client.post('/api/finance/import/commit', {
+        csv: CSV,
+        accountId: account.id,
+      });
       expect(second.status).toBe(201);
       expect(second.body).toMatchObject({ imported: 0, duplicates: 2, invalid: 1 });
       expect(second.body.balance).toBe(89550);
@@ -179,7 +198,10 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
         '02.10.2026;;80000,00;Зарплата',
       ].join('\n');
 
-      const response = await client.post('/api/finance/import/commit', { csv, accountId: account.id });
+      const response = await client.post('/api/finance/import/commit', {
+        csv,
+        accountId: account.id,
+      });
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({ imported: 2, invalid: 0 });
       expect(response.body.balance).toBe(79550);
@@ -190,7 +212,10 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
       const bob = await signUp('imp-bob@example.com', 'impbob');
       const aliceAccount = await createAccount(alice);
 
-      expect((await bob.post('/api/finance/import/commit', { csv: CSV, accountId: aliceAccount.id })).status).toBe(404);
+      expect(
+        (await bob.post('/api/finance/import/commit', { csv: CSV, accountId: aliceAccount.id }))
+          .status,
+      ).toBe(404);
 
       const anon = new TestClient(server);
       await anon.csrf();

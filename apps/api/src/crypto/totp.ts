@@ -47,11 +47,7 @@ function counterFor(timeMs: number, stepSeconds: number): number {
 
 /** TOTP-код для момента времени. */
 export function totp(secretBase32: string, options: TotpOptions = {}): string {
-  const {
-    timeMs = Date.now(),
-    stepSeconds = TOTP_PERIOD_SECONDS,
-    digits = TOTP_DIGITS,
-  } = options;
+  const { timeMs = Date.now(), stepSeconds = TOTP_PERIOD_SECONDS, digits = TOTP_DIGITS } = options;
   return hotp(base32Decode(secretBase32), counterFor(timeMs, stepSeconds), digits);
 }
 

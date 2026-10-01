@@ -77,7 +77,9 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
   const effectiveCurrency =
     currencyFilter && accountCurrencies.includes(currencyFilter)
       ? currencyFilter
-      : accounts.find((account) => account.id === accountId)?.currency ?? accountCurrencies[0] ?? '';
+      : (accounts.find((account) => account.id === accountId)?.currency ??
+        accountCurrencies[0] ??
+        '');
   const visibleAccounts =
     accountCurrencies.length > 1
       ? accounts.filter((account) => account.currency === effectiveCurrency)
@@ -136,7 +138,10 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         onSubmit={(event) => void submit(event)}
         className="puls-sheet-in flex max-h-[92vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-[28px] bg-[var(--puls-surface)] p-5 pb-8 shadow-lg sm:rounded-[28px] sm:pb-6"
       >
-        <div className="mx-auto h-1.5 w-10 rounded-full bg-[var(--puls-line-strong)] sm:hidden" aria-hidden="true" />
+        <div
+          className="mx-auto h-1.5 w-10 rounded-full bg-[var(--puls-line-strong)] sm:hidden"
+          aria-hidden="true"
+        />
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-xl font-bold">{t('finance.quick.title')}</h2>
           <button
@@ -173,7 +178,10 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         </label>
 
         {text.trim() && parsed ? (
-          <p className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]" data-testid="quick-add-preview">
+          <p
+            className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]"
+            data-testid="quick-add-preview"
+          >
             {t('finance.quick.parsed', { amount: formatMoneyLocale(parsed.amount, locale) })}
             {guessedCategory ? ` · ${guessedCategory.name}` : ''}
           </p>
@@ -271,12 +279,18 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         </label>
 
         {error ? (
-          <p role="alert" className="rounded-[var(--radius-button)] bg-[var(--puls-warning-soft)] px-4 py-3 text-sm text-[var(--puls-warning-text)]">
+          <p
+            role="alert"
+            className="rounded-[var(--radius-button)] bg-[var(--puls-warning-soft)] px-4 py-3 text-sm text-[var(--puls-warning-text)]"
+          >
             {error}
           </p>
         ) : null}
         {saved ? (
-          <p role="status" className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]">
+          <p
+            role="status"
+            className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]"
+          >
             {t('finance.quick.saved')}
           </p>
         ) : null}

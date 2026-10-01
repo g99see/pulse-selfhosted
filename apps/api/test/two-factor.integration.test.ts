@@ -51,12 +51,20 @@ describe('2FA TOTP (интеграция)', () => {
     return new TestClient(server, `10.1.0.${ipCounter}`);
   }
 
-  async function registerAndVerify(): Promise<{ client: TestClient; userId: string; email: string }> {
+  async function registerAndVerify(): Promise<{
+    client: TestClient;
+    userId: string;
+    email: string;
+  }> {
     const email = `twofa-${ipCounter}-${Date.now()}@example.com`;
     const nickname = `twofa${Math.abs(ipCounter)}`;
     const client = nextClient();
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
 
     const token = mail.lastVerificationTokenFor(email) as string;
@@ -149,7 +157,12 @@ describe('2FA TOTP (интеграция)', () => {
     const used = totp(secret, { timeMs: BASE_TIME + STEP_MS });
 
     expect(
-      (await client.post('/api/auth/login/2fa', { challengeToken: login.body.challengeToken, code: used })).status,
+      (
+        await client.post('/api/auth/login/2fa', {
+          challengeToken: login.body.challengeToken,
+          code: used,
+        })
+      ).status,
     ).toBe(200);
 
     // Новый пропуск, тот же (уже использованный) код.

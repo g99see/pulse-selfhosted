@@ -7,6 +7,5 @@ import type { WrappedResponse } from '@puls/shared';
 import { authFetch } from './auth-client';
 
 export const wrappedApi = {
-  year: (year?: number) =>
-    authFetch<WrappedResponse>(`/api/wrapped${year ? `?year=${year}` : ''}`),
+  year: (year?: number) => authFetch<WrappedResponse>(`/api/wrapped${year ? `?year=${year}` : ''}`),
 };

@@ -21,7 +21,10 @@ export const challengesApi = {
     authFetch<ChallengeDto>('/api/challenges', { method: 'POST', body: JSON.stringify(input) }),
 
   update: (id: string, input: { title?: string; visibility?: string }) =>
-    authFetch<ChallengeDto>(`/api/challenges/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+    authFetch<ChallengeDto>(`/api/challenges/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 
   remove: (id: string) => authFetch<void>(`/api/challenges/${id}`, { method: 'DELETE' }),
 
@@ -37,7 +40,8 @@ export const challengesApi = {
       body: JSON.stringify({ ok }),
     }),
 
-  leaderboard: (id: string) => authFetch<ChallengeLeaderboardDto>(`/api/challenges/${id}/leaderboard`),
+  leaderboard: (id: string) =>
+    authFetch<ChallengeLeaderboardDto>(`/api/challenges/${id}/leaderboard`),
 
   inviteCandidates: (id: string) =>
     authFetch<{ users: ChallengeInviteCandidateDto[] }>(`/api/challenges/${id}/invite-candidates`),

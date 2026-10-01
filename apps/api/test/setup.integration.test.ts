@@ -123,8 +123,16 @@ describe('Мастер первого запуска (интеграция с Po
       await c.csrf();
 
       const [first, second] = await Promise.all([
-        c.post('/api/setup', { email: 'race-a@example.com', password: PASSWORD, nickname: 'racea' }),
-        c.post('/api/setup', { email: 'race-b@example.com', password: PASSWORD, nickname: 'raceb' }),
+        c.post('/api/setup', {
+          email: 'race-a@example.com',
+          password: PASSWORD,
+          nickname: 'racea',
+        }),
+        c.post('/api/setup', {
+          email: 'race-b@example.com',
+          password: PASSWORD,
+          nickname: 'raceb',
+        }),
       ]);
 
       const statuses = [first.status, second.status].sort((a, b) => a - b);

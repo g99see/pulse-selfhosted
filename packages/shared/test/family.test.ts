@@ -40,10 +40,17 @@ describe('FamilyInviteCreateSchema', () => {
 
   it('выявляет активный и использованный/просроченный инвайт', () => {
     const now = new Date(Date.UTC(2026, 9, 1));
-    expect(isFamilyInviteActive({ expiresAt: new Date(Date.UTC(2026, 9, 2)), usedAt: null }, now)).toBe(true);
-    expect(isFamilyInviteActive({ expiresAt: new Date(Date.UTC(2026, 8, 30)), usedAt: null }, now)).toBe(false);
     expect(
-      isFamilyInviteActive({ expiresAt: new Date(Date.UTC(2026, 9, 2)), usedAt: new Date(Date.UTC(2026, 9, 1)) }, now),
+      isFamilyInviteActive({ expiresAt: new Date(Date.UTC(2026, 9, 2)), usedAt: null }, now),
+    ).toBe(true);
+    expect(
+      isFamilyInviteActive({ expiresAt: new Date(Date.UTC(2026, 8, 30)), usedAt: null }, now),
+    ).toBe(false);
+    expect(
+      isFamilyInviteActive(
+        { expiresAt: new Date(Date.UTC(2026, 9, 2)), usedAt: new Date(Date.UTC(2026, 9, 1)) },
+        now,
+      ),
     ).toBe(false);
   });
 });
@@ -62,15 +69,23 @@ describe('FamilyAccountCreateSchema и операции по счёту', () => 
   });
 
   it('операция требует положительной суммы и известного вида', () => {
-    expect(FamilyTransactionCreateSchema.safeParse({ kind: 'income', amount: 100 }).success).toBe(true);
-    expect(FamilyTransactionCreateSchema.safeParse({ kind: 'income', amount: 0 }).success).toBe(false);
-    expect(FamilyTransactionCreateSchema.safeParse({ kind: 'transfer', amount: 100 }).success).toBe(false);
+    expect(FamilyTransactionCreateSchema.safeParse({ kind: 'income', amount: 100 }).success).toBe(
+      true,
+    );
+    expect(FamilyTransactionCreateSchema.safeParse({ kind: 'income', amount: 0 }).success).toBe(
+      false,
+    );
+    expect(FamilyTransactionCreateSchema.safeParse({ kind: 'transfer', amount: 100 }).success).toBe(
+      false,
+    );
   });
 });
 
 describe('Семейные цели переиспользуют расчёты личных (ТЗ §4)', () => {
   it('принимает цель и отклоняет пустую/нулевую', () => {
-    expect(FamilyGoalCreateSchema.parse({ title: 'Ремонт', targetAmount: 200000 }).savedAmount).toBe(0);
+    expect(
+      FamilyGoalCreateSchema.parse({ title: 'Ремонт', targetAmount: 200000 }).savedAmount,
+    ).toBe(0);
     expect(FamilyGoalCreateSchema.safeParse({ title: '', targetAmount: 1 }).success).toBe(false);
     expect(FamilyGoalCreateSchema.safeParse({ title: 'x', targetAmount: 0 }).success).toBe(false);
   });
@@ -82,9 +97,13 @@ describe('Семейные цели переиспользуют расчёты 
 
   it('считает прогресс, остаток, взнос в месяц и вехи', () => {
     const from = new Date(Date.UTC(2026, 9, 1));
-    const summary = familyGoalSummary(100000, 200000, new Date(Date.UTC(2027, 2, 1)), [
-      { amount: 50000, date: from },
-    ], from);
+    const summary = familyGoalSummary(
+      100000,
+      200000,
+      new Date(Date.UTC(2027, 2, 1)),
+      [{ amount: 50000, date: from }],
+      from,
+    );
     expect(summary.percent).toBe(50);
     expect(summary.remaining).toBe(100000);
     expect(summary.milestones).toEqual([25, 50]);

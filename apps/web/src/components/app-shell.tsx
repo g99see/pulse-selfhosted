@@ -216,7 +216,9 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
               <Logo size={36} />
             </Link>
             <div>
-              <p className="text-sm text-[var(--puls-ink-muted)]">{t(`app.greeting.${greeting}`)}</p>
+              <p className="text-sm text-[var(--puls-ink-muted)]">
+                {t(`app.greeting.${greeting}`)}
+              </p>
               <p className="font-heading text-lg font-extrabold">@{user.nickname}</p>
             </div>
           </div>
@@ -246,7 +248,11 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
         className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 items-center rounded-[22px] bg-[var(--puls-surface)] px-1 py-1.5 shadow-[var(--puls-shadow-lift)] md:hidden"
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <MobileTab item={TAB_HOME} active={isNavActive(TAB_HOME.href, pathname)} label={t(TAB_HOME.key)} />
+        <MobileTab
+          item={TAB_HOME}
+          active={isNavActive(TAB_HOME.href, pathname)}
+          label={t(TAB_HOME.key)}
+        />
         <MobileTab
           item={TAB_FINANCE}
           active={isNavActive(TAB_FINANCE.href, pathname)}

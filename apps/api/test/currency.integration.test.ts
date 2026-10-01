@@ -83,7 +83,11 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -98,7 +102,12 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
     currency: string,
     balance = 0,
   ): Promise<AccountDto> {
-    const response = await client.post('/api/finance/accounts', { name, type: 'card', balance, currency });
+    const response = await client.post('/api/finance/accounts', {
+      name,
+      type: 'card',
+      balance,
+      currency,
+    });
     expect(response.status).toBe(201);
     return response.body as AccountDto;
   }
@@ -128,7 +137,13 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
       const client = await signUp('rates@example.com', 'ratesuser');
       const created = await createRate(client, '2026-10-01', 'USD', 'RUB', 95);
 
-      expect(created).toMatchObject({ date: '2026-10-01', base: 'USD', quote: 'RUB', rate: 95, source: 'manual' });
+      expect(created).toMatchObject({
+        date: '2026-10-01',
+        base: 'USD',
+        quote: 'RUB',
+        rate: 95,
+        source: 'manual',
+      });
 
       const list = await client.get('/api/finance/rates');
       expect(list.status).toBe(200);
@@ -154,8 +169,26 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
 
     it('отклоняет одинаковые валюты и неизвестную валюту', async () => {
       const client = await signUp('rates3@example.com', 'rates3user');
-      expect((await client.put('/api/finance/rates', { date: '2026-10-01', base: 'USD', quote: 'USD', rate: 1 })).status).toBe(400);
-      expect((await client.put('/api/finance/rates', { date: '2026-10-01', base: 'USD', quote: 'GBP', rate: 1 })).status).toBe(400);
+      expect(
+        (
+          await client.put('/api/finance/rates', {
+            date: '2026-10-01',
+            base: 'USD',
+            quote: 'USD',
+            rate: 1,
+          })
+        ).status,
+      ).toBe(400);
+      expect(
+        (
+          await client.put('/api/finance/rates', {
+            date: '2026-10-01',
+            base: 'USD',
+            quote: 'GBP',
+            rate: 1,
+          })
+        ).status,
+      ).toBe(400);
     });
 
     it('курсы изолированы по пользователю', async () => {
@@ -173,7 +206,12 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
       const anon = new TestClient(server);
       expect((await anon.get('/api/finance/rates')).status).toBe(401);
       // PUT без CSRF-токена отбивает CSRF-guard раньше SessionGuard.
-      const blocked = await anon.put('/api/finance/rates', { date: '2026-10-01', base: 'USD', quote: 'RUB', rate: 1 });
+      const blocked = await anon.put('/api/finance/rates', {
+        date: '2026-10-01',
+        base: 'USD',
+        quote: 'RUB',
+        rate: 1,
+      });
       expect(blocked.status).toBe(403);
       expect(blocked.body.code).toBe('csrf_failed');
     });
@@ -205,7 +243,12 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
       expect(created.status).toBe(201);
       const tx = created.body as TransactionDto;
       // Курса на 2026-10-01 нет — берётся последний предыдущий (92).
-      expect(tx).toMatchObject({ currency: 'USD', rate: 92, amountBase: 9200, baseCurrency: 'RUB' });
+      expect(tx).toMatchObject({
+        currency: 'USD',
+        rate: 92,
+        amountBase: 9200,
+        baseCurrency: 'RUB',
+      });
       // Баланс счёта — в валюте счёта.
       expect((await client.get('/api/finance/accounts')).body.accounts[0].balance).toBe(900);
     });
@@ -263,7 +306,11 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
       const food = await categoryId(client, 'Еда');
       await createRate(client, '2026-10-01', 'USD', 'RUB', 95);
 
-      await client.put('/api/finance/budgets', { categoryId: food, month: '2026-10', limit: 10000 });
+      await client.put('/api/finance/budgets', {
+        categoryId: food,
+        month: '2026-10',
+        limit: 10000,
+      });
       await client.post('/api/finance/transactions', {
         accountId: account.id,
         categoryId: food,

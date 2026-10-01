@@ -63,8 +63,10 @@ export function DataPrivacySection() {
       router.push('/login');
     } catch (caught) {
       if (caught instanceof AuthApiError) {
-        if (caught.code === 'invalid_password') setDeleteError(t('settings.data.delete.wrongPassword'));
-        else if (caught.code === 'confirmation_mismatch') setDeleteError(t('settings.data.delete.mismatch'));
+        if (caught.code === 'invalid_password')
+          setDeleteError(t('settings.data.delete.wrongPassword'));
+        else if (caught.code === 'confirmation_mismatch')
+          setDeleteError(t('settings.data.delete.mismatch'));
         else setDeleteError(caught.message);
       } else {
         setDeleteError(t('settings.data.error'));
@@ -106,8 +108,12 @@ export function DataPrivacySection() {
       <hr className="border-[var(--puls-line)]" />
 
       <div>
-        <h3 className="font-semibold text-[var(--puls-warning-text)]">{t('settings.data.delete.title')}</h3>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('settings.data.delete.hint')}</p>
+        <h3 className="font-semibold text-[var(--puls-warning-text)]">
+          {t('settings.data.delete.title')}
+        </h3>
+        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">
+          {t('settings.data.delete.hint')}
+        </p>
         <button
           type="button"
           data-testid="delete-account-open"
@@ -130,7 +136,9 @@ export function DataPrivacySection() {
             <h3 id="delete-account-title" className="text-lg font-bold">
               {t('settings.data.delete.title')}
             </h3>
-            <p className="mt-2 text-sm text-[var(--puls-ink-muted)]">{t('settings.data.delete.warning')}</p>
+            <p className="mt-2 text-sm text-[var(--puls-ink-muted)]">
+              {t('settings.data.delete.warning')}
+            </p>
 
             <div className="mt-4 flex flex-col gap-3">
               <Field
@@ -166,7 +174,9 @@ export function DataPrivacySection() {
                 onClick={() => void submitDelete()}
                 disabled={deleting}
               >
-                {deleting ? t('settings.data.delete.deleting') : t('settings.data.delete.confirmButton')}
+                {deleting
+                  ? t('settings.data.delete.deleting')
+                  : t('settings.data.delete.confirmButton')}
               </PrimaryButton>
             </div>
           </div>

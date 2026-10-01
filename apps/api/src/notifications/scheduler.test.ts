@@ -101,10 +101,7 @@ describe('NotificationsScheduler.runOnce', () => {
   it('во втором тике продолжает окно с прошлого запуска', async () => {
     const { scheduler, dispatched } = makeScheduler([makeUser()]);
 
-    await scheduler.runOnce(
-      new Date('2026-10-01T09:10:00Z'),
-      new Date('2026-10-01T08:00:00Z'),
-    );
+    await scheduler.runOnce(new Date('2026-10-01T09:10:00Z'), new Date('2026-10-01T08:00:00Z'));
     expect(dispatched).toHaveLength(1);
 
     // Второй вызов без from: окно (09:10, 15:05] — слот 15:00 попадает.
@@ -130,10 +127,7 @@ describe('NotificationsScheduler.runOnce', () => {
     const { scheduler, dispatched } = makeScheduler([user]);
 
     // 06:05 UTC = 09:05 MSK — утренний слот уже наступил.
-    await scheduler.runOnce(
-      new Date('2026-10-01T06:05:00Z'),
-      new Date('2026-10-01T05:00:00Z'),
-    );
+    await scheduler.runOnce(new Date('2026-10-01T06:05:00Z'), new Date('2026-10-01T05:00:00Z'));
     expect(dispatched).toHaveLength(1);
   });
 });
