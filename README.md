@@ -1,0 +1,82 @@
+# Пульс
+
+> Веб-сервис, который в одном месте ведёт личные финансы, самочувствие и достижения,
+> а затем превращает эти данные в статистику и советы.
+
+Полностью **self-hosted** и **open-source** (AGPL-3.0-or-later): вы разворачиваете сервис
+на своём сервере одной командой Docker Compose и полностью контролируете данные.
+
+Текущий статус: **Фаза 0 — каркас и dev-инфраструктура**. Функциональность MVP — в Фазе 1
+(см. [`docs/PLAN.md`](docs/PLAN.md)).
+
+## Стек
+
+| Слой            | Технологии                                              |
+| --------------- | ------------------------------------------------------- |
+| Монорепо        | pnpm workspaces, TypeScript 5.9                         |
+| Фронтенд        | Next.js 15 (App Router, standalone), React 19, Tailwind |
+| Бэкенд          | NestJS 12, Prisma 6, PostgreSQL 16                      |
+| Кеш и очереди   | Valkey 8 (+ BullMQ в Фазе 1)                            |
+| Общие схемы     | `@puls/shared` (Zod)                                    |
+| Тесты           | Vitest (unit + smoke), Playwright (e2e)                 |
+| Поставка        | Docker Compose, Caddy (авто-HTTPS), GitHub Actions      |
+
+## Структура репозитория
+
+```
+apps/
+  api/        NestJS + Prisma, эндпоинт /health, миграции
+  web/        Next.js 15, Tailwind, Playwright
+packages/
+  shared/     Zod-схемы, шкала настроения, форматирование денег
+docker-compose.yml       postgres, valkey, api, web, caddy + healthchecks
+docker-compose.dev.yml   dev-оверрайд: порты 5432 и 6379 на хост
+Caddyfile                маршрутизация + песочница пользовательского HTML
+```
+
+## Быстрый старт (разработка)
+
+Требования: Node.js ≥ 20, pnpm 11, Docker с Compose.
+
+```bash
+pnpm install
+cp .env.example .env          # заполните пароли
+pnpm docker:dev:up            # postgres:16 + valkey:8 с портами на хост
+pnpm db:migrate               # prisma migrate dev
+pnpm build && pnpm test       # сборка всех пакетов и unit-тесты
+pnpm dev                      # запускает api и web в watch-режиме
+```
+
+Полезные адреса в dev: API `http://localhost:3001/health`, web `http://localhost:3000`.
+
+## Проверки
+
+```bash
+pnpm lint            # ESLint (flat config) по всем пакетам
+pnpm typecheck       # tsc --noEmit по всем пакетам
+pnpm test            # Vitest: unit-тесты (без БД)
+pnpm test:smoke      # Vitest: smoke-тест API против живого PostgreSQL
+pnpm e2e             # Playwright: один smoke-сценарий лендинга
+pnpm format:check    # Prettier
+pnpm license:check   # совместимость лицензий зависимостей
+```
+
+## Развёртывание
+
+```bash
+git clone <ваш-форк> puls && cd puls
+cp .env.example .env          # POSTGRES_PASSWORD, DOMAIN, ACME_EMAIL
+docker compose up -d          # postgres, valkey, api, web, caddy
+```
+
+Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN` и поддомена песочницы
+`$SANDBOX_DOMAIN`. Миграции применяются контейнером `api` при старте.
+
+## Лицензия
+
+Код распространяется по **AGPL-3.0-or-later**. Если вы запускаете изменённую версию как
+публичный сервис, вы обязаны открыть свои изменения. Пользовательский контент
+(HTML-страницы, тексты) лицензией кода не покрывается и принадлежит авторам.
+
+Участие в проекте — [`CONTRIBUTING.md`](CONTRIBUTING.md); сообщения об уязвимостях —
+[`SECURITY.md`](SECURITY.md).
