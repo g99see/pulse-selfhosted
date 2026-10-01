@@ -43,6 +43,8 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'external_identities', entity: 'externalIdentities', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Привязка Telegram-чата (ТЗ §3.6): chat_id — идентификатор чата, выгружается как есть.
   { table: 'telegram_links', entity: 'telegramLinks', keyColumn: 'user_id', orderBy: '"linked_at"' },
+  // Полученные достижения (ТЗ §4): код бейджа и дата — не секреты, выгружаем.
+  { table: 'user_achievements', entity: 'userAchievements', keyColumn: 'user_id', orderBy: '"earned_at"' },
 ];
 
 /** Таблицы с user_id, которые намеренно не выгружаются (секреты и артефакты). */
