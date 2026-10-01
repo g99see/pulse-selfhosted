@@ -98,6 +98,12 @@ sudo bash install.sh --domain example.com --sandbox-domain usercontent.example.c
 sudo bash install.sh --http --host 192.168.1.50
 ```
 
+**Впервые ставите сервер?** Пошаговая инструкция с ожидаемым результатом каждого шага, созданием профилей и решением проблем — [`docs-site/guide/quick-start.md`](docs-site/guide/quick-start.md).
+
+**Профили:** без почты люди не регистрируются сами — профиль создаёт администратор:
+`sudo /opt/puls/scripts/users.sh add mama@example.com mama` (пароль покажется один раз).
+Сброс пароля: `users.sh password <email>`, все команды: `users.sh help`.
+
 **Обновление:** `sudo /opt/puls/scripts/upgrade.sh` (бэкап → сборка → запуск).  
 **Бэкап и восстановление:** `scripts/backup.sh` и `scripts/restore.sh`, подробности — в [`docs/PHASE1-OPS.md`](docs/PHASE1-OPS.md).  
 **Ручная установка** через Docker Compose — [`docs-site/guide/installation.md`](docs-site/guide/installation.md), все переменные — [`docs-site/guide/configuration.md`](docs-site/guide/configuration.md).

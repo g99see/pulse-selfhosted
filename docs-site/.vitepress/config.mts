@@ -29,6 +29,7 @@ export default defineConfig({
         {
           text: 'Начало',
           items: [
+            { text: 'Пошагово для новичков', link: '/guide/quick-start' },
             { text: 'Установка за 15 минут', link: '/guide/installation' },
             { text: 'Настройка (.env)', link: '/guide/configuration' },
           ],
@@ -77,6 +78,7 @@ export default defineConfig({
           items: [
             { text: 'Введение и возможности', link: '/' },
             { text: 'Что нового и дорожная карта', link: '/roadmap' },
+            { text: 'Пошагово для новичков', link: '/guide/quick-start' },
             { text: 'Установка за 15 минут', link: '/guide/installation' },
             { text: 'Настройка (.env)', link: '/guide/configuration' },
           ],

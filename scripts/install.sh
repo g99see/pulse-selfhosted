@@ -547,9 +547,11 @@ case "$ADMIN_STATE" in
 esac
 if [ -z "$SMTP_NOW" ]; then
   warn 'SMTP не настроен: письма подтверждения не отправляются, новые пользователи не смогут'
-  warn 'подтвердить email. Регистрация ограничена (invite). Задайте SMTP_URL в .env и выполните'
+  warn 'подтвердить email. Регистрация ограничена (invite): профили создаёт администратор'
+  warn "  командой $INSTALL_DIR/scripts/users.sh add. Чтобы включить почту, задайте SMTP_URL в .env и выполните"
   warn "  cd $INSTALL_DIR && docker compose up -d api"
 fi
+info "Новый профиль:  sudo $INSTALL_DIR/scripts/users.sh add <email> <ник>   (все команды: users.sh help)"
 info "Обновление:     cd $INSTALL_DIR && sudo bash scripts/upgrade.sh"
 info "Бэкапы:         $INSTALL_DIR/backups (ежедневно, хранится 7 копий)"
 info "Логи:           cd $INSTALL_DIR && docker compose logs -f --tail 100 api web caddy"

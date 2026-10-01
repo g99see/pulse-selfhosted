@@ -103,6 +103,11 @@ Other options: `--admin-email`, `--admin-nickname`, `--smtp-url`, `--registratio
 `--dir`, `--dry-run`, `-y`. See `install.sh --help`. Without SMTP, registration is set to invite-only, because
 new users would not be able to confirm their email.
 
+**Profiles:** without SMTP people can't sign up themselves, so the admin creates them:
+`sudo /opt/puls/scripts/users.sh add mom@example.com mom --locale en` (the password is shown once).
+Reset a password: `users.sh password <email>`; all commands: `users.sh help`.
+A step-by-step beginner guide (in Russian): [`docs-site/guide/quick-start.md`](docs-site/guide/quick-start.md).
+
 **Update:** `sudo /opt/puls/scripts/upgrade.sh` (backup → `git pull` → build → start).  
 **Backup and restore:** `scripts/backup.sh` and `scripts/restore.sh`; a daily backup runs automatically.  
 **Manual install** with Docker Compose: [`docs-site/guide/installation.md`](docs-site/guide/installation.md),
