@@ -138,17 +138,21 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
   async function addCheckIn(
     email: string,
     day: string,
-    fields: { mood?: number; energy?: number; tags?: string[] } = {},
+    fields: { mood?: number; energy?: number; tags?: string[]; clampToNow?: boolean } = {},
   ): Promise<void> {
     const user = await userByEmail(email);
+    // Полдень UTC «сегодняшнего» дня в часовом поясе пользователя может оказаться в будущем
+    // (например, 01:00 по Москве = 22:00 UTC) — такие отметки лента не учитывает.
+    const noon = Date.parse(`${day}T12:00:00.000Z`);
+    const at = new Date(fields.clampToNow ? Math.min(noon, Date.now() - 60_000) : noon);
     await prisma.checkIn.create({
       data: {
         userId: user.id,
         mood: fields.mood ?? 3,
         energy: fields.energy ?? null,
         tags: fields.tags ?? [],
-        occurredAt: new Date(`${day}T12:00:00.000Z`),
-        createdAt: new Date(`${day}T12:00:00.000Z`),
+        occurredAt: at,
+        createdAt: at,
       },
     });
   }
@@ -278,7 +282,7 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
 
       const today = todayKeyInTimezone('Europe/Moscow');
       for (const day of daysEnding(today, 6))
-        await addCheckIn('care@example.com', day, { mood: 1 });
+        await addCheckIn('care@example.com', day, { mood: 1, clampToNow: true });
 
       const feed = (await client.get('/api/insights')).body as FeedBody;
       const concern = feed.insights.find((item) => item.type === 'wellbeing_concern');
