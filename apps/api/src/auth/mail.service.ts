@@ -105,6 +105,18 @@ export class MailService {
     }
   }
 
+  /** Уведомление по email (ТЗ §3.6, канал email): чек-ины, отчёты, реакции. */
+  async sendNotification(
+    to: string,
+    notification: { subject: string; text: string; html?: string; kind?: string; link?: string },
+  ): Promise<void> {
+    await this.transport.send({ to, ...notification });
+
+    if (this.transport instanceof InMemoryMailTransport) {
+      this.logger.log(`[dev] Уведомление для ${to}: ${notification.subject}`);
+    }
+  }
+
   /** outbox доступен только для in-memory транспорта (dev/e2e). */
   outbox(): readonly OutgoingMail[] {
     return this.transport instanceof InMemoryMailTransport ? this.transport.messages : [];

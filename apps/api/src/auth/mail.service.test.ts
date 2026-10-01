@@ -60,4 +60,21 @@ describe('MailService', () => {
     service.clearOutbox();
     expect(service.outbox()).toHaveLength(0);
   });
+
+  it('отправляет уведомление по email и помечает его типом (ТЗ §3.6)', async () => {
+    process.env.MAIL_TRANSPORT = 'console';
+    const service = new MailService();
+
+    await service.sendNotification('user@example.com', {
+      subject: 'Пульс: Недельный отчёт готов',
+      text: 'Ваши финансы и настроение за неделю собраны.',
+      kind: 'notification:weekly_report',
+      link: '/app',
+    });
+
+    const mail = service.outbox().at(-1);
+    expect(mail?.to).toBe('user@example.com');
+    expect(mail?.subject).toContain('Недельный отчёт');
+    expect(mail?.kind).toBe('notification:weekly_report');
+  });
 });

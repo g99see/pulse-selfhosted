@@ -188,3 +188,39 @@ model Budget {
   @@index([userId, month])
   @@map("budgets")
 }
+/// Правило уведомлений (ТЗ §3.6, §7): тип, канал, расписание и тихие часы.
+/// schedule — JSON вида { "times": ["09:00", "15:00", "21:00"] }.
+model NotificationRule {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  channel         String   @default("web_push")
+  schedule        Json     @default("{}")
+  quietHoursStart Int      @default(22) @map("quiet_hours_start")
+  quietHoursEnd   Int      @default(8) @map("quiet_hours_end")
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+  @@map("notification_rules")
+}
+
+
+/// Подписка браузера на web push (ТЗ §3.6): endpoint и ключи шифрования.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}

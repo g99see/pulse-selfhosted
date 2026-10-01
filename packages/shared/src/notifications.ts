@@ -477,7 +477,8 @@ export function isTypeEnabled(
 
 export const NotificationRuleInputSchema = z.object({
   type: NotificationTypeSchema,
-  channel: NotificationChannelSchema.default('web_push'),
+  /** Необязателен: при обновлении сохраняется прежний канал или значение по типу. */
+  channel: NotificationChannelSchema.optional(),
   enabled: z.boolean(),
   times: z
     .array(z.string().regex(/^\d{1,2}:\d{2}$/))

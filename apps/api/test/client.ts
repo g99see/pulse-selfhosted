@@ -75,12 +75,13 @@ export class TestClient {
     return response;
   }
 
-  async del(path: string): Promise<Response> {
-    const response = (await request(this.server)
+  async del(path: string, body?: string | object): Promise<Response> {
+    const request_ = request(this.server)
       .delete(path)
       .set('Cookie', this.header())
       .set('X-Forwarded-For', this.ip)
-      .set('x-csrf-token', this.cookies['puls_csrf'] ?? '')) as Response;
+      .set('x-csrf-token', this.cookies['puls_csrf'] ?? '');
+    const response = (body === undefined ? await request_ : await request_.send(body)) as Response;
     this.absorb(response);
     return response;
   }

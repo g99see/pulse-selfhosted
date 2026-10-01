@@ -9,6 +9,9 @@ allowBuilds:
   # Нативный модуль: pnpm 11 падает с ERR_PNPM_IGNORED_BUILDS без явного разрешения.
   # Сборка не компилируется — пакет везёт готовые prebuilds, в т.ч. linux-x64 musl.
   argon2: true
+  # Опциональный нативный ускоритель msgpackr (зависимость bullmq).
+  # Схемы уведомлений работают на чистом JS-фолбэке — сборку не разрешаем.
+  msgpackr-extract: false
 
 minimumReleaseAgeExclude:
   - '@next/env@15.5.27'
@@ -21,3 +24,4 @@ minimumReleaseAgeExclude:
   - '@next/swc-win32-arm64-msvc@15.5.27'
   - '@next/swc-win32-x64-msvc@15.5.27'
   - next@15.5.27
+  - bullmq@6.3.11
