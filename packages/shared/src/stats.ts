@@ -5,9 +5,9 @@
  * карта настроения и сравнение периодов. Без побочных эффектов, чтобы их
  * использовали и API, и web, а тесты были быстрыми.
  */
+import { z } from 'zod';
 import { percentChange } from './dates';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { monthSchema } from './finance';
 
 /** Смещение часового пояса относительно UTC в миллисекундах для момента. */
 function timezoneOffsetMs(timezone: string, instant: Date): number {
@@ -82,8 +82,6 @@ export function addDays(dayKey: string, days: number): string {
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
-
-export { DAY_MS };
 
 /* ----- Агрегация денег (ТЗ §3.4) ----- */
 
@@ -214,15 +212,10 @@ export function daysInMonth(year: number, month: number): number {
 }
 
 /**
- * Границы периода в часовом поясе пользователя (ТЗ §3.4).
+ * Границы периода по конкретному дню (YYYY-MM-DD).
  * День — один ключ, неделя — понедельник–воскресенье, месяц и год — календарные.
  */
-export function periodRange(
-  period: StatsPeriod,
-  timezone: string,
-  reference: Date = new Date(),
-): PeriodRange {
-  const dayKey = todayKeyInTimezone(timezone, reference);
+export function periodRangeFromDay(period: StatsPeriod, dayKey: string): PeriodRange {
   const { year, month, day } = parseDayKey(dayKey);
 
   if (period === 'day') {
@@ -245,6 +238,17 @@ export function periodRange(
   const weekday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
   const from = addDays(dayKey, -weekday);
   return { period, from, to: addDays(from, 6) };
+}
+
+/**
+ * Границы периода в часовом поясе пользователя (ТЗ §3.4).
+ */
+export function periodRange(
+  period: StatsPeriod,
+  timezone: string,
+  reference: Date = new Date(),
+): PeriodRange {
+  return periodRangeFromDay(period, todayKeyInTimezone(timezone, reference));
 }
 
 /** Предыдущий такой же период — для сравнения в процентах (ТЗ §3.4). */
@@ -321,4 +325,67 @@ export function comparePeriods(current: PeriodTotals, previous: PeriodTotals): P
       change: percentChange(current.checkins, previous.checkins),
     },
   };
+}
+
+/* ----- Контракты API статистики (общие для web и api) ----- */
+
+/** День «YYYY-MM-DD». */
+export const dayKeySchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, { message: 'Дата в формате YYYY-MM-DD' });
+
+export const StatsPeriodSchema = z.enum(['day', 'week', 'month', 'year']);
+
+export const StatsDayQuerySchema = z.object({ date: dayKeySchema.optional() });
+export const StatsReportQuerySchema = z.object({
+  period: StatsPeriodSchema.default('month'),
+  date: dayKeySchema.optional(),
+});
+export const StatsCalendarQuerySchema = z.object({ month: monthSchema });
+
+export interface StatsDayResponse {
+  day: string;
+  timezone: string;
+  currency: string;
+  spent: number;
+  earned: number;
+  net: number;
+  budgetLimit: number;
+  budgetRemaining: number;
+  avgMood: number | null;
+  checkins: number;
+}
+
+export interface StatsSeriesPoint {
+  day: string;
+  spent: number;
+  earned: number;
+  mood: number | null;
+}
+
+export interface StatsReportResponse {
+  period: StatsPeriod;
+  from: string;
+  to: string;
+  previousFrom: string;
+  previousTo: string;
+  timezone: string;
+  currency: string;
+  spent: number;
+  earned: number;
+  net: number;
+  avgMood: number | null;
+  checkins: number;
+  byCategory: CategorySpend[];
+  series: StatsSeriesPoint[];
+  comparison: PeriodComparison;
+}
+
+export interface MoodCalendarResponse {
+  month: string;
+  timezone: string;
+  average: number | null;
+  best: { day: string; mood: number } | null;
+  days: MoodCalendarDay[];
 }

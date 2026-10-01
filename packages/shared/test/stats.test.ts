@@ -8,6 +8,7 @@ import {
   dayKeyInTimezone,
   groupSpentByCategory,
   periodRange,
+  periodRangeFromDay,
   previousPeriodRange,
   sumEarned,
   sumSpent,
@@ -198,6 +199,31 @@ describe('периоды отчётов (ТЗ §3.4)', () => {
       period: 'year',
       from: '2025-01-01',
       to: '2025-12-31',
+    });
+  });
+});
+
+describe('periodRangeFromDay', () => {
+  it('строит период от конкретного дня', () => {
+    expect(periodRangeFromDay('day', '2026-10-15')).toEqual({
+      period: 'day',
+      from: '2026-10-15',
+      to: '2026-10-15',
+    });
+    expect(periodRangeFromDay('week', '2026-10-01')).toEqual({
+      period: 'week',
+      from: '2026-09-28',
+      to: '2026-10-04',
+    });
+    expect(periodRangeFromDay('month', '2026-10-15')).toEqual({
+      period: 'month',
+      from: '2026-10-01',
+      to: '2026-10-31',
+    });
+    expect(periodRangeFromDay('year', '2026-07-04')).toEqual({
+      period: 'year',
+      from: '2026-01-01',
+      to: '2026-12-31',
     });
   });
 });

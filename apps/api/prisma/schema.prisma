@@ -48,6 +48,7 @@ model User {
   budgets            Budget[]
   notificationRules  NotificationRule[]
   pushSubscriptions  PushSubscription[]
+  dailyStats         DailyStat[]
 
   @@map("users")
 }
@@ -188,6 +189,7 @@ model Budget {
   @@index([userId, month])
   @@map("budgets")
 }
+
 /// Правило уведомлений (ТЗ §3.6, §7): тип, канал, расписание и тихие часы.
 /// schedule — JSON вида { "times": ["09:00", "15:00", "21:00"] }.
 model NotificationRule {
@@ -208,6 +210,23 @@ model NotificationRule {
   @@map("notification_rules")
 }
 
+/// Агрегат по дню (ТЗ §3.4, §7, §6 «кеширование агрегатов по дням»):
+/// траты, доходы, среднее настроение и число чек-инов. Пересчитывается лениво
+/// при чтении статистики и хранится как кеш дневных значений.
+model DailyStat {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date          DateTime @db.Date
+  spent         Decimal  @default(0) @db.Decimal(14, 2)
+  earned        Decimal  @default(0) @db.Decimal(14, 2)
+  avgMood       Float?   @map("avg_mood")
+  checkinsCount Int      @default(0) @map("checkins_count")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, date])
+  @@map("daily_stats")
+}
 
 /// Подписка браузера на web push (ТЗ §3.6): endpoint и ключи шифрования.
 model PushSubscription {
