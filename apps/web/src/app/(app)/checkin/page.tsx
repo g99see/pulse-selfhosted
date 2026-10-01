@@ -23,7 +23,7 @@ const SLOT_LABEL_KEYS: Record<CheckInSlot, string> = {
   evening: 'checkin.slot.evening',
 };
 
-const TIME_SUGGESTIONS = ['09:00', '12:00', '15:00', '18:00', '21:00', '23:00'];
+const TIME_SUGGESTIONS = ['09:00', '12:00', '15:00', '18:00', '20:00', '22:00'];
 
 /** Страница чек-инов (ТЗ §3.3, §8): шкала настроения, расширенный чек-ин, итог дня, расписание. */
 export default function CheckInPage() {
@@ -82,7 +82,10 @@ export default function CheckInPage() {
     setTimesPerDay(clamped);
     setTimes((previous) => {
       const copy = [...previous];
-      while (copy.length < clamped) copy.push(TIME_SUGGESTIONS[copy.length] ?? '09:00');
+      while (copy.length < clamped) {
+        const candidate = TIME_SUGGESTIONS.find((item) => !copy.includes(item));
+        copy.push(candidate ?? `0${copy.length}:00`);
+      }
       return copy.slice(0, clamped);
     });
   }
