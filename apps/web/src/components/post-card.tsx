@@ -176,7 +176,7 @@ export function PostCard({ post }: { post: PostDto }) {
                         type="button"
                         data-testid={`comment-delete-${comment.id}`}
                         onClick={() => void removeComment(comment.id)}
-                        className="text-xs text-[var(--puls-warning)]"
+                        className="text-xs text-[var(--puls-warning-text)]"
                       >
                         {t('feed.comments.delete')}
                       </button>
@@ -212,7 +212,7 @@ export function PostCard({ post }: { post: PostDto }) {
       </div>
 
       {error ? (
-        <p role="alert" className="text-xs text-[var(--puls-warning)]">
+        <p role="alert" className="text-xs text-[var(--puls-warning-text)]">
           {t('feed.comments.error')}
         </p>
       ) : null}

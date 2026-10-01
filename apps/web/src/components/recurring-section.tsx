@@ -144,7 +144,7 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
       <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.hint')}</p>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}

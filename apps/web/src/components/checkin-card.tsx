@@ -129,7 +129,7 @@ export function CheckInCard() {
         )}
 
         {error ? (
-          <p role="alert" className="text-sm text-[var(--puls-warning)]">
+          <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
             {error}
           </p>
         ) : null}

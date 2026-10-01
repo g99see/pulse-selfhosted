@@ -158,7 +158,7 @@ export default function ImportPage() {
       <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.import.subtitle')}</p>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]" data-testid="import-error">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]" data-testid="import-error">
           {error}
         </p>
       ) : null}
@@ -299,7 +299,7 @@ export default function ImportPage() {
       ) : null}
 
       {result ? (
-        <p className="text-sm text-[var(--puls-finance)]" data-testid="import-result" role="status">
+        <p className="text-sm text-[var(--puls-finance-text)]" data-testid="import-result" role="status">
           {t('finance.import.result', {
             imported: result.imported,
             duplicates: result.duplicates,

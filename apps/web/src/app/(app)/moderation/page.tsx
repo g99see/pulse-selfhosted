@@ -95,7 +95,7 @@ export default function ModerationPage() {
       <div className="flex flex-col gap-4" data-testid="moderation-page">
         <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
         <Card>
-          <p role="alert" data-testid="moderation-forbidden" className="text-sm text-[var(--puls-warning)]">
+          <p role="alert" data-testid="moderation-forbidden" className="text-sm text-[var(--puls-warning-text)]">
             {t('moderation.forbidden')}
           </p>
         </Card>
@@ -135,7 +135,7 @@ export default function ModerationPage() {
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}

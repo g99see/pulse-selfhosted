@@ -178,7 +178,7 @@ export default function CheckInPage() {
       <h1 className="text-3xl font-extrabold">{t('checkin.title')}</h1>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}

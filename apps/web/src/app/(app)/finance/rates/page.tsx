@@ -82,12 +82,12 @@ export default function RatesPage() {
       <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.rates.hint')}</p>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}
       {saved ? (
-        <p role="status" className="text-sm text-[var(--puls-finance)]" data-testid="rate-saved">
+        <p role="status" className="text-sm text-[var(--puls-finance-text)]" data-testid="rate-saved">
           {t('finance.rates.saved')}
         </p>
       ) : null}

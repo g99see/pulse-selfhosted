@@ -34,6 +34,13 @@ const LEVEL_COLOR: Record<BudgetDto['level'], string> = {
   exceeded: 'var(--puls-warning)',
 };
 
+/** Цвет текста уровня бюджета: контрастные токены (WCAG AA), заливка полосы — LEVEL_COLOR. */
+const LEVEL_TEXT_COLOR: Record<BudgetDto['level'], string> = {
+  ok: 'var(--puls-finance-text)',
+  warning: 'var(--puls-ink)',
+  exceeded: 'var(--puls-warning-text)',
+};
+
 /** Экран «Финансы» (ТЗ §8 пункт 5): счета, транзакции с фильтрами, бюджеты. */
 export default function FinancePage() {
   const { t, locale } = useT();
@@ -143,9 +150,9 @@ export default function FinancePage() {
   }
 
   function amountClass(type: TransactionKind): string {
-    if (type === 'income') return 'text-[var(--puls-finance)]';
+    if (type === 'income') return 'text-[var(--puls-finance-text)]';
     if (type === 'transfer') return 'text-[var(--puls-ink-muted)]';
-    return 'text-[var(--puls-warning)]';
+    return 'text-[var(--puls-warning-text)]';
   }
 
   function amountPrefix(type: TransactionKind): string {
@@ -178,14 +185,14 @@ export default function FinancePage() {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}
 
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t('finance.accounts')}</h2>
-        <ul className="flex flex-col gap-2" data-testid="finance-accounts">
+        <ul className={`flex flex-col gap-2 ${loading ? 'min-h-24' : ''}`} data-testid="finance-accounts">
           {accounts.map((account) => (
             <li
               key={account.id}
@@ -329,7 +336,7 @@ export default function FinancePage() {
           </label>
         </div>
 
-        <ul className="flex flex-col divide-y divide-[var(--puls-ink-muted)]/15" data-testid="finance-transactions">
+        <ul className={`flex flex-col divide-y divide-[var(--puls-ink-muted)]/15 ${loading ? 'min-h-48' : ''}`} data-testid="finance-transactions">
           {transactions.map((transaction) => (
             <li key={transaction.id} className="flex items-center justify-between gap-3 py-2">
               <span className="flex items-center gap-2">
@@ -391,7 +398,7 @@ export default function FinancePage() {
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t('finance.budgets')}</h2>
 
-        <ul className="flex flex-col gap-3" data-testid="finance-budgets">
+        <ul className={`flex flex-col gap-3 ${loading ? 'min-h-24' : ''}`} data-testid="finance-budgets">
           {budgets.map((budget) => (
             <li key={budget.id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-sm">
@@ -419,7 +426,7 @@ export default function FinancePage() {
                   }}
                 />
               </div>
-              <span className="text-xs" style={{ color: LEVEL_COLOR[budget.level] }}>
+              <span className="text-xs" style={{ color: LEVEL_TEXT_COLOR[budget.level] }}>
                 {t(`finance.budget.level.${budget.level}`)}
               </span>
             </li>

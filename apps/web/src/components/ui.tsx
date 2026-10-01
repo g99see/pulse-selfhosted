@@ -42,7 +42,7 @@ export function Field({
         </p>
       ) : null}
       {error ? (
-        <p id={`${id}-error`} className="text-xs text-[var(--puls-warning)]">
+        <p id={`${id}-error`} className="text-xs text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}
@@ -98,12 +98,14 @@ export function GhostButton({ children, ...props }: ButtonHTMLAttributes<HTMLBut
 }
 
 export function Alert({ children, tone = 'error' }: { children: ReactNode; tone?: 'error' | 'success' }) {
-  const color = tone === 'error' ? 'var(--puls-warning)' : 'var(--puls-finance)';
+  // Цвет текста — контрастные токены *-text (WCAG AA в обеих темах), рамка — базовый.
+  const border = tone === 'error' ? 'var(--puls-warning)' : 'var(--puls-finance)';
+  const color = tone === 'error' ? 'var(--puls-warning-text)' : 'var(--puls-finance-text)';
   return (
     <p
       role={tone === 'error' ? 'alert' : 'status'}
       className="rounded-[var(--radius-button)] border px-4 py-3 text-sm"
-      style={{ borderColor: color, color }}
+      style={{ borderColor: border, color }}
     >
       {children}
     </p>

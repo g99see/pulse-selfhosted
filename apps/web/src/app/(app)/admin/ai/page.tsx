@@ -106,7 +106,7 @@ export default function AdminAiPage() {
       <div className="flex flex-col gap-4" data-testid="ai-admin-page">
         <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
         <Card>
-          <p role="alert" data-testid="ai-admin-forbidden" className="text-sm text-[var(--puls-warning)]">
+          <p role="alert" data-testid="ai-admin-forbidden" className="text-sm text-[var(--puls-warning-text)]">
             {t('ai.admin.forbidden')}
           </p>
         </Card>

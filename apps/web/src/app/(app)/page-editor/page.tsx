@@ -194,7 +194,7 @@ export default function PageEditorPage() {
 
       {error ? <Alert>{error}</Alert> : null}
       {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance)]" data-testid="htmlPage-notice">
+        <p role="status" className="text-sm text-[var(--puls-finance-text)]" data-testid="htmlPage-notice">
           {notice}
         </p>
       ) : null}
@@ -299,7 +299,7 @@ export default function PageEditorPage() {
             data-testid="htmlPage-delete"
             onClick={() => void onDelete()}
             disabled={busy}
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-warning)]/50 px-6 text-sm font-semibold text-[var(--puls-warning)] disabled:opacity-50"
+            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-warning)]/50 px-6 text-sm font-semibold text-[var(--puls-warning-text)] disabled:opacity-50"
           >
             {t('htmlPage.delete')}
           </button>
@@ -322,7 +322,7 @@ export default function PageEditorPage() {
                 : t('htmlPage.check.flagged')}
           </p>
           {reasons.length > 0 ? (
-            <ul data-testid="htmlPage-reasons" className="list-disc pl-5 text-sm text-[var(--puls-warning)]">
+            <ul data-testid="htmlPage-reasons" className="list-disc pl-5 text-sm text-[var(--puls-warning-text)]">
               {reasons.map((reason) => (
                 <li key={`${reason.code}-${reason.detail ?? ''}`}>
                   {reason.message}

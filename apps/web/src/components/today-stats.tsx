@@ -61,7 +61,7 @@ export function TodayStats() {
           <div>
             <dt className="text-xs text-[var(--puls-ink-muted)]">{t('stats.today.spent')}</dt>
             <dd
-              className="text-lg font-bold text-[var(--puls-warning)] [font-variant-numeric:tabular-nums]"
+              className="text-lg font-bold text-[var(--puls-warning-text)] [font-variant-numeric:tabular-nums]"
               data-testid="today-spent"
             >
               {day ? money(day.spent) : dash}
@@ -69,7 +69,7 @@ export function TodayStats() {
           </div>
           <div>
             <dt className="text-xs text-[var(--puls-ink-muted)]">{t('stats.today.earned')}</dt>
-            <dd className="text-lg font-bold text-[var(--puls-finance)] [font-variant-numeric:tabular-nums]">
+            <dd className="text-lg font-bold text-[var(--puls-finance-text)] [font-variant-numeric:tabular-nums]">
               {day ? money(day.earned) : dash}
             </dd>
           </div>

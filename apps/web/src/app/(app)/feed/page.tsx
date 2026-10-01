@@ -48,7 +48,7 @@ export default function FeedPage() {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {t('feed.error')}
         </p>
       ) : null}

@@ -179,7 +179,7 @@ export function ShareButton({ type, id, shareText, label, className }: ShareButt
                 </p>
               ) : null}
               {status === 'error' ? (
-                <p role="alert" className="text-sm text-[var(--puls-warning)]" data-testid="share-error">
+                <p role="alert" className="text-sm text-[var(--puls-warning-text)]" data-testid="share-error">
                   {t('share.error')}
                 </p>
               ) : null}

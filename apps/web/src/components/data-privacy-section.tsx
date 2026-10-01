@@ -106,13 +106,13 @@ export function DataPrivacySection() {
       <hr className="border-[var(--puls-ink-muted)]/20" />
 
       <div>
-        <h3 className="font-semibold text-[var(--puls-warning)]">{t('settings.data.delete.title')}</h3>
+        <h3 className="font-semibold text-[var(--puls-warning-text)]">{t('settings.data.delete.title')}</h3>
         <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('settings.data.delete.hint')}</p>
         <button
           type="button"
           data-testid="delete-account-open"
           onClick={() => setConfirmOpen(true)}
-          className="mt-3 h-12 rounded-[var(--radius-button)] border border-[var(--puls-warning)] px-6 font-semibold text-[var(--puls-warning)] transition-opacity hover:opacity-80"
+          className="mt-3 h-12 rounded-[var(--radius-button)] border border-[var(--puls-warning)] px-6 font-semibold text-[var(--puls-warning-text)] transition-opacity hover:opacity-80"
         >
           {t('settings.data.delete.open')}
         </button>

@@ -275,12 +275,12 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         </label>
 
         {error ? (
-          <p role="alert" className="text-sm text-[var(--puls-warning)]">
+          <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
             {error}
           </p>
         ) : null}
         {saved ? (
-          <p role="status" className="text-sm text-[var(--puls-finance)]">
+          <p role="status" className="text-sm text-[var(--puls-finance-text)]">
             {t('finance.quick.saved')}
           </p>
         ) : null}

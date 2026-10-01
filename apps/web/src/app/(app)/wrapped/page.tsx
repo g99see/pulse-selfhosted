@@ -110,13 +110,13 @@ export default function WrappedPage() {
           <dl className="flex flex-col gap-3">
             <div className="flex items-baseline justify-between gap-3">
               <dt className="text-[var(--puls-ink-muted)]">{t('wrapped.money.spent')}</dt>
-              <dd className="text-3xl font-extrabold text-[var(--puls-warning)]">
+              <dd className="text-3xl font-extrabold text-[var(--puls-warning-text)]">
                 <Money value={data.spent} currency={currency} testId="wrapped-spent" />
               </dd>
             </div>
             <div className="flex items-baseline justify-between gap-3">
               <dt className="text-[var(--puls-ink-muted)]">{t('wrapped.money.earned')}</dt>
-              <dd className="text-3xl font-extrabold text-[var(--puls-finance)]">
+              <dd className="text-3xl font-extrabold text-[var(--puls-finance-text)]">
                 <Money value={data.earned} currency={currency} />
               </dd>
             </div>
@@ -177,7 +177,7 @@ export default function WrappedPage() {
               <Money
                 value={data.mostExpensiveDay.spent}
                 currency={currency}
-                className="text-3xl font-extrabold text-[var(--puls-warning)]"
+                className="text-3xl font-extrabold text-[var(--puls-warning-text)]"
               />
             </div>
           ) : null}
@@ -370,7 +370,7 @@ export default function WrappedPage() {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {t('wrapped.error')}
         </p>
       ) : null}

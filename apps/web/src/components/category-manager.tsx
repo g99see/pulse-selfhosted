@@ -146,7 +146,7 @@ function CategoryFormFields({
       </fieldset>
 
       {errors.length > 0 ? (
-        <ul id={errorId} role="alert" className="flex flex-col gap-1 text-xs text-[var(--puls-warning)]">
+        <ul id={errorId} role="alert" className="flex flex-col gap-1 text-xs text-[var(--puls-warning-text)]">
           {errors.map((error) => (
             <li key={error}>{t(ERROR_KEYS[error])}</li>
           ))}
@@ -256,7 +256,7 @@ export function CategoryManager({
       </div>
 
       {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance)]">
+        <p role="status" className="text-sm text-[var(--puls-finance-text)]">
           {t(notice)}
         </p>
       ) : null}
@@ -332,7 +332,7 @@ export function CategoryManager({
                     data-testid="category-delete"
                     onClick={() => setDeleteId(category.id)}
                     aria-label={t('finance.categories.delete')}
-                    className="rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--puls-warning)]"
+                    className="rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--puls-warning-text)]"
                   >
                     ✕
                   </button>

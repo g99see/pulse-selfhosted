@@ -60,7 +60,7 @@ export function FollowButton({
         {following ? t('follow.following') : t('follow.follow')}
       </button>
       {error ? (
-        <span role="alert" className="text-xs text-[var(--puls-warning)]">
+        <span role="alert" className="text-xs text-[var(--puls-warning-text)]">
           {t('follow.error')}
         </span>
       ) : null}

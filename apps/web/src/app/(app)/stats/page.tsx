@@ -161,15 +161,18 @@ export default function StatsPage() {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning)]">
+        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
           {error}
         </p>
       ) : null}
 
       {loading && !report ? (
-        <p className="text-sm text-[var(--puls-ink-muted)]" role="status">
-          {t('stats.loading')}
-        </p>
+        // Резервируем высоту под будущие карточки, чтобы данные не сдвигали макет (CLS).
+        <div className="min-h-[70vh]">
+          <p className="text-sm text-[var(--puls-ink-muted)]" role="status">
+            {t('stats.loading')}
+          </p>
+        </div>
       ) : null}
 
       {report ? (

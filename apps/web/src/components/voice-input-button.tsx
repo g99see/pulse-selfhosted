@@ -123,7 +123,7 @@ export function VoiceInputButton({
         {listening ? t('checkin.voice.stop') : t('checkin.voice.start')}
       </button>
       {error ? (
-        <span role="alert" data-testid={`${testId}-error`} className="text-xs text-[var(--puls-warning)]">
+        <span role="alert" data-testid={`${testId}-error`} className="text-xs text-[var(--puls-warning-text)]">
           {t('checkin.voice.error')}
         </span>
       ) : null}
