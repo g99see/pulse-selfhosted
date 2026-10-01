@@ -92,13 +92,13 @@ export function CheckInCard() {
   const last = checkIns[0];
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden !bg-[var(--puls-wellbeing-soft)]">
       {celebrate ? <Confetti /> : null}
       <div className="flex flex-col gap-4" data-testid="checkin-card">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-bold">{t('checkin.card.question')}</h2>
+          <h2 className="font-heading text-xl font-bold">{t('checkin.card.question')}</h2>
           {checkIns.length > 0 ? (
-            <span className="text-xs text-[var(--puls-ink-muted)]">
+            <span className="text-xs text-[var(--puls-wellbeing-text)]">
               {t('checkin.card.today', { count: checkIns.length })}
             </span>
           ) : null}
@@ -125,7 +125,7 @@ export function CheckInCard() {
             {t('checkin.card.saved')}
           </p>
         ) : (
-          <p className="text-sm text-[var(--puls-ink-muted)]">{t('checkin.card.hint')}</p>
+          <p className="text-sm text-[var(--puls-wellbeing-text)]">{t('checkin.card.hint')}</p>
         )}
 
         {error ? (
@@ -134,12 +134,12 @@ export function CheckInCard() {
           </p>
         ) : null}
 
-        <HabitsToday />
+        <HabitsToday showEmpty />
 
         <Link
           href="/checkin"
           data-testid="checkin-open"
-          className="text-sm font-medium text-[var(--puls-primary-text)]"
+          className="self-start rounded-[var(--radius-button)] bg-[var(--puls-surface)] px-4 py-2 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('checkin.card.open')}
         </Link>

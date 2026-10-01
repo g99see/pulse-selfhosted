@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import type { HabitTodayItemDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
@@ -10,10 +11,11 @@ import { HABITS_CHANGED_EVENT, habitsApi, notifyHabitsChanged } from '@/lib/habi
  * Блок «Привычки сегодня» (ТЗ §4, P2): чекбоксы отметок на странице чек-ина и
  * в карточке чек-ина на главной. Пустой список не показываем.
  */
-export function HabitsToday() {
+export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
   const { t } = useT();
   const [items, setItems] = useState<HabitTodayItemDto[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   const reload = useCallback(async (): Promise<void> => {
     try {
@@ -21,6 +23,8 @@ export function HabitsToday() {
       setItems(response.habits);
     } catch {
       setItems([]);
+    } finally {
+      setLoaded(true);
     }
   }, []);
 
@@ -49,10 +53,23 @@ export function HabitsToday() {
     }
   }
 
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    if (!showEmpty || !loaded) return null;
+    return (
+      <div
+        data-testid="habits-today-empty"
+        className="flex flex-wrap items-center justify-between gap-2 rounded-[20px] bg-[var(--puls-surface)] px-4 py-3 text-sm"
+      >
+        <span className="text-[var(--puls-ink-muted)]">{t('habits.empty')}</span>
+        <Link href="/habits" className="font-semibold text-[var(--puls-primary-text)]">
+          {t('app.today.habitsCta')}
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <section className="flex flex-col gap-2" data-testid="habits-today">
+    <section className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-4" data-testid="habits-today">
       <h3 className="text-sm font-semibold">{t('habits.today.title')}</h3>
       <ul className="flex flex-col gap-2">
         {items.map((item) => (

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { InsightDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Card } from '@/components/ui';
+import { Card, EmptyState, IconBubble } from '@/components/ui';
 import { insightsApi } from '@/lib/insights-client';
 
 /**
@@ -33,20 +33,37 @@ export function LatestInsight() {
     };
   }, []);
 
-  if (!loaded) return null;
-
   return (
-    <div data-testid="latest-insight">
-      <Card className="flex flex-col gap-2">
+    <div data-testid="latest-insight" className="min-h-[160px]">
+      <Card className="flex h-full flex-col gap-3 !bg-[var(--puls-primary-soft)]">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold">{t('insights.latest.title')}</h2>
-          <Link href="/insights" className="text-sm font-medium text-[var(--puls-primary-text)]">
+          <div className="flex items-center gap-3">
+            <IconBubble name="sparkle" tone="primary" />
+            <h2 className="font-heading text-lg font-bold text-[var(--puls-primary-text)]">
+              {t('insights.latest.title')}
+            </h2>
+          </div>
+          <Link href="/insights" className="text-sm font-semibold text-[var(--puls-primary-text)]">
             {t('insights.more')}
           </Link>
         </div>
-        <p className="text-sm">
-          {insight ? t(insight.textKey, insight.params) : t('insights.latest.none')}
-        </p>
+        {!loaded ? null : insight ? (
+          <p className="text-sm text-[var(--puls-ink)]">{t(insight.textKey, insight.params)}</p>
+        ) : (
+          <EmptyState
+            icon="sparkle"
+            tone="primary"
+            title={t('insights.latest.none')}
+            action={
+              <Link
+                href="/insights"
+                className="text-sm font-semibold text-[var(--puls-primary-text)] underline"
+              >
+                {t('app.today.insightCta')}
+              </Link>
+            }
+          />
+        )}
       </Card>
     </div>
   );

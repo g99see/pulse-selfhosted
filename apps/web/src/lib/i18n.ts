@@ -140,8 +140,9 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'app.greeting.evening': 'Добрый вечер',
     'app.greeting.night': 'Доброй ночи',
     'app.today.title': 'Сегодня',
-    'app.today.onboardingDone': 'Настройка завершена — можно вести финансы и чек-ины.',
-    'app.today.nextPhase': 'Финансы и чек-ины появятся в следующих шагах Фазы 1.',
+    'app.today.habitsCta': 'Добавить привычку',
+    'app.today.goalsCta': 'Создать цель',
+    'app.today.insightCta': 'Открыть рекомендации',
 
     'finance.title': 'Финансы',
     'finance.total': 'Всего на счетах',
@@ -1402,8 +1403,9 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'app.greeting.evening': 'Good evening',
     'app.greeting.night': 'Good night',
     'app.today.title': 'Today',
-    'app.today.onboardingDone': 'Setup is done — you can track money and check-ins.',
-    'app.today.nextPhase': 'Finance and check-ins arrive in the next Phase 1 steps.',
+    'app.today.habitsCta': 'Add a habit',
+    'app.today.goalsCta': 'Create a goal',
+    'app.today.insightCta': 'Open recommendations',
 
     'finance.title': 'Finance',
     'finance.total': 'Total across accounts',

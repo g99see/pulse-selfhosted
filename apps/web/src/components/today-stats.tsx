@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Currency, StatsDayResponse } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
-import { Card } from '@/components/ui';
+import { Card, ProgressBar, StatTile } from '@/components/ui';
 import { FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 import { formatMoneyLocale } from '@/lib/format';
 import { statsApi } from '@/lib/stats-client';
@@ -49,50 +49,57 @@ export function TodayStats() {
 
   return (
     <div data-testid="today-stats">
-      <Card className="flex flex-col gap-3">
+      <Card className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold">{t('stats.title')}</h2>
+          <h2 className="font-heading text-xl font-bold">{t('stats.title')}</h2>
           <Link href="/stats" className="text-sm font-medium text-[var(--puls-primary-text)]">
             {t('stats.today.more')}
           </Link>
         </div>
 
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="text-xs text-[var(--puls-ink-muted)]">{t('stats.today.spent')}</dt>
-            <dd
-              className="text-lg font-bold text-[var(--puls-warning-text)] [font-variant-numeric:tabular-nums]"
-              data-testid="today-spent"
-            >
-              {day ? money(day.spent) : dash}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--puls-ink-muted)]">{t('stats.today.earned')}</dt>
-            <dd className="text-lg font-bold text-[var(--puls-finance-text)] [font-variant-numeric:tabular-nums]">
-              {day ? money(day.earned) : dash}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--puls-ink-muted)]">{t('stats.today.mood')}</dt>
-            <dd className="text-lg font-bold [font-variant-numeric:tabular-nums]">
-              {day?.avgMood === null || day === null ? dash : day.avgMood}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--puls-ink-muted)]">{t('stats.today.checkins')}</dt>
-            <dd className="text-lg font-bold [font-variant-numeric:tabular-nums]">
-              {day ? day.checkins : dash}
-            </dd>
-          </div>
-        </dl>
+        <div className="grid min-h-[88px] grid-cols-2 gap-3 md:grid-cols-4">
+          <StatTile
+            tone="warning"
+            icon="wallet"
+            label={t('stats.today.spent')}
+            testId="today-spent"
+            value={<span className="[font-variant-numeric:tabular-nums]">{day ? money(day.spent) : dash}</span>}
+          />
+          <StatTile
+            tone="finance"
+            icon="chart"
+            label={t('stats.today.earned')}
+            value={<span className="[font-variant-numeric:tabular-nums]">{day ? money(day.earned) : dash}</span>}
+          />
+          <StatTile
+            tone="wellbeing"
+            icon="heart"
+            label={t('stats.today.mood')}
+            value={<span className="[font-variant-numeric:tabular-nums]">{day === null || day.avgMood === null ? dash : day.avgMood}</span>}
+          />
+          <StatTile
+            tone="primary"
+            icon="check"
+            label={t('stats.today.checkins')}
+            value={<span className="[font-variant-numeric:tabular-nums]">{day ? day.checkins : dash}</span>}
+          />
+        </div>
 
-        <p className="text-sm text-[var(--puls-ink-muted)]">
-          {t('stats.today.budgetLeft')}:{' '}
-          <span className="font-semibold text-[var(--puls-ink)] [font-variant-numeric:tabular-nums]">
-            {day && day.budgetLimit > 0 ? money(day.budgetRemaining) : t('stats.day.noBudget')}
-          </span>
-        </p>
+        <div className="flex min-h-[44px] flex-col gap-2">
+          {day && day.budgetLimit > 0 ? (
+            <ProgressBar
+              tone={day.budgetRemaining < 0 ? 'warning' : 'finance'}
+              label={`${t('stats.today.budgetLeft')}: ${money(day.budgetRemaining)}`}
+              value={Math.min(Math.max(day.spent, 0), day.budgetLimit)}
+              max={day.budgetLimit}
+            />
+          ) : (
+            <p className="text-sm text-[var(--puls-ink-muted)]">
+              {t('stats.today.budgetLeft')}:{' '}
+              <span className="font-semibold text-[var(--puls-ink)]">{t('stats.day.noBudget')}</span>
+            </p>
+          )}
+        </div>
       </Card>
     </div>
   );

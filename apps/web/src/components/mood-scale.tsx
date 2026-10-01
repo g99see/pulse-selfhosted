@@ -41,10 +41,12 @@ export function MoodScale({
             data-testid={`mood-${mood}`}
             disabled={disabled}
             onClick={() => onChange(mood)}
-            className={`flex ${dimension} items-center justify-center rounded-full transition-transform duration-150 disabled:opacity-60`}
+            className={`flex ${dimension} items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--puls-wellbeing-text)] disabled:opacity-60`}
             style={{
-              backgroundColor: active ? MOOD_COLORS[mood] : 'transparent',
-              border: `2px solid ${MOOD_COLORS[mood]}`,
+              backgroundColor: `color-mix(in srgb, ${MOOD_COLORS[mood]} ${active ? 55 : 28}%, var(--puls-surface))`,
+              boxShadow: active
+                ? '0 0 0 3px var(--puls-surface), 0 0 0 5px var(--puls-wellbeing-text)'
+                : undefined,
               transform: active ? 'scale(1.08)' : undefined,
             }}
           >

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { isGoalImageUrl, type GoalDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { ProgressRing } from '@/components/progress-ring';
-import { Card } from '@/components/ui';
+import { Card, EmptyState, IconBubble } from '@/components/ui';
 import { GOALS_CHANGED_EVENT, goalsApi } from '@/lib/goals-client';
 
 /** Картинка цели: эмодзи-пресет или ссылка http(s). */
@@ -50,22 +50,37 @@ export function GoalsCard() {
   const featured = goals.slice(0, 2);
 
   return (
-    <Card className="flex flex-col gap-3" >
+    <Card className="flex min-h-[160px] flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">{t('goals.card.title')}</h2>
-        <Link href="/goals" className="text-sm font-medium text-[var(--puls-primary-text)]">
+        <div className="flex items-center gap-3">
+          <IconBubble name="target" tone="finance" />
+          <h2 className="font-heading text-lg font-bold">{t('goals.card.title')}</h2>
+        </div>
+        <Link href="/goals" className="text-sm font-semibold text-[var(--puls-primary-text)]">
           {t('goals.card.more')}
         </Link>
       </div>
 
       {featured.length === 0 ? (
-        <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="goals-card-empty">
-          {t('goals.card.empty')}
-        </p>
+        <div data-testid="goals-card-empty">
+          <EmptyState
+            icon="target"
+            tone="finance"
+            title={t('goals.card.empty')}
+            action={
+              <Link
+                href="/goals"
+                className="text-sm font-semibold text-[var(--puls-finance-text)] underline"
+              >
+                {t('app.today.goalsCta')}
+              </Link>
+            }
+          />
+        </div>
       ) : (
-        <ul className="flex flex-col gap-3" data-testid="goals-card-list">
+        <ul className="grid gap-3 sm:grid-cols-2" data-testid="goals-card-list">
           {featured.map((goal) => (
-            <li key={goal.id} className="flex items-center gap-3">
+            <li key={goal.id} className="flex items-center gap-3 rounded-[20px] bg-[var(--puls-finance-soft)] p-3">
               <ProgressRing
                 percent={goal.percent}
                 size={56}
@@ -77,7 +92,7 @@ export function GoalsCard() {
                   <GoalImage image={goal.image} />
                   <span className="truncate font-medium">{goal.title}</span>
                 </span>
-                <span className="text-xs text-[var(--puls-ink-muted)]">
+                <span className="text-xs text-[var(--puls-finance-text)]">
                   {t('goals.card.progress', { percent: goal.percent, title: goal.title })}
                 </span>
               </span>
