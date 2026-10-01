@@ -172,7 +172,10 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
     it('без сессии — 401', async () => {
       const anon = new TestClient(server);
       expect((await anon.get('/api/finance/rates')).status).toBe(401);
-      expect((await anon.put('/api/finance/rates', { date: '2026-10-01', base: 'USD', quote: 'RUB', rate: 1 })).status).toBe(401);
+      // PUT без CSRF-токена отбивает CSRF-guard раньше SessionGuard.
+      const blocked = await anon.put('/api/finance/rates', { date: '2026-10-01', base: 'USD', quote: 'RUB', rate: 1 });
+      expect(blocked.status).toBe(403);
+      expect(blocked.body.code).toBe('csrf_failed');
     });
   });
 
@@ -300,12 +303,15 @@ describe('Мультивалютность (интеграция с PostgreSQL)'
       const client = await signUp('transfer-fx2@example.com', 'transferfx2');
       const usd = await createAccount(client, 'Долларовый', 'USD', 1000);
       const rub = await createAccount(client, 'Рублёвый', 'RUB', 0);
+      // Курс нужен для эквивалента в основной валюте (amount_base).
+      await createRate(client, '2026-10-01', 'USD', 'RUB', 95);
 
       const response = await client.post('/api/finance/transfers', {
         fromAccountId: usd.id,
         toAccountId: rub.id,
         amount: 100,
         toAmount: 9000,
+        date: '2026-10-01',
       });
       expect(response.status).toBe(201);
       expect((response.body as TransactionDto).toAmount).toBe(9000);
