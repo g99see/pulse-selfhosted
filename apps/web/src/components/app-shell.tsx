@@ -7,6 +7,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { canModerate, type PublicUser } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { QuickAddSheet } from '@/components/quick-add-sheet';
+import { QuietModeHotkey, QuietModeToggle } from '@/components/quiet-mode-toggle';
 import { aiApi } from '@/lib/ai-client';
 import { authApi } from '@/lib/auth-client';
 import { isLocale, localeFromCookieString } from '@/lib/locale';
@@ -124,14 +125,17 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
             <p className="text-sm text-[var(--puls-ink-muted)]">{t(`app.greeting.${greeting}`)}</p>
             <p className="text-lg font-bold">@{user.nickname}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => void logout()}
-            disabled={busy}
-            className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10 disabled:opacity-50"
-          >
-            {t('auth.logout')}
-          </button>
+          <div className="flex items-center gap-2">
+            <QuietModeToggle className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-2 text-sm font-medium transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10" />
+            <button
+              type="button"
+              onClick={() => void logout()}
+              disabled={busy}
+              className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10 disabled:opacity-50"
+            >
+              {t('auth.logout')}
+            </button>
+          </div>
         </header>
 
         <main id="content" className="mx-auto w-full max-w-3xl px-5 pb-10">
@@ -147,6 +151,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
       </nav>
 
       <QuickAddSheet open={addOpen} onClose={() => setAddOpen(false)} />
+      <QuietModeHotkey />
     </div>
   );
 }
