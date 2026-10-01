@@ -14,6 +14,9 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     locale: 'ru-RU',
+    // Сервис-воркер PWA перехватывает запросы, и page.route() их не видит —
+    // для e2e с подменой API воркеры блокируем (сам /sw.js проверяет pwa.spec).
+    serviceWorkers: 'block',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   // Регистрация и онбординг требуют живого API (ТЗ §7, Фаза 1.1).
