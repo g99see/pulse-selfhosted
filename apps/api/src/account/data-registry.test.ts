@@ -14,6 +14,7 @@ describe('isSecretColumn', () => {
   it('распознаёт пароли, хеши токенов и ключи', () => {
     expect(isSecretColumn('password_hash')).toBe(true);
     expect(isSecretColumn('token_hash')).toBe(true);
+    expect(isSecretColumn('code_hash')).toBe(true);
     expect(isSecretColumn('two_fa_secret')).toBe(true);
     expect(isSecretColumn('p256dh')).toBe(true);
     expect(isSecretColumn('auth')).toBe(true);
@@ -33,16 +34,45 @@ describe('реестр выгрузки', () => {
     expect(uncoveredUserTables(['accounts', 'sessions', 'check_ins', 'budgets', 'daily_stats'])).toEqual([]);
     expect(uncoveredUserTables(['accounts', 'daily_stat'])).toEqual(['daily_stat']);
     expect(uncoveredUserTables([])).toEqual([]);
+    // Telegram: привязка выгружается, одноразовые коды — секрет и исключены.
+    expect(uncoveredUserTables(['telegram_links', 'telegram_link_codes'])).toEqual([]);
+  });
+
+  it('Telegram: привязка в выгрузке, коды привязки исключены как секрет', () => {
+    const links = EXPORT_TABLES.find((entry) => entry.table === 'telegram_links');
+    expect(links?.entity).toBe('telegramLinks');
+    expect(links?.keyColumn).toBe('user_id');
+
+    const codes = EXCLUDED_USER_TABLES.find((entry) => entry.table === 'telegram_link_codes');
+    expect(codes).toBeDefined();
+    expect(codes?.reason.length).toBeGreaterThan(0);
+    expect(coveredUserTables().has('telegram_links')).toBe(true);
+    expect(coveredUserTables().has('telegram_link_codes')).toBe(true);
   });
 
   it('сессии, токены подтверждения и push-подписки исключены из выгрузки', () => {
     const excluded = EXCLUDED_USER_TABLES.map((entry) => entry.table);
     expect(excluded).toEqual(
-      expect.arrayContaining(['sessions', 'email_verification_tokens', 'push_subscriptions']),
+      expect.arrayContaining([
+        'sessions',
+        'email_verification_tokens',
+        'push_subscriptions',
+        'two_factor_backup_codes',
+        'two_factor_challenges',
+      ]),
     );
     for (const entry of EXCLUDED_USER_TABLES) {
       expect(entry.reason.length).toBeGreaterThan(0);
     }
+  });
+
+  it('2FA: резервные коды и пропуски исключены как секреты, секрет на users скрыт', () => {
+    expect(uncoveredUserTables(['two_factor_backup_codes', 'two_factor_challenges'])).toEqual([]);
+    expect(coveredUserTables().has('two_factor_backup_codes')).toBe(true);
+    expect(coveredUserTables().has('two_factor_challenges')).toBe(true);
+
+    const users = EXPORT_TABLES.find((entry) => entry.table === 'users');
+    expect(users?.secretColumns).toContain('two_fa_secret');
   });
 
   it('coveredUserTables перечисляет выгрузку и исключения', () => {

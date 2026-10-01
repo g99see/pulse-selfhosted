@@ -51,12 +51,15 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'email_verification_tokens', reason: 'секрет: одноразовый токен подтверждения email' },
   { table: 'push_subscriptions', reason: 'секрет: endpoint и ключи шифрования web push' },
   { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового кода привязки Telegram' },
+  { table: 'two_factor_backup_codes', reason: 'секрет: хеши одноразовых резервных кодов 2FA' },
+  { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
 ];
 
 /** Колонки, которые никогда не попадают в выгрузку, в какой бы таблице ни лежали. */
 const SECRET_COLUMN_PATTERNS: readonly RegExp[] = [
   /password_hash/,
   /token_hash/,
+  /code_hash/,
   /secret/,
   /^auth$/,
   /^p256dh$/,
