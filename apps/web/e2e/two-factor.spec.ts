@@ -60,6 +60,27 @@ async function verificationTokenFor(request: APIRequestContext, email: string): 
   return token as string;
 }
 
+async function completeOnboarding(
+  request: APIRequestContext,
+  headers: Record<string, string>,
+): Promise<void> {
+  const response = await request.put(`${API_URL}/api/auth/onboarding`, {
+    headers,
+    data: {
+      timezone: 'UTC',
+      currency: 'RUB',
+      locale: 'ru',
+      goals: ['money'],
+      notificationsEnabled: true,
+      quietHoursStart: 22,
+      quietHoursEnd: 8,
+      profileVisibility: 'private',
+      firstAccount: { name: 'Основной', type: 'card', balance: 0 },
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+}
+
 test('вход с включённой 2FA: пароль → код → кабинет', async ({ page, request }) => {
   const unique = Date.now().toString().slice(-9);
   const email = `e2e-2fa-${unique}@example.com`;
@@ -79,6 +100,7 @@ test('вход с включённой 2FA: пароль → код → каби
     data: { token: await verificationTokenFor(request, email) },
   });
   expect(verify.ok()).toBeTruthy();
+  await completeOnboarding(request, headers);
 
   // 2. Включаем 2FA: setup → код → enable → резервные коды.
   const setupResponse = await request.post(`${API_URL}/api/auth/2fa/setup`, { headers });
@@ -130,6 +152,7 @@ test('без 2FA вход прежний (только пароль)', async ({ 
     headers,
     data: { token: await verificationTokenFor(request, email) },
   });
+  await completeOnboarding(request, headers);
 
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
