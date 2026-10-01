@@ -9,10 +9,12 @@ import { HtmlPageService } from './html-page.service';
  * без форм на сторонние адреса, без base и без авторедиректов. frame-ancestors
  * разрешает встраивание только основным домен.
  */
-export function sandboxCsp(mainDomain: string): string {
+export function sandboxCsp(mainDomain: string, publicOrigin = process.env.PUBLIC_ORIGIN): string {
   const host = mainDomain.trim() || 'localhost';
   const anchoredToHttp = host.startsWith('localhost') || host.startsWith('127.');
-  const origin = `${anchoredToHttp ? 'http' : 'https'}://${host}`;
+  // PUBLIC_ORIGIN (точный origin основного сайта) приоритетнее: так работает http://IP.
+  const exact = publicOrigin?.trim().replace(/\/+$/, '');
+  const origin = exact || `${anchoredToHttp ? 'http' : 'https'}://${host}`;
   return [
     "default-src 'none'",
     "script-src 'unsafe-inline'",

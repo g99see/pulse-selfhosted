@@ -40,9 +40,13 @@ export class HtmlPageService {
     return process.env.SANDBOX_DOMAIN?.trim() || 'usercontent.localhost';
   }
 
-  /** Публичный адрес страницы: https://SANDBOX_DOMAIN/sandbox/@nickname. */
+  /**
+   * Публичный адрес страницы: SANDBOX_ORIGIN (полный origin, например
+   * http://192.168.1.50:8080 для установки по http) либо https://SANDBOX_DOMAIN.
+   */
   sandboxUrl(nickname: string): string {
-    return `https://${this.sandboxDomain()}/sandbox/${encodeURIComponent(nickname)}`;
+    const origin = process.env.SANDBOX_ORIGIN?.trim().replace(/\/+$/, '');
+    return `${origin || `https://${this.sandboxDomain()}`}/sandbox/${encodeURIComponent(nickname)}`;
   }
 
   private toVersionDto(version: VersionRow): HtmlPageVersionDto {
