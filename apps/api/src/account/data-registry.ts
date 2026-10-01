@@ -39,6 +39,8 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'check_ins', entity: 'checkIns', keyColumn: 'user_id', orderBy: '"occurred_at"' },
   { table: 'notification_rules', entity: 'notificationRules', keyColumn: 'user_id', orderBy: '"type"' },
   { table: 'daily_stats', entity: 'dailyStats', keyColumn: 'user_id', orderBy: '"date"' },
+  // Курсы валют (ТЗ §3.2): дата, пара и курс — не секреты, выгружаем.
+  { table: 'exchange_rates', entity: 'exchangeRates', keyColumn: 'user_id', orderBy: '"date", "base", "quote"' },
   // Внешние привязки входа (ТЗ §3.1, §7): subject не секрет, выгружаем как есть.
   { table: 'external_identities', entity: 'externalIdentities', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Привязка Telegram-чата (ТЗ §3.6): chat_id — идентификатор чата, выгружается как есть.
