@@ -7,12 +7,14 @@ import {
   DEFAULT_CHECKIN_SCHEDULE,
   MOOD_COLORS,
   MOOD_EMOJI,
+  extractVoiceTags,
   type CheckInDto,
   type CheckInSlot,
   type Mood,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { MetricScale, MoodScale } from '@/components/mood-scale';
+import { VoiceInputButton } from '@/components/voice-input-button';
 import { formatDate } from '@/lib/format';
 import { slotForHour } from '@/lib/checkin';
 import { checkinApi, notifyCheckInChanged } from '@/lib/checkin-client';
@@ -36,6 +38,7 @@ export default function CheckInPage() {
   const [water, setWater] = useState('');
   const [steps, setSteps] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [note, setNote] = useState('');
   const [daySummary, setDaySummary] = useState('');
 
@@ -75,6 +78,21 @@ export default function CheckInPage() {
     setTags((previous) =>
       previous.includes(tag) ? previous.filter((item) => item !== tag) : [...previous, tag],
     );
+  }
+
+  /** Распознанный текст уходит в заметку или итог дня, найденные теги — в подсказки. */
+  function handleVoice(text: string, target: 'note' | 'daySummary'): void {
+    const clean = text.trim();
+    if (clean.length === 0) return;
+    if (target === 'note') {
+      setNote((previous) => (previous.trim() ? `${previous.trim()} ${clean}` : clean));
+    } else {
+      setDaySummary((previous) => (previous.trim() ? `${previous.trim()} ${clean}` : clean));
+    }
+    const found = extractVoiceTags(clean);
+    if (found.length > 0) {
+      setSuggestedTags((previous) => Array.from(new Set([...previous, ...found])));
+    }
   }
 
   function changeTimesPerDay(next: number): void {
@@ -130,6 +148,7 @@ export default function CheckInPage() {
       setWater('');
       setSteps('');
       setTags([]);
+      setSuggestedTags([]);
       setNote('');
       setDaySummary('');
       await reload();
@@ -247,8 +266,43 @@ export default function CheckInPage() {
               </div>
             </fieldset>
 
-            <label htmlFor="checkin-note" className="flex flex-col gap-1">
-              <span className="text-sm font-medium">{t('checkin.note')}</span>
+            {suggestedTags.length > 0 ? (
+              <fieldset className="flex flex-col gap-2" data-testid="checkin-voice-tags">
+                <legend className="text-sm font-medium">{t('checkin.voice.suggested')}</legend>
+                <div className="flex flex-wrap gap-2">
+                  {suggestedTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      data-testid="checkin-voice-tag"
+                      aria-pressed={tags.includes(tag)}
+                      onClick={() => toggleTag(tag)}
+                      className="rounded-[var(--radius-chip)] border px-3 py-1.5 text-sm"
+                      style={{
+                        borderColor: tags.includes(tag)
+                          ? 'var(--puls-wellbeing)'
+                          : 'var(--puls-ink-muted)',
+                        backgroundColor: tags.includes(tag) ? 'var(--puls-wellbeing)' : 'transparent',
+                      }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            ) : null}
+
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="checkin-note" className="text-sm font-medium">
+                  {t('checkin.note')}
+                </label>
+                <VoiceInputButton
+                  testId="checkin-note-voice"
+                  label={t('checkin.voice.dictateNote')}
+                  onTranscript={(text) => handleVoice(text, 'note')}
+                />
+              </div>
               <textarea
                 id="checkin-note"
                 data-testid="checkin-note"
@@ -257,10 +311,19 @@ export default function CheckInPage() {
                 onChange={(event) => setNote(event.target.value)}
                 className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3 py-2"
               />
-            </label>
+            </div>
 
-            <label htmlFor="checkin-day-summary" className="flex flex-col gap-1">
-              <span className="text-sm font-medium">{t('checkin.daySummary')}</span>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="checkin-day-summary" className="text-sm font-medium">
+                  {t('checkin.daySummary')}
+                </label>
+                <VoiceInputButton
+                  testId="checkin-day-summary-voice"
+                  label={t('checkin.voice.dictateSummary')}
+                  onTranscript={(text) => handleVoice(text, 'daySummary')}
+                />
+              </div>
               <input
                 id="checkin-day-summary"
                 data-testid="checkin-day-summary"
@@ -269,7 +332,7 @@ export default function CheckInPage() {
                 placeholder={t('checkin.daySummaryPlaceholder')}
                 className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
               />
-            </label>
+            </div>
           </div>
         </details>
 

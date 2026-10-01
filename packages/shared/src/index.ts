@@ -4,6 +4,7 @@
  */
 export * from './mood';
 export * from './checkin';
+export * from './voice-tags';
 export * from './money';
 export * from './currency';
 export * from './dates';

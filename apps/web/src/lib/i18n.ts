@@ -456,6 +456,15 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'checkin.schedule.save': 'Сохранить расписание',
     'checkin.schedule.saved': 'Расписание сохранено',
 
+    'checkin.voice.start': 'Диктовать',
+    'checkin.voice.stop': 'Стоп',
+    'checkin.voice.dictateNote': 'Надиктовать заметку',
+    'checkin.voice.dictateSummary': 'Надиктовать итог дня',
+    'checkin.voice.unsupported':
+      'Голосовой ввод недоступен в этом браузере. Распознавание идёт на устройстве, аудио никуда не отправляется.',
+    'checkin.voice.error': 'Не удалось распознать речь.',
+    'checkin.voice.suggested': 'Теги из записи',
+
     'stats.title': 'Статистика',
     'stats.period.label': 'Период',
     'stats.period.day': 'День',
@@ -1521,6 +1530,15 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'checkin.schedule.timesPerDay': 'Times per day',
     'checkin.schedule.save': 'Save schedule',
     'checkin.schedule.saved': 'Schedule saved',
+
+    'checkin.voice.start': 'Dictate',
+    'checkin.voice.stop': 'Stop',
+    'checkin.voice.dictateNote': 'Dictate a note',
+    'checkin.voice.dictateSummary': 'Dictate the day summary',
+    'checkin.voice.unsupported':
+      'Voice input is unavailable in this browser. Recognition runs on your device; audio is never sent anywhere.',
+    'checkin.voice.error': 'Could not recognize the speech.',
+    'checkin.voice.suggested': 'Tags from your dictation',
 
     'stats.title': 'Stats',
     'stats.period.label': 'Period',
