@@ -88,6 +88,20 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     keyColumn: 'user_id',
     orderBy: '"date", "created_at"',
   },
+  // Участие в челленджах (ТЗ §4, P2): челлендж и дата вступления — данные пользователя.
+  {
+    table: 'challenge_participants',
+    entity: 'challengeParticipants',
+    keyColumn: 'user_id',
+    orderBy: '"joined_at"',
+  },
+  // Отметки «держусь» (ТЗ §4, P2): день и флаг — действия пользователя.
+  {
+    table: 'challenge_checks',
+    entity: 'challengeChecks',
+    keyColumn: 'user_id',
+    orderBy: '"date"',
+  },
   // Журнал доставок вебхуков (ТЗ §4): событие, статус и ошибка — данные пользователя.
   {
     table: 'webhook_deliveries',

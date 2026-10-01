@@ -32,4 +32,5 @@ export * from './ai';
 export * from './moderation';
 export * from './api-access';
 export * from './family';
+export * from './challenges';
 export * from './wrapped';

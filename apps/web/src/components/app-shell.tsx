@@ -20,6 +20,7 @@ const NAV: Array<{ key: string; href: string | null; testId?: string }> = [
   { key: 'app.nav.achievements', href: '/achievements' },
   { key: 'app.nav.feed', href: '/feed' },
   { key: 'app.nav.family', href: '/family' },
+  { key: 'app.nav.challenges', href: '/challenges', testId: 'nav-challenges' },
   { key: 'app.nav.ai', href: '/ai', testId: 'nav-ai' },
   { key: 'app.nav.moderation', href: '/moderation' },
   { key: 'app.nav.adminAi', href: '/admin/ai', testId: 'nav-admin-ai' },

@@ -121,6 +121,13 @@ model User {
   habits               Habit[]
   /// Отметки привычек по дням (ТЗ §4, P2).
   habitLogs            HabitLog[]
+  /// Челленджи, созданные пользователем (ТЗ §4, P2).
+  ownedChallenges      Challenge[]          @relation("ChallengeOwner")
+  /// Участие пользователя в челленджах (ТЗ §4).
+  challengeParticipations ChallengeParticipant[]
+  /// Ежедневные отметки «держусь» (ТЗ §4).
+  challengeChecks      ChallengeCheck[]
+
   @@map("users")
 }
 
@@ -1153,4 +1160,63 @@ model HabitLog {
   @@unique([habitId, date])
   @@index([userId, date])
   @@map("habit_logs")
+}
+
+/// Челлендж (ТЗ §4, P2): «30 дней без доставки», «Неделя без импульсных
+/// покупок» и свои испытания. Ведущий (owner_id) задаёт вид, длительность,
+/// старт и видимость. invite_code — механизм приглашения друзей по коду.
+model Challenge {
+  id           String   @id @default(cuid())
+  ownerId      String   @map("owner_id")
+  owner        User     @relation("ChallengeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  /// no_spend_category | streak_checkin | custom.
+  kind         String   @default("custom")
+  durationDays Int      @map("duration_days")
+  startDate    DateTime @map("start_date") @db.Date
+  /// private | friends | public.
+  visibility   String   @default("private")
+  inviteCode   String   @unique @map("invite_code")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  participants ChallengeParticipant[]
+  checks       ChallengeCheck[]
+
+  @@index([ownerId])
+  @@map("challenges")
+}
+
+/// Участник челленджа (ТЗ §4): пара (challenge_id, user_id) уникальна —
+/// повторное вступление идемпотентно. Никнейм берётся из users, приватные
+/// данные участника в рейтинг не попадают.
+model ChallengeParticipant {
+  id          String    @id @default(cuid())
+  challengeId String    @map("challenge_id")
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+  @@map("challenge_participants")
+}
+
+/// Ежедневная отметка «держусь» (ТЗ §4): одна на (челлендж, пользователь,
+/// день). ok = false — день не засчитан; для kind = streak_checkin прогресс
+/// (серия и дни выдержки) считается автоматически по этим отметкам.
+model ChallengeCheck {
+  id          String    @id @default(cuid())
+  challengeId String    @map("challenge_id")
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime  @db.Date
+  ok          Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([challengeId, userId, date])
+  @@index([challengeId, userId])
+  @@map("challenge_checks")
 }
