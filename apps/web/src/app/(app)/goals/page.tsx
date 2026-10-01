@@ -307,7 +307,8 @@ export default function GoalsPage() {
                   <span className="truncate text-lg font-bold">{goal.title}</span>
                 </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
-                  {t('goals.saved')}: {money(goal.savedAmount, goal.currency)} · {t('goals.remaining')}:{' '}
+                  {t('goals.saved')}: {money(goal.savedAmount, goal.currency)} /{' '}
+                  {money(goal.targetAmount, goal.currency)} · {t('goals.remaining')}:{' '}
                   {money(goal.remaining, goal.currency)}
                 </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
