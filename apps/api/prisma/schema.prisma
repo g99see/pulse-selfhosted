@@ -90,6 +90,11 @@ model User {
   /// Версии HTML-страницы (ТЗ §3.8): последние 10 сохранений с откатом.
   htmlPageVersions   HtmlPageVersion[]
 
+  /// Личный AI-ключ (ТЗ §3.9) — один на пользователя; приоритетнее общего.
+  aiKey              UserAiKey?
+  /// Учёт токенов AI по месяцам (ТЗ §3.9).
+  aiUsage            AiUsage[]
+
   @@map("users")
 }
 
@@ -353,6 +358,15 @@ model InstanceSettings {
   /// closed — регистрация закрыта (POST /auth/register → 403 registration_closed).
   registrationMode String    @default("open") @map("registration_mode")
   setupCompletedAt DateTime? @map("setup_completed_at")
+
+  // AI-помощник экземпляра (ТЗ §3.9): общий ключ, провайдер, модель и лимит.
+  // Ключ хранится только зашифрованным AES-256-GCM (crypto/secret-box.ts).
+  aiProvider          String? @map("ai_provider")
+  aiApiKeyEncrypted   String? @map("ai_api_key_encrypted")
+  aiApiKeyLast4       String? @map("ai_api_key_last4")
+  aiBaseUrl           String? @map("ai_base_url")
+  aiModel             String? @map("ai_model")
+  aiMonthlyTokenLimit Int?    @map("ai_monthly_token_limit")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -808,4 +822,39 @@ model HtmlPageVersion {
   @@index([pageId, createdAt])
   @@index([userId])
   @@map("html_page_versions")
+}
+
+/// Личный API-ключ AI пользователя (ТЗ §3.9): один на пользователя, приоритетнее
+/// общего ключа экземпляра. Сам ключ хранится только зашифрованным AES-256-GCM;
+/// в интерфейс уходят лишь последние 4 символа (api_key_last4). Для
+/// openai_compatible (Ollama/LM Studio) ключ может быть пустым, baseUrl обязателен.
+model UserAiKey {
+  userId          String   @id @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        String
+  apiKeyEncrypted String   @map("api_key_encrypted")
+  apiKeyLast4     String?  @map("api_key_last4")
+  baseUrl         String?  @map("base_url")
+  model           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("user_ai_keys")
+}
+
+/// Учёт токенов AI по пользователю и месяцу (ТЗ §3.9): месяц в формате «YYYY-MM».
+/// Строка одна на пару (user_id, month), накапливается upsert-ом. cost_usd —
+/// примерная стоимость по тарифам shared/AI_PRICE_PER_MTOK (локальные — 0).
+model AiUsage {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month     String
+  tokensIn  Int      @default(0) @map("tokens_in")
+  tokensOut Int      @default(0) @map("tokens_out")
+  costUsd   Decimal  @default(0) @map("cost_usd") @db.Decimal(14, 6)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, month])
+  @@map("ai_usage")
 }

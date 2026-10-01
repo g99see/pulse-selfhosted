@@ -67,6 +67,10 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'reactions', entity: 'reactions', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Комментарии пользователя (ТЗ §3.7): тело — собственная запись, выгружаем.
   { table: 'comments', entity: 'comments', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Личный AI-ключ (ТЗ §3.9): сам ключ — секрет, выгружаем провайдера и last4.
+  { table: 'user_ai_keys', entity: 'userAiKeys', keyColumn: 'user_id', secretColumns: ['api_key_encrypted'] },
+  // Учёт токенов AI (ТЗ §3.9): месяц, токены и стоимость — не секреты.
+  { table: 'ai_usage', entity: 'aiUsage', keyColumn: 'user_id', orderBy: '"month"' },
 ];
 
 /** Таблицы с user_id, которые намеренно не выгружаются (секреты и артефакты). */
