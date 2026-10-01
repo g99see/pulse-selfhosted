@@ -754,6 +754,7 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'htmlPage.tab.preview': 'Предпросмотр',
     'htmlPage.preview.hint':
       'Предпросмотр изолирован: скрипты работают, но доступа к данным сайта нет.',
+    'htmlPage.preview.placeholder': 'Предпросмотр появится здесь.',
     'htmlPage.save': 'Сохранить',
     'htmlPage.saving': 'Сохраняем…',
     'htmlPage.saved': 'Сохранено — новая версия в истории.',
@@ -1595,6 +1596,7 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'htmlPage.tab.code': 'Code',
     'htmlPage.tab.preview': 'Preview',
     'htmlPage.preview.hint': 'The preview is isolated: scripts run, but site data stays out of reach.',
+    'htmlPage.preview.placeholder': 'The preview will appear here.',
     'htmlPage.save': 'Save',
     'htmlPage.saving': 'Saving…',
     'htmlPage.saved': 'Saved — a new version is in the history.',

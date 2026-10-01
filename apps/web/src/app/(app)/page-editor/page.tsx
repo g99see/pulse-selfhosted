@@ -26,8 +26,9 @@ import {
   sandboxPageUrl,
 } from '@/lib/html-page-client';
 
-const PREVIEW_PLACEHOLDER =
-  '<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><style>body{font-family:system-ui;color:#475569;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head><body>Предпросмотр появится здесь.</body></html>';
+function previewPlaceholder(text: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:system-ui;color:#475569;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head><body>${text}</body></html>`;
+}
 
 function formatDate(value: string, locale: string): string {
   try {
@@ -279,7 +280,7 @@ export default function PageEditorPage() {
           <iframe
             data-testid="htmlPage-preview"
             title={t('htmlPage.tab.preview')}
-            srcDoc={html.trim() === '' ? PREVIEW_PLACEHOLDER : html}
+            srcDoc={html.trim() === '' ? previewPlaceholder(t('htmlPage.preview.placeholder')) : html}
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             className="h-[60vh] w-full rounded-[var(--radius-card)] border border-[var(--puls-ink-muted)]/30 bg-white"
