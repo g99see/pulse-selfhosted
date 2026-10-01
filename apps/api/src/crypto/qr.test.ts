@@ -38,10 +38,6 @@ const SNAPSHOTS: ReadonlyArray<{ data: string; ecc: 'L' | 'M' | 'Q'; mask?: numb
   },
 ];
 
-function rows(matrix: string): number[][] {
-  return matrix.split('/').map((row) => [...row].map((cell) => Number(cell)));
-}
-
 describe('QR-энкодер', () => {
   for (const snapshot of SNAPSHOTS) {
     it(`совпадает с проверенным снимком: ${snapshot.ecc}-${snapshot.version}`, () => {

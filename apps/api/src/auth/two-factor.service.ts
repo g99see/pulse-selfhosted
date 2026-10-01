@@ -14,8 +14,6 @@ import {
   generateTotpSecret,
   matchTotpStep,
   otpauthUri,
-  TOTP_DIGITS,
-  TOTP_PERIOD_SECONDS,
 } from '../crypto/totp';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
