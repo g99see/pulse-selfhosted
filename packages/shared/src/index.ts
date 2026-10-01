@@ -8,4 +8,6 @@ export * from './money';
 export * from './dates';
 export * from './auth';
 export * from './finance';
+export * from './stats';
+export * from './notifications';
 export * from './account';
