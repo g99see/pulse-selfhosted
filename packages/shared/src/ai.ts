@@ -6,6 +6,8 @@
  * в месяц) и личный ключ пользователя (приоритетнее).
  */
 import { z } from 'zod';
+import { GoalVisibilitySchema } from './goals';
+import { NotificationTypeSchema } from './notifications';
 
 export const AI_PROVIDERS = ['anthropic', 'openai', 'openrouter', 'openai_compatible'] as const;
 export const AiProviderSchema = z.enum(AI_PROVIDERS);
@@ -80,6 +82,9 @@ export type AiChatRequest = z.infer<typeof AiChatRequestSchema>;
 /** Действие, которое помощник предлагает; сохраняется только после «Применить». */
 export type AiProposalKind = 'budget' | 'goal' | 'reminder';
 
+/** Статус предложения: pending — ждёт «Применить», applied — применено. */
+export type AiProposalStatus = 'pending' | 'applied';
+
 export interface AiProposalDto {
   id: string;
   kind: AiProposalKind;
@@ -87,7 +92,7 @@ export interface AiProposalDto {
   summary: string;
   /** Параметры действия (схема зависит от kind, валидируется при применении). */
   payload: Record<string, unknown>;
-  status: 'pending' | 'applied';
+  status: AiProposalStatus;
 }
 
 export interface AiChatResponse {
@@ -184,3 +189,55 @@ export const AI_SYSTEM_PROMPT =
   'Не ставь медицинских диагнозов и не давай советов по конкретным инвестициям. ' +
   'При тревожных сигналах (стойко плохое настроение, мысли о вреде себе) мягко предложи обратиться к специалисту или на линию поддержки. ' +
   'Бюджет, цель или напоминание только предлагай через инструмент предложения — сохраняет их пользователь кнопкой «Применить».';
+
+/* ----- Схемы-дополнение блока B: полезная нагрузка предложений и применение ----- */
+
+export const AiProposalKindSchema = z.enum(['budget', 'goal', 'reminder']);
+
+/** Бюджет: лимит на категорию в месяце «YYYY-MM» (валидируется при «Применить»). */
+export const AiBudgetProposalPayloadSchema = z.object({
+  categoryId: z.string().min(1),
+  month: z.string().regex(/^\d{4}-\d{2}$/),
+  limit: z.number().finite().positive().max(1_000_000_000),
+});
+export type AiBudgetProposalPayload = z.infer<typeof AiBudgetProposalPayloadSchema>;
+
+/** Цель накоплений. */
+export const AiGoalProposalPayloadSchema = z.object({
+  title: z.string().trim().min(1).max(80),
+  targetAmount: z.number().finite().positive().max(1_000_000_000),
+  savedAmount: z.number().finite().min(0).max(1_000_000_000).optional(),
+  deadline: z
+    .string()
+    .trim()
+    .refine((value) => !Number.isNaN(Date.parse(value)), { message: 'Некорректная дата' })
+    .optional(),
+  visibility: GoalVisibilitySchema.optional(),
+});
+export type AiGoalProposalPayload = z.infer<typeof AiGoalProposalPayloadSchema>;
+
+/** Напоминание: правило уведомлений существующего типа (ТЗ §3.6). */
+export const AiReminderProposalPayloadSchema = z.object({
+  notificationType: NotificationTypeSchema,
+  enabled: z.boolean().optional(),
+  times: z
+    .array(z.string().regex(/^\d{1,2}:\d{2}$/))
+    .min(1)
+    .max(6)
+    .optional(),
+});
+export type AiReminderProposalPayload = z.infer<typeof AiReminderProposalPayloadSchema>;
+
+/** Что создано при «Применить»: id бюджета/цели или тип правила напоминания. */
+export interface AiProposalApplied {
+  kind: AiProposalKind;
+  id: string;
+}
+
+export interface AiProposalApplyResponse {
+  proposal: AiProposalDto;
+  applied: AiProposalApplied;
+}
+
+/** Ответ предпросмотра разбора: обёртка над AiReviewPreviewDto. */
+export type AiReviewPreviewPayload = AiReviewPreviewDto;
