@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { RegisterSchema } from '@puls/shared';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
+import { ProviderButtons } from '@/components/provider-buttons';
 import { useT } from '@/components/locale-provider';
 import { AuthApiError, authApi } from '@/lib/auth-client';
 import { authErrorKey } from '@/lib/i18n';
@@ -95,6 +96,10 @@ export default function RegisterPage() {
             {busy ? t('common.loading') : t('auth.register.submit')}
           </PrimaryButton>
         </form>
+
+        <div className="mt-5">
+          <ProviderButtons />
+        </div>
       </Card>
 
       <p className="text-center text-sm text-[var(--puls-ink-muted)]">
