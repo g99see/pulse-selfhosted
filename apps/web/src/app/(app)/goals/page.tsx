@@ -11,11 +11,13 @@ import {
   type GoalVisibility,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { ProgressRing } from '@/components/progress-ring';
 import { ShareButton } from '@/components/share-button';
 import { financeApi } from '@/lib/finance-client';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { goalsApi, notifyGoalsChanged } from '@/lib/goals-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 const VISIBILITIES: Array<{ value: GoalVisibility; key: string }> = [
   { value: 'private', key: 'auth.onboarding.visibilityPrivate' },
@@ -42,6 +44,7 @@ function GoalImage({ image }: { image: string | null }) {
 /** Экран «Цели накоплений» (ТЗ §3.2, §8): кольца, форма цели и пополнения. */
 export default function GoalsPage() {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
 
   const [goals, setGoals] = useState<GoalDto[]>([]);
   const [accounts, setAccounts] = useState<AccountDto[]>([]);
@@ -88,8 +91,9 @@ export default function GoalsPage() {
   }, []);
 
   const money = useCallback(
-    (amount: number, currency = 'RUB'): string => formatMoneyLocale(amount, locale, currency as Currency),
-    [locale],
+    (amount: number, currency = 'RUB'): string =>
+      quiet ? MASKED_AMOUNT : formatMoneyLocale(amount, locale, currency as Currency),
+    [locale, quiet],
   );
 
   async function addGoal(event: React.FormEvent): Promise<void> {

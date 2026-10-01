@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import type { Currency, StatsDayResponse } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { Card } from '@/components/ui';
 import { FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 import { formatMoneyLocale } from '@/lib/format';
 import { statsApi } from '@/lib/stats-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 /**
  * Дашборд дня (ТЗ §3.4, §8): траты, остаток бюджета, среднее настроение и
@@ -17,6 +19,7 @@ import { statsApi } from '@/lib/stats-client';
  */
 export function TodayStats() {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
   const [day, setDay] = useState<StatsDayResponse | null>(null);
 
   const reload = useCallback(async (): Promise<void> => {
@@ -40,7 +43,8 @@ export function TodayStats() {
   }, [reload]);
 
   const currency = (day?.currency ?? 'RUB') as Currency;
-  const money = (value: number): string => formatMoneyLocale(value, locale, currency);
+  const money = (value: number): string =>
+    quiet ? MASKED_AMOUNT : formatMoneyLocale(value, locale, currency);
   const dash = '—';
 
   return (

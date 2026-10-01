@@ -13,9 +13,11 @@ import {
   type FamilyTransactionDto,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { ProgressRing } from '@/components/progress-ring';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { familyApi } from '@/lib/family-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 function parseAmount(value: string): number {
   return Number(value.replace(',', '.'));
@@ -30,6 +32,7 @@ const ACCOUNT_TYPE_KEY: Record<FamilyAccountType, string> = {
 /** Экран «Семья» (ТЗ §4): общие счета и цели, участники и приглашения. */
 export default function FamilyPage() {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
 
   const [family, setFamily] = useState<FamilyDto | null>(null);
   const [accounts, setAccounts] = useState<FamilyAccountDto[]>([]);
@@ -85,8 +88,9 @@ export default function FamilyPage() {
   }, [reload]);
 
   const money = useCallback(
-    (amount: number, currency = 'RUB'): string => formatMoneyLocale(amount, locale, currency as Currency),
-    [locale],
+    (amount: number, currency = 'RUB'): string =>
+      quiet ? MASKED_AMOUNT : formatMoneyLocale(amount, locale, currency as Currency),
+    [locale, quiet],
   );
 
   async function run(action: () => Promise<void>): Promise<void> {

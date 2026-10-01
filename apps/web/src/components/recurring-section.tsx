@@ -11,8 +11,10 @@ import type {
   RecurringUpcomingItem,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { recurringApi } from '@/lib/recurring-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 const FREQUENCIES: { value: RecurrenceFrequency; key: string }[] = [
   { value: 'weekly', key: 'finance.recurring.frequency.weekly' },
@@ -39,6 +41,7 @@ interface RecurringSectionProps {
 /** Секция «Регулярные платежи» на экране финансов (ТЗ §3.2). */
 export function RecurringSection({ accounts, categories, currency, onChanged }: RecurringSectionProps) {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
 
   const [payments, setPayments] = useState<RecurringPaymentDto[]>([]);
   const [upcoming, setUpcoming] = useState<RecurringUpcomingItem[]>([]);
@@ -168,7 +171,9 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
             </span>
             <span className="flex items-center gap-3">
               <span className="font-semibold [font-variant-numeric:tabular-nums]" data-testid="recurring-amount">
-                {formatMoneyLocale(payment.amount, locale, payment.currency as Currency)}
+                {quiet
+                  ? MASKED_AMOUNT
+                  : formatMoneyLocale(payment.amount, locale, payment.currency as Currency)}
               </span>
               <button
                 type="button"

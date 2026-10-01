@@ -13,11 +13,13 @@ import {
   type TransactionKind,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { CategoryManager } from '@/components/category-manager';
 import { RecurringSection } from '@/components/recurring-section';
 import { CURRENCY_OPTIONS } from '@/lib/currency-form';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { financeApi, FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 type AccountTypeOption = { value: AccountType; key: string };
 const ACCOUNT_TYPES: AccountTypeOption[] = [
@@ -35,6 +37,7 @@ const LEVEL_COLOR: Record<BudgetDto['level'], string> = {
 /** Экран «Финансы» (ТЗ §8 пункт 5): счета, транзакции с фильтрами, бюджеты. */
 export default function FinancePage() {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
 
   const [overview, setOverview] = useState<FinanceOverviewResponse | null>(null);
   const [transactions, setTransactions] = useState<TransactionDto[]>([]);
@@ -93,6 +96,9 @@ export default function FinancePage() {
   const categories = overview?.categories ?? [];
   const budgets = overview?.budgets ?? [];
   const currency = overview?.currency ?? 'RUB';
+  // Режим «Тишина» (ТЗ §4): все суммы на экране прячутся одной маской.
+  const money = (value: number, currencyCode: Currency = currency as Currency): string =>
+    quiet ? MASKED_AMOUNT : formatMoneyLocale(value, locale, currencyCode);
   const expenseCategories = categories.filter((category) => category.kind === 'expense');
   // Валюта нового счёта: по умолчанию — основная валюта пользователя.
   const selectedAccountCurrency = accountCurrency || currency;
@@ -165,7 +171,7 @@ export default function FinancePage() {
           <p className="text-sm text-[var(--puls-ink-muted)]">
             {t('finance.total')}{' '}
             <span className="font-semibold text-[var(--puls-ink)] [font-variant-numeric:tabular-nums]">
-              {formatMoneyLocale(overview.totalBalance, locale, currency as Currency)}
+              {money(overview.totalBalance)}
             </span>
           </p>
         ) : null}
@@ -192,7 +198,7 @@ export default function FinancePage() {
                 </span>
               </span>
               <span className="font-semibold [font-variant-numeric:tabular-nums]">
-                {formatMoneyLocale(account.balance, locale, account.currency as Currency)}
+                {money(account.balance, account.currency as Currency)}
               </span>
             </li>
           ))}
@@ -349,7 +355,7 @@ export default function FinancePage() {
                     data-testid="transaction-amount"
                   >
                     {amountPrefix(transaction.type)}
-                    {formatMoneyLocale(transaction.amount, locale, transaction.currency as Currency)}
+                    {money(transaction.amount, transaction.currency as Currency)}
                   </span>
                   {transaction.currency !== transaction.baseCurrency ? (
                     <span
@@ -357,11 +363,7 @@ export default function FinancePage() {
                       data-testid="transaction-base"
                     >
                       {t('finance.tx.equivalent', {
-                        amount: formatMoneyLocale(
-                          transaction.amountBase,
-                          locale,
-                          transaction.baseCurrency as Currency,
-                        ),
+                        amount: money(transaction.amountBase, transaction.baseCurrency as Currency),
                         currency: transaction.baseCurrency,
                       })}
                     </span>
@@ -396,8 +398,8 @@ export default function FinancePage() {
                 <span className="font-medium">{budget.categoryName}</span>
                 <span className="text-[var(--puls-ink-muted)]">
                   {t('finance.budget.spent', {
-                    spent: formatMoneyLocale(budget.spent, locale, currency as Currency),
-                    limit: formatMoneyLocale(budget.limit, locale, currency as Currency),
+                    spent: money(budget.spent),
+                    limit: money(budget.limit),
                   })}
                 </span>
               </div>

@@ -4,10 +4,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { InsightDto, InsightFeedback, InsightsFeedResponse, SupportResourceDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { Card, GhostButton, PrimaryButton } from '@/components/ui';
 import { FINANCE_CHANGED_EVENT, notifyFinanceChanged } from '@/lib/finance-client';
 import { formatDate, formatMoneyLocale, formatNumber } from '@/lib/format';
 import { insightsApi } from '@/lib/insights-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 const CURRENCY = 'RUB' as const;
 
@@ -18,6 +20,7 @@ const CURRENCY = 'RUB' as const;
  */
 export default function InsightsPage() {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
   const [feed, setFeed] = useState<InsightsFeedResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +64,8 @@ export default function InsightsPage() {
 
   function text(insight: InsightDto): string {
     const params: Record<string, string | number> = { ...insight.params };
-    if (typeof params.amount === 'number') params.amount = formatMoneyLocale(params.amount, locale, CURRENCY);
+    if (typeof params.amount === 'number')
+      params.amount = quiet ? MASKED_AMOUNT : formatMoneyLocale(params.amount, locale, CURRENCY);
     if (typeof params.percent === 'number') params.percent = formatNumber(params.percent, locale, { maximumFractionDigits: 1 });
     if (typeof params.delta === 'number') params.delta = formatNumber(params.delta, locale, { maximumFractionDigits: 1 });
     return t(insight.textKey, params);

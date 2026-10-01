@@ -12,11 +12,13 @@ import {
   type StatsReportResponse,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { MASKED_AMOUNT } from '@/components/money';
 import { Card } from '@/components/ui';
 import { barLayout, heatLevel, summarizeSeries } from '@/lib/charts';
 import { FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 import { formatDate, formatMoneyLocale, formatNumber } from '@/lib/format';
 import { statsApi } from '@/lib/stats-client';
+import { useQuietMode } from '@/lib/use-quiet-mode';
 
 const PERIODS: StatsPeriod[] = ['day', 'week', 'month', 'year'];
 
@@ -57,6 +59,7 @@ function Metric({ label, value, testId }: MetricProps) {
  */
 export default function StatsPage() {
   const { t, locale } = useT();
+  const quiet = useQuietMode();
 
   const [period, setPeriod] = useState<StatsPeriod>('week');
   const [report, setReport] = useState<StatsReportResponse | null>(null);
@@ -96,7 +99,8 @@ export default function StatsPage() {
   }, [reload]);
 
   const currency = (report?.currency ?? 'RUB') as Currency;
-  const money = (value: number): string => formatMoneyLocale(value, locale, currency);
+  const money = (value: number): string =>
+    quiet ? MASKED_AMOUNT : formatMoneyLocale(value, locale, currency);
   const number = (value: number): string => formatNumber(value, locale, { maximumFractionDigits: 1 });
 
   const series = report?.series ?? [];
