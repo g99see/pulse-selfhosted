@@ -14,7 +14,7 @@ import {
   type AiUsageAdminResponse,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Alert, Card, Field, PrimaryButton, Select } from '@/components/ui';
+import { Alert, Card, EmptyState, Field, IconBubble, PrimaryButton, Select } from '@/components/ui';
 import { aiApi, aiErrorKey, formatAiCost, formatAiTokens } from '@/lib/ai-client';
 import { authApi, AuthApiError } from '@/lib/auth-client';
 
@@ -106,9 +106,9 @@ export default function AdminAiPage() {
       <div className="flex flex-col gap-4" data-testid="ai-admin-page">
         <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
         <Card>
-          <p role="alert" data-testid="ai-admin-forbidden" className="text-sm text-[var(--puls-warning-text)]">
-            {t('ai.admin.forbidden')}
-          </p>
+          <div data-testid="ai-admin-forbidden">
+            <Alert>{t('ai.admin.forbidden')}</Alert>
+          </div>
         </Card>
       </div>
     );
@@ -116,20 +116,23 @@ export default function AdminAiPage() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="ai-admin-page">
-      <div>
-        <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('ai.admin.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="bot" tone="primary" size={48} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('ai.admin.subtitle')}</p>
+        </div>
       </div>
 
       {error ? <Alert>{error}</Alert> : null}
 
       <Card className="flex flex-col gap-4">
-        <h2 className="text-lg font-bold">{t('ai.admin.section')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('ai.admin.section')}</h2>
 
         {notice ? (
-          <p role="status" data-testid="ai-admin-notice" className="text-sm font-medium text-[var(--puls-finance-text)]">
-            {notice}
-          </p>
+          <div data-testid="ai-admin-notice">
+            <Alert tone="success">{notice}</Alert>
+          </div>
         ) : null}
 
         <Select
@@ -194,7 +197,7 @@ export default function AdminAiPage() {
 
       {/* Расход по пользователям за месяц (ТЗ §3.9). */}
       <Card className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">{t('ai.admin.usage.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('ai.admin.usage.title')}</h2>
         {usage ? (
           <p className="text-xs text-[var(--puls-ink-muted)]">{t('ai.admin.usage.month', { month: usage.month })}</p>
         ) : null}
@@ -202,7 +205,7 @@ export default function AdminAiPage() {
           <div className="overflow-x-auto">
             <table data-testid="ai-admin-usage" className="w-full text-left text-sm">
               <thead>
-                <tr className="text-xs text-[var(--puls-ink-muted)]">
+                <tr className="bg-[var(--puls-surface-2)] text-xs text-[var(--puls-ink-muted)]">
                   <th className="py-2 pr-3 font-medium">{t('ai.admin.usage.user')}</th>
                   <th className="py-2 pr-3 font-medium">{t('ai.admin.usage.tokens')}</th>
                   <th className="py-2 font-medium">{t('ai.admin.usage.cost')}</th>
@@ -222,9 +225,9 @@ export default function AdminAiPage() {
             </table>
           </div>
         ) : (
-          <p data-testid="ai-admin-usage-empty" className="text-sm text-[var(--puls-ink-muted)]">
-            {t('ai.admin.usage.empty')}
-          </p>
+          <div data-testid="ai-admin-usage-empty">
+            <EmptyState icon="chart" tone="primary" title={t('ai.admin.usage.empty')} />
+          </div>
         )}
       </Card>
     </div>

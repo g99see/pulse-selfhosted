@@ -61,7 +61,7 @@ export default async function GoalWidgetPage({
   return (
     <main
       data-testid="goal-widget"
-      className="flex min-h-screen flex-col justify-center gap-3 p-4 text-[var(--puls-ink)]"
+      className="flex min-h-screen flex-col justify-center gap-3 bg-[var(--puls-finance-soft)] p-4 text-[var(--puls-ink)]"
     >
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2 font-bold">
@@ -72,7 +72,7 @@ export default async function GoalWidgetPage({
           ) : null}
           <span className="truncate">{widget.title}</span>
         </span>
-        <span className="shrink-0 text-lg font-extrabold text-[var(--puls-finance-text)]">
+        <span className="shrink-0 font-heading text-lg font-extrabold text-[var(--puls-finance-text)]">
           {t('widget.percent', locale, { percent: widget.percent })}
         </span>
       </div>
@@ -84,7 +84,7 @@ export default async function GoalWidgetPage({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={widget.title}
-        className="h-3 w-full overflow-hidden rounded-full bg-[var(--puls-finance)]/20"
+        className="h-3.5 w-full overflow-hidden rounded-full bg-[var(--puls-surface)]"
       >
         <div
           className="h-full rounded-full bg-[var(--puls-finance)] transition-[width] duration-200"
@@ -108,7 +108,7 @@ export default async function GoalWidgetPage({
           {widget.milestones.map((milestone) => (
             <span
               key={milestone}
-              className="rounded-[var(--radius-chip)] bg-[var(--puls-finance)]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--puls-finance-text)]"
+              className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--puls-finance-text)]"
             >
               {t('widget.milestone', locale, { percent: milestone })}
             </span>

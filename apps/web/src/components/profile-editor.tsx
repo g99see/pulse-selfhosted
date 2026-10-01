@@ -104,16 +104,24 @@ export function ProfileEditor() {
   }
 
   if (loading) {
-    return <Card>{t('common.loading')}</Card>;
+    return <Card className="min-h-48">{t('common.loading')}</Card>;
   }
 
   return (
     <Card className="flex flex-col gap-5" >
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-bold">{t('profile.title')}</h2>
-        <p className="text-sm text-[var(--puls-ink-muted)]">
-          {t('profile.subtitle', { nickname: profile?.nickname ?? MASKED })}
-        </p>
+      <div className="-m-5 mb-0 flex items-center gap-4 rounded-t-[var(--radius-card)] bg-gradient-to-br from-[var(--puls-primary-soft)] via-[var(--puls-wellbeing-soft)] to-[var(--puls-finance-soft)] p-5 sm:-m-6 sm:mb-0 sm:p-6">
+        <span
+          aria-hidden="true"
+          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[var(--puls-surface)] bg-[var(--puls-surface)] font-heading text-xl font-extrabold text-[var(--puls-primary-text)]"
+        >
+          {profile ? profile.nickname.slice(0, 2).toUpperCase() : '··'}
+        </span>
+        <div className="flex flex-col gap-1">
+          <h2 className="font-heading text-lg font-bold text-[var(--puls-ink)]">{t('profile.title')}</h2>
+          <p className="text-sm text-[var(--puls-ink)]">
+            {t('profile.subtitle', { nickname: profile?.nickname ?? MASKED })}
+          </p>
+        </div>
       </div>
 
       <Field
@@ -141,7 +149,7 @@ export function ProfileEditor() {
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h3 className="font-bold">{t('profile.cards')}</h3>
+          <h3 className="font-heading font-bold">{t('profile.cards')}</h3>
           <p className="text-xs text-[var(--puls-ink-muted)]">{t('profile.cardsHint')}</p>
         </div>
 
@@ -149,7 +157,7 @@ export function ProfileEditor() {
           <div
             key={card.type}
             data-testid={`profile-card-${card.type}`}
-            className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--puls-line)] p-4"
+            className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
           >
             <p className="font-medium">{t(`profile.card.${card.type}`)}</p>
             <div className="grid gap-3 sm:grid-cols-2">

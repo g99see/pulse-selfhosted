@@ -113,14 +113,22 @@ export function PostCard({ post }: { post: PostDto }) {
 
   return (
     <Card className="flex flex-col gap-3">
-      <div data-testid="post-card" data-post-id={post.id}>
-        <p className="text-xs text-[var(--puls-ink-muted)]">
-          {t('feed.post.author', { nickname: post.author.nickname })}
-        </p>
-        <p className="text-base font-semibold">{postTitle(post, t)}</p>
+      <div data-testid="post-card" data-post-id={post.id} className="flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--puls-primary-soft)] font-heading text-base font-extrabold text-[var(--puls-primary-text)]"
+        >
+          {post.author.nickname.slice(0, 2).toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs text-[var(--puls-ink-muted)]">
+            {t('feed.post.author', { nickname: post.author.nickname })}
+          </p>
+          <p className="font-heading text-base font-bold">{postTitle(post, t)}</p>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1" aria-label={t('feed.reactions.label')}>
+      <div className="flex flex-wrap items-center gap-2" aria-label={t('feed.reactions.label')}>
         {REACTION_EMOJIS.map((emoji) => {
           const summary = reactionFor(emoji);
           return (
@@ -130,10 +138,10 @@ export function PostCard({ post }: { post: PostDto }) {
               data-testid={`reaction-${emoji}`}
               data-reacted={summary?.reactedByMe ?? false}
               onClick={() => void toggleReaction(emoji)}
-              className={`rounded-full border px-2.5 py-1 text-sm transition-colors duration-150 ${
+              className={`rounded-full border px-3 py-1.5 text-sm transition-colors duration-150 ${
                 summary?.reactedByMe
-                  ? 'border-[var(--puls-primary)] bg-[var(--puls-primary)]/10'
-                  : 'border-[var(--puls-line)]'
+                  ? 'border-[var(--puls-primary)] bg-[var(--puls-primary-soft)] text-[var(--puls-primary-text)]'
+                  : 'border-transparent bg-[var(--puls-surface-2)] hover:bg-[var(--puls-primary-soft)]'
               }`}
             >
               <span aria-hidden="true">{emoji}</span>
@@ -197,12 +205,12 @@ export function PostCard({ post }: { post: PostDto }) {
                 maxLength={500}
                 onChange={(event) => setText(event.target.value)}
                 placeholder={t('feed.comments.placeholder')}
-                className="flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-2 text-sm"
+                className="h-10 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 text-sm"
               />
               <button
                 type="submit"
                 data-testid="comment-submit"
-                className="rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-3 py-2 text-sm font-semibold text-[var(--puls-on-primary)]"
+                className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)]"
               >
                 {t('feed.comments.submit')}
               </button>

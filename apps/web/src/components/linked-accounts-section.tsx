@@ -90,7 +90,7 @@ export function LinkedAccountsSection() {
     <Card>
       <div className="flex flex-col gap-4" data-testid="linked-accounts">
         <div>
-          <h2 className="text-lg font-bold">{t('settings.accounts.title')}</h2>
+          <h2 className="font-heading text-lg font-bold">{t('settings.accounts.title')}</h2>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('settings.accounts.hint')}</p>
         </div>
 

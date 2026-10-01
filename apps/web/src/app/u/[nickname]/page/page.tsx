@@ -26,8 +26,8 @@ export default async function PublicHtmlPageTab({
   if (!NICKNAME_REGEX.test(handle)) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-5 py-8">
-      <h1 className="mb-4 text-2xl font-extrabold">
+    <main className="puls-backdrop mx-auto min-h-screen w-full max-w-3xl px-5 py-8">
+      <h1 className="mb-4 font-heading text-2xl font-extrabold">
         @{handle} · {t('htmlPage.viewer.title')}
       </h1>
       <PublicHtmlPage nickname={handle} />

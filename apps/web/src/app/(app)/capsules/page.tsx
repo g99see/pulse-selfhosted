@@ -10,7 +10,7 @@ import type {
   Currency,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Alert, Card, PrimaryButton } from '@/components/ui';
+import { Alert, Badge, Card, EmptyState, IconBubble, PrimaryButton } from '@/components/ui';
 import { authApi } from '@/lib/auth-client';
 import { capsulesApi } from '@/lib/capsules-client';
 import { formatDate, formatMoneyLocale, formatNumber } from '@/lib/format';
@@ -121,15 +121,16 @@ export default function CapsulesPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold">{t('capsules.title')}</h1>
-      <p className="text-sm text-[var(--puls-ink-muted)]">{t('capsules.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="capsule" tone="wellbeing" size={48} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('capsules.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('capsules.subtitle')}</p>
+        </div>
+      </div>
 
       {error ? <Alert>{error}</Alert> : null}
-      {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance-text)]">
-          {notice}
-        </p>
-      ) : null}
+      {notice ? <Alert tone="success">{notice}</Alert> : null}
 
       <Card className="flex flex-col gap-4">
         <form className="flex flex-col gap-3" onSubmit={(event) => void create(event)}>
@@ -194,11 +195,14 @@ export default function CapsulesPage() {
       </Card>
 
       {capsules.length === 0 && !loading ? (
-        <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="capsules-empty">
-          {t('capsules.empty')}
-        </p>
+        <Card>
+          <div data-testid="capsules-empty">
+            <EmptyState icon="capsule" tone="wellbeing" title={t('capsules.empty')} />
+          </div>
+        </Card>
       ) : null}
 
+      <div className="grid gap-4 md:grid-cols-2">
       {capsules.map((capsule) => {
         const detail = details[capsule.id];
         return (
@@ -209,10 +213,14 @@ export default function CapsulesPage() {
               data-open={capsule.open ? 'true' : 'false'}
               className="flex items-start justify-between gap-3"
             >
+              <div className="flex min-w-0 flex-1 items-start gap-3">
+              <IconBubble name={capsule.open ? 'sparkle' : 'capsule'} tone={capsule.open ? 'finance' : 'wellbeing'} />
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="truncate text-lg font-bold">{capsule.title}</span>
-                <span className="text-xs text-[var(--puls-ink-muted)]">
-                  {capsule.open ? t('capsules.opened') : t('capsules.closed')}
+                <span className="truncate font-heading text-lg font-bold">{capsule.title}</span>
+                <span>
+                  <Badge tone={capsule.open ? 'finance' : 'wellbeing'}>
+                    {capsule.open ? t('capsules.opened') : t('capsules.closed')}
+                  </Badge>
                 </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
                   {t('capsules.opensAt', {
@@ -225,11 +233,12 @@ export default function CapsulesPage() {
                   </span>
                 ) : null}
               </div>
+              </div>
               <button
                 type="button"
                 data-testid="capsule-delete"
                 onClick={() => void remove(capsule.id)}
-                className="shrink-0 text-xs text-[var(--puls-ink-muted)]"
+                className="shrink-0 rounded-[var(--radius-chip)] px-2 py-1 text-xs text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
               >
                 {t('capsules.delete')}
               </button>
@@ -244,7 +253,7 @@ export default function CapsulesPage() {
                 {detail.snapshot ? (
                   <section
                     data-testid="capsule-snapshot"
-                    className="flex flex-col gap-1 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-3"
+                    className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
                   >
                     <h2 className="text-sm font-semibold">{t('capsules.snapshot.title')}</h2>
                     <span className="text-sm">
@@ -281,6 +290,7 @@ export default function CapsulesPage() {
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }

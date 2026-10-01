@@ -12,6 +12,7 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
+import { Alert, Card, EmptyState, IconBubble } from '@/components/ui';
 import { ProgressRing } from '@/components/progress-ring';
 import { ShareButton } from '@/components/share-button';
 import { financeApi } from '@/lib/finance-client';
@@ -197,30 +198,30 @@ export default function GoalsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold">{t('goals.title')}</h1>
+      <div className="flex items-center gap-3">
+        <IconBubble name="target" tone="finance" size={48} />
+        <h1 className="text-3xl font-extrabold">{t('goals.title')}</h1>
+      </div>
 
-      {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {error}
-        </p>
-      ) : null}
-      {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance-text)]">
-          {notice}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
+      {notice ? <Alert tone="success">{notice}</Alert> : null}
 
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <h2 className="text-lg font-bold">{t('goals.add')}</h2>
-        <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void addGoal(event)}>
-          <label htmlFor="goal-title" className="flex flex-1 flex-col gap-1">
+      <div className="grid items-start gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
+
+      <Card className="flex flex-col gap-3 lg:sticky lg:top-4">
+        <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
+          <IconBubble name="plus" tone="finance" size={32} />
+          {t('goals.add')}
+        </h2>
+        <form className="flex flex-col gap-3" onSubmit={(event) => void addGoal(event)}>
+          <label htmlFor="goal-title" className="flex flex-col gap-1">
             <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.title')}</span>
             <input
               id="goal-title"
               data-testid="goal-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-target" className="flex flex-col gap-1">
@@ -231,7 +232,7 @@ export default function GoalsPage() {
               inputMode="decimal"
               value={target}
               onChange={(event) => setTarget(event.target.value)}
-              className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-10 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-deadline" className="flex flex-col gap-1">
@@ -242,7 +243,7 @@ export default function GoalsPage() {
               type="date"
               value={deadline}
               onChange={(event) => setDeadline(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-image" className="flex flex-col gap-1">
@@ -252,7 +253,7 @@ export default function GoalsPage() {
               data-testid="goal-image"
               value={emoji}
               onChange={(event) => setEmoji(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {GOAL_EMOJI_PRESETS.map((preset) => (
                 <option key={preset} value={preset}>
@@ -261,7 +262,7 @@ export default function GoalsPage() {
               ))}
             </select>
           </label>
-          <label htmlFor="goal-image-url" className="flex flex-1 flex-col gap-1">
+          <label htmlFor="goal-image-url" className="flex flex-col gap-1">
             <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.form.imageHint')}</span>
             <input
               id="goal-image-url"
@@ -269,7 +270,7 @@ export default function GoalsPage() {
               value={imageUrl}
               onChange={(event) => setImageUrl(event.target.value)}
               placeholder="https://"
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-visibility" className="flex flex-col gap-1">
@@ -279,7 +280,7 @@ export default function GoalsPage() {
               data-testid="goal-visibility"
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as GoalVisibility)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {VISIBILITIES.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -295,7 +296,7 @@ export default function GoalsPage() {
               data-testid="goal-account"
               value={accountId}
               onChange={(event) => setAccountId(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="">{t('goals.form.accountNone')}</option>
               {savingsAccounts.map((account) => (
@@ -309,22 +310,24 @@ export default function GoalsPage() {
             type="submit"
             data-testid="goal-create"
             disabled={busy}
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+            className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
           >
             {t('goals.form.submit')}
           </button>
         </form>
-      </section>
+      </Card>
 
-      <section className="flex flex-col gap-4" data-testid="goals-list">
+      <section className="grid gap-4 sm:grid-cols-2" data-testid="goals-list">
         {goals.map((goal) => (
           <article
             key={goal.id}
             data-testid="goal-card"
             className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4">
               <ProgressRing
+                size={96}
+                stroke={10}
                 percent={goal.percent}
                 label={t('goals.card.progress', { percent: goal.percent, title: goal.title })}
               />
@@ -353,7 +356,7 @@ export default function GoalsPage() {
                 type="button"
                 data-testid="goal-delete"
                 onClick={() => void removeGoal(goal)}
-                className="self-start text-xs text-[var(--puls-ink-muted)]"
+                className="self-start rounded-[var(--radius-chip)] px-2 py-1 text-xs text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
               >
                 {t('goals.delete')}
               </button>
@@ -364,7 +367,7 @@ export default function GoalsPage() {
                 <span
                   key={milestone}
                   data-testid="goal-milestone"
-                  className="rounded-[var(--radius-chip)] bg-[var(--puls-finance)]/15 px-3 py-1 text-xs font-medium text-[var(--puls-finance-text)]"
+                  className="rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-3 py-1 text-xs font-semibold text-[var(--puls-finance-text)]"
                 >
                   {t('goals.milestone', { percent: milestone })}
                 </span>
@@ -381,7 +384,7 @@ export default function GoalsPage() {
                   setEmbedCopied(false);
                   setEmbedGoal(embedGoal === goal.id ? null : goal.id);
                 }}
-                className="rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)] px-3 py-1 text-xs font-medium"
+                className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium hover:bg-[var(--puls-surface-2)]"
               >
                 {t('goals.embed.button')}
               </button>
@@ -434,10 +437,10 @@ export default function GoalsPage() {
             ) : null}
 
             <form
-              className="flex flex-wrap items-end gap-2"
+              className="flex items-end gap-2"
               onSubmit={(event) => void deposit(goal, event)}
             >
-              <label htmlFor={`goal-deposit-${goal.id}`} className="flex flex-col gap-1">
+              <label htmlFor={`goal-deposit-${goal.id}`} className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="text-xs text-[var(--puls-ink-muted)]">{t('goals.deposit.amount')}</span>
                 <input
                   id={`goal-deposit-${goal.id}`}
@@ -449,14 +452,14 @@ export default function GoalsPage() {
                     setDepositGoal(goal.id);
                     setDepositAmount(event.target.value);
                   }}
-                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-10 w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <button
                 type="submit"
                 data-testid="goal-deposit-submit"
                 disabled={busy || depositGoal !== goal.id}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
               >
                 {t('goals.deposit.submit')}
               </button>
@@ -465,11 +468,15 @@ export default function GoalsPage() {
         ))}
 
         {goals.length === 0 && !loading ? (
-          <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="goals-empty">
-            {t('goals.empty')}
-          </p>
+          <div className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm sm:col-span-2" data-testid="goals-empty">
+            <EmptyState icon="target" tone="finance" title={t('goals.empty')} />
+          </div>
+        ) : null}
+        {loading && goals.length === 0 ? (
+          <div className="min-h-40 rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm sm:col-span-2" aria-hidden="true" />
         ) : null}
       </section>
+      </div>
     </div>
   );
 }

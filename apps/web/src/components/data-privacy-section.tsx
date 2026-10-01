@@ -77,7 +77,7 @@ export function DataPrivacySection() {
   return (
     <Card className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-bold">{t('settings.data.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('settings.data.title')}</h2>
         <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('settings.data.hint')}</p>
       </div>
 

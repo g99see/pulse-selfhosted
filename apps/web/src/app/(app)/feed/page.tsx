@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FeedPage } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { PostCard } from '@/components/post-card';
+import { Alert, Card, EmptyState, GhostButton, IconBubble } from '@/components/ui';
 import { socialApi } from '@/lib/social-client';
 
 /** Лента обновлений подписок (ТЗ §3.7): посты, реакции и комментарии. */
@@ -42,23 +43,28 @@ export default function FeedPage() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="feed-page">
-      <div>
-        <h1 className="text-3xl font-extrabold">{t('feed.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('feed.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="feed" tone="primary" size={48} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('feed.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('feed.subtitle')}</p>
+        </div>
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {t('feed.error')}
-        </p>
+        <Alert>{t('feed.error')}</Alert>
       ) : null}
 
       {page === null ? (
-        <p className="text-sm text-[var(--puls-ink-muted)]">{t('common.loading')}</p>
+        <div className="min-h-32 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6 text-sm text-[var(--puls-ink-muted)] shadow-sm">
+          {t('common.loading')}
+        </div>
       ) : page.posts.length === 0 ? (
-        <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="feed-empty">
-          {t('feed.empty')}
-        </p>
+        <Card>
+          <div data-testid="feed-empty">
+            <EmptyState icon="feed" tone="primary" title={t('feed.empty')} />
+          </div>
+        </Card>
       ) : (
         <div className="flex flex-col gap-4">
           {page.posts.map((post) => (
@@ -68,15 +74,15 @@ export default function FeedPage() {
       )}
 
       {page?.nextCursor ? (
-        <button
+        <GhostButton
           type="button"
           data-testid="feed-load-more"
           onClick={() => void loadMore()}
           disabled={loadingMore}
-          className="w-fit rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="w-fit"
         >
           {t('feed.loadMore')}
-        </button>
+        </GhostButton>
       ) : null}
     </div>
   );

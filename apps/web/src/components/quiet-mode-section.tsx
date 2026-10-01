@@ -15,7 +15,7 @@ export function QuietModeSection() {
   return (
     <div data-testid="quiet-settings">
       <Card className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">{t('quiet.settings.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('quiet.settings.title')}</h2>
         <p className="text-sm text-[var(--puls-ink-muted)]">{t('quiet.settings.description')}</p>
         <div>
           <QuietModeToggle testId="quiet-settings-toggle" />

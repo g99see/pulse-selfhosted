@@ -136,7 +136,7 @@ export function NotificationSettings() {
 
   return (
     <Card className="flex flex-col gap-5">
-      <h2 className="text-lg font-bold">{t('notifications.title')}</h2>
+      <h2 className="font-heading text-lg font-bold">{t('notifications.title')}</h2>
       <p className="text-sm text-[var(--puls-ink-muted)]">{t('notifications.subtitle')}</p>
 
       {status === 'error' ? <Alert>{t('notifications.error')}</Alert> : null}

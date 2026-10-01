@@ -30,7 +30,7 @@ export function PublicHtmlPage({ nickname, sandboxUrl, className }: PublicHtmlPa
         sandbox="allow-scripts"
         referrerPolicy="no-referrer"
         loading="lazy"
-        className="h-[70vh] w-full rounded-[var(--radius-card)] border border-[var(--puls-line)] bg-white"
+        className="h-[70vh] w-full rounded-[var(--radius-card)] border border-[var(--puls-line)] bg-white shadow-sm"
       />
       <p className="mt-2 text-xs text-[var(--puls-ink-muted)]">
         <a

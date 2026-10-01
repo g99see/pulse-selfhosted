@@ -146,25 +146,33 @@ export default async function PublicProfilePage({
   if (!profile) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-5 py-8" data-testid="public-profile">
+    <main className="puls-backdrop mx-auto min-h-screen w-full max-w-3xl px-5 py-8" data-testid="public-profile">
       <div className="flex flex-col gap-4">
-        <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-[var(--puls-surface)]">
+        <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm">
           {profile.coverUrl ? (
             <img src={profile.coverUrl} alt="" className="h-40 w-full object-cover" />
           ) : (
-            <div className="h-40 w-full bg-[var(--puls-primary)]/20" />
+            <div
+              aria-hidden="true"
+              className="h-40 w-full bg-gradient-to-br from-[var(--puls-primary-soft)] via-[var(--puls-wellbeing-soft)] to-[var(--puls-finance-soft)]"
+            />
           )}
-          <div className="flex items-center gap-4 p-5">
+          <div className="-mt-10 flex items-end gap-4 px-5 pb-5">
             {profile.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
                 alt=""
-                className="h-16 w-16 rounded-full object-cover"
+                className="h-20 w-20 rounded-full border-4 border-[var(--puls-surface)] object-cover"
               />
             ) : (
-              <div className="h-16 w-16 rounded-full bg-[var(--puls-primary)]/30" />
+              <div
+                aria-hidden="true"
+                className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-[var(--puls-surface)] bg-[var(--puls-primary-soft)] font-heading text-2xl font-extrabold text-[var(--puls-primary-text)]"
+              >
+                {profile.nickname.slice(0, 2).toUpperCase()}
+              </div>
             )}
-            <div className="flex flex-col">
+            <div className="flex flex-col pb-1">
               <h1 className="text-2xl font-extrabold">@{profile.nickname}</h1>
               {profile.bio ? (
                 <p className="text-sm text-[var(--puls-ink-muted)]">{profile.bio}</p>
@@ -174,7 +182,9 @@ export default async function PublicProfilePage({
         </div>
 
         {profile.cards.length === 0 ? (
-          <p className="text-[var(--puls-ink-muted)]">{t('profile.public.empty', locale)}</p>
+          <p className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6 text-center text-[var(--puls-ink-muted)] shadow-sm">
+            {t('profile.public.empty', locale)}
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {profile.cards.map((card) => (
@@ -183,7 +193,7 @@ export default async function PublicProfilePage({
                 data-testid={`public-card-${card.type}`}
                 className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm"
               >
-                <h2 className="text-sm font-semibold text-[var(--puls-ink-muted)]">
+                <h2 className="font-heading text-sm font-bold text-[var(--puls-ink-muted)]">
                   {cardTitle(card, locale)}
                 </h2>
                 <CardBody card={card} locale={locale} profileNickname={profile.nickname} />

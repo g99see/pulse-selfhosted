@@ -14,6 +14,7 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
+import { Alert, EmptyState, IconBubble, Badge } from '@/components/ui';
 import { ProgressRing } from '@/components/progress-ring';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { familyApi } from '@/lib/family-client';
@@ -287,22 +288,17 @@ export default function FamilyPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold">{t('family.title')}</h1>
+      <div className="flex items-center gap-3">
+        <IconBubble name="users" tone="wellbeing" size={48} />
+        <h1 className="text-3xl font-extrabold">{t('family.title')}</h1>
+      </div>
 
-      {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {error}
-        </p>
-      ) : null}
-      {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance-text)]">
-          {notice}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
+      {notice ? <Alert tone="success">{notice}</Alert> : null}
 
       {!family && !loading ? (
         <section className="flex flex-col gap-4 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-          <p className="text-sm text-[var(--puls-ink-muted)]">{t('family.none')}</p>
+          <EmptyState icon="users" tone="wellbeing" title={t('family.none')} />
           <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createFamily(event)}>
             <label htmlFor="family-name" className="flex flex-1 flex-col gap-1">
               <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.name')}</span>
@@ -339,7 +335,7 @@ export default function FamilyPage() {
               type="submit"
               data-testid="family-join"
               disabled={busy}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+              className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
             >
               {t('family.joinSubmit')}
             </button>
@@ -351,12 +347,10 @@ export default function FamilyPage() {
         <>
           <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-bold" data-testid="family-name-label">
+              <h2 className="flex items-center gap-2 font-heading text-lg font-bold" data-testid="family-name-label">
                 {family.name}
               </h2>
-              <span className="text-xs text-[var(--puls-ink-muted)]">
-                {t(`family.role.${family.role}`)}
-              </span>
+              <Badge tone="wellbeing">{t(`family.role.${family.role}`)}</Badge>
             </div>
 
             <ul className="flex flex-col gap-2" data-testid="family-members">
@@ -364,9 +358,15 @@ export default function FamilyPage() {
                 <li
                   key={member.userId}
                   data-testid="family-member"
-                  className="flex items-center justify-between gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-3 py-2"
                 >
-                  <span className="flex items-center gap-2 text-sm">
+                  <span className="flex items-center gap-3 text-sm">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--puls-wellbeing-soft)] font-heading text-sm font-extrabold text-[var(--puls-wellbeing-text)]"
+                    >
+                      {member.nickname.slice(0, 2).toUpperCase()}
+                    </span>
                     <span className="font-medium">@{member.nickname}</span>
                     <span className="text-[var(--puls-ink-muted)]">{t(`family.role.${member.role}`)}</span>
                   </span>
@@ -437,7 +437,10 @@ export default function FamilyPage() {
           </section>
 
           <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-            <h2 className="text-lg font-bold">{t('family.accounts')}</h2>
+            <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
+              <IconBubble name="wallet" tone="finance" size={32} />
+              {t('family.accounts')}
+            </h2>
 
             <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createAccount(event)}>
               <label htmlFor="family-account-name" className="flex flex-1 flex-col gap-1">
@@ -491,7 +494,7 @@ export default function FamilyPage() {
               <article
                 key={account.id}
                 data-testid="family-account"
-                className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-4"
+                className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="flex flex-col">
@@ -561,7 +564,7 @@ export default function FamilyPage() {
                     type="submit"
                     data-testid="family-tx-submit"
                     disabled={busy}
-                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                    className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
                   >
                     {t('family.tx.submit')}
                   </button>
@@ -587,14 +590,17 @@ export default function FamilyPage() {
             ))}
 
             {accounts.length === 0 ? (
-              <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="family-accounts-empty">
-                {t('family.accounts.empty')}
-              </p>
+              <div data-testid="family-accounts-empty">
+                <EmptyState icon="wallet" tone="finance" title={t('family.accounts.empty')} />
+              </div>
             ) : null}
           </section>
 
           <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-            <h2 className="text-lg font-bold">{t('family.goals')}</h2>
+            <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
+              <IconBubble name="target" tone="finance" size={32} />
+              {t('family.goals')}
+            </h2>
 
             <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createGoal(event)}>
               <label htmlFor="family-goal-title" className="flex flex-1 flex-col gap-1">
@@ -639,14 +645,15 @@ export default function FamilyPage() {
               </button>
             </form>
 
+            <div className="grid gap-3 md:grid-cols-2">
             {goals.map((goal) => (
               <article
                 key={goal.id}
                 data-testid="family-goal"
-                className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-4"
+                className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
               >
                 <div className="flex items-center gap-4">
-                  <ProgressRing percent={goal.percent} label={t('family.goal.progress', { percent: goal.percent })} />
+                  <ProgressRing size={88} stroke={10} percent={goal.percent} label={t('family.goal.progress', { percent: goal.percent })} />
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="truncate text-lg font-bold">{goal.title}</span>
                     <span className="text-sm text-[var(--puls-ink-muted)]">
@@ -697,18 +704,19 @@ export default function FamilyPage() {
                     type="submit"
                     data-testid="family-goal-deposit-submit"
                     disabled={busy || depositGoal !== goal.id}
-                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                    className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
                   >
                     {t('family.goal.depositSubmit')}
                   </button>
                 </form>
               </article>
             ))}
+            </div>
 
             {goals.length === 0 ? (
-              <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="family-goals-empty">
-                {t('family.goals.empty')}
-              </p>
+              <div data-testid="family-goals-empty">
+                <EmptyState icon="target" tone="finance" title={t('family.goals.empty')} />
+              </div>
             ) : null}
           </section>
         </>

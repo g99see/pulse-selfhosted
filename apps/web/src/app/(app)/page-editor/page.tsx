@@ -18,7 +18,7 @@ import {
   type HtmlPageVersionDto,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Alert, PrimaryButton } from '@/components/ui';
+import { Alert, EmptyState, IconBubble, PrimaryButton } from '@/components/ui';
 import {
   HtmlFileError,
   htmlPageApi,
@@ -177,7 +177,10 @@ export default function PageEditorPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="text-3xl font-extrabold">{t('htmlPage.title')}</h1>
+        <h1 className="flex items-center gap-3 text-3xl font-extrabold">
+          <IconBubble name="page" tone="wellbeing" size={48} />
+          {t('htmlPage.title')}
+        </h1>
         {publicUrl ? (
           <a
             href={publicUrl}
@@ -194,14 +197,14 @@ export default function PageEditorPage() {
 
       {error ? <Alert>{error}</Alert> : null}
       {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance-text)]" data-testid="htmlPage-notice">
-          {notice}
-        </p>
+        <div data-testid="htmlPage-notice">
+          <Alert tone="success">{notice}</Alert>
+        </div>
       ) : null}
 
       {/* Шаблоны и загрузка файла. */}
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <h2 className="text-lg font-bold">{t('htmlPage.templates')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('htmlPage.templates')}</h2>
         <div className="flex flex-wrap gap-2">
           {HTML_TEMPLATES.map((template) => (
             <button
@@ -211,7 +214,7 @@ export default function PageEditorPage() {
               onClick={() => onTemplate(template.id)}
               disabled={busy}
               title={template.description}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="rounded-[var(--radius-chip)] bg-[var(--puls-wellbeing-soft)] px-4 py-2 text-sm font-semibold text-[var(--puls-wellbeing-text)] transition-opacity hover:opacity-80 disabled:opacity-50"
             >
               {template.name}
             </button>
@@ -240,7 +243,7 @@ export default function PageEditorPage() {
           data-testid="htmlPage-tab-code"
           onClick={() => setTab('code')}
           className={`flex-1 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold ${
-            tab === 'code' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'border border-[var(--puls-line-strong)]'
+            tab === 'code' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'bg-[var(--puls-surface)] shadow-sm'
           }`}
         >
           {t('htmlPage.tab.code')}
@@ -252,14 +255,14 @@ export default function PageEditorPage() {
           data-testid="htmlPage-tab-preview"
           onClick={() => setTab('preview')}
           className={`flex-1 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold ${
-            tab === 'preview' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'border border-[var(--puls-line-strong)]'
+            tab === 'preview' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'bg-[var(--puls-surface)] shadow-sm'
           }`}
         >
           {t('htmlPage.tab.preview')}
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-4 shadow-sm md:grid-cols-2">
         <section className={`flex flex-col gap-2 ${tab === 'code' ? '' : 'hidden md:flex'}`}>
           <label htmlFor="htmlPage-code" className="text-sm font-medium">
             {t('htmlPage.tab.code')}
@@ -271,7 +274,7 @@ export default function PageEditorPage() {
             onChange={(event) => setHtml(event.target.value)}
             spellCheck={false}
             placeholder={t('htmlPage.empty')}
-            className="h-[60vh] w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 font-mono text-xs leading-relaxed outline-none focus:border-[var(--puls-primary)]"
+            className="h-[60vh] w-full resize-y rounded-[20px] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 font-mono text-xs leading-relaxed outline-none focus:border-[var(--puls-primary)]"
           />
         </section>
 
@@ -283,7 +286,7 @@ export default function PageEditorPage() {
             srcDoc={html.trim() === '' ? previewPlaceholder(t('htmlPage.preview.placeholder')) : html}
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
-            className="h-[60vh] w-full rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-white"
+            className="h-[60vh] w-full rounded-[20px] border border-[var(--puls-line-strong)] bg-white"
           />
           <p className="text-xs text-[var(--puls-ink-muted)]">{t('htmlPage.preview.hint')}</p>
         </section>
@@ -299,7 +302,7 @@ export default function PageEditorPage() {
             data-testid="htmlPage-delete"
             onClick={() => void onDelete()}
             disabled={busy}
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-warning)]/50 px-6 text-sm font-semibold text-[var(--puls-warning-text)] disabled:opacity-50"
+            className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-warning-soft)] px-6 text-sm font-semibold text-[var(--puls-warning-text)] disabled:opacity-50"
           >
             {t('htmlPage.delete')}
           </button>
@@ -313,7 +316,7 @@ export default function PageEditorPage() {
           data-status={page.checkStatus}
           className="flex flex-col gap-2 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm"
         >
-          <h2 className="text-lg font-bold">{t('htmlPage.check.title')}</h2>
+          <h2 className="font-heading text-lg font-bold">{t('htmlPage.check.title')}</h2>
           <p className="text-sm">
             {page.checkStatus === 'ok'
               ? t('htmlPage.check.ok')
@@ -337,13 +340,13 @@ export default function PageEditorPage() {
       {/* История последних 10 версий с откатом (ТЗ §3.8). */}
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-bold">{t('htmlPage.history')}</h2>
+          <h2 className="font-heading text-lg font-bold">{t('htmlPage.history')}</h2>
           <span className="text-xs text-[var(--puls-ink-muted)]">{t('htmlPage.history.limit')}</span>
         </div>
         {versions.length === 0 ? (
-          <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="htmlPage-history-empty">
-            {t('htmlPage.history.empty')}
-          </p>
+          <div data-testid="htmlPage-history-empty">
+            <EmptyState icon="page" tone="wellbeing" title={t('htmlPage.history.empty')} />
+          </div>
         ) : (
           <ul className="flex flex-col divide-y divide-[var(--puls-ink-muted)]/15">
             {versions.map((version) => (
@@ -364,7 +367,7 @@ export default function PageEditorPage() {
                   data-testid={`htmlPage-restore-${version.id}`}
                   onClick={() => void onRestore(version.id)}
                   disabled={busy || version.id === page?.currentVersionId}
-                  className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium disabled:opacity-40"
+                  className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--puls-primary-text)] disabled:opacity-40"
                 >
                   {t('htmlPage.history.restore')}
                 </button>

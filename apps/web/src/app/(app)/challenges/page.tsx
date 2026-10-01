@@ -13,6 +13,7 @@ import {
   type ChallengeVisibility,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { Alert, EmptyState, IconBubble } from '@/components/ui';
 import { challengesApi } from '@/lib/challenges-client';
 import { formatDate } from '@/lib/format';
 
@@ -193,21 +194,16 @@ export default function ChallengesPage() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="challenges-page">
-      <h1 className="text-3xl font-extrabold">{t('challenges.title')}</h1>
+      <div className="flex items-center gap-3">
+        <IconBubble name="flag" tone="wellbeing" size={48} />
+        <h1 className="text-3xl font-extrabold">{t('challenges.title')}</h1>
+      </div>
 
-      {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {error}
-        </p>
-      ) : null}
-      {notice ? (
-        <p role="status" className="text-sm text-[var(--puls-finance-text)]">
-          {notice}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
+      {notice ? <Alert tone="success">{notice}</Alert> : null}
 
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <h2 className="text-lg font-bold">{t('challenges.add')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('challenges.add')}</h2>
         <div className="flex flex-wrap gap-2">
           {CHALLENGE_TEMPLATES.map((template) => (
             <button
@@ -215,7 +211,7 @@ export default function ChallengesPage() {
               type="button"
               data-testid={`challenge-template-${template.key}`}
               onClick={() => applyTemplate(template.key)}
-              className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium"
+              className="rounded-[var(--radius-chip)] bg-[var(--puls-wellbeing-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--puls-wellbeing-text)] hover:opacity-90"
             >
               {t(templateTitleKey(template.key))}
             </button>
@@ -303,13 +299,13 @@ export default function ChallengesPage() {
           data-testid="challenge-join"
           disabled={busy}
           onClick={() => void joinChallenge()}
-          className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+          className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
         >
           {t('challenges.join.submit')}
         </button>
       </section>
 
-      <section className="flex flex-col gap-4" data-testid="challenges-list">
+      <section className="grid gap-4 md:grid-cols-2" data-testid="challenges-list">
         {challenges.map((challenge) => (
           <article
             key={challenge.id}
@@ -318,7 +314,7 @@ export default function ChallengesPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="truncate text-lg font-bold" data-testid="challenge-card-title">
+                <span className="truncate font-heading text-lg font-bold" data-testid="challenge-card-title">
                   {challenge.title}
                 </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
@@ -343,7 +339,7 @@ export default function ChallengesPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span data-testid="challenge-progress" className="font-semibold">
+              <span data-testid="challenge-progress" className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 font-semibold text-[var(--puls-primary-text)]">
                 {t('challenges.progress', { percent: challenge.percent })}
               </span>
               <span className="text-[var(--puls-ink-muted)]">
@@ -357,9 +353,9 @@ export default function ChallengesPage() {
               </span>
             </div>
 
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--puls-line)]">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--puls-line)]">
               <div
-                className="h-full rounded-full bg-[var(--puls-primary)]"
+                className="h-full rounded-full bg-[var(--puls-wellbeing)]"
                 style={{ width: `${challenge.percent}%` }}
               />
             </div>
@@ -383,7 +379,7 @@ export default function ChallengesPage() {
               >
                 {t('challenges.check.fail')}
               </button>
-              <span className="flex items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-bg)] px-3 py-1 text-xs">
+              <span className="flex items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-surface-2)] px-3 py-1 text-xs">
                 <span className="text-[var(--puls-ink-muted)]">{t('challenges.inviteCode')}</span>
                 <span data-testid="challenge-invite-code" className="font-mono">
                   {challenge.inviteCode}
@@ -404,7 +400,7 @@ export default function ChallengesPage() {
                 type="button"
                 data-testid="challenge-leaderboard-open"
                 onClick={() => void loadLeaderboard(challenge)}
-                className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium"
+                className="h-9 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-4 text-sm font-medium hover:bg-[var(--puls-primary-soft)]"
               >
                 {t('challenges.leaderboard.open')}
               </button>
@@ -413,7 +409,7 @@ export default function ChallengesPage() {
                   type="button"
                   data-testid="challenge-invite-open"
                   onClick={() => void loadCandidates(challenge)}
-                  className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium"
+                  className="h-9 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-4 text-sm font-medium hover:bg-[var(--puls-primary-soft)]"
                 >
                   {t('challenges.invite.open')}
                 </button>
@@ -421,7 +417,7 @@ export default function ChallengesPage() {
             </div>
 
             {boards[challenge.id] ? (
-              <ul className="flex flex-col gap-1" data-testid="challenge-leaderboard">
+              <ul className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-3" data-testid="challenge-leaderboard">
                 <li className="text-xs font-semibold uppercase text-[var(--puls-ink-muted)]">
                   {t('challenges.leaderboard.title')}
                 </li>
@@ -429,7 +425,7 @@ export default function ChallengesPage() {
                   <li
                     key={entry.userId}
                     data-testid="challenge-leaderboard-entry"
-                    className="flex items-center justify-between text-sm"
+                    className="flex items-center justify-between rounded-[var(--radius-button)] px-2 py-1.5 text-sm odd:bg-[var(--puls-surface)]"
                   >
                     <span>
                       {t('challenges.leaderboard.place', { rank: entry.rank })} @{entry.nickname}
@@ -455,7 +451,7 @@ export default function ChallengesPage() {
                       type="button"
                       data-testid="challenge-invite"
                       onClick={() => void invite(challenge, user.nickname)}
-                      className="rounded-[var(--radius-chip)] border border-[var(--puls-primary)] px-3 py-1 text-xs font-medium"
+                      className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 text-xs font-semibold text-[var(--puls-primary-text)]"
                     >
                       {t('challenges.invite.add', { nickname: user.nickname })}
                     </button>
@@ -467,9 +463,12 @@ export default function ChallengesPage() {
         ))}
 
         {challenges.length === 0 && !loading ? (
-          <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="challenges-empty">
-            {t('challenges.empty')}
-          </p>
+          <div
+            className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm md:col-span-2"
+            data-testid="challenges-empty"
+          >
+            <EmptyState icon="flag" tone="wellbeing" title={t('challenges.empty')} />
+          </div>
         ) : null}
       </section>
     </div>

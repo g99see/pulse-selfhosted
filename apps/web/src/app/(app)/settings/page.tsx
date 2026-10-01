@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import type { ReactNode } from 'react';
 import { DataPrivacySection } from '@/components/data-privacy-section';
 import { AiKeySection } from '@/components/ai-key-section';
 import { ApiAccessSection } from '@/components/api-access-section';
@@ -18,17 +19,42 @@ export default function SettingsPage() {
   const { t } = useT();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       <h1 className="text-3xl font-extrabold">{t('settings.title')}</h1>
 
-      <QuietModeSection />
+      <SettingsGroup title={t('settings.group.privacy')}>
+        <QuietModeSection />
+      </SettingsGroup>
 
-      <DataPrivacySection />
-      <AiKeySection />
-      <ApiAccessSection />
-      <LinkedAccountsSection />
-      <TelegramSection />
-      <TwoFactorSection />
+      <SettingsGroup title={t('settings.group.security')}>
+        <TwoFactorSection />
+      </SettingsGroup>
+
+      <SettingsGroup title={t('settings.group.accounts')}>
+        <LinkedAccountsSection />
+        <TelegramSection />
+      </SettingsGroup>
+
+      <SettingsGroup title={t('settings.group.data')}>
+        <DataPrivacySection />
+      </SettingsGroup>
+
+      <SettingsGroup title={t('settings.group.api')}>
+        <AiKeySection />
+        <ApiAccessSection />
+      </SettingsGroup>
     </div>
+  );
+}
+
+/** Группа настроек: заголовок раздела над стопкой карточек. */
+function SettingsGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="px-1 font-heading text-sm font-bold tracking-wide text-[var(--puls-ink-muted)] uppercase">
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }

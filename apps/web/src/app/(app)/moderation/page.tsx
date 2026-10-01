@@ -11,7 +11,7 @@ import {
   type ReportStatus,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Card } from '@/components/ui';
+import { Alert, Badge, Card, EmptyState, IconBubble } from '@/components/ui';
 import { authApi } from '@/lib/auth-client';
 import { formatDate } from '@/lib/format';
 import { moderationApi } from '@/lib/moderation-client';
@@ -105,9 +105,12 @@ export default function ModerationPage() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="moderation-page">
-      <div>
-        <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('moderation.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="shield" tone="primary" size={48} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('moderation.subtitle')}</p>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2" data-testid="moderation-filters">
@@ -118,10 +121,10 @@ export default function ModerationPage() {
             data-testid={`moderation-filter-${entry.id}`}
             aria-pressed={filter === entry.id}
             onClick={() => setFilter(entry.id)}
-            className={`rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium ${
+            className={`rounded-[var(--radius-chip)] px-4 py-1.5 text-sm font-semibold ${
               filter === entry.id
                 ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
-                : 'border border-[var(--puls-line-strong)]'
+                : 'bg-[var(--puls-surface)] shadow-sm'
             }`}
           >
             {t(entry.key)}
@@ -130,20 +133,18 @@ export default function ModerationPage() {
       </div>
 
       {message ? (
-        <p role="status" data-testid="moderation-message" className="text-sm font-medium text-[var(--puls-finance-text)]">
-          {message}
-        </p>
+        <div data-testid="moderation-message">
+          <Alert tone="success">{message}</Alert>
+        </div>
       ) : null}
-      {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {error}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
 
       {reports.length === 0 ? (
-        <p data-testid="moderation-empty" className="text-sm text-[var(--puls-ink-muted)]">
-          {t('moderation.empty')}
-        </p>
+        <Card>
+          <div data-testid="moderation-empty">
+            <EmptyState icon="shield" tone="primary" title={t('moderation.empty')} />
+          </div>
+        </Card>
       ) : (
         <ul className="flex flex-col gap-3">
           {reports.map((report) => (
@@ -153,9 +154,9 @@ export default function ModerationPage() {
                   <span className="font-semibold">
                     {t(`report.target.${report.targetType}`)} · {report.targetId}
                   </span>
-                  <span className="text-xs text-[var(--puls-ink-muted)]">
+                  <Badge tone={report.status === 'open' ? 'warning' : 'finance'}>
                     {t(`moderation.status.${report.status}`)}
-                  </span>
+                  </Badge>
                 </div>
 
                 <dl className="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
@@ -196,7 +197,7 @@ export default function ModerationPage() {
                           data-testid={`moderation-action-${action}`}
                           disabled={busyId === report.id}
                           onClick={() => void resolve(report, action)}
-                          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--puls-ink-muted)]/10 disabled:opacity-50"
+                          className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 py-1.5 text-sm font-semibold text-[var(--puls-primary-text)] hover:opacity-85 disabled:opacity-50"
                         >
                           {t(`moderation.action.${action}`)}
                         </button>
@@ -215,9 +216,9 @@ export default function ModerationPage() {
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">{t('moderation.actions.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('moderation.actions.title')}</h2>
         {actions.length === 0 ? (
-          <p data-testid="moderation-actions-empty" className="text-sm text-[var(--puls-ink-muted)]">
+          <p data-testid="moderation-actions-empty" className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-4 text-sm text-[var(--puls-ink-muted)] shadow-sm">
             {t('moderation.actions.empty')}
           </p>
         ) : (

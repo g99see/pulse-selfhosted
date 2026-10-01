@@ -86,7 +86,7 @@ export function TelegramSection() {
     <Card>
       <div data-testid="telegram-section" className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-bold">{t('settings.telegram.title')}</h2>
+          <h2 className="font-heading text-lg font-bold">{t('settings.telegram.title')}</h2>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('settings.telegram.hint')}</p>
         </div>
 
@@ -143,7 +143,7 @@ export function TelegramSection() {
             </div>
 
             {code ? (
-              <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-4">
+              <div className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface-2)] p-4">
                 <p className="text-sm font-medium">{t('settings.telegram.codeTitle')}</p>
                 <p data-testid="telegram-code" className="font-mono text-2xl font-bold tracking-wider">
                   {code.code}

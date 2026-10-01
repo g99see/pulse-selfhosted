@@ -12,7 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { AiChatMessage, AiProposalDto, AiReviewPreviewDto, AiUsageDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Alert, Card, GhostButton, PrimaryButton, Select } from '@/components/ui';
+import { Alert, Badge, Card, EmptyState, GhostButton, IconBubble, PrimaryButton, Select } from '@/components/ui';
 import { aiApi, aiErrorKey, formatAiCost, formatAiTokens } from '@/lib/ai-client';
 import { AuthApiError } from '@/lib/auth-client';
 
@@ -131,7 +131,9 @@ export default function AiPage() {
     return (
       <div className="flex flex-col gap-4">
         <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
-        <p className="text-sm text-[var(--puls-ink-muted)]">{t('common.loading')}</p>
+        <div className="min-h-40 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6 text-sm text-[var(--puls-ink-muted)] shadow-sm">
+          {t('common.loading')}
+        </div>
       </div>
     );
   }
@@ -140,16 +142,22 @@ export default function AiPage() {
     return (
       <div className="flex flex-col gap-4" data-testid="ai-disabled">
         <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
-        <Card className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold">{t('ai.disabled.title')}</h2>
-          <p className="text-sm text-[var(--puls-ink-muted)]">{t('ai.disabled.hint')}</p>
-          <Link
-            href="/settings"
-            data-testid="ai-disabled-settings"
-            className="text-sm font-semibold text-[var(--puls-primary-text)] underline"
-          >
-            {t('ai.disabled.goSettings')}
-          </Link>
+        <Card>
+          <EmptyState
+            icon="bot"
+            tone="primary"
+            title={t('ai.disabled.title')}
+            text={t('ai.disabled.hint')}
+            action={
+              <Link
+                href="/settings"
+                data-testid="ai-disabled-settings"
+                className="inline-flex h-12 items-center rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)]"
+              >
+                {t('ai.disabled.goSettings')}
+              </Link>
+            }
+          />
         </Card>
       </div>
     );
@@ -157,14 +165,17 @@ export default function AiPage() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="ai-page">
-      <div>
-        <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('ai.subtitle')}</p>
+      <div className="flex items-center gap-3">
+        <IconBubble name="bot" tone="primary" size={48} />
+        <div>
+          <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('ai.subtitle')}</p>
+        </div>
       </div>
 
       {/* Чат-помощник: история хранится на клиенте и уходит в history (ТЗ §3.9). */}
       <Card className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">{t('ai.chat.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('ai.chat.title')}</h2>
         <p id="ai-chat-hint" className="text-sm text-[var(--puls-ink-muted)]">
           {t('ai.chat.hint')}
         </p>
@@ -176,21 +187,23 @@ export default function AiPage() {
           aria-live="polite"
           aria-label={t('ai.chat.title')}
           data-testid="ai-chat-log"
-          className="flex min-h-[3rem] flex-col gap-2"
+          className="flex min-h-[8rem] max-h-[28rem] flex-col gap-3 overflow-y-auto"
         >
           {messages.length === 0 ? (
-            <li className="text-sm text-[var(--puls-ink-muted)]">{t('ai.chat.empty')}</li>
+            <li className="list-none">
+              <EmptyState icon="bot" tone="primary" title={t('ai.chat.empty')} />
+            </li>
           ) : (
             messages.map((message, index) => (
               <li
                 key={`${index}-${message.role}`}
                 className={
                   message.role === 'user'
-                    ? 'rounded-[var(--radius-button)] bg-[var(--puls-primary)]/10 px-3 py-2 text-sm'
-                    : 'rounded-[var(--radius-button)] bg-[var(--puls-bg)] px-3 py-2 text-sm'
+                    ? 'ml-auto max-w-[85%] rounded-[20px] rounded-br-md bg-[var(--puls-primary-soft)] px-4 py-2.5 text-sm text-[var(--puls-primary-text)]'
+                    : 'mr-auto max-w-[85%] rounded-[20px] rounded-bl-md bg-[var(--puls-surface-2)] px-4 py-2.5 text-sm'
                 }
               >
-                <span className="mr-2 text-xs font-semibold text-[var(--puls-ink-muted)]">
+                <span className="mb-0.5 block text-xs font-semibold opacity-75">
                   {message.role === 'user' ? t('ai.chat.you') : t('ai.chat.assistant')}
                 </span>
                 {message.content}
@@ -199,6 +212,7 @@ export default function AiPage() {
           )}
         </ul>
 
+        <div className="sticky bottom-20 -mx-2 flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-2 lg:bottom-4">
         <label htmlFor="ai-chat-input" className="text-sm font-medium">
           {t('ai.chat.placeholder')}
         </label>
@@ -222,48 +236,43 @@ export default function AiPage() {
             {chatBusy ? t('ai.chat.sending') : t('ai.chat.send')}
           </PrimaryButton>
         </div>
+        </div>
       </Card>
 
       {/* Предложения помощника: сохраняются только по кнопке «Применить». */}
       {proposals.length > 0 ? (
         <Card className="flex flex-col gap-3" data-testid="ai-proposals">
-          <h2 className="text-lg font-bold">{t('ai.proposals.title')}</h2>
+          <h2 className="font-heading text-lg font-bold">{t('ai.proposals.title')}</h2>
           <p className="text-sm text-[var(--puls-ink-muted)]">{t('ai.proposals.hint')}</p>
-          {proposalNotice ? (
-            <p role="status" className="text-sm font-medium text-[var(--puls-finance-text)]">
-              {proposalNotice}
-            </p>
-          ) : null}
+          {proposalNotice ? <Alert tone="success">{proposalNotice}</Alert> : null}
           {proposalError ? <Alert>{proposalError}</Alert> : null}
-          <ul className="flex flex-col gap-2">
+          <ul className="grid gap-3 sm:grid-cols-2">
             {proposals.map((proposal) => (
               <li
                 key={proposal.id}
                 data-testid="ai-proposal"
-                className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] bg-[var(--puls-bg)] px-4 py-3"
+                className="flex flex-col justify-between gap-3 rounded-[20px] bg-[var(--puls-wellbeing-soft)] px-4 py-4 text-[var(--puls-ink)]"
               >
                 <span className="flex flex-col text-sm">
-                  <span className="text-xs text-[var(--puls-ink-muted)]">
+                  <span className="mb-1 text-xs font-semibold text-[var(--puls-wellbeing-text)]">
                     {t(`ai.proposal.kind.${proposal.kind}`)}
                   </span>
                   {proposal.summary}
                 </span>
                 {proposal.status === 'applied' ? (
-                  <span
-                    data-testid="ai-proposal-applied"
-                    className="text-sm font-semibold text-[var(--puls-finance-text)]"
-                  >
-                    {t('ai.proposals.applied')}
+                  <span data-testid="ai-proposal-applied">
+                    <Badge tone="finance">{t('ai.proposals.applied')}</Badge>
                   </span>
                 ) : (
-                  <GhostButton
+                  <PrimaryButton
                     type="button"
+                    className="h-10 self-start"
                     data-testid="ai-proposal-apply"
                     disabled={proposalBusy === proposal.id}
                     onClick={() => void applyProposal(proposal.id)}
                   >
                     {proposalBusy === proposal.id ? t('ai.proposals.applying') : t('ai.proposals.apply')}
-                  </GhostButton>
+                  </PrimaryButton>
                 )}
               </li>
             ))}
@@ -273,7 +282,7 @@ export default function AiPage() {
 
       {/* Разбор недели/месяца: сначала предпросмотр, потом отправка (ТЗ §3.9). */}
       <Card className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">{t('ai.review.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('ai.review.title')}</h2>
         <p className="text-sm text-[var(--puls-ink-muted)]">{t('ai.review.subtitle')}</p>
 
         <Select
@@ -348,7 +357,7 @@ export default function AiPage() {
             </p>
             <pre
               data-testid="ai-review-payload"
-              className="max-h-72 overflow-auto whitespace-pre-wrap rounded-[var(--radius-card)] bg-[var(--puls-bg)] p-3 font-mono text-xs"
+              className="max-h-72 overflow-auto whitespace-pre-wrap rounded-[20px] bg-[var(--puls-surface-2)] p-3 font-mono text-xs"
             >
               {preview.payloadText}
             </pre>
@@ -358,7 +367,7 @@ export default function AiPage() {
         {review ? (
           <div className="flex flex-col gap-2" data-testid="ai-review-result">
             <h3 className="text-sm font-semibold">{t('ai.review.result')}</h3>
-            <p className="whitespace-pre-wrap rounded-[var(--radius-card)] bg-[var(--puls-bg)] p-3 text-sm">
+            <p className="whitespace-pre-wrap rounded-[20px] bg-[var(--puls-surface-2)] p-3 text-sm">
               {review}
             </p>
           </div>
@@ -377,7 +386,7 @@ function AiUsageCard({ usage, locale }: { usage: AiUsageDto; locale: 'ru' | 'en'
   const tokens = usage.tokensIn + usage.tokensOut;
   return (
     <Card className="flex flex-col gap-2" data-testid="ai-usage">
-      <h2 className="text-lg font-bold">{t('ai.usage.title')}</h2>
+      <h2 className="font-heading text-lg font-bold">{t('ai.usage.title')}</h2>
       <p className="text-xs text-[var(--puls-ink-muted)]">{t('ai.usage.month', { month: usage.month })}</p>
       <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
         <div>
