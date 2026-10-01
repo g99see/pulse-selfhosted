@@ -150,8 +150,17 @@ export default function FinancePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-3xl font-extrabold">{t('finance.title')}</h1>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-extrabold">{t('finance.title')}</h1>
+          <Link
+            href="/finance/import"
+            data-testid="import-link"
+            className="text-sm text-[var(--puls-primary-text)]"
+          >
+            {t('finance.import.open')}
+          </Link>
+        </div>
         {overview ? (
           <p className="text-sm text-[var(--puls-ink-muted)]">
             {t('finance.total')}{' '}
