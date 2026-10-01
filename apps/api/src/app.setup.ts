@@ -18,5 +18,7 @@ export function configureApp(app: INestApplication): void {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
-  app.enableCors({ origin: origins, credentials: true });
+  // Content-Disposition нужен web, чтобы сохранить файл выгрузки под исходным
+  // именем (ТЗ §3.1): браузер не отдаёт этот заголовок JS без expose.
+  app.enableCors({ origin: origins, credentials: true, exposedHeaders: ['Content-Disposition'] });
 }
