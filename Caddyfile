@@ -2,6 +2,8 @@
 # с отдельного поддомена песочницы (ТЗ §3.8).
 {
 	email {$ACME_EMAIL:admin@example.com}
+	# Порт HTTPS внутри контейнера; задаётся окружением, если на хосте 443 занят.
+	https_port {$HTTPS_PORT:443}
 }
 
 {$DOMAIN:localhost} {

@@ -35,4 +35,6 @@ COPY --from=build /app/apps/api/prisma ./apps/api/prisma
 WORKDIR /app/apps/api
 EXPOSE 3001
 # Миграции применяются при старте (ТЗ §10: обновления с автомиграциями).
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/main.js"]
+# Вызываем prisma напрямую из node_modules: `pnpm exec` в runtime тянет pnpm
+# через corepack из сети и падает без pnpm-workspace.yaml.
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]

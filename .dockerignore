@@ -1,0 +1,20 @@
+# Контекст сборки обоих Dockerfile — корень монорепо.
+# Без этого файла в контекст уезжают node_modules, .git и артефакты сборки.
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/test-results
+**/playwright-report
+**/blob-report
+**/.playwright
+**/*.tsbuildinfo
+.git
+.github
+.vscode
+.idea
+docs
+.env
+.env.*
+!.env.example
+*.log
