@@ -19,14 +19,21 @@ import {
   OnboardingSchema,
   RegisterSchema,
   ResendVerificationSchema,
+  TwoFactorDisableSchema,
+  TwoFactorEnableSchema,
+  TwoFactorLoginSchema,
   VerifyEmailSchema,
   type LoginInput,
   type OnboardingInput,
   type RegisterInput,
+  type TwoFactorDisableInput,
+  type TwoFactorEnableInput,
+  type TwoFactorLoginInput,
 } from '@puls/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { httpError } from '../common/http-error';
 import { toPublicUser, AuthService } from './auth.service';
+import { needsEmail } from './external/external-auth.service';
 import type { AuthenticatedRequest } from './auth.types';
 import {
   clearCookieOptions,
@@ -40,10 +47,14 @@ import { RateLimitService } from './rate-limit.service';
 import { SessionGuard } from './session.guard';
 import { SessionService } from './session.service';
 import { generateToken } from './tokens';
+import { TwoFactorService } from './two-factor.service';
 
 const LOGIN_EMAIL_LIMIT = 5;
 const LOGIN_IP_LIMIT = 100;
 const RESEND_LIMIT = 10;
+/** Лимит попыток ввода второго фактора (ТЗ §6): на пропуск и на IP. */
+const TWO_FACTOR_ATTEMPT_LIMIT = 5;
+const TWO_FACTOR_IP_LIMIT = 20;
 const WINDOW_SECONDS = 15 * 60;
 
 @Controller('auth')
@@ -53,6 +64,7 @@ export class AuthController {
     private readonly sessions: SessionService,
     private readonly mail: MailService,
     private readonly rateLimit: RateLimitService,
+    private readonly twoFactor: TwoFactorService,
   ) {}
 
   /** Выдаёт CSRF-cookie; web вызывает при загрузке формы (ТЗ §6). */
@@ -75,12 +87,75 @@ export class AuthController {
     @Body(new ZodValidationPipe(LoginSchema)) body: LoginInput,
     @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: ReturnType<typeof toPublicUser> }> {
+  ): Promise<
+    { user: ReturnType<typeof toPublicUser> } | { twoFactorRequired: true; challengeToken: string }
+  > {
     await this.enforceLoginRateLimit(req, body.email, res);
-    const { user, token, expiresAt } = await this.auth.login(body, contextOf(req));
+    const outcome = await this.auth.login(body, contextOf(req));
     await this.rateLimit.reset(`login:email:${body.email}`);
+
+    // Включена 2FA: пароль верен, но сессию выдаём только после второго шага.
+    if ('twoFactorRequired' in outcome) {
+      return outcome;
+    }
+
+    res.cookie(SESSION_COOKIE, outcome.token, sessionCookieOptions(outcome.expiresAt));
+    return { user: outcome.user };
+  }
+
+  /** Второй шаг входа (ТЗ §6): код TOTP или одноразовый резервный код. */
+  @Post('login/2fa')
+  @HttpCode(HttpStatus.OK)
+  async loginTwoFactor(
+    @Body(new ZodValidationPipe(TwoFactorLoginSchema)) body: TwoFactorLoginInput,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: ReturnType<typeof toPublicUser> }> {
+    await this.enforceTwoFactorRateLimit(req, body.challengeToken, res);
+    const { user, token, expiresAt } = await this.auth.loginWithTwoFactor(
+      body.challengeToken,
+      body.code,
+      contextOf(req),
+    );
     res.cookie(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
     return { user };
+  }
+
+  /** Статус 2FA для настроек (ТЗ §6). */
+  @Get('2fa')
+  @UseGuards(SessionGuard)
+  twoFactorStatus(@Req() req: AuthenticatedRequest) {
+    return this.twoFactor.status(req.user!);
+  }
+
+  /** Начало настройки: секрет, otpauth:// URI и QR (ТЗ §6). */
+  @Post('2fa/setup')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionGuard)
+  setupTwoFactor(@Req() req: AuthenticatedRequest) {
+    return this.twoFactor.setup(req.user!);
+  }
+
+  /** Подтверждение кода: включает 2FA и выдаёт резервные коды. */
+  @Post('2fa/enable')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionGuard)
+  enableTwoFactor(
+    @Body(new ZodValidationPipe(TwoFactorEnableSchema)) body: TwoFactorEnableInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.twoFactor.enable(req.user!, body.code);
+  }
+
+  /** Выключение 2FA: требует пароль и действующий код. */
+  @Post('2fa/disable')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(SessionGuard)
+  async disableTwoFactor(
+    @Body(new ZodValidationPipe(TwoFactorDisableSchema)) body: TwoFactorDisableInput,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.twoFactor.disable(req.user!, body.password, body.code);
   }
 
   @Post('verify-email')
@@ -118,7 +193,13 @@ export class AuthController {
   @UseGuards(SessionGuard)
   me(@Req() req: AuthenticatedRequest) {
     const user = req.user!;
-    return { user: toPublicUser(user), onboardingCompleted: user.onboardingCompletedAt !== null };
+    // needsEmail: аккаунт из Telegram с техническим адресом — UI мягко предложит
+    // указать настоящий email (ТЗ §3.1, §7).
+    return {
+      user: toPublicUser(user),
+      onboardingCompleted: user.onboardingCompletedAt !== null,
+      needsEmail: needsEmail(user),
+    };
   }
 
   @Post('logout')
@@ -180,6 +261,30 @@ export class AuthController {
       throw httpError(404, 'not_found', 'Не найдено');
     }
     return { messages: this.mail.outbox() };
+  }
+
+  private async enforceTwoFactorRateLimit(
+    req: AuthenticatedRequest,
+    challengeToken: string,
+    res: Response,
+  ): Promise<void> {
+    const ip = req.ip ?? 'unknown';
+    const [byChallenge, byIp] = await Promise.all([
+      this.rateLimit.consume(
+        `login2fa:challenge:${challengeToken}`,
+        TWO_FACTOR_ATTEMPT_LIMIT,
+        WINDOW_SECONDS,
+      ),
+      this.rateLimit.consume(`login2fa:ip:${ip}`, TWO_FACTOR_IP_LIMIT, WINDOW_SECONDS),
+    ]);
+
+    if (!byChallenge.allowed || !byIp.allowed) {
+      const retryAfterSeconds = Math.max(byChallenge.retryAfterSeconds, byIp.retryAfterSeconds);
+      res.setHeader('Retry-After', String(retryAfterSeconds));
+      throw httpError(429, 'rate_limited', 'Слишком много попыток. Попробуйте позже', {
+        retryAfterSeconds,
+      });
+    }
   }
 
   private async enforceLoginRateLimit(

@@ -15,6 +15,7 @@ import { MailService } from './mail.service';
 import { PasswordService } from './password.service';
 import { SessionService, type SessionContext } from './session.service';
 import { generateToken, hashToken } from './tokens';
+import { TwoFactorService } from './two-factor.service';
 
 /** Пользователь в ответах API — контракт общий с web (см. @puls/shared). */
 export type { PublicUser };
@@ -45,6 +46,11 @@ interface IssuedSession {
   expiresAt: Date;
 }
 
+/** Результат входа: либо сессия, либо необходимость второго фактора (ТЗ §6). */
+export type LoginOutcome =
+  | IssuedSession
+  | { twoFactorRequired: true; challengeToken: string };
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -52,6 +58,7 @@ export class AuthService {
     private readonly passwords: PasswordService,
     private readonly sessions: SessionService,
     private readonly mail: MailService,
+    private readonly twoFactor: TwoFactorService,
   ) {}
 
   async register(input: RegisterInput): Promise<{ user: PublicUser; verificationSent: true }> {
@@ -92,7 +99,7 @@ export class AuthService {
     return { user: toPublicUser(user), verificationSent: true };
   }
 
-  async login(input: LoginInput, context: SessionContext): Promise<IssuedSession> {
+  async login(input: LoginInput, context: SessionContext): Promise<LoginOutcome> {
     const user = await this.prisma.user.findUnique({ where: { email: input.email } });
 
     // Не раскрываем, существует ли адрес: и на пустом месте считаем хеш.
@@ -106,6 +113,23 @@ export class AuthService {
       throw httpError(403, 'email_not_verified', 'Подтвердите email — мы отправили ссылку письмом');
     }
 
+    // Пароль верен, но включена 2FA: выдаём пропуск, сессию пока не создаём.
+    if (this.twoFactor.requiresTwoFactor(user)) {
+      const challengeToken = await this.twoFactor.createChallenge(user.id);
+      return { twoFactorRequired: true, challengeToken };
+    }
+
+    const { token, session } = await this.sessions.create(user.id, context);
+    return { user: toPublicUser(user), token, expiresAt: session.expiresAt };
+  }
+
+  /** Второй шаг входа: код TOTP или резервный код по пропуску (ТЗ §6). */
+  async loginWithTwoFactor(
+    challengeToken: string,
+    code: string,
+    context: SessionContext,
+  ): Promise<IssuedSession> {
+    const user = await this.twoFactor.consumeChallenge(challengeToken, code);
     const { token, session } = await this.sessions.create(user.id, context);
     return { user: toPublicUser(user), token, expiresAt: session.expiresAt };
   }
