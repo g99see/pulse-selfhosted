@@ -29,9 +29,10 @@ apps/
   web/        Next.js 15, Tailwind, Playwright
 packages/
   shared/     Zod-схемы, шкала настроения, форматирование денег
-docker-compose.yml       postgres, valkey, api, web, caddy + healthchecks
+docker-compose.yml       postgres, valkey, api, web, caddy, backup + healthchecks
 docker-compose.dev.yml   dev-оверрайд: порты 5432 и 6379 на хост
 Caddyfile                маршрутизация + песочница пользовательского HTML
+scripts/                 backup.sh, restore.sh, upgrade.sh — эксплуатация (ТЗ §10)
 ```
 
 ## Быстрый старт (разработка)
@@ -61,13 +62,66 @@ pnpm format:check    # Prettier
 pnpm license:check   # совместимость лицензий зависимостей
 ```
 
-## Развёртывание
+## Установка за 15 минут
+
+Требования: Docker с Compose (и git). Node/pnpm для установки не нужны —
+всё собирается в контейнерах.
 
 ```bash
+# 1. Код
 git clone <ваш-форк> puls && cd puls
-cp .env.example .env          # POSTGRES_PASSWORD, DOMAIN, ACME_EMAIL
-docker compose up -d          # postgres, valkey, api, web, caddy
+
+# 2. Настройки: задайте POSTGRES_PASSWORD, DOMAIN и ACME_EMAIL
+cp .env.example .env
+
+# 3. Запуск: postgres, valkey, api, web, caddy, backup (порядок и healthchecks — сами)
+docker compose up -d
+
+# 4. Мастер первого запуска: откройте сайт и создайте администратора
+#    http://localhost  (или https://$DOMAIN)  →  редирект на /setup
 ```
+
+Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN`; миграции Prisma
+применяет контейнер `api` при старте. Первый пользователь создаётся мастером
+`/setup` и получает роль `admin`; после этого мастер закрыт навсегда.
+
+Проверить, что бэкап-сервис работает: `docker compose ps backup` (healthy) и
+`ls backups/` — первый архив появится сразу после старта.
+
+## Обновление
+
+```bash
+scripts/upgrade.sh     # бэкап → pull/build образов → up -d
+```
+
+Перед обновлением скрипт снимает резервную копию, затем перезапускает сервисы;
+миграции Prisma применяются контейнером `api` при старте.
+
+## Бэкап и восстановление (ТЗ §6, §10)
+
+Сервис `backup` (образ `postgres:16-alpine`) раз в `BACKUP_INTERVAL_HOURS` (24)
+снимает дамп PostgreSQL в custom-формате вместе с метаданными (версия миграции,
+версия PostgreSQL) в `./backups/backup-<UTC>.tar.gz` и хранит `BACKUP_KEEP` (7)
+последних архивов. Healthcheck сервиса следит за свежестью последнего бэкапа.
+
+```bash
+# Резервная копия вручную (на хосте — дамп через `docker compose exec postgres`)
+scripts/backup.sh
+
+# Восстановление одной командой (сверяет версию схемы с архивом)
+scripts/restore.sh backups/backup-20261001T120000Z.tar.gz
+
+# Если БД ушла вперёд — восстановление остановится; повторите с --force
+scripts/restore.sh backups/backup-....tar.gz --force
+
+# После восстановления накатить миграции текущего образа
+scripts/restore.sh backups/backup-....tar.gz --migrate
+```
+
+Переменные: `BACKUP_DIR`, `BACKUP_KEEP`, `BACKUP_INTERVAL_HOURS`, `PGDATABASE`,
+`PGHOST/PGPORT/PGUSER/PGPASSWORD`. Подробности — [`docs/PHASE1-OPS.md`](docs/PHASE1-OPS.md).
+
+## Развёртывание за деталями
 
 Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN` и поддомена песочницы
 `$SANDBOX_DOMAIN`. Миграции применяются контейнером `api` при старте.
