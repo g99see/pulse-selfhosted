@@ -2,6 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   monthKey,
   type AccountType,
@@ -13,6 +14,8 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { CategoryManager } from '@/components/category-manager';
+import { RecurringSection } from '@/components/recurring-section';
+import { CURRENCY_OPTIONS } from '@/lib/currency-form';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { financeApi, FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 
@@ -45,6 +48,7 @@ export default function FinancePage() {
   const [accountName, setAccountName] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('card');
   const [accountBalance, setAccountBalance] = useState('');
+  const [accountCurrency, setAccountCurrency] = useState('');
 
   const [budgetCategory, setBudgetCategory] = useState('');
   const [budgetLimit, setBudgetLimit] = useState('');
@@ -90,6 +94,8 @@ export default function FinancePage() {
   const budgets = overview?.budgets ?? [];
   const currency = overview?.currency ?? 'RUB';
   const expenseCategories = categories.filter((category) => category.kind === 'expense');
+  // Валюта нового счёта: по умолчанию — основная валюта пользователя.
+  const selectedAccountCurrency = accountCurrency || currency;
 
   async function addAccount(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -100,9 +106,11 @@ export default function FinancePage() {
         name: accountName.trim(),
         type: accountType,
         balance: Number(accountBalance.replace(',', '.')) || 0,
+        currency: selectedAccountCurrency,
       });
       setAccountName('');
       setAccountBalance('');
+      setAccountCurrency('');
       await reload();
     } finally {
       setBusy(false);
@@ -220,6 +228,22 @@ export default function FinancePage() {
               className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
             />
           </label>
+          <label htmlFor="account-currency" className="flex flex-col gap-1">
+            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.account.currency')}</span>
+            <select
+              id="account-currency"
+              data-testid="account-currency"
+              value={selectedAccountCurrency}
+              onChange={(event) => setAccountCurrency(event.target.value)}
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            >
+              {CURRENCY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.value}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="submit"
             disabled={busy}
@@ -232,8 +256,15 @@ export default function FinancePage() {
 
       <CategoryManager categories={categories} onChanged={() => void reload()} />
 
+      <RecurringSection accounts={accounts} categories={categories} currency={currency} onChanged={() => void reload()} />
+
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <h2 className="text-lg font-bold">{t('finance.transactions')}</h2>
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-lg font-bold">{t('finance.transactions')}</h2>
+          <Link href="/finance/rates" className="text-sm text-[var(--puls-primary)]" data-testid="rates-link">
+            {t('finance.rates.link')}
+          </Link>
+        </div>
 
         <div className="flex flex-wrap gap-2">
           <label className="flex flex-col gap-1">
@@ -303,12 +334,29 @@ export default function FinancePage() {
                 </span>
               </span>
               <span className="flex items-center gap-3">
-                <span
-                  className={`font-semibold [font-variant-numeric:tabular-nums] ${amountClass(transaction.type)}`}
-                  data-testid="transaction-amount"
-                >
-                  {amountPrefix(transaction.type)}
-                  {formatMoneyLocale(transaction.amount, locale, transaction.currency as Currency)}
+                <span className="flex flex-col items-end">
+                  <span
+                    className={`font-semibold [font-variant-numeric:tabular-nums] ${amountClass(transaction.type)}`}
+                    data-testid="transaction-amount"
+                  >
+                    {amountPrefix(transaction.type)}
+                    {formatMoneyLocale(transaction.amount, locale, transaction.currency as Currency)}
+                  </span>
+                  {transaction.currency !== transaction.baseCurrency ? (
+                    <span
+                      className="text-xs text-[var(--puls-ink-muted)] [font-variant-numeric:tabular-nums]"
+                      data-testid="transaction-base"
+                    >
+                      {t('finance.tx.equivalent', {
+                        amount: formatMoneyLocale(
+                          transaction.amountBase,
+                          locale,
+                          transaction.baseCurrency as Currency,
+                        ),
+                        currency: transaction.baseCurrency,
+                      })}
+                    </span>
+                  ) : null}
                 </span>
                 <button
                   type="button"
