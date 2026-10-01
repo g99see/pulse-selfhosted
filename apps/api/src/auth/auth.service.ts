@@ -4,6 +4,7 @@ import { Prisma, type Account, type User } from '@prisma/client';
 import type {
   LoginInput,
   OnboardingInput,
+  PublicUser,
   RegisterInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
@@ -14,23 +15,8 @@ import { PasswordService } from './password.service';
 import { SessionService, type SessionContext } from './session.service';
 import { generateToken, hashToken } from './tokens';
 
-/** Пользователь в ответах API: без хеша пароля и служебных полей. */
-export interface PublicUser {
-  id: string;
-  email: string;
-  nickname: string;
-  timezone: string;
-  currency: string;
-  locale: string;
-  goals: string[];
-  notificationsEnabled: boolean;
-  quietHours: { start: number; end: number };
-  profileVisibility: string;
-  emailVerified: boolean;
-  onboardingStep: number;
-  onboardingCompleted: boolean;
-  createdAt: string;
-}
+/** Пользователь в ответах API — контракт общий с web (см. @puls/shared). */
+export type { PublicUser };
 
 export function toPublicUser(user: User): PublicUser {
   return {

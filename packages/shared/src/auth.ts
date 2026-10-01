@@ -185,3 +185,51 @@ export const OnboardingSchema = z.object({
 });
 export type OnboardingInput = z.infer<typeof OnboardingSchema>;
 export type OnboardingInputValues = z.input<typeof OnboardingSchema>;
+
+/** Пользователь в ответах API (без хеша пароля и служебных полей). */
+export interface PublicUser {
+  id: string;
+  email: string;
+  nickname: string;
+  timezone: string;
+  currency: string;
+  locale: string;
+  goals: string[];
+  notificationsEnabled: boolean;
+  quietHours: { start: number; end: number };
+  profileVisibility: string;
+  emailVerified: boolean;
+  onboardingStep: number;
+  onboardingCompleted: boolean;
+  createdAt: string;
+}
+
+/** Ответ эндпоинтов входа/подтверждения. */
+export interface AuthResponse {
+  user: PublicUser;
+}
+
+export interface MeResponse {
+  user: PublicUser;
+  onboardingCompleted: boolean;
+}
+
+export interface OnboardingResponse {
+  user: PublicUser;
+  onboardingCompleted: boolean;
+  accounts: Array<{ id: string; name: string; type: string; currency: string; balance: number }>;
+}
+
+export interface SessionSummary {
+  id: string;
+  current: boolean;
+  userAgent: string | null;
+  ip: string | null;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+}
+
+export interface SessionsResponse {
+  sessions: SessionSummary[];
+}
