@@ -109,6 +109,22 @@ jobs:
           path: apps/web/.next
           retention-days: 3
 
+  docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build VitePress documentation site
+        run: pnpm --filter @puls/docs build
+
   license-check:
     name: Dependency licenses
     runs-on: ubuntu-latest
