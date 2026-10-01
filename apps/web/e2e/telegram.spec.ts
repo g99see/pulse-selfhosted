@@ -52,7 +52,11 @@ test('привязка Telegram-чата из настроек и отвязка
   await expect(page.getByTestId('telegram-section')).toBeVisible();
 
   // Без настроенного бота секция честно сообщает об этом — этого достаточно.
-  if (!(await page.getByTestId('telegram-link').isVisible())) {
+  // Сначала ждём, пока статус бота загрузится (одно из двух состояний), иначе
+  // мгновенный isVisible() ловит промежуточный кадр и тест выбирает не ту ветку.
+  const linkButton = page.getByTestId('telegram-link');
+  await expect(linkButton.or(page.getByTestId('telegram-disabled'))).toBeVisible();
+  if (!(await linkButton.isVisible())) {
     await expect(page.getByTestId('telegram-disabled')).toBeVisible();
     return;
   }
