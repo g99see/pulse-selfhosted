@@ -30,6 +30,8 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'categories', entity: 'categories', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'transactions', entity: 'transactions', keyColumn: 'user_id', orderBy: '"date", "created_at"' },
   { table: 'budgets', entity: 'budgets', keyColumn: 'user_id', orderBy: '"month"' },
+  { table: 'goals', entity: 'goals', keyColumn: 'user_id', orderBy: '"created_at"' },
+  { table: 'goal_deposits', entity: 'goalDeposits', keyColumn: 'user_id', orderBy: '"created_at"' },
   {
     table: 'recurring_payments',
     entity: 'recurringPayments',
