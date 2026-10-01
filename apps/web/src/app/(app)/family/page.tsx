@@ -311,7 +311,7 @@ export default function FamilyPage() {
                 data-testid="family-name"
                 value={newName}
                 onChange={(event) => setNewName(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
             <button
@@ -332,7 +332,7 @@ export default function FamilyPage() {
                 data-testid="family-join-code"
                 value={joinCode}
                 onChange={(event) => setJoinCode(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
             <button
@@ -364,7 +364,7 @@ export default function FamilyPage() {
                 <li
                   key={member.userId}
                   data-testid="family-member"
-                  className="flex items-center justify-between gap-3 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] px-3 py-2"
                 >
                   <span className="flex items-center gap-2 text-sm">
                     <span className="font-medium">@{member.nickname}</span>
@@ -447,7 +447,7 @@ export default function FamilyPage() {
                   data-testid="family-account-name"
                   value={accountName}
                   onChange={(event) => setAccountName(event.target.value)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="family-account-type" className="flex flex-col gap-1">
@@ -457,7 +457,7 @@ export default function FamilyPage() {
                   data-testid="family-account-type"
                   value={accountType}
                   onChange={(event) => setAccountType(event.target.value as FamilyAccountType)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 >
                   {FAMILY_ACCOUNT_TYPES.map((type) => (
                     <option key={type} value={type}>
@@ -474,7 +474,7 @@ export default function FamilyPage() {
                   inputMode="decimal"
                   value={accountBalance}
                   onChange={(event) => setAccountBalance(event.target.value)}
-                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <button
@@ -491,7 +491,7 @@ export default function FamilyPage() {
               <article
                 key={account.id}
                 data-testid="family-account"
-                className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 p-4"
+                className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="flex flex-col">
@@ -522,7 +522,7 @@ export default function FamilyPage() {
                         setTxAccount(account.id);
                         setTxKind(event.target.value as FamilyTransactionKind);
                       }}
-                      className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                      className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     >
                       <option value="income">{t('family.tx.income')}</option>
                       <option value="expense">{t('family.tx.expense')}</option>
@@ -540,7 +540,7 @@ export default function FamilyPage() {
                         setTxAccount(account.id);
                         setTxAmount(event.target.value);
                       }}
-                      className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                      className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     />
                   </label>
                   <label htmlFor={`family-tx-note-${account.id}`} className="flex flex-1 flex-col gap-1">
@@ -554,7 +554,7 @@ export default function FamilyPage() {
                         setTxAccount(account.id);
                         setTxNote(event.target.value);
                       }}
-                      className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                      className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     />
                   </label>
                   <button
@@ -604,7 +604,7 @@ export default function FamilyPage() {
                   data-testid="family-goal-title"
                   value={goalTitle}
                   onChange={(event) => setGoalTitle(event.target.value)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="family-goal-target" className="flex flex-col gap-1">
@@ -615,7 +615,7 @@ export default function FamilyPage() {
                   inputMode="decimal"
                   value={goalTarget}
                   onChange={(event) => setGoalTarget(event.target.value)}
-                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="family-goal-deadline" className="flex flex-col gap-1">
@@ -626,7 +626,7 @@ export default function FamilyPage() {
                   type="date"
                   value={goalDeadline}
                   onChange={(event) => setGoalDeadline(event.target.value)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <button
@@ -643,7 +643,7 @@ export default function FamilyPage() {
               <article
                 key={goal.id}
                 data-testid="family-goal"
-                className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 p-4"
+                className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-4"
               >
                 <div className="flex items-center gap-4">
                   <ProgressRing percent={goal.percent} label={t('family.goal.progress', { percent: goal.percent })} />
@@ -690,7 +690,7 @@ export default function FamilyPage() {
                         setDepositGoal(goal.id);
                         setDepositAmount(event.target.value);
                       }}
-                      className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                      className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     />
                   </label>
                   <button

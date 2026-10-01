@@ -103,7 +103,7 @@ export function DataPrivacySection() {
       {status ? <Alert tone="success">{status}</Alert> : null}
       {error ? <Alert>{error}</Alert> : null}
 
-      <hr className="border-[var(--puls-ink-muted)]/20" />
+      <hr className="border-[var(--puls-line)]" />
 
       <div>
         <h3 className="font-semibold text-[var(--puls-warning-text)]">{t('settings.data.delete.title')}</h3>

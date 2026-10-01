@@ -164,7 +164,7 @@ export function ShareButton({ type, id, shareText, label, className }: ShareButt
                   className={`h-9 flex-1 rounded-[var(--radius-button)] border px-3 text-xs font-semibold ${
                     format === value
                       ? 'border-[var(--puls-primary)] bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
-                      : 'border-[var(--puls-ink-muted)]/30 text-[var(--puls-ink)]'
+                      : 'border-[var(--puls-line-strong)] text-[var(--puls-ink)]'
                   }`}
                 >
                   {t(`share.format.${value}`)}
@@ -223,7 +223,7 @@ export function ShareButton({ type, id, shareText, label, className }: ShareButt
                 type="button"
                 data-testid="share-telegram"
                 onClick={telegram}
-                className="flex h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 text-sm font-semibold text-[var(--puls-ink)]"
+                className="flex h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-semibold text-[var(--puls-ink)]"
               >
                 {t('share.telegram')}
               </button>

@@ -155,7 +155,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             onChange={(event) => setText(event.target.value)}
             placeholder={t('finance.quick.example')}
             autoComplete="off"
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
+            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
           />
         </label>
 
@@ -173,7 +173,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
               inputMode="decimal"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
+              className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
             />
           </label>
         )}
@@ -210,7 +210,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
               type="button"
               onClick={() => setType(kind)}
               aria-pressed={effectiveType === kind}
-              className="flex-1 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-2 text-sm"
+              className="flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-2 text-sm"
               style={{
                 backgroundColor: effectiveType === kind ? 'var(--puls-primary)' : 'transparent',
                 color: effectiveType === kind ? '#fff' : 'inherit',
@@ -236,7 +236,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                     const match = accounts.find((account) => account.currency === next);
                     if (match) setAccountId(match.id);
                   }}
-                  className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base"
+                  className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base"
                 >
                   {accountCurrencies.map((code) => (
                     <option key={code} value={code}>
@@ -252,7 +252,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                 id="quick-account"
                 value={accountId}
                 onChange={(event) => setAccountId(event.target.value)}
-                className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base"
+                className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base"
               >
                 {visibleAccounts.map((account) => (
                   <option key={account.id} value={account.id}>
@@ -270,7 +270,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             id="quick-comment"
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-4 text-base outline-none focus:border-[var(--puls-primary)]"
+            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)]"
           />
         </label>
 

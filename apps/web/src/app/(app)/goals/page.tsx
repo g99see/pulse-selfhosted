@@ -220,7 +220,7 @@ export default function GoalsPage() {
               data-testid="goal-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-target" className="flex flex-col gap-1">
@@ -231,7 +231,7 @@ export default function GoalsPage() {
               inputMode="decimal"
               value={target}
               onChange={(event) => setTarget(event.target.value)}
-              className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-deadline" className="flex flex-col gap-1">
@@ -242,7 +242,7 @@ export default function GoalsPage() {
               type="date"
               value={deadline}
               onChange={(event) => setDeadline(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-image" className="flex flex-col gap-1">
@@ -252,7 +252,7 @@ export default function GoalsPage() {
               data-testid="goal-image"
               value={emoji}
               onChange={(event) => setEmoji(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {GOAL_EMOJI_PRESETS.map((preset) => (
                 <option key={preset} value={preset}>
@@ -269,7 +269,7 @@ export default function GoalsPage() {
               value={imageUrl}
               onChange={(event) => setImageUrl(event.target.value)}
               placeholder="https://"
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="goal-visibility" className="flex flex-col gap-1">
@@ -279,7 +279,7 @@ export default function GoalsPage() {
               data-testid="goal-visibility"
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as GoalVisibility)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {VISIBILITIES.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -295,7 +295,7 @@ export default function GoalsPage() {
               data-testid="goal-account"
               value={accountId}
               onChange={(event) => setAccountId(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="">{t('goals.form.accountNone')}</option>
               {savingsAccounts.map((account) => (
@@ -390,7 +390,7 @@ export default function GoalsPage() {
             {embedGoal === goal.id ? (
               <div
                 data-testid="goal-embed-panel"
-                className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 p-3"
+                className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-3"
               >
                 {goal.visibility === 'public' ? (
                   <>
@@ -400,7 +400,7 @@ export default function GoalsPage() {
                       data-testid="goal-embed-snippet"
                       rows={2}
                       value={embedSnippet(goal.id)}
-                      className="w-full rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-2 py-1 font-mono text-xs"
+                      className="w-full rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-2 py-1 font-mono text-xs"
                     />
                     <div className="flex flex-wrap items-center gap-3">
                       <button
@@ -449,7 +449,7 @@ export default function GoalsPage() {
                     setDepositGoal(goal.id);
                     setDepositAmount(event.target.value);
                   }}
-                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <button

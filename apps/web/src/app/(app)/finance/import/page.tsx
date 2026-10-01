@@ -207,7 +207,7 @@ export default function ImportPage() {
                     data-testid={`import-mapping-${field.column}`}
                     value={preview.mapping[field.column] ?? ''}
                     onChange={(event) => void onMappingChange(field.column, event.target.value)}
-                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   >
                     <option value="">{t('finance.import.column.none')}</option>
                     {preview.headers.map((_, index) => (
@@ -246,7 +246,7 @@ export default function ImportPage() {
                 </thead>
                 <tbody>
                   {rows.map((row) => (
-                    <tr key={row.rowNumber} className="border-t border-[var(--puls-ink-muted)]/15">
+                    <tr key={row.rowNumber} className="border-t border-[var(--puls-line)]">
                       <td className="py-1 pr-3 text-[var(--puls-ink-muted)]">{row.rowNumber}</td>
                       <td className="py-1 pr-3">{row.date ?? '—'}</td>
                       <td className="py-1 pr-3 [font-variant-numeric:tabular-nums]">
@@ -276,7 +276,7 @@ export default function ImportPage() {
                 data-testid="import-account"
                 value={accountId}
                 onChange={(event) => setAccountId(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               >
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>

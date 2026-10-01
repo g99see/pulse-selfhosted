@@ -44,7 +44,7 @@ interface MetricProps {
 
 function Metric({ label, value, testId }: MetricProps) {
   return (
-    <div className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 p-3">
+    <div className="rounded-[var(--radius-button)] border border-[var(--puls-line)] p-3">
       <p className="text-xs text-[var(--puls-ink-muted)]">{label}</p>
       <p className="text-lg font-bold [font-variant-numeric:tabular-nums]" data-testid={testId}>
         {value}
@@ -148,7 +148,7 @@ export default function StatsPage() {
             data-testid={`stats-period-${value}`}
             aria-pressed={period === value}
             onClick={() => setPeriod(value)}
-            className="rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium"
+            className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium"
             style={
               period === value
                 ? { backgroundColor: 'var(--puls-primary)', color: '#fff' }
@@ -286,7 +286,7 @@ export default function StatsPage() {
                       <span className="[font-variant-numeric:tabular-nums]">{money(entry.total)}</span>
                     </div>
                     <div
-                      className="h-2 w-full overflow-hidden rounded-[var(--radius-chip)] bg-[var(--puls-ink-muted)]/20"
+                      className="h-2 w-full overflow-hidden rounded-[var(--radius-chip)] bg-[var(--puls-line)]"
                       role="progressbar"
                       aria-valuemin={0}
                       aria-valuemax={maxCategory}

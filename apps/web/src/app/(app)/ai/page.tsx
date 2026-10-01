@@ -210,7 +210,7 @@ export default function AiPage() {
           onChange={(event) => setInput(event.target.value)}
           rows={2}
           maxLength={2000}
-          className="w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] p-3 text-sm outline-none focus:border-[var(--puls-primary)]"
+          className="w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 text-sm outline-none focus:border-[var(--puls-primary)]"
         />
         <div>
           <PrimaryButton

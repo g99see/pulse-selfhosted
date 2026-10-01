@@ -348,7 +348,7 @@ export default function WrappedPage() {
             setSlide(0);
             setYear((value) => value - 1);
           }}
-          className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-1 text-sm"
+          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1 text-sm"
         >
           {t('wrapped.year.prev')}
         </button>
@@ -363,7 +363,7 @@ export default function WrappedPage() {
             setSlide(0);
             setYear((value) => value + 1);
           }}
-          className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-1 text-sm disabled:opacity-40"
+          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1 text-sm disabled:opacity-40"
         >
           {t('wrapped.year.next')}
         </button>
@@ -405,7 +405,7 @@ export default function WrappedPage() {
               data-testid="wrapped-prev"
               disabled={slide === 0}
               onClick={() => go(slide - 1)}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium disabled:opacity-40"
+              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-40"
             >
               {t('common.back')}
             </button>
@@ -417,7 +417,7 @@ export default function WrappedPage() {
               data-testid="wrapped-next"
               disabled={slide >= total - 1}
               onClick={() => go(slide + 1)}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium disabled:opacity-40"
+              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-40"
             >
               {t('common.next')}
             </button>

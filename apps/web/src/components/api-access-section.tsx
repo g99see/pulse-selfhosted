@@ -199,7 +199,7 @@ export function ApiAccessSection() {
           </div>
 
           {createdToken ? (
-            <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 p-4">
+            <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-4">
               <p className="text-sm font-medium">{t('settings.apiAccess.tokenOnce')}</p>
               <p data-testid="api-token-value" className="break-all font-mono text-sm">
                 {createdToken}
@@ -220,7 +220,7 @@ export function ApiAccessSection() {
                 <li
                   key={token.id}
                   data-testid="api-token-row"
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-3"
                 >
                   <div className="flex flex-col">
                     <span className="font-medium">{token.name}</span>
@@ -290,7 +290,7 @@ export function ApiAccessSection() {
           </div>
 
           {createdSecret ? (
-            <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 p-4">
+            <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-4">
               <p className="text-sm font-medium">{t('settings.apiAccess.secretOnce')}</p>
               <p data-testid="webhook-secret" className="break-all font-mono text-sm">
                 {createdSecret}
@@ -311,7 +311,7 @@ export function ApiAccessSection() {
                 <li
                   key={webhook.id}
                   data-testid="webhook-row"
-                  className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 p-3"
+                  className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-3"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="break-all font-mono text-sm">{webhook.url}</span>

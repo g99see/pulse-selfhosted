@@ -195,7 +195,7 @@ export function AiKeySection() {
             ) : null}
           </div>
 
-          <dl className="grid grid-cols-2 gap-2 border-t border-[var(--puls-ink-muted)]/15 pt-3 text-sm">
+          <dl className="grid grid-cols-2 gap-2 border-t border-[var(--puls-line)] pt-3 text-sm">
             <div>
               <dt className="text-xs text-[var(--puls-ink-muted)]">{t('ai.usage.tokensIn')}</dt>
               <dd>{formatAiTokens(status.usage.tokensIn, locale)}</dd>

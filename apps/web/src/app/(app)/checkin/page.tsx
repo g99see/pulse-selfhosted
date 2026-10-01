@@ -219,7 +219,7 @@ export default function CheckInPage() {
                   inputMode="decimal"
                   value={sleepHours}
                   onChange={(event) => setSleepHours(event.target.value)}
-                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="checkin-water" className="flex flex-1 flex-col gap-1">
@@ -230,7 +230,7 @@ export default function CheckInPage() {
                   inputMode="numeric"
                   value={water}
                   onChange={(event) => setWater(event.target.value)}
-                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="checkin-steps" className="flex flex-1 flex-col gap-1">
@@ -241,7 +241,7 @@ export default function CheckInPage() {
                   inputMode="numeric"
                   value={steps}
                   onChange={(event) => setSteps(event.target.value)}
-                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
             </div>
@@ -310,7 +310,7 @@ export default function CheckInPage() {
                 rows={3}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3 py-2"
+                className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 py-2"
               />
             </div>
 
@@ -331,7 +331,7 @@ export default function CheckInPage() {
                 value={daySummary}
                 onChange={(event) => setDaySummary(event.target.value)}
                 placeholder={t('checkin.daySummaryPlaceholder')}
-                className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </div>
           </div>
@@ -409,7 +409,7 @@ export default function CheckInPage() {
             data-testid="checkin-times-per-day"
             value={timesPerDay}
             onChange={(event) => changeTimesPerDay(Number(event.target.value))}
-            className="h-11 w-24 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-11 w-24 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {[1, 2, 3, 4, 5, 6].map((count) => (
               <option key={count} value={count}>
@@ -428,7 +428,7 @@ export default function CheckInPage() {
                 data-testid={`checkin-time-${index}`}
                 value={time}
                 onChange={(event) => changeTime(index, event.target.value)}
-                className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
           ))}

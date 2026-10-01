@@ -142,7 +142,7 @@ export default function HabitsPage() {
           data-testid={habit.archived ? 'habit-restore' : 'habit-archive'}
           onClick={() => void setArchived(habit, !habit.archived)}
           disabled={busy}
-          className="w-fit rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+          className="w-fit rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-xs font-medium disabled:opacity-50"
         >
           {habit.archived ? t('habits.restore') : t('habits.archive')}
         </button>
@@ -175,7 +175,7 @@ export default function HabitsPage() {
               data-testid="habit-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="habit-icon" className="flex flex-col gap-1">
@@ -185,7 +185,7 @@ export default function HabitsPage() {
               data-testid="habit-icon"
               value={icon}
               onChange={(event) => setIcon(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {HABIT_ICON_PRESETS.map((preset) => (
                 <option key={preset} value={preset}>
@@ -201,7 +201,7 @@ export default function HabitsPage() {
               data-testid="habit-cadence"
               value={cadence}
               onChange={(event) => setCadence(event.target.value as 'daily' | 'weekly')}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="daily">{t('habits.cadence.daily')}</option>
               <option value="weekly">{t('habits.cadence.weekly')}</option>
@@ -216,7 +216,7 @@ export default function HabitsPage() {
                 inputMode="numeric"
                 value={perWeek}
                 onChange={(event) => setPerWeek(event.target.value)}
-                className="h-10 w-20 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-10 w-20 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
           ) : null}

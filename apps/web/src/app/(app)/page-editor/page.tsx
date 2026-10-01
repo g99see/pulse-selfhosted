@@ -211,7 +211,7 @@ export default function PageEditorPage() {
               onClick={() => onTemplate(template.id)}
               disabled={busy}
               title={template.description}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
             >
               {template.name}
             </button>
@@ -240,7 +240,7 @@ export default function PageEditorPage() {
           data-testid="htmlPage-tab-code"
           onClick={() => setTab('code')}
           className={`flex-1 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold ${
-            tab === 'code' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'border border-[var(--puls-ink-muted)]/30'
+            tab === 'code' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'border border-[var(--puls-line-strong)]'
           }`}
         >
           {t('htmlPage.tab.code')}
@@ -252,7 +252,7 @@ export default function PageEditorPage() {
           data-testid="htmlPage-tab-preview"
           onClick={() => setTab('preview')}
           className={`flex-1 rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold ${
-            tab === 'preview' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'border border-[var(--puls-ink-muted)]/30'
+            tab === 'preview' ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]' : 'border border-[var(--puls-line-strong)]'
           }`}
         >
           {t('htmlPage.tab.preview')}
@@ -271,7 +271,7 @@ export default function PageEditorPage() {
             onChange={(event) => setHtml(event.target.value)}
             spellCheck={false}
             placeholder={t('htmlPage.empty')}
-            className="h-[60vh] w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] p-3 font-mono text-xs leading-relaxed outline-none focus:border-[var(--puls-primary)]"
+            className="h-[60vh] w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 font-mono text-xs leading-relaxed outline-none focus:border-[var(--puls-primary)]"
           />
         </section>
 
@@ -283,7 +283,7 @@ export default function PageEditorPage() {
             srcDoc={html.trim() === '' ? previewPlaceholder(t('htmlPage.preview.placeholder')) : html}
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
-            className="h-[60vh] w-full rounded-[var(--radius-card)] border border-[var(--puls-ink-muted)]/30 bg-white"
+            className="h-[60vh] w-full rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-white"
           />
           <p className="text-xs text-[var(--puls-ink-muted)]">{t('htmlPage.preview.hint')}</p>
         </section>
@@ -364,7 +364,7 @@ export default function PageEditorPage() {
                   data-testid={`htmlPage-restore-${version.id}`}
                   onClick={() => void onRestore(version.id)}
                   disabled={busy || version.id === page?.currentVersionId}
-                  className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-1 text-xs font-medium disabled:opacity-40"
+                  className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium disabled:opacity-40"
                 >
                   {t('htmlPage.history.restore')}
                 </button>

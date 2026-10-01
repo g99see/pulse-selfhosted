@@ -170,7 +170,7 @@ export function NotificationSettings() {
             id="quiet-start"
             value={quietStart}
             onChange={(event) => setQuietStart(Number(event.target.value))}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {HOURS.map((hour) => (
               <option key={hour} value={hour}>
@@ -186,7 +186,7 @@ export function NotificationSettings() {
             id="quiet-end"
             value={quietEnd}
             onChange={(event) => setQuietEnd(Number(event.target.value))}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {HOURS.map((hour) => (
               <option key={hour} value={hour}>
@@ -206,7 +206,7 @@ export function NotificationSettings() {
           <button
             type="button"
             onClick={() => void disablePush()}
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-6 font-semibold"
+            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-6 font-semibold"
           >
             {t('notifications.pushDisable')}
           </button>
@@ -215,7 +215,7 @@ export function NotificationSettings() {
             type="button"
             onClick={() => void enablePush()}
             disabled={pushState !== 'off'}
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-6 font-semibold disabled:opacity-50"
+            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-6 font-semibold disabled:opacity-50"
           >
             {t('notifications.pushEnable')}
           </button>

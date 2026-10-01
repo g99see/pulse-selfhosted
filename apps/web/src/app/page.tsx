@@ -43,7 +43,7 @@ export default async function LandingPage() {
           </Link>
           <Link
             href="/login"
-            className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-6 py-3 font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
+            className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-6 py-3 font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
           >
             {t('landing.cta.login', locale)}
           </Link>

@@ -133,7 +133,7 @@ export function PostCard({ post }: { post: PostDto }) {
               className={`rounded-full border px-2.5 py-1 text-sm transition-colors duration-150 ${
                 summary?.reactedByMe
                   ? 'border-[var(--puls-primary)] bg-[var(--puls-primary)]/10'
-                  : 'border-[var(--puls-ink-muted)]/25'
+                  : 'border-[var(--puls-line)]'
               }`}
             >
               <span aria-hidden="true">{emoji}</span>
@@ -197,7 +197,7 @@ export function PostCard({ post }: { post: PostDto }) {
                 maxLength={500}
                 onChange={(event) => setText(event.target.value)}
                 placeholder={t('feed.comments.placeholder')}
-                className="flex-1 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-2 text-sm"
+                className="flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-2 text-sm"
               />
               <button
                 type="submit"

@@ -143,7 +143,7 @@ export function TelegramSection() {
             </div>
 
             {code ? (
-              <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 p-4">
+              <div className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-4">
                 <p className="text-sm font-medium">{t('settings.telegram.codeTitle')}</p>
                 <p data-testid="telegram-code" className="font-mono text-2xl font-bold tracking-wider">
                   {code.code}

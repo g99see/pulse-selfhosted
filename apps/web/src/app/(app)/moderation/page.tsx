@@ -121,7 +121,7 @@ export default function ModerationPage() {
             className={`rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium ${
               filter === entry.id
                 ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
-                : 'border border-[var(--puls-ink-muted)]/30'
+                : 'border border-[var(--puls-line-strong)]'
             }`}
           >
             {t(entry.key)}
@@ -186,7 +186,7 @@ export default function ModerationPage() {
                       value={note}
                       onChange={(event) => setNote(event.target.value)}
                       placeholder={t('moderation.note')}
-                      className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3 text-sm"
+                      className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 text-sm"
                     />
                     <div className="flex flex-wrap gap-2">
                       {MODERATION_ACTIONS.map((action) => (
@@ -196,7 +196,7 @@ export default function ModerationPage() {
                           data-testid={`moderation-action-${action}`}
                           disabled={busyId === report.id}
                           onClick={() => void resolve(report, action)}
-                          className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-1.5 text-sm font-medium hover:bg-[var(--puls-ink-muted)]/10 disabled:opacity-50"
+                          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--puls-ink-muted)]/10 disabled:opacity-50"
                         >
                           {t(`moderation.action.${action}`)}
                         </button>

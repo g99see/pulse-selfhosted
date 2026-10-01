@@ -73,7 +73,7 @@ export default function FeedPage() {
           data-testid="feed-load-more"
           onClick={() => void loadMore()}
           disabled={loadingMore}
-          className="w-fit rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="w-fit rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {t('feed.loadMore')}
         </button>

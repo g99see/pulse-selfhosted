@@ -141,7 +141,7 @@ export default function CapsulesPage() {
               value={title}
               maxLength={120}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
 
@@ -154,7 +154,7 @@ export default function CapsulesPage() {
               rows={4}
               placeholder={t('capsules.form.bodyPlaceholder')}
               onChange={(event) => setBody(event.target.value)}
-              className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3 py-2"
+              className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 py-2"
             />
           </label>
 
@@ -165,7 +165,7 @@ export default function CapsulesPage() {
               data-testid="capsule-preset"
               value={preset}
               onChange={(event) => setPreset(event.target.value as PresetChoice)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="month">{t('capsules.preset.month')}</option>
               <option value="year">{t('capsules.preset.year')}</option>
@@ -181,7 +181,7 @@ export default function CapsulesPage() {
                 type="datetime-local"
                 value={customOpenAt}
                 onChange={(event) => setCustomOpenAt(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
               <span className="text-xs text-[var(--puls-ink-muted)]">{t('capsules.form.openAtHint')}</span>
             </label>
@@ -244,7 +244,7 @@ export default function CapsulesPage() {
                 {detail.snapshot ? (
                   <section
                     data-testid="capsule-snapshot"
-                    className="flex flex-col gap-1 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 p-3"
+                    className="flex flex-col gap-1 rounded-[var(--radius-button)] border border-[var(--puls-line)] p-3"
                   >
                     <h2 className="text-sm font-semibold">{t('capsules.snapshot.title')}</h2>
                     <span className="text-sm">

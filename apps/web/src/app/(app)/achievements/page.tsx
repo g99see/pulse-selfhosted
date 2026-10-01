@@ -165,7 +165,7 @@ export default function AchievementsPage() {
                   className={`flex flex-col gap-2 rounded-[var(--radius-card)] border p-4 ${
                     item.earned
                       ? 'border-[var(--puls-finance)] bg-[var(--puls-surface)]'
-                      : 'border-[var(--puls-ink-muted)]/25 bg-[var(--puls-surface)] opacity-70'
+                      : 'border-[var(--puls-line)] bg-[var(--puls-surface)] opacity-70'
                   }`}
                 >
                   <div className="flex items-center gap-3">

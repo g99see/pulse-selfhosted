@@ -71,7 +71,7 @@ function CategoryFormFields({
           onChange={(event) => onChange({ name: event.target.value })}
           aria-invalid={hasNameError}
           aria-describedby={hasNameError ? errorId : undefined}
-          className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3 outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
+          className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
         />
       </label>
 
@@ -88,7 +88,7 @@ function CategoryFormFields({
                 onChange={() => onChange({ kind })}
                 className="peer sr-only"
               />
-              <span className="inline-block rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)]/30 px-3 py-1.5 text-sm peer-checked:border-[var(--puls-primary)] peer-checked:bg-[var(--puls-primary)] peer-checked:text-[var(--puls-on-primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--puls-focus)]">
+              <span className="inline-block rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm peer-checked:border-[var(--puls-primary)] peer-checked:bg-[var(--puls-primary)] peer-checked:text-[var(--puls-on-primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--puls-focus)]">
                 {t(`finance.type.${kind}`)}
               </span>
             </label>
@@ -112,7 +112,7 @@ function CategoryFormFields({
               />
               <span
                 aria-hidden="true"
-                className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 text-lg peer-checked:border-[var(--puls-primary)] peer-checked:bg-[var(--puls-primary)]/15 peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--puls-focus)]"
+                className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] text-lg peer-checked:border-[var(--puls-primary)] peer-checked:bg-[var(--puls-primary)]/15 peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--puls-focus)]"
               >
                 {icon.glyph}
               </span>
@@ -268,7 +268,7 @@ export function CategoryManager({
           <li
             key={category.id}
             data-testid="category-item"
-            className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 px-4 py-3"
+            className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] px-4 py-3"
           >
             {editId === category.id ? (
               <form className="flex flex-col gap-4" onSubmit={(event) => void saveEdit(event)}>
@@ -291,7 +291,7 @@ export function CategoryManager({
                     type="button"
                     data-testid="category-edit-cancel"
                     onClick={() => setEditId(null)}
-                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 text-sm font-medium"
+                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium"
                   >
                     {t('finance.categories.cancel')}
                   </button>
@@ -377,7 +377,7 @@ export function CategoryManager({
               type="button"
               data-testid="category-delete-cancel"
               onClick={() => setDeleteId(null)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 text-sm font-medium"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium"
             >
               {t('finance.categories.cancel')}
             </button>
@@ -385,7 +385,7 @@ export function CategoryManager({
         </div>
       ) : null}
 
-      <form className="flex flex-col gap-4 border-t border-[var(--puls-ink-muted)]/15 pt-4" onSubmit={(event) => void create(event)}>
+      <form className="flex flex-col gap-4 border-t border-[var(--puls-line)] pt-4" onSubmit={(event) => void create(event)}>
         <CategoryFormFields
           values={createForm}
           errors={createErrors}
@@ -402,7 +402,7 @@ export function CategoryManager({
         </button>
       </form>
 
-      <div className="flex flex-col gap-2 border-t border-[var(--puls-ink-muted)]/15 pt-4">
+      <div className="flex flex-col gap-2 border-t border-[var(--puls-line)] pt-4">
         <h3 className="text-sm font-semibold">{t('finance.categories.system')}</h3>
         <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.systemHint')}</p>
         <ul
@@ -413,7 +413,7 @@ export function CategoryManager({
           {system.map((category) => (
             <li
               key={category.id}
-              className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)]/20 px-2.5 py-1 text-xs text-[var(--puls-ink-muted)]"
+              className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border border-[var(--puls-line)] px-2.5 py-1 text-xs text-[var(--puls-ink-muted)]"
             >
               <span aria-hidden="true">{iconGlyph(category.icon)}</span>
               <span>{category.name}</span>

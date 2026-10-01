@@ -215,7 +215,7 @@ export default function ChallengesPage() {
               type="button"
               data-testid={`challenge-template-${template.key}`}
               onClick={() => applyTemplate(template.key)}
-              className="rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)]/30 px-3 py-1 text-xs font-medium"
+              className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium"
             >
               {t(templateTitleKey(template.key))}
             </button>
@@ -229,7 +229,7 @@ export default function ChallengesPage() {
               data-testid="challenge-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="challenge-kind" className="flex flex-col gap-1">
@@ -239,7 +239,7 @@ export default function ChallengesPage() {
               data-testid="challenge-kind"
               value={kind}
               onChange={(event) => setKind(event.target.value as ChallengeKind)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {CHALLENGE_KINDS.map((option) => (
                 <option key={option} value={option}>
@@ -256,7 +256,7 @@ export default function ChallengesPage() {
               inputMode="numeric"
               value={duration}
               onChange={(event) => setDuration(event.target.value)}
-              className="h-10 w-24 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 w-24 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="challenge-visibility" className="flex flex-col gap-1">
@@ -266,7 +266,7 @@ export default function ChallengesPage() {
               data-testid="challenge-visibility"
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as ChallengeVisibility)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {CHALLENGE_VISIBILITIES.map((option) => (
                 <option key={option} value={option}>
@@ -295,7 +295,7 @@ export default function ChallengesPage() {
             value={joinCode}
             onChange={(event) => setJoinCode(event.target.value)}
             placeholder="CH-…"
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           />
         </label>
         <button
@@ -357,7 +357,7 @@ export default function ChallengesPage() {
               </span>
             </div>
 
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--puls-ink-muted)]/15">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--puls-line)]">
               <div
                 className="h-full rounded-full bg-[var(--puls-primary)]"
                 style={{ width: `${challenge.percent}%` }}
@@ -379,7 +379,7 @@ export default function ChallengesPage() {
                 data-testid="challenge-check-fail"
                 disabled={busy}
                 onClick={() => void check(challenge, false)}
-                className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 text-sm font-medium disabled:opacity-50"
+                className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium disabled:opacity-50"
               >
                 {t('challenges.check.fail')}
               </button>
@@ -404,7 +404,7 @@ export default function ChallengesPage() {
                 type="button"
                 data-testid="challenge-leaderboard-open"
                 onClick={() => void loadLeaderboard(challenge)}
-                className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 text-sm font-medium"
+                className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium"
               >
                 {t('challenges.leaderboard.open')}
               </button>
@@ -413,7 +413,7 @@ export default function ChallengesPage() {
                   type="button"
                   data-testid="challenge-invite-open"
                   onClick={() => void loadCandidates(challenge)}
-                  className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 text-sm font-medium"
+                  className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium"
                 >
                   {t('challenges.invite.open')}
                 </button>

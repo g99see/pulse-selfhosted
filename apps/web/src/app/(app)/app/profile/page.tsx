@@ -37,7 +37,7 @@ export default function ProfileSettingsPage() {
         <Link
           href="/page-editor"
           data-testid="open-page-editor"
-          className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
         >
           {t('htmlPage.title')}
         </Link>
@@ -48,7 +48,7 @@ export default function ProfileSettingsPage() {
         <Link
           href="/settings"
           data-testid="open-data-privacy"
-          className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+          className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
         >
           {t('settings.data.exportJson')} / {t('settings.data.exportCsv')}
         </Link>

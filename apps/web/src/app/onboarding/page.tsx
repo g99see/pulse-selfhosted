@@ -310,7 +310,7 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={() => setStep((current) => Math.max(1, current - 1))}
-            className="h-12 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
+            className="h-12 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] font-semibold transition-colors duration-150 hover:bg-[var(--puls-ink-muted)]/10"
           >
             {t('common.back')}
           </button>

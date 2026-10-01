@@ -202,7 +202,7 @@ export default function FinancePage() {
           {accounts.map((account) => (
             <li
               key={account.id}
-              className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/20 px-4 py-2"
+              className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--puls-line)] px-4 py-2"
             >
               <span className="flex flex-col">
                 <span className="font-medium">{account.name}</span>
@@ -228,7 +228,7 @@ export default function FinancePage() {
               data-testid="account-name"
               value={accountName}
               onChange={(event) => setAccountName(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="account-type" className="flex flex-col gap-1">
@@ -237,7 +237,7 @@ export default function FinancePage() {
               id="account-type"
               value={accountType}
               onChange={(event) => setAccountType(event.target.value as AccountType)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {ACCOUNT_TYPES.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -253,7 +253,7 @@ export default function FinancePage() {
               inputMode="decimal"
               value={accountBalance}
               onChange={(event) => setAccountBalance(event.target.value)}
-              className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="account-currency" className="flex flex-col gap-1">
@@ -263,7 +263,7 @@ export default function FinancePage() {
               data-testid="account-currency"
               value={selectedAccountCurrency}
               onChange={(event) => setAccountCurrency(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {CURRENCY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -301,7 +301,7 @@ export default function FinancePage() {
               data-testid="filter-type"
               value={filterType}
               onChange={(event) => setFilterType(event.target.value as 'all' | TransactionKind)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="all">{t('finance.filter.all')}</option>
               <option value="expense">{t('finance.type.expense')}</option>
@@ -315,7 +315,7 @@ export default function FinancePage() {
               data-testid="filter-category"
               value={filterCategory}
               onChange={(event) => setFilterCategory(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="">{t('finance.filter.all')}</option>
               {categories.map((category) => (
@@ -330,7 +330,7 @@ export default function FinancePage() {
             <select
               value={filterAccount}
               onChange={(event) => setFilterAccount(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="">{t('finance.filter.all')}</option>
               {accounts.map((account) => (
@@ -417,7 +417,7 @@ export default function FinancePage() {
                 </span>
               </div>
               <div
-                className="h-2 w-full overflow-hidden rounded-[var(--radius-chip)] bg-[var(--puls-ink-muted)]/20"
+                className="h-2 w-full overflow-hidden rounded-[var(--radius-chip)] bg-[var(--puls-line)]"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={Math.max(budget.limit, budget.spent)}
@@ -452,7 +452,7 @@ export default function FinancePage() {
               data-testid="budget-category"
               value={budgetCategory}
               onChange={(event) => setBudgetCategory(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="">{t('finance.filter.all')}</option>
               {expenseCategories.map((category) => (
@@ -470,7 +470,7 @@ export default function FinancePage() {
               inputMode="decimal"
               value={budgetLimit}
               onChange={(event) => setBudgetLimit(event.target.value)}
-              className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+              className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <button

@@ -29,7 +29,7 @@ const DAY_LABEL: Record<RecurrenceFrequency, string> = {
 };
 
 const inputClass =
-  'h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3';
+  'h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3';
 
 interface RecurringSectionProps {
   accounts: AccountDto[];

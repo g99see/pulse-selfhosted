@@ -210,7 +210,7 @@ export default function AdminAiPage() {
               </thead>
               <tbody>
                 {usage.rows.map((row) => (
-                  <tr key={row.userId} className="border-t border-[var(--puls-ink-muted)]/15" data-testid="ai-admin-usage-row">
+                  <tr key={row.userId} className="border-t border-[var(--puls-line)]" data-testid="ai-admin-usage-row">
                     <td className="py-2 pr-3">@{row.nickname}</td>
                     <td className="py-2 pr-3">
                       {formatAiTokens(row.tokensIn, locale)} / {formatAiTokens(row.tokensOut, locale)}

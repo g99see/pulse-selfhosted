@@ -156,7 +156,7 @@ export default function InsightsPage() {
                         data-testid="insight-feedback-useful"
                         disabled={busyId === insight.id}
                         onClick={() => void rate(insight, 'useful')}
-                        className="rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)]/30 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                        className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
                       >
                         {t('insights.feedback.useful')}
                       </button>
@@ -165,7 +165,7 @@ export default function InsightsPage() {
                         data-testid="insight-feedback-not-useful"
                         disabled={busyId === insight.id}
                         onClick={() => void rate(insight, 'not_useful')}
-                        className="rounded-[var(--radius-chip)] border border-[var(--puls-ink-muted)]/30 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                        className="rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
                       >
                         {t('insights.feedback.notUseful')}
                       </button>

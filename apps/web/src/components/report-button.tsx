@@ -87,7 +87,7 @@ export function ReportButton({ targetType, targetId, hidden, className = '' }: R
         type="button"
         data-testid="report-open"
         onClick={() => setOpen(true)}
-        className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-3 py-1.5 text-xs font-medium text-[var(--puls-ink-muted)] transition-colors hover:bg-[var(--puls-ink-muted)]/10"
+        className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-1.5 text-xs font-medium text-[var(--puls-ink-muted)] transition-colors hover:bg-[var(--puls-ink-muted)]/10"
       >
         {t('report.button')}
       </button>
@@ -126,7 +126,7 @@ export function ReportButton({ targetType, targetId, hidden, className = '' }: R
                     data-testid="report-reason"
                     value={reason}
                     onChange={(event) => setReason(event.target.value as ReportReason)}
-                    className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+                    className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   >
                     {REPORT_REASONS.map((value) => (
                       <option key={value} value={value}>
@@ -144,7 +144,7 @@ export function ReportButton({ targetType, targetId, hidden, className = '' }: R
                     maxLength={REPORT_DETAILS_MAX}
                     onChange={(event) => setDetails(event.target.value)}
                     rows={3}
-                    className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] p-3"
+                    className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3"
                   />
                   <span className="text-xs text-[var(--puls-ink-muted)]">{t('report.dialog.detailsHint')}</span>
                 </label>
@@ -161,7 +161,7 @@ export function ReportButton({ targetType, targetId, hidden, className = '' }: R
                     data-testid="report-cancel"
                     onClick={close}
                     disabled={busy}
-                    className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 py-2 text-sm font-medium disabled:opacity-50"
                   >
                     {t('report.dialog.cancel')}
                   </button>

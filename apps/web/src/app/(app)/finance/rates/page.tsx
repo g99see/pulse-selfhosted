@@ -140,7 +140,7 @@ export default function RatesPage() {
             data-testid="rate-date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           />
         </label>
         <label htmlFor="rate-base" className="flex flex-col gap-1">
@@ -150,7 +150,7 @@ export default function RatesPage() {
             data-testid="rate-base"
             value={base}
             onChange={(event) => setBase(event.target.value)}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {CURRENCY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -166,7 +166,7 @@ export default function RatesPage() {
             data-testid="rate-quote"
             value={quote}
             onChange={(event) => setQuote(event.target.value)}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {CURRENCY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -183,7 +183,7 @@ export default function RatesPage() {
             inputMode="decimal"
             value={rate}
             onChange={(event) => setRate(event.target.value)}
-            className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 bg-[var(--puls-bg)] px-3"
+            className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           />
         </label>
         <button
