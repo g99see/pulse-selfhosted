@@ -127,6 +127,16 @@ scripts/upgrade.sh
   боевой БД `puls`): архив создан, маркер `.last-success` появился, выражение
   healthcheck вернуло `HEALTHCHECK_OK`; тестовый контейнер и архив удалены.
 - `docker compose config -q` — конфигурация валидна.
+- Healthcheck сервиса проверен на всех состояниях: свежий маркер → код 0,
+  устаревший (старше двух интервалов) → 1, без маркера → 1.
+- Тесты:
+  - `apps/api/test/setup.integration.test.ts` — 11/11 (в отдельной БД, включая
+    гонку двух `POST /api/setup`: ровно один 201 и один 409);
+  - вместе с существующим `auth.integration.test.ts` — 29/29 (режим регистрации
+    по умолчанию `open` ничего не ломает);
+  - `apps/web/e2e/setup.spec.ts` — 4/4;
+  - `pnpm build` собирает маршрут `/setup`; `pnpm lint` и `pnpm license:check`
+    проходят.
 
 ## 7. Ограничения
 
