@@ -7,10 +7,11 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { canModerate, type PublicUser } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { QuickAddSheet } from '@/components/quick-add-sheet';
+import { aiApi } from '@/lib/ai-client';
 import { authApi } from '@/lib/auth-client';
 import { isLocale, localeFromCookieString } from '@/lib/locale';
 
-const NAV: Array<{ key: string; href: string | null }> = [
+const NAV: Array<{ key: string; href: string | null; testId?: string }> = [
   { key: 'app.nav.home', href: '/app' },
   { key: 'app.nav.finance', href: '/finance' },
   { key: 'app.nav.add', href: null },
@@ -18,7 +19,9 @@ const NAV: Array<{ key: string; href: string | null }> = [
   { key: 'app.nav.insights', href: '/insights' },
   { key: 'app.nav.achievements', href: '/achievements' },
   { key: 'app.nav.feed', href: '/feed' },
+  { key: 'app.nav.ai', href: '/ai', testId: 'nav-ai' },
   { key: 'app.nav.moderation', href: '/moderation' },
+  { key: 'app.nav.adminAi', href: '/admin/ai', testId: 'nav-admin-ai' },
   { key: 'app.nav.profile', href: '/app/profile' },
   { key: 'app.nav.page', href: '/page-editor' },
 ];
@@ -32,10 +35,20 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const [greeting, setGreeting] = useState<Greeting>('day');
   const [busy, setBusy] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  // AI-функции видны только при подключённом ключе (ТЗ §3.9): лёгкий запрос
+  // статуса при загрузке кабинета; при ошибке считаем AI выключенным.
+  const [aiEnabled, setAiEnabled] = useState(false);
 
   useEffect(() => {
     const hour = new Date().getHours();
     setGreeting(hour < 5 ? 'night' : hour < 12 ? 'morning' : hour < 18 ? 'day' : 'evening');
+  }, []);
+
+  useEffect(() => {
+    void aiApi
+      .status()
+      .then((response) => setAiEnabled(response.status.enabled))
+      .catch(() => setAiEnabled(false));
   }, []);
 
   // Если язык ещё не выбран в браузере, берём его из профиля пользователя (ТЗ §6).
@@ -53,10 +66,14 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
     }
   }
 
-  // Ссылку на модерацию видят только модератор и администратор (ТЗ §2, §3.8).
-  const items = NAV.filter(
-    (item) => item.key !== 'app.nav.moderation' || canModerate(user.role),
-  ).map((item) =>
+  // Ссылку на модерацию видят только модератор и администратор (ТЗ §2, §3.8);
+  // AI — только при подключённом ключе (ТЗ §3.9), админку AI — только админ.
+  const items = NAV.filter((item) => {
+    if (item.key === 'app.nav.moderation') return canModerate(user.role);
+    if (item.key === 'app.nav.ai') return aiEnabled;
+    if (item.key === 'app.nav.adminAi') return user.role === 'admin';
+    return true;
+  }).map((item) =>
     item.key === 'app.nav.add' ? (
       <button
         key={item.key}
@@ -71,6 +88,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
       <Link
         key={item.key}
         href={item.href}
+        data-testid={item.testId}
         aria-current={item.href === '/app' ? 'page' : undefined}
         className="rounded-[var(--radius-button)] px-4 py-3 text-center font-medium text-[var(--puls-primary-text)]"
       >
