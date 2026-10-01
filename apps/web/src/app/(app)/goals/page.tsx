@@ -317,7 +317,7 @@ export default function GoalsPage() {
         </form>
       </Card>
 
-      <section className="grid gap-4 sm:grid-cols-2" data-testid="goals-list">
+      <section className="grid gap-4 xl:grid-cols-2" data-testid="goals-list">
         {goals.map((goal) => (
           <article
             key={goal.id}
@@ -336,10 +336,14 @@ export default function GoalsPage() {
                   <GoalImage image={goal.image} />
                   <span className="truncate text-lg font-bold">{goal.title}</span>
                 </span>
+                <span className="font-heading text-xl font-extrabold">
+                  {money(goal.savedAmount, goal.currency)}{' '}
+                  <span className="text-sm font-medium text-[var(--puls-ink-muted)]">
+                    / {money(goal.targetAmount, goal.currency)}
+                  </span>
+                </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
-                  {t('goals.saved')}: {money(goal.savedAmount, goal.currency)} /{' '}
-                  {money(goal.targetAmount, goal.currency)} · {t('goals.remaining')}:{' '}
-                  {money(goal.remaining, goal.currency)}
+                  {t('goals.remaining')}: {money(goal.remaining, goal.currency)}
                 </span>
                 <span className="text-sm text-[var(--puls-ink-muted)]">
                   {goal.requiredMonthly === null
@@ -459,7 +463,7 @@ export default function GoalsPage() {
                 type="submit"
                 data-testid="goal-deposit-submit"
                 disabled={busy || depositGoal !== goal.id}
-                className="h-11 w-full rounded-[var(--radius-button)] border border-[var(--puls-finance)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                className="h-10 shrink-0 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
               >
                 {t('goals.deposit.submit')}
               </button>
@@ -468,7 +472,7 @@ export default function GoalsPage() {
         ))}
 
         {goals.length === 0 && !loading ? (
-          <div className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm sm:col-span-2" data-testid="goals-empty">
+          <div className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm xl:col-span-2" data-testid="goals-empty">
             <EmptyState icon="target" tone="finance" title={t('goals.empty')} />
           </div>
         ) : null}

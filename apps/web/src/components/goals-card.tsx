@@ -78,7 +78,7 @@ export function GoalsCard() {
           />
         </div>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2" data-testid="goals-card-list">
+        <ul className="grid gap-3" data-testid="goals-card-list">
           {featured.map((goal) => (
             <li key={goal.id} className="flex items-center gap-3 rounded-[20px] bg-[var(--puls-finance-soft)] p-3">
               <ProgressRing

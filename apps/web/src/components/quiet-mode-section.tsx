@@ -18,7 +18,10 @@ export function QuietModeSection() {
         <h2 className="font-heading text-lg font-bold">{t('quiet.settings.title')}</h2>
         <p className="text-sm text-[var(--puls-ink-muted)]">{t('quiet.settings.description')}</p>
         <div>
-          <QuietModeToggle testId="quiet-settings-toggle" />
+          <QuietModeToggle
+            testId="quiet-settings-toggle"
+            className="inline-flex h-11 w-fit items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)] transition-opacity duration-150 hover:opacity-90"
+          />
         </div>
         <p className="text-xs text-[var(--puls-ink-muted)]">{t('quiet.settings.hint')}</p>
       </Card>
