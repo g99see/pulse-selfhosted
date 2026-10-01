@@ -49,6 +49,8 @@ model User {
   notificationRules  NotificationRule[]
   pushSubscriptions  PushSubscription[]
   dailyStats         DailyStat[]
+  savingsGoals       Goal[]
+  goalDeposits       GoalDeposit[]
 
   @@map("users")
 }
@@ -98,6 +100,8 @@ model Account {
 
   transactions Transaction[] @relation("TransactionAccount")
   transfers    Transaction[] @relation("TransferTarget")
+  goals        Goal[]
+  goalDeposits GoalDeposit[]
 
   @@index([userId])
   @@map("accounts")
@@ -242,4 +246,49 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+/// Цель накоплений (ТЗ §3.2, §7): сумма, срок, картинка и приватность.
+/// saved_amount меняется пополнениями (GoalDeposit) в одной транзакции.
+model Goal {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  targetAmount Decimal   @map("target_amount") @db.Decimal(14, 2)
+  savedAmount  Decimal   @default(0) @map("saved_amount") @db.Decimal(14, 2)
+  deadline     DateTime? @db.Date
+  /// Картинка: эмодзи-пресет или URL (файлы не загружаются).
+  image        String?
+  visibility   String    @default("private")
+  /// Необязательная связь со счётом-сбережениями (ТЗ §3.2).
+  accountId    String?   @map("account_id")
+  account      Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  currency     String    @default("RUB")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  deposits GoalDeposit[]
+
+  @@index([userId])
+  @@map("goals")
+}
+
+/// Пополнение цели (ТЗ §3.2): сумма, дата и необязательный счёт-источник.
+/// История пополнений даёт фактический темп для прогноза даты достижения.
+model GoalDeposit {
+  id        String   @id @default(cuid())
+  goalId    String   @map("goal_id")
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId String?  @map("account_id")
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  amount    Decimal  @db.Decimal(14, 2)
+  date      DateTime @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([goalId])
+  @@index([userId, date])
+  @@map("goal_deposits")
 }

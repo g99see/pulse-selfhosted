@@ -191,6 +191,8 @@ export interface PublicUser {
   id: string;
   email: string;
   nickname: string;
+  /** Роль (ТЗ §9 п.7): user | moderator | admin. */
+  role: string;
   timezone: string;
   currency: string;
   locale: string;

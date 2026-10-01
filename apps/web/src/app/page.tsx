@@ -2,6 +2,7 @@
 import { moodAverage } from '@puls/shared';
 import Link from 'next/link';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { SetupGuard } from '@/components/setup-guard';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { API_BASE_URL, healthUrl } from '@/lib/api';
 import { budgetLevel } from '@/lib/budget';
@@ -26,6 +27,7 @@ export default async function LandingPage() {
 
   return (
     <main id="content" className="mx-auto flex min-h-screen max-w-3xl flex-col gap-10 px-6 py-16">
+      <SetupGuard />
       <header className="flex flex-col gap-4">
         <p className="text-sm font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
           {t('landing.badge', locale)}

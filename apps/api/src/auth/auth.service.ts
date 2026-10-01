@@ -8,6 +8,7 @@ import type {
   RegisterInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { INSTANCE_SETTINGS_ID } from '../common/instance';
 import { PrismaService } from '../prisma/prisma.service';
 import { EMAIL_VERIFY_TTL_HOURS } from './cookies';
 import { MailService } from './mail.service';
@@ -23,6 +24,7 @@ export function toPublicUser(user: User): PublicUser {
     id: user.id,
     email: user.email,
     nickname: user.nickname,
+    role: user.role,
     timezone: user.timezone,
     currency: user.currency,
     locale: user.locale,
@@ -53,6 +55,8 @@ export class AuthService {
   ) {}
 
   async register(input: RegisterInput): Promise<{ user: PublicUser; verificationSent: true }> {
+    await this.assertRegistrationOpen();
+
     const [byEmail, byNickname] = await Promise.all([
       this.prisma.user.findUnique({ where: { email: input.email } }),
       this.prisma.user.findUnique({ where: { nickname: input.nickname } }),
@@ -137,6 +141,29 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (user && user.emailVerifiedAt === null) {
       await this.issueVerificationToken(user);
+    }
+  }
+
+  /**
+   * Режим регистрации инстанса (ТЗ §9 п.7). По умолчанию open; invite и closed
+   * отклоняют самостоятельную регистрацию. Механизма приглашений пока нет,
+   * поэтому invite ведёт себя как закрытый режим с отдельным кодом ошибки.
+   */
+  private async assertRegistrationOpen(): Promise<void> {
+    const settings = await this.prisma.instanceSettings.findUnique({
+      where: { id: INSTANCE_SETTINGS_ID },
+    });
+    const mode = settings?.registrationMode ?? 'open';
+
+    if (mode === 'closed') {
+      throw httpError(403, 'registration_closed', 'Регистрация на этом сервере закрыта');
+    }
+    if (mode === 'invite') {
+      throw httpError(
+        403,
+        'registration_invite_required',
+        'Регистрация — только по приглашению администратора',
+      );
     }
   }
 

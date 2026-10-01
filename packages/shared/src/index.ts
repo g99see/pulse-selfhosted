@@ -11,3 +11,4 @@ export * from './finance';
 export * from './stats';
 export * from './notifications';
 export * from './account';
+export * from './goals';

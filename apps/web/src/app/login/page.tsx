@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { LoginSchema } from '@puls/shared';
 import { Alert, Card, Field, PrimaryButton } from '@/components/ui';
+import { SetupGuard } from '@/components/setup-guard';
 import { useT } from '@/components/locale-provider';
 import { AuthApiError, authApi } from '@/lib/auth-client';
 import { authErrorKey } from '@/lib/i18n';
@@ -45,6 +46,7 @@ export default function LoginPage() {
 
   return (
     <main id="content" className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-10">
+      <SetupGuard />
       <header className="flex flex-col gap-2">
         <Link href="/" className="text-sm font-semibold text-[var(--puls-primary-text)]">
           ← {t('app.nav.home')}

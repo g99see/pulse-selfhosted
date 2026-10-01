@@ -2,6 +2,7 @@
 'use client';
 
 import { CheckInCard } from '@/components/checkin-card';
+import { GoalsCard } from '@/components/goals-card';
 import { TodayStats } from '@/components/today-stats';
 import { useT } from '@/components/locale-provider';
 import { Card } from '@/components/ui';
@@ -17,6 +18,8 @@ export default function AppHomePage() {
       <CheckInCard />
 
       <TodayStats />
+
+      <GoalsCard />
 
       <Card>
         <p className="text-[var(--puls-finance-text)]">{t('app.today.onboardingDone')}</p>
