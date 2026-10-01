@@ -21,7 +21,7 @@ export const NOTIFICATION_TYPES = [
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export const NotificationTypeSchema = z.enum(NOTIFICATION_TYPES);
 
-export const NOTIFICATION_CHANNELS = ['web_push', 'email'] as const;
+export const NOTIFICATION_CHANNELS = ['web_push', 'email', 'telegram'] as const;
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 export const NotificationChannelSchema = z.enum(NOTIFICATION_CHANNELS);
 
