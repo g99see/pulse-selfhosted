@@ -11,6 +11,7 @@ import type {
   RecurringUpcomingItem,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { MASKED_AMOUNT } from '@/components/money';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { FormToggle } from '@/components/finance-form-toggle';
@@ -294,7 +295,7 @@ export function RecurringSection({
               <option value="">{t('finance.noCategory')}</option>
               {categoryOptions.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.name}
+                  {categoryLabel(category, t)}
                 </option>
               ))}
             </select>

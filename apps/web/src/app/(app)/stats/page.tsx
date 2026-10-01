@@ -13,6 +13,7 @@ import {
   type StatsReportResponse,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { MASKED_AMOUNT } from '@/components/money';
 import { Card, EmptyState, Segmented, StatTile, type Tone } from '@/components/ui';
 import { barLayout, heatLevel, summarizeSeries } from '@/lib/charts';
@@ -296,12 +297,13 @@ export default function StatsPage() {
               <ul className="flex flex-col gap-3" data-testid="stats-categories">
                 {report.byCategory.map((entry, index) => {
                   const tone = CATEGORY_TONES[index % CATEGORY_TONES.length]!;
+                  const entryLabel = entry.categoryName
+                    ? categoryLabel({ id: entry.categoryId, name: entry.categoryName }, t)
+                    : t('stats.byCategory.other');
                   return (
                     <li key={entry.categoryId ?? 'none'} className="flex flex-col gap-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">
-                          {entry.categoryName ?? t('stats.byCategory.other')}
-                        </span>
+                        <span className="font-medium">{entryLabel}</span>
                         <span className="[font-variant-numeric:tabular-nums]">
                           {money(entry.total)}
                         </span>
@@ -312,7 +314,7 @@ export default function StatsPage() {
                         aria-valuemin={0}
                         aria-valuemax={maxCategory}
                         aria-valuenow={entry.total}
-                        aria-label={entry.categoryName ?? t('stats.byCategory.other')}
+                        aria-label={entryLabel}
                       >
                         <div
                           className="h-full rounded-[var(--radius-chip)]"

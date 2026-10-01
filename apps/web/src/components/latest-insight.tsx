@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { InsightDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { Card, EmptyState, IconBubble } from '@/components/ui';
 import { insightsApi } from '@/lib/insights-client';
 
@@ -48,7 +49,14 @@ export function LatestInsight() {
           </Link>
         </div>
         {!loaded ? null : insight ? (
-          <p className="text-sm text-[var(--puls-ink)]">{t(insight.textKey, insight.params)}</p>
+          <p className="text-sm text-[var(--puls-ink)]">
+            {t(insight.textKey, {
+              ...insight.params,
+              ...(typeof insight.params.category === 'string' && insight.params.category
+                ? { category: categoryLabel({ name: insight.params.category }, t) }
+                : {}),
+            })}
+          </p>
         ) : (
           <EmptyState
             icon="sparkle"

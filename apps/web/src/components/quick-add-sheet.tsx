@@ -10,6 +10,7 @@ import {
   type TransactionKind,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { categoryLabel } from '@/lib/category-label';
 import { formatMoneyLocale } from '@/lib/format';
 import { financeApi, notifyFinanceChanged } from '@/lib/finance-client';
 import { Icon } from '@/components/icons';
@@ -62,7 +63,9 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
   const parsed = parseQuickTransaction(text);
   const guessedName = parsed ? guessCategoryName(parsed.title) : null;
   const guessedCategory = guessedName
-    ? categories.find((category) => category.name === guessedName)
+    ? categories.find(
+        (category) => category.name === guessedName || categoryLabel(category, t) === guessedName,
+      )
     : undefined;
   const effectiveType: TransactionKind = parsed?.type ?? type;
   const effectiveAmount = parsed?.amount ?? Number(amount.replace(',', '.'));
@@ -218,7 +221,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                     backgroundColor: isActive ? `${category.color}33` : 'transparent',
                   }}
                 >
-                  {category.name}
+                  {categoryLabel(category, t)}
                 </button>
               );
             })}
