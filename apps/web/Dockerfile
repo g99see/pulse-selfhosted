@@ -15,7 +15,7 @@ COPY pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile=false
 
 FROM deps AS build
-ARG NEXT_PUBLIC_API_URL=http://localhost/api
+ARG NEXT_PUBLIC_API_URL=http://localhost
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 # Включает output: 'standalone' в next.config.mjs (см. комментарий там).
