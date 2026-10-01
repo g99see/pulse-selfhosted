@@ -1,0 +1,27 @@
+name: Предложить идею / Feature request
+description: Новая функция или улучшение. / A new feature or improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую задачу решаем? / Problem
+      description: Что сейчас неудобно или невозможно. / What is hard or impossible today.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Как это могло бы работать / Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Альтернативы / Alternatives considered
+  - type: checkboxes
+    id: contrib
+    attributes:
+      label: Участие / Contribution
+      options:
+        - label: Готов(а) сделать pull request / I can send a PR

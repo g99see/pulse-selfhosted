@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Уязвимость / Security vulnerability
+    url: https://github.com/g99see/pulse-selfhosted/blob/master/SECURITY.md
+    about: Не создавайте публичный issue — сообщите приватно по инструкции в SECURITY.md. / Do not open a public issue.
