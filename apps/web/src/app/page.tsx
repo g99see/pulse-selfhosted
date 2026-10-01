@@ -92,7 +92,7 @@ export default async function LandingPage() {
         <h2 className="text-xl font-bold">{t('landing.phase.title', locale)}</h2>
         <p className="mt-2 text-[var(--puls-ink-muted)]">
           {t('landing.phase.body', locale)}{' '}
-          <code className="rounded bg-[var(--puls-ink-muted)]/10 px-2 py-1 text-sm">
+          <code className="rounded bg-[var(--puls-ink-muted)]/10 px-2 py-1 text-sm text-[var(--puls-ink)]">
             {healthUrl()}
           </code>
         </p>

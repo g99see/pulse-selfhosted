@@ -7,6 +7,9 @@ dist/
 .next/
 out/
 *.tsbuildinfo
+# service worker PWA генерируется сборкой (ТЗ §7)
+apps/web/public/sw.js
+apps/web/public/sw.js.map
 
 # tests & coverage
 coverage/

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { InstallPrompt } from '@/components/install-prompt';
 import { useT } from '@/components/locale-provider';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -18,6 +19,10 @@ export default function ProfileSettingsPage() {
         <h2 className="text-lg font-bold">{t('settings.appearance')}</h2>
         <ThemeToggle />
         <LocaleSwitcher />
+      </Card>
+
+      <Card>
+        <InstallPrompt />
       </Card>
     </div>
   );

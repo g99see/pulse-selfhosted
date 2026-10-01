@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import withSerwistInit from '@serwist/next';
 
 /**
  * Standalone-сборка нужна только для контейнера (ТЗ §7). Локально `next start`
@@ -18,4 +19,17 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
 };
 
-export default nextConfig;
+/**
+ * PWA (ТЗ §7): сервис-воркер и офлайн-страница собираются только для
+ * production — в dev-режиме Serwist отключён, чтобы не мешать перезагрузке.
+ * `/offline` рендерится на сервере, поэтому в предкеш его кладём вручную,
+ * с ревизией сборки: при обновлении воркер перечитает страницу.
+ */
+const withSerwist = withSerwistInit({
+  swSrc: 'src/sw.ts',
+  swDest: 'public/sw.js',
+  disable: process.env.NODE_ENV !== 'production',
+  additionalPrecacheEntries: [{ url: '/offline', revision: `offline-${Date.now()}` }],
+});
+
+export default withSerwist(nextConfig);
