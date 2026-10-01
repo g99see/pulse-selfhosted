@@ -67,6 +67,17 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'reactions', entity: 'reactions', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Комментарии пользователя (ТЗ §3.7): тело — собственная запись, выгружаем.
   { table: 'comments', entity: 'comments', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Участие в семье (ТЗ §4): семья, роль и дата вступления — данные пользователя.
+  { table: 'family_members', entity: 'familyMembers', keyColumn: 'user_id', orderBy: '"joined_at"' },
+  // Операции по семейным счетам (ТЗ §4): вид, сумма и счёт — действия пользователя.
+  { table: 'family_transactions', entity: 'familyTransactions', keyColumn: 'user_id', orderBy: '"date", "created_at"' },
+  // Взносы в общие цели семьи (ТЗ §4): сумма и дата — действия пользователя.
+  {
+    table: 'family_goal_deposits',
+    entity: 'familyGoalDeposits',
+    keyColumn: 'user_id',
+    orderBy: '"date", "created_at"',
+  },
   // Предложения AI-помощника (ТЗ §3.9): тип, текст и параметры — данные пользователя.
   { table: 'ai_proposals', entity: 'aiProposals', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Личный AI-ключ (ТЗ §3.9): сам ключ — секрет, выгружаем провайдера и last4.

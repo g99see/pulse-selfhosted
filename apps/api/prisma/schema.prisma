@@ -104,6 +104,19 @@ model User {
   /// Журнал доставок вебхуков (ТЗ §4).
   webhookDeliveries  WebhookDelivery[]
 
+  /// Семья, в которой состоит пользователь (ТЗ §4): одна на пользователя.
+  familyMembership     FamilyMember?
+  /// Семьи, созданные пользователем (он владелец, ТЗ §4).
+  ownedFamilies        Family[]           @relation("FamilyOwner")
+  /// Коды-приглашения в семью, созданные пользователем (ТЗ §4).
+  familyInvitesCreated FamilyInvite[]     @relation("FamilyInviteCreator")
+  /// Коды-приглашения, использованные пользователем (ТЗ §4).
+  familyInvitesUsed    FamilyInvite[]     @relation("FamilyInviteUsedBy")
+  /// Операции пользователя по семейным счетам (ТЗ §4).
+  familyTransactions   FamilyTransaction[]
+  /// Взносы пользователя в общие цели семьи (ТЗ §4).
+  familyGoalDeposits   FamilyGoalDeposit[]
+
   @@map("users")
 }
 
@@ -959,4 +972,138 @@ model WebhookDelivery {
   @@index([userId])
   @@index([status, updatedAt])
   @@map("webhook_deliveries")
+}
+
+/* ===== Семейный режим (ТЗ §4) ===== */
+
+/// Семья на домашнем сервере (ТЗ §4): общие счета и цели на всех участников,
+/// у каждого при этом свой приватный дневник. Владелец (owner_id) управляет
+/// составом и удаляет семью. Личные Account/Goal/CheckIn семья не видит.
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String   @map("owner_id")
+  owner     User     @relation("FamilyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members  FamilyMember[]
+  invites  FamilyInvite[]
+  accounts FamilyAccount[]
+  goals    FamilyGoal[]
+
+  @@index([ownerId])
+  @@map("families")
+}
+
+/// Участник семьи (ТЗ §4): user_id уникален — один пользователь состоит только
+/// в одной семье. role: owner | member.
+model FamilyMember {
+  id       String   @id @default(cuid())
+  familyId String   @map("family_id")
+  family   Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  userId   String   @unique @map("user_id")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String   @default("member")
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  @@index([familyId])
+  @@map("family_members")
+}
+
+/// Одноразовый код-приглашение в семью (ТЗ §4): срок жизни и факт
+/// использования. В базе хранится открытый код (ссылка/код передаётся
+/// владельцем), после вступления проставляются used_at/used_by.
+model FamilyInvite {
+  id         String    @id @default(cuid())
+  familyId   String    @map("family_id")
+  family     Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  code       String    @unique
+  createdBy  String    @map("created_by")
+  creator    User      @relation("FamilyInviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  expiresAt  DateTime  @map("expires_at")
+  usedAt     DateTime? @map("used_at")
+  usedBy     String?   @map("used_by")
+  usedByUser User?     @relation("FamilyInviteUsedBy", fields: [usedBy], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([familyId])
+  @@map("family_invites")
+}
+
+/// Общий счёт семьи (ТЗ §4): карта, наличные или сбережения. Баланс
+/// пересчитывается при каждой операции (доход/расход).
+model FamilyAccount {
+  id        String        @id @default(cuid())
+  familyId  String        @map("family_id")
+  family    Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name      String
+  type      String        @default("card")
+  balance   Decimal       @default(0) @db.Decimal(14, 2)
+  currency  String        @default("RUB")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  transactions FamilyTransaction[]
+
+  @@index([familyId])
+  @@map("family_accounts")
+}
+
+/// Операция по общему счёту семьи (ТЗ §4): доход или расход, кто внёс
+/// (user_id) и на какую сумму. Баланс счёта меняется в одной транзакции БД.
+model FamilyTransaction {
+  id        String        @id @default(cuid())
+  accountId String        @map("account_id")
+  account   FamilyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId    String        @map("user_id")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// income — доход, expense — расход.
+  kind      String
+  amount    Decimal       @db.Decimal(14, 2)
+  note      String?
+  date      DateTime      @db.Date
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([accountId, createdAt])
+  @@index([userId, date])
+  @@map("family_transactions")
+}
+
+/// Общая цель семьи (ТЗ §4): как личная цель, но принадлежит семье. Прогресс,
+/// взнос и прогноз считаются теми же чистыми функциями, что и у личных целей.
+model FamilyGoal {
+  id           String    @id @default(cuid())
+  familyId     String    @map("family_id")
+  family       Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  title        String
+  targetAmount Decimal   @map("target_amount") @db.Decimal(14, 2)
+  savedAmount  Decimal   @default(0) @map("saved_amount") @db.Decimal(14, 2)
+  deadline     DateTime? @db.Date
+  image        String?
+  currency     String    @default("RUB")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  deposits FamilyGoalDeposit[]
+
+  @@index([familyId])
+  @@map("family_goals")
+}
+
+/// Взнос участника в общую цель семьи (ТЗ §4): кто внёс (user_id), сколько и
+/// когда. История даёт фактический темп для прогноза даты достижения.
+model FamilyGoalDeposit {
+  id        String     @id @default(cuid())
+  goalId    String     @map("goal_id")
+  goal      FamilyGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId    String     @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Decimal    @db.Decimal(14, 2)
+  date      DateTime   @db.Date
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([goalId])
+  @@index([userId, date])
+  @@map("family_goal_deposits")
 }
