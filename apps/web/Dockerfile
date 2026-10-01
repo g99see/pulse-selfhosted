@@ -17,6 +17,9 @@ RUN pnpm install --frozen-lockfile=false
 FROM deps AS build
 ARG NEXT_PUBLIC_API_URL=http://localhost
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Origin песочницы для режима http (пусто — берётся абсолютный адрес из API).
+ARG NEXT_PUBLIC_SANDBOX_URL=
+ENV NEXT_PUBLIC_SANDBOX_URL=$NEXT_PUBLIC_SANDBOX_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 # Включает output: 'standalone' в next.config.mjs (см. комментарий там).
 ENV BUILD_STANDALONE=1
