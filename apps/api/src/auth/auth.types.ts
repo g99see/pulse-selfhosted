@@ -6,4 +6,6 @@ import type { Request } from 'express';
 export interface AuthenticatedRequest extends Request {
   user?: User;
   session?: Session;
+  /** Токен открытого API, если запрос прошёл ApiTokenGuard (ТЗ §4). */
+  apiToken?: { id: string; scopes: string[] };
 }

@@ -25,6 +25,12 @@ export class CsrfGuard implements CanActivate {
     if (SAFE_METHODS.has(request.method)) return true;
     if (CSRF_EXEMPT_PATHS.has(request.path.replace(/\/+$/, ''))) return true;
 
+    // Bearer-токен открытого API (ТЗ §4) не опирается на cookie, поэтому CSRF
+    // к нему неприменим: запрос аутентифицируется самим токеном, а не сессией.
+    const authorization = request.headers['authorization'];
+    const authValue = Array.isArray(authorization) ? authorization[0] : authorization;
+    if (authValue && /^Bearer\s+/i.test(authValue)) return true;
+
     const cookie = request.cookies?.[CSRF_COOKIE] as string | undefined;
     const header = request.headers[CSRF_HEADER];
     const headerValue = Array.isArray(header) ? header[0] : header;

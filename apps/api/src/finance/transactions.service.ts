@@ -13,6 +13,7 @@ import {
   type TransferCreateInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { DomainEvents } from '../api-access/domain-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
@@ -160,7 +161,16 @@ export class TransactionsService {
       return created;
     });
 
-    return toTransactionDto(transaction, user.currency);
+    const created = toTransactionDto(transaction, user.currency);
+    // Событие для вебхуков (ТЗ §4): сигнатуру create не меняет.
+    DomainEvents.emit('transaction.created', userId, {
+      id: created.id,
+      type: created.type,
+      amount: created.amount,
+      currency: created.currency,
+      date: created.date,
+    });
+    return created;
   }
 
   /** Быстрый ввод текстом (ТЗ §4): «обед 450» → «Еда», «зарплата +80000» → «Зарплата». */

@@ -20,6 +20,7 @@ import {
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { SocialPostsService } from '../social/social-posts.service';
+import { DomainEvents } from '../api-access/domain-events';
 
 type GoalWithDeposits = Prisma.GoalGetPayload<{ include: { deposits: true } }>;
 
@@ -213,6 +214,13 @@ export class GoalsService {
 
     // Пост-веха в ленту (ТЗ §3.7): только когда пополнение пересекло 25/50/75/100%.
     if (milestone.reached.length > 0) {
+      // Событие для вебхуков (ТЗ §4): сигнатуру deposit не меняет.
+      DomainEvents.emit('goal.milestone', userId, {
+        goalId: goal.id,
+        title: goal.title,
+        percent: dto.percent,
+        reached: milestone.reached,
+      });
       await this.posts.create({
         userId,
         type: 'milestone',

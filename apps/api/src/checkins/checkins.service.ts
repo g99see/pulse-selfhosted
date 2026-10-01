@@ -15,6 +15,7 @@ import {
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { DomainEvents } from '../api-access/domain-events';
 
 /** Допуск на расхождение часов клиента и сервера, мс. */
 const FUTURE_TOLERANCE_MS = 60_000;
@@ -87,6 +88,13 @@ export class CheckinsService {
 
     // Ленивая проверка достижений сразу после записи (ТЗ §4): сбой не ломает чек-ин.
     await this.achievements.evaluate(userId).catch(() => undefined);
+
+    // Событие для вебхуков (ТЗ §4): одна строка, сигнатуру create не меняет.
+    DomainEvents.emit('checkin.created', userId, {
+      id: created.id,
+      mood: created.mood,
+      occurredAt: created.occurredAt.toISOString(),
+    });
 
     return toCheckInDto(created);
   }
