@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# «Пульс» — API (NestJS + Prisma). Пользовательский systemd-юнит: стартует
+# после входа пользователя, а благодаря `loginctl enable-linger $USER` — и
+# после перезагрузки без входа в систему.
+#
+# Установка (см. deploy/systemd/README.md):
+#   cp deploy/systemd/puls-api.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now puls-api.service
+#
+# Секреты и адреса БД — в ~/.config/puls/env (права 600), юнит их только читает.
+[Unit]
+Description=Пульс — API (:3001)
+Documentation=file://%h/projects/puls/docs/PRESENTATION.md
+# Postgres и Valkey живут в Docker и могут подниматься позже — юнит переживает
+# неудачный старт и повторяет попытку, пока БД не станет доступна.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/puls/apps/api
+EnvironmentFile=%h/.config/puls/env
+# Node 24 из nvm: нативные модули (argon2, @resvg/resvg-js) собраны под
+# Node >= 20; системный /usr/bin/node (v20) с ними не совместим.
+ExecStart=%h/.nvm/versions/node/v24.18.0/bin/node dist/main.js
+Restart=on-failure
+RestartSec=10
+# Не сдаваться, пока Postgres/Valkey поднимаются (до ~5 минут попыток).
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Caddy: автоматический HTTPS (ТЗ §10) и раздача пользовательского HTML
+# с отдельного поддомена песочницы (ТЗ §3.8).
+{
+	email {$ACME_EMAIL:admin@example.com}
+	# Встроенный HTTP->HTTPS-редирект Caddy всегда ведёт на стандартный порт
+	# 443: `https_port` — параметр «для внутреннего использования» и в адрес
+	# редиректа не попадает (см. makeRedirRoute в autohttps.go Caddy). Из-за
+	# этого при нестандартном HTTPS_PORT клиент после редиректа попадал на
+	# занятый/недоступный 443. Поэтому отключаем авто-редирект и делаем его
+	# явно ниже — с внешним портом.
+	auto_https disable_redirects
+	# Порт TLS внутри контейнера. Compose публикует тот же порт на хосте.
+	# Клиентский адрес формирует явный редирект (см. блоки http:// внизу).
+	https_port {$HTTPS_PORT:443}
+}
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# Служебный эндпоинт для healthcheck-ов.
+	handle /health {
+		reverse_proxy api:3001
+	}
+
+	# REST API «Пульса».
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	# SSR-фронтенд и публичные профили.
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# Песочница пользовательского HTML (ТЗ §3.8, §6): отдельный домен, никакого
+# доступа к cookie основного сайта. Проксируем ТОЛЬКО /sandbox/* на API,
+# остальное — 404. Cookie срезаются в обе стороны: вошедший пользователь
+# основного сайта не «протекает» в песочницу.
+{$SANDBOX_DOMAIN:usercontent.localhost} {
+	handle /sandbox/* {
+		reverse_proxy api:3001 {
+			header_up -Cookie
+			header_down -Set-Cookie
+		}
+	}
+	handle {
+		respond 404
+	}
+
+	header {
+		# Строгая CSP — backstop поверх той, что ставит API (ТЗ §3.8).
+		Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https:; img-src https: data:; form-action 'none'; base-uri 'none'; frame-ancestors {$PUBLIC_ORIGIN:http://localhost}"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+}
+
+# Явный HTTP->HTTPS-редирект (см. auto_https disable_redirects вверху).
+# Порт добавляем в адрес только для нестандартного HTTPS_PORT, чтобы в
+# обычной установке (443) адрес остался каноническим `https://<домен>...`.
+http://{$DOMAIN:localhost} {
+	@nonstd_https expression "{$HTTPS_PORT:443}" != "443"
+	redir @nonstd_https https://{$DOMAIN:localhost}:{$HTTPS_PORT:443}{uri} 308
+	redir https://{$DOMAIN:localhost}{uri} 308
+}
+
+http://{$SANDBOX_DOMAIN:usercontent.localhost} {
+	@nonstd_https expression "{$HTTPS_PORT:443}" != "443"
+	redir @nonstd_https https://{$SANDBOX_DOMAIN:usercontent.localhost}:{$HTTPS_PORT:443}{uri} 308
+	redir https://{$SANDBOX_DOMAIN:usercontent.localhost}{uri} 308
+}

@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Caddy в режиме http (без домена и сертификатов): установка в локальной сети
+# по адресу вида http://192.168.1.50. Включается CADDYFILE=Caddyfile.http в .env.
+# Основной сайт — порт 80, песочница пользовательского HTML — порт 8080
+# (другой origin, поэтому cookie основного сайта в песочницу не попадают).
+{
+	auto_https off
+}
+
+:80 {
+	encode zstd gzip
+
+	handle /health {
+		reverse_proxy api:3001
+	}
+
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# Песочница: ТОЛЬКО /sandbox/* на API, остальное — 404; cookie срезаются.
+:8080 {
+	handle /sandbox/* {
+		reverse_proxy api:3001 {
+			header_up -Cookie
+			header_down -Set-Cookie
+		}
+	}
+	handle {
+		respond 404
+	}
+
+	header {
+		Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https: http:; img-src https: http: data:; form-action 'none'; base-uri 'none'; frame-ancestors {$PUBLIC_ORIGIN:http://localhost}"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}

@@ -1,0 +1,226 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+@import 'tailwindcss';
+
+/* Тёмная тема по классу .dark на <html> (ТЗ §8). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Семейства собираются из self-hosted сабсетов (см. app/layout.tsx). */
+  --font-sans:
+    var(--font-inter-cyrillic), var(--font-inter-latin), ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --font-heading:
+    var(--font-manrope-cyrillic), var(--font-manrope-latin), var(--font-inter-cyrillic),
+    var(--font-inter-latin), ui-sans-serif, system-ui, sans-serif;
+  /* «Мягкий wellbeing» (docs/REDESIGN.md): крупные скругления по всему интерфейсу. */
+  --radius-card: 24px;
+  --radius-button: 14px;
+  --radius-chip: 999px;
+}
+
+/* Палитра «мягкий wellbeing»: пастельные области — деньги зелёные,
+   самочувствие персиковое, бренд — мягкий индиго (ТЗ §8, docs/REDESIGN.md). */
+:root {
+  --puls-bg: #f6f2ec;
+  --puls-surface: #ffffff;
+  --puls-surface-2: #faf7f2;
+  --puls-primary: #5d55c9;
+  --puls-finance: #3fae84;
+  --puls-wellbeing: #f19a57;
+  --puls-warning: #e5544d;
+  --puls-ink: #24212d;
+  --puls-ink-muted: #66626f;
+  /* Текстовые варианты: контраст ≥ 4.5:1 на фоне, поверхности и мягкой заливке (ТЗ §6, WCAG AA). */
+  --puls-on-primary: #ffffff;
+  --puls-primary-text: #5048bd;
+  --puls-finance-text: #1c6a50;
+  --puls-wellbeing-text: #9c4f15;
+  --puls-warning-text: #b0302b;
+  --puls-focus: #5d55c9;
+  /* Мягкие заливки областей: фон плиток, бейджей, активного пункта меню. */
+  --puls-primary-soft: #ecebfa;
+  --puls-finance-soft: #e2f3ea;
+  --puls-wellbeing-soft: #fdecdc;
+  --puls-warning-soft: #fce6e3;
+  --puls-line: #ebe5dc;
+  --puls-line-strong: #d9cfc1;
+  --puls-shadow: 0 1px 2px rgb(60 44 20 / 0.04), 0 8px 24px -12px rgb(60 44 20 / 0.12);
+  --puls-shadow-lift: 0 2px 4px rgb(60 44 20 / 0.05), 0 18px 40px -16px rgb(60 44 20 / 0.22);
+  /* Анимации 150–250 мс (ТЗ §8) и запас для скрытой skip-ссылки. */
+  --puls-duration-fast: 150ms;
+  --puls-duration-base: 200ms;
+  --puls-duration-slow: 250ms;
+  --puls-duration-min: 0.01ms;
+  --puls-space-skip: 4rem;
+  color-scheme: light;
+}
+
+.dark {
+  --puls-bg: #15141b;
+  --puls-surface: #1f1e27;
+  --puls-surface-2: #1a1922;
+  --puls-primary: #a59ffa;
+  --puls-finance: #5cc79c;
+  --puls-wellbeing: #f3a86c;
+  --puls-warning: #ff7b75;
+  --puls-ink: #f0eef6;
+  --puls-ink-muted: #a7a3b4;
+  --puls-on-primary: #15141b;
+  --puls-primary-text: #b1acff;
+  --puls-finance-text: #74d5ae;
+  --puls-wellbeing-text: #f6bd8c;
+  --puls-warning-text: #ff918b;
+  --puls-focus: #a59ffa;
+  --puls-primary-soft: #2b2945;
+  --puls-finance-soft: #1b3129;
+  --puls-wellbeing-soft: #38291d;
+  --puls-warning-soft: #3b2225;
+  --puls-line: #2d2b37;
+  --puls-line-strong: #3f3c4c;
+  --puls-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
+  --puls-shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.1), 0 18px 40px -16px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--puls-bg);
+  color: var(--puls-ink);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  letter-spacing: -0.025em;
+}
+
+/* Мягкие тени вместо стандартных Tailwind: тёплый оттенок в светлой теме,
+   тонкая обводка в тёмной (ТЗ §8). Применяется ко всем карточкам с shadow-sm. */
+.shadow-sm {
+  box-shadow: var(--puls-shadow);
+}
+
+/* Поля форм: базовый слой, утилиты на конкретном поле важнее. */
+@layer base {
+  :where(input, select, textarea) {
+    transition:
+      border-color var(--puls-duration-fast) ease-out,
+      box-shadow var(--puls-duration-fast) ease-out;
+  }
+
+  :where(input, select, textarea)::placeholder {
+    color: var(--puls-ink-muted);
+    opacity: 0.75;
+  }
+
+  :where(input[type='checkbox'], input[type='radio']) {
+    accent-color: var(--puls-primary);
+  }
+}
+
+/* Доступность (ТЗ §6): видимый фокус с клавиатуры, skip-link, уважение к настройкам ОС. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--puls-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-button);
+}
+
+/* Ссылка «к основному содержимому»: видна только при фокусе с клавиатуры. */
+.skip-link {
+  position: absolute;
+  top: calc(-1 * var(--puls-space-skip));
+  left: 1rem;
+  z-index: 50;
+  border-radius: var(--radius-button);
+  background-color: var(--puls-primary);
+  color: var(--puls-on-primary);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  transition: top var(--puls-duration-fast) ease-out;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Мягкий фон приложения: два размытых пастельных пятна за контентом. */
+.puls-backdrop {
+  background:
+    radial-gradient(60rem 30rem at 110% -10%, var(--puls-wellbeing-soft), transparent 60%),
+    radial-gradient(50rem 28rem at -20% 0%, var(--puls-finance-soft), transparent 60%),
+    var(--puls-bg);
+  background-attachment: fixed;
+}
+
+/* Появление листов и меню снизу (мобильный «Ещё», быстрый ввод). */
+@keyframes puls-sheet-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.puls-sheet-in {
+  animation: puls-sheet-in var(--puls-duration-slow) ease-out;
+}
+
+/* ТЗ §8: анимации 150–250 мс; при prefers-reduced-motion движение убирается. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: var(--puls-duration-min) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--puls-duration-min) !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Конфетти при получении достижения (ТЗ §4, §8): слой поверх интерфейса,
+   чисто декоративный. При prefers-reduced-motion полностью скрывается. */
+@keyframes puls-confetti-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--puls-confetti-drift, 0), 108vh, 0) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.puls-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.puls-confetti__piece {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  animation-name: puls-confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .puls-confetti {
+    display: none;
+  }
+}

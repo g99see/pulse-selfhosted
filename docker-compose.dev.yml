@@ -1,0 +1,13 @@
+# Dev-override: публикует порты PostgreSQL и Valkey на хост, чтобы
+# prisma migrate / тесты / psql работали с хост-машины.
+# Использование: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres valkey
+name: puls
+
+services:
+  postgres:
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+
+  valkey:
+    ports:
+      - '${VALKEY_PORT:-6379}:6379'

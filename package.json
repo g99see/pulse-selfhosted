@@ -1,0 +1,35 @@
+{
+  "name": "puls",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "packageManager": "pnpm@11.26.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "license:check": "node scripts/check-licenses.mjs",
+    "e2e": "pnpm --filter @puls/web e2e",
+    "test:smoke": "pnpm --filter @puls/api test:smoke",
+    "db:migrate": "pnpm --filter @puls/api db:migrate",
+    "db:generate": "pnpm --filter @puls/api db:generate",
+    "docker:dev:up": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres valkey",
+    "docker:dev:down": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0"
+  }
+}

@@ -1,0 +1,1247 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Схема Prisma для «Пульса». Фаза 0: минимальный срез сущностей из ТЗ §7
+// (User + CheckIn). Фаза 1.1: аутентификация (сессии, подтверждение email),
+// онбординг и первый счёт (ТЗ §3.1, §6).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  nickname        String    @unique
+  passwordHash    String?   @map("password_hash")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+
+  /// Роль пользователя (ТЗ §9 п.7): user | moderator | admin.
+  /// Первый пользователь, созданный мастером первого запуска, — admin.
+  role String @default("user")
+
+  // Онбординг (ТЗ §3.1): валюта, часовой пояс, цели, уведомления, приватность.
+  timezone             String    @default("UTC")
+  currency             String    @default("RUB")
+  locale               String    @default("ru")
+  goals                String[]  @default([])
+  notificationsEnabled Boolean   @default(true) @map("notifications_enabled")
+  quietHoursStart      Int       @default(22) @map("quiet_hours_start")
+  quietHoursEnd        Int       @default(8) @map("quiet_hours_end")
+  profileVisibility    String    @default("private") @map("profile_visibility")
+  onboardingStep       Int       @default(0) @map("onboarding_step")
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at")
+
+  // Расписание чек-инов (ТЗ §3.3): 3 раза в день по умолчанию, настраивается 1–6.
+  checkinTimesPerDay Int      @default(3) @map("checkin_times_per_day")
+  checkinTimes       String[] @default(["09:00", "15:00", "21:00"]) @map("checkin_times")
+
+  twoFaEnabled Boolean  @default(false) @map("two_fa_enabled")
+  /// TOTP-секрет, зашифрованный AES-256-GCM (см. crypto/secret-box.ts).
+  twoFaSecret      String?   @map("two_fa_secret")
+  /// Момент подтверждения кода при включении (secret -> enabled).
+  twoFaConfirmedAt DateTime? @map("two_fa_confirmed_at")
+  /// Последний принятый шаг TOTP — защита от повторного использования кода.
+  twoFaLastStep    Int?      @map("two_fa_last_step")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  sessions           Session[]
+  verificationTokens EmailVerificationToken[]
+  accounts           Account[]
+  checkIns           CheckIn[]
+  categories         Category[]
+  transactions       Transaction[]
+  budgets            Budget[]
+  notificationRules  NotificationRule[]
+  pushSubscriptions  PushSubscription[]
+  dailyStats         DailyStat[]
+  userAchievements   UserAchievement[]
+  savingsGoals       Goal[]
+  goalDeposits       GoalDeposit[]
+  recurringPayments  RecurringPayment[]
+  twoFactorBackupCodes TwoFactorBackupCode[]
+  twoFactorChallenges  TwoFactorChallenge[]
+  externalIdentities ExternalIdentity[]
+  exchangeRates      ExchangeRate[]
+  telegramLink       TelegramLink?
+  telegramLinkCodes  TelegramLinkCode[]
+  insights           Insight[]
+  posts              Post[]
+  reactions          Reaction[]
+  comments           Comment[]
+  /// Подписки, которые оформил пользователь (ТЗ §3.7).
+  following          Follow[] @relation("FollowFollower")
+  /// Подписчики пользователя (ТЗ §3.7).
+  followers          Follow[] @relation("FollowFollowing")
+  /// Жалобы, поданные этим пользователем (ТЗ §3.7, §3.8).
+  reports            Report[]
+  /// Действия модерации, совершённые этим пользователем (ТЗ §2, §3.8).
+  moderationActions  ModerationAction[]
+  /// Публичный профиль (ТЗ §3.7): описание, аватар и обложка.
+  profile            Profile?
+  /// Карточки публичного профиля (ТЗ §3.7).
+  profileCards       ProfileCard[]
+  /// HTML-страница профиля (ТЗ §3.8) — одна на пользователя.
+  htmlPage           HtmlPage?
+  /// Версии HTML-страницы (ТЗ §3.8): последние 10 сохранений с откатом.
+  htmlPageVersions   HtmlPageVersion[]
+
+  /// Личный AI-ключ (ТЗ §3.9) — один на пользователя; приоритетнее общего.
+  aiKey              UserAiKey?
+  /// Учёт токенов AI по месяцам (ТЗ §3.9).
+  aiUsage            AiUsage[]
+  /// Предложения AI-помощника (ТЗ §3.9): бюджет, цель или напоминание.
+  aiProposals        AiProposal[]
+
+  /// Личные токены доступа к открытому API (ТЗ §4).
+  apiTokens          ApiToken[]
+  /// Исходящие вебхуки (ТЗ §4).
+  webhooks           Webhook[]
+  /// Журнал доставок вебхуков (ТЗ §4).
+  webhookDeliveries  WebhookDelivery[]
+
+  /// Семья, в которой состоит пользователь (ТЗ §4): одна на пользователя.
+  familyMembership     FamilyMember?
+  /// Семьи, созданные пользователем (он владелец, ТЗ §4).
+  ownedFamilies        Family[]           @relation("FamilyOwner")
+  /// Коды-приглашения в семью, созданные пользователем (ТЗ §4).
+  familyInvitesCreated FamilyInvite[]     @relation("FamilyInviteCreator")
+  /// Коды-приглашения, использованные пользователем (ТЗ §4).
+  familyInvitesUsed    FamilyInvite[]     @relation("FamilyInviteUsedBy")
+  /// Операции пользователя по семейным счетам (ТЗ §4).
+  familyTransactions   FamilyTransaction[]
+  /// Взносы пользователя в общие цели семьи (ТЗ §4).
+  familyGoalDeposits   FamilyGoalDeposit[]
+  /// Капсулы времени пользователя (ТЗ §4, P2).
+  timeCapsules         TimeCapsule[]
+
+  /// Челленджи, созданные пользователем (ТЗ §4, P2).
+  ownedChallenges      Challenge[]          @relation("ChallengeOwner")
+  /// Участие пользователя в челленджах (ТЗ §4).
+  challengeParticipations ChallengeParticipant[]
+  /// Ежедневные отметки «держусь» (ТЗ §4).
+  challengeChecks      ChallengeCheck[]
+
+  /// Привычки пользователя (ТЗ §4, P2).
+  habits               Habit[]
+  /// Отметки привычек по дням (ТЗ §4, P2).
+  habitLogs            HabitLog[]
+
+  @@map("users")
+}
+
+/// Серверные сессии (ТЗ §6): хранится только SHA-256 от токена.
+model Session {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique @map("token_hash")
+  userAgent  String?   @map("user_agent")
+  ip         String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// Одноразовые токены подтверждения email (ТЗ §3.1, §6).
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+/// Счёт пользователя (ТЗ §7). Первый создаётся на шаге 4 онбординга.
+model Account {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      String   @default("card")
+  balance   Decimal  @default(0) @db.Decimal(14, 2)
+  currency  String   @default("RUB")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[] @relation("TransactionAccount")
+  transfers    Transaction[] @relation("TransferTarget")
+  goals        Goal[]
+  goalDeposits GoalDeposit[]
+  recurringPayments RecurringPayment[]
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model CheckIn {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mood       Int
+  energy     Int?
+  stress     Int?
+  sleepHours Float?   @map("sleep_hours")
+  water      Int?
+  steps      Int?
+  tags       String[] @default([])
+  note       String?
+  /// Вечерний итог дня — одна строка (ТЗ §3.3).
+  daySummary String?  @map("day_summary")
+  /// Провал дня: morning / day / evening.
+  slot       String?
+  /// Фактический момент чек-ина; заполнение задним числом — до 24 часов (ТЗ §3.3).
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, occurredAt])
+  @@index([userId, createdAt])
+  @@map("check_ins")
+}
+
+/// Категория транзакции (ТЗ §7): userId = null — системная, иначе своя.
+model Category {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  icon      String   @default("tag")
+  color     String   @default("#6E6E7A")
+  kind      String   @default("expense")
+  isSystem  Boolean  @default(false) @map("is_system")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  transactions Transaction[]
+  budgets      Budget[]
+  recurringPayments RecurringPayment[]
+
+  @@index([userId])
+  @@map("categories")
+}
+
+/// Транзакция (ТЗ §7): доход, расход или перевод между счетами.
+/// Перевод не считается расходом: type = 'transfer', transferAccountId — получатель.
+model Transaction {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String   @map("account_id")
+  account           Account  @relation("TransactionAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  categoryId        String?  @map("category_id")
+  category          Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  transferAccountId String?  @map("transfer_account_id")
+  transferAccount   Account? @relation("TransferTarget", fields: [transferAccountId], references: [id], onDelete: SetNull)
+  type              String   @default("expense")
+  amount            Decimal  @db.Decimal(14, 2)
+  currency          String   @default("RUB")
+  /// Курс валюты операции к основной валюте пользователя на дату (ТЗ §3.2).
+  rate              Decimal  @default(1) @db.Decimal(18, 8)
+  /// Сумма в основной валюте пользователя: amount × rate.
+  amountBase        Decimal  @default(0) @map("amount_base") @db.Decimal(14, 2)
+  /// Сумма зачисления при переводе между счетами разных валют.
+  toAmount          Decimal? @map("to_amount") @db.Decimal(14, 2)
+  date              DateTime @db.Date
+  comment           String?
+  /// Хеш строки импорта банковской выписки (ТЗ §3.2): идемпотентность повторного импорта.
+  importHash        String?  @map("import_hash")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, importHash])
+  @@index([userId, date])
+  @@index([accountId])
+  @@index([categoryId])
+  @@map("transactions")
+}
+
+/// Бюджет на месяц по категории (ТЗ §3.2): month в формате «YYYY-MM».
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  month      String
+  limit      Decimal  @db.Decimal(14, 2)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+  @@map("budgets")
+}
+
+/// Правило уведомлений (ТЗ §3.6, §7): тип, канал, расписание и тихие часы.
+/// schedule — JSON вида { "times": ["09:00", "15:00", "21:00"] }.
+model NotificationRule {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  channel         String   @default("web_push")
+  schedule        Json     @default("{}")
+  quietHoursStart Int      @default(22) @map("quiet_hours_start")
+  quietHoursEnd   Int      @default(8) @map("quiet_hours_end")
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+  @@map("notification_rules")
+}
+
+/// Агрегат по дню (ТЗ §3.4, §7, §6 «кеширование агрегатов по дням»):
+/// траты, доходы, среднее настроение и число чек-инов. Пересчитывается лениво
+/// при чтении статистики и хранится как кеш дневных значений.
+model DailyStat {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date          DateTime @db.Date
+  spent         Decimal  @default(0) @db.Decimal(14, 2)
+  earned        Decimal  @default(0) @db.Decimal(14, 2)
+  avgMood       Float?   @map("avg_mood")
+  checkinsCount Int      @default(0) @map("checkins_count")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, date])
+  @@map("daily_stats")
+}
+
+/// Подписка браузера на web push (ТЗ §3.6): endpoint и ключи шифрования.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+/// Привязка Telegram-чата к аккаунту (ТЗ §3.6, §4): один чат — один аккаунт,
+/// у пользователя один чат. Через неё бот пишет чек-ины и траты в чат.
+model TelegramLink {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatId    String   @unique @map("chat_id")
+  username  String?
+  linkedAt  DateTime @default(now()) @map("linked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("telegram_links")
+}
+
+/// Одноразовый код привязки Telegram (ТЗ §3.6): TTL 10 минут, в БД только
+/// SHA-256 от кода. После применения помечается used_at.
+model TelegramLinkCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @unique @map("code_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("telegram_link_codes")
+}
+
+/// Внешняя учётная запись (ТЗ §3.1, §7): вход через Google и Telegram.
+/// subject — стабильный идентификатор у провайдера (sub у Google, id у Telegram);
+/// пара (provider, subject) уникальна. email для Telegram может отсутствовать.
+model ExternalIdentity {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider  String
+  subject   String
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, subject])
+  @@index([userId])
+  @@map("external_identities")
+}
+
+/// Настройки инстанса (ТЗ §9 п.7, §10): режим регистрации и отметка о том, что
+/// мастер первого запуска завершён. Одна строка на инстанс (id = "instance").
+model InstanceSettings {
+  id               String    @id @default("instance")
+  /// open — регистрация свободна; invite — только по приглашению (пока недоступно);
+  /// closed — регистрация закрыта (POST /auth/register → 403 registration_closed).
+  registrationMode String    @default("open") @map("registration_mode")
+  setupCompletedAt DateTime? @map("setup_completed_at")
+
+  // AI-помощник экземпляра (ТЗ §3.9): общий ключ, провайдер, модель и лимит.
+  // Ключ хранится только зашифрованным AES-256-GCM (crypto/secret-box.ts).
+  aiProvider          String? @map("ai_provider")
+  aiApiKeyEncrypted   String? @map("ai_api_key_encrypted")
+  aiApiKeyLast4       String? @map("ai_api_key_last4")
+  aiBaseUrl           String? @map("ai_base_url")
+  aiModel             String? @map("ai_model")
+  aiMonthlyTokenLimit Int?    @map("ai_monthly_token_limit")
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("instance_settings")
+}
+
+/// Одноразовый резервный код 2FA (ТЗ §6). В БД только SHA-256 от кода;
+/// после использования помечается used_at и больше не принимается.
+model TwoFactorBackupCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @map("code_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("two_factor_backup_codes")
+}
+
+/// Временный пропуск шага 2FA между проверкой пароля и вводом кода (ТЗ §6):
+/// хранится только хеш токена, срок жизни короткий, выставляется один раз.
+model TwoFactorChallenge {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("two_factor_challenges")
+}
+
+/// Курс валюты (ТЗ §3.2): одна единица base стоит rate единиц quote на дату.
+/// Ручные курсы вводятся пользователем; source = provider — подтянуты с API.
+/// Курс фиксируется в транзакции на дату операции (Transaction.rate).
+model ExchangeRate {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  base      String
+  quote     String
+  rate      Decimal  @db.Decimal(18, 8)
+  source    String   @default("manual")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, date, base, quote])
+  @@index([userId, date])
+  @@map("exchange_rates")
+}
+
+/// Цель накоплений (ТЗ §3.2, §7): сумма, срок, картинка и приватность.
+/// saved_amount меняется пополнениями (GoalDeposit) в одной транзакции.
+model Goal {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  targetAmount Decimal   @map("target_amount") @db.Decimal(14, 2)
+  savedAmount  Decimal   @default(0) @map("saved_amount") @db.Decimal(14, 2)
+  deadline     DateTime? @db.Date
+  /// Картинка: эмодзи-пресет или URL (файлы не загружаются).
+  image        String?
+  visibility   String    @default("private")
+  /// Необязательная связь со счётом-сбережениями (ТЗ §3.2).
+  accountId    String?   @map("account_id")
+  account      Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  currency     String    @default("RUB")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  deposits GoalDeposit[]
+
+  @@index([userId])
+  @@map("goals")
+}
+
+/// Пополнение цели (ТЗ §3.2): сумма, дата и необязательный счёт-источник.
+/// История пополнений даёт фактический темп для прогноза даты достижения.
+model GoalDeposit {
+  id        String   @id @default(cuid())
+  goalId    String   @map("goal_id")
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId String?  @map("account_id")
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  amount    Decimal  @db.Decimal(14, 2)
+  date      DateTime @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([goalId])
+  @@index([userId, date])
+  @@map("goal_deposits")
+}
+
+/// Инсайт-рекомендация на правилах (ТЗ §3.5, §7): текст задаётся ключом i18n и
+/// параметрами, пользователь оценивает «полезно / не полезно». source = weekly —
+/// элементы недельного разбора, periodKey делает генерацию идемпотентной.
+model Insight {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Тип правила: category_spend_up, low_energy_streak, mood_with_sport,
+  /// budget_exceeded, budget_suggestion, wellbeing_concern.
+  type       String
+  /// Ключ текста в i18n (строки не хранятся в БД).
+  textKey    String    @map("text_key")
+  /// Параметры подстановки в шаблон текста.
+  params     Json      @default("{}")
+  /// rule — из ленты правил, weekly — из недельного разбора.
+  source     String    @default("rule")
+  /// Ключ периода (ISO-неделя или день) — защищает от повторной генерации.
+  periodKey  String?   @map("period_key")
+  /// Действие предложения: { kind: "budget", categoryId, month, limit, ... }.
+  action     Json?
+  /// Когда предложение применили (создан бюджет).
+  appliedAt  DateTime? @map("applied_at")
+  /// Оценка пользователя: useful | not_useful.
+  feedback   String?
+  feedbackAt DateTime? @map("feedback_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@unique([userId, type, periodKey])
+  @@index([userId, createdAt])
+  @@map("insights")
+}
+
+/// Регулярный платёж (ТЗ §3.2): аренда, подписки и другие периодические
+/// списания. Расписание — частота + день (weekly: 1–7 Пн–Вс; monthly и yearly:
+/// 1–31 с прижатием к концу месяца: 31-е → 30/28/29; month — только для yearly).
+/// Время time_of_day считается в часовом поясе timezone (с учётом DST).
+/// next_run_at — ближайшее списание, active — пауза/возобновление,
+/// reminded_for — идемпотентность напоминания за 1 день.
+model RecurringPayment {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  amount        Decimal   @db.Decimal(14, 2)
+  type          String    @default("expense")
+  accountId     String    @map("account_id")
+  account       Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  categoryId    String?   @map("category_id")
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  frequency     String    @default("monthly")
+  scheduleDay   Int       @map("schedule_day")
+  scheduleMonth Int?      @map("schedule_month")
+  timeOfDay     String    @default("10:00") @map("time_of_day")
+  timezone      String    @default("UTC")
+  nextRunAt     DateTime  @map("next_run_at")
+  active        Boolean   @default(true)
+  lastRunAt     DateTime? @map("last_run_at")
+  remindedFor   DateTime? @map("reminded_for")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, active, nextRunAt])
+  @@map("recurring_payments")
+}
+
+/// Каталог достижений (ТЗ §2, §4): код бейджа и JSON-условие выдачи.
+/// Заполняется сервисом достижений при старте приложения (идемпотентно).
+model Achievement {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  /// Условие выдачи: { kind, threshold, group } (ТЗ §4).
+  condition Json     @default("{}")
+  /// Порядок отображения в сетке достижений.
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("achievements")
+}
+
+/// Полученное пользователем достижение (ТЗ §4). Пара (user_id, code)
+/// уникальна — выдача идемпотентна и защищена от гонки на уровне БД.
+model UserAchievement {
+  id       String   @id @default(cuid())
+  userId   String   @map("user_id")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code     String
+  earnedAt DateTime @default(now()) @map("earned_at")
+
+  @@unique([userId, code])
+  @@index([userId, earnedAt])
+  @@map("user_achievements")
+}
+
+/// Подписка пользователя на другого (ТЗ §3.7): направленное ребро графа.
+/// Пара (follower_id, following_id) уникальна — повторная подписка идемпотентна.
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String   @map("follower_id")
+  follower    User     @relation("FollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String   @map("following_id")
+  following   User     @relation("FollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+/// Пост в ленте (ТЗ §3.7): достижение, новая цель или пройденная веха.
+/// payload — компактные данные для карточки (код бейджа, id/название цели,
+/// процент), суммы в ленте не публикуются. visibility — уровень приватности.
+model Post {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// achievement | goal | milestone.
+  type       String
+  payload    Json     @default("{}")
+  /// public | subscribers | private (ТЗ §3.7).
+  visibility String   @default("subscribers")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  reactions Reaction[]
+  comments  Comment[]
+
+  @@index([userId, createdAt])
+  @@index([createdAt, id])
+  @@map("posts")
+}
+
+/// Реакция-эмодзи на пост (ТЗ §3.7). Тройка (post_id, user_id, emoji)
+/// уникальна: один и тот же эмодзи нельзя поставить дважды.
+model Reaction {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+  @@index([userId])
+  @@map("reactions")
+}
+
+/// Комментарий к посту (ТЗ §3.7): тело не длиннее 500 символов (проверка в
+/// схеме shared). Удалять может автор комментария или владелец поста.
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@map("comments")
+}
+
+/// Публичный профиль (ТЗ §3.7): короткое описание, аватар и обложка. Одна
+/// строка на пользователя; набор карточек — в ProfileCard. Видимость самого
+/// профиля задаёт User.profileVisibility (public | subscribers | private).
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Короткое описание профиля (не длиннее 280 символов — проверка в shared).
+  bio       String?
+  /// Ссылка на аватар: http(s) или null (файлы не загружаются).
+  avatarUrl String?  @map("avatar_url")
+  /// Ссылка на обложку: http(s) или null.
+  coverUrl  String?  @map("cover_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+/// Карточка публичного профиля (ТЗ §3.7): тип, приватность, режим показа
+/// (проценты по умолчанию либо сумма) и необязательный HTML. Одна карточка
+/// каждого типа на пользователя (пара user_id + type уникальна). Суммы по
+/// умолчанию скрыты — показываются проценты (mode = percent).
+model ProfileCard {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Тип карточки: savings | checkin_streak | avg_mood | achievements | goals | html_page.
+  type       String
+  /// Приватность карточки: public | subscribers | private (private — только владельцу).
+  visibility String   @default("private")
+  /// Режим показа: percent (по умолчанию) | amount (только savings и goals).
+  mode       String   @default("percent")
+  /// Заголовок карточки (необязательный, до 80 символов).
+  title      String?
+  /// HTML-страница карточки (только для type = html_page, до 20 000 символов).
+  html       String?
+  /// Порядок отображения в профиле.
+  position   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("profile_cards")
+}
+
+/// Тип цели жалобы (ТЗ §3.7, §3.8): профиль, пост, комментарий или HTML-страница.
+enum ReportTargetType {
+  profile
+  post
+  comment
+  html_page
+
+  @@map("report_target_type")
+}
+
+/// Причина жалобы (ТЗ §3.7): спам, оскорбления, фишинг, незаконный контент, иное.
+enum ReportReason {
+  spam
+  abuse
+  phishing
+  illegal
+  other
+
+  @@map("report_reason")
+}
+
+/// Статус жалобы: открыта, рассмотрена, отклонена.
+enum ReportStatus {
+  open
+  resolved
+  dismissed
+
+  @@map("report_status")
+}
+
+/// Действие модератора по жалобе (ТЗ §2, §3.8).
+enum ModerationActionKind {
+  hide
+  unhide
+  ban_html
+  unban_html
+  dismiss
+
+  @@map("moderation_action_kind")
+}
+
+/// Жалоба на профиль или контент (ТЗ §3.7, §3.8). Любой вошедший может
+/// пожаловаться; дубль на ту же цель от того же автора и жалоба на себя
+/// блокируются на уровне сервиса. Каскадом удаляется вместе с автором.
+model Report {
+  id         String           @id @default(cuid())
+  reporterId String           @map("user_id")
+  reporter   User             @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType ReportTargetType @map("target_type")
+  /// Идентификатор цели: id пользователя, поста, комментария или HTML-страницы.
+  targetId   String           @map("target_id")
+  reason     ReportReason
+  /// Пояснение пользователя, до 1000 символов (проверяет zod-схема).
+  details    String?
+  status     ReportStatus     @default(open)
+  /// id модератора, закрывшего жалобу (без FK: журнал переживает удаление).
+  resolvedBy String?          @map("resolved_by")
+  /// Итог рассмотрения: текст решения модератора.
+  resolution String?
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@index([reporterId])
+  @@map("reports")
+}
+
+/// Действие модерации (ТЗ §2, §3.8): журнал скрытий, разблокировок HTML
+/// и отклонений. Каскадом удаляется вместе с модератором-автором.
+model ModerationAction {
+  id          String               @id @default(cuid())
+  moderatorId String               @map("user_id")
+  moderator   User                 @relation(fields: [moderatorId], references: [id], onDelete: Cascade)
+  action      ModerationActionKind
+  targetType  ReportTargetType     @map("target_type")
+  targetId    String               @map("target_id")
+  note        String?
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  @@index([targetType, targetId])
+  @@index([moderatorId])
+  @@map("moderation_actions")
+}
+
+/// Флаг скрытия контента (ТЗ §3.8): одна запись на цель. Профиль, лента и
+/// HTML-страница спрашивают его через ModerationService.isHidden().
+model ContentFlag {
+  id         String           @id @default(cuid())
+  targetType ReportTargetType @map("target_type")
+  targetId   String           @map("target_id")
+  hidden     Boolean          @default(false)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@unique([targetType, targetId])
+  @@index([hidden])
+  @@map("content_flags")
+}
+
+/// HTML-страница в публичном профиле (ТЗ §3.8): одна страница на пользователя,
+/// отдаётся с отдельного домена песочницы. published управляет видимостью (при
+/// этом показ дополнительно требует карточку html_page с публичной видимостью),
+/// currentVersionId — текущая версия. Блокировка по жалобам — через ContentFlag
+/// (target_type = html_page).
+model HtmlPage {
+  id               String            @id @default(cuid())
+  userId           String            @unique @map("user_id")
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Опубликована ли страница. blocked-версию опубликовать нельзя (ТЗ §3.8).
+  published        Boolean           @default(false)
+  /// Текущая версия; при удалении версии ссылка обнуляется.
+  currentVersionId String?           @unique @map("current_version_id")
+  currentVersion   HtmlPageVersion?  @relation("HtmlPageCurrent", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  versions HtmlPageVersion[] @relation("HtmlPageVersions")
+
+  @@map("html_pages")
+}
+
+/// Версия HTML-страницы (ТЗ §3.8): хранятся последние 10 сохранений, более
+/// старые удаляются. html — до 2 МБ. check_status/check_reasons — результат
+/// автопроверки этой версии (ok | blocked | flagged). Откат создаёт новую версию.
+model HtmlPageVersion {
+  id          String   @id @default(cuid())
+  pageId      String   @map("page_id")
+  page        HtmlPage @relation("HtmlPageVersions", fields: [pageId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// HTML-код версии; размер до 2 МБ проверяется в shared/schema.ts.
+  html        String
+  /// Необязательная заметка к версии (до 200 символов).
+  note        String?
+  /// Результат автопроверки: ok | blocked | flagged.
+  checkStatus String   @default("ok") @map("check_status")
+  /// Причины автопроверки — массив HtmlCheckReason.
+  checkReasons Json    @default("[]") @map("check_reasons")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  currentFor HtmlPage? @relation("HtmlPageCurrent")
+
+  @@index([pageId, createdAt])
+  @@index([userId])
+  @@map("html_page_versions")
+}
+
+/// Личный API-ключ AI пользователя (ТЗ §3.9): один на пользователя, приоритетнее
+/// общего ключа экземпляра. Сам ключ хранится только зашифрованным AES-256-GCM;
+/// в интерфейс уходят лишь последние 4 символа (api_key_last4). Для
+/// openai_compatible (Ollama/LM Studio) ключ может быть пустым, baseUrl обязателен.
+model UserAiKey {
+  userId          String   @id @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        String
+  apiKeyEncrypted String   @map("api_key_encrypted")
+  apiKeyLast4     String?  @map("api_key_last4")
+  baseUrl         String?  @map("base_url")
+  model           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("user_ai_keys")
+}
+
+/// Учёт токенов AI по пользователю и месяцу (ТЗ §3.9): месяц в формате «YYYY-MM».
+/// Строка одна на пару (user_id, month), накапливается upsert-ом. cost_usd —
+/// примерная стоимость по тарифам shared/AI_PRICE_PER_MTOK (локальные — 0).
+model AiUsage {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month     String
+  tokensIn  Int      @default(0) @map("tokens_in")
+  tokensOut Int      @default(0) @map("tokens_out")
+  costUsd   Decimal  @default(0) @map("cost_usd") @db.Decimal(14, 6)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, month])
+  @@map("ai_usage")
+}
+
+/// Предложение AI-помощника (ТЗ §3.9): бюджет, цель или напоминание, которое
+/// модель предлагает, но не сохраняет сама. Строка создаётся pending и ни на что
+/// не влияет; «Применить» валидирует payload и создаёт сущность через её сервис.
+/// result хранит { kind, id } созданного — повтор идемпотентен и не дублирует.
+model AiProposal {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// budget | goal | reminder.
+  kind      String
+  /// Человекочитаемое описание для кнопки «Применить».
+  summary   String
+  /// Параметры действия: схема зависит от kind, валидируется при применении.
+  payload   Json
+  /// pending | applied.
+  status    String    @default("pending")
+  /// Что создано при «Применить»: { kind, id } — для идемпотентного повтора.
+  result    Json?
+  appliedAt DateTime? @map("applied_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("ai_proposals")
+}
+
+/// Личный токен доступа к открытому API (ТЗ §4). В базе хранится только
+/// SHA-256 от токена; prefix (первые символы) — для показа в списке.
+/// scopes: read | write; expires_at и revoked_at отзывают доступ.
+model ApiToken {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  tokenHash  String    @unique @map("token_hash")
+  /// Первые символы токена для показа: puls_xxxxxxxx…
+  prefix     String
+  /// Области доступа: read | write (ТЗ §4).
+  scopes     String[]  @default([])
+  lastUsedAt DateTime? @map("last_used_at")
+  expiresAt  DateTime? @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("api_tokens")
+}
+
+/// Подписка на исходящие вебхуки (ТЗ §4): адрес, зашифрованный секрет для
+/// подписи (SecretBox) и список событий. Отключается флагом enabled.
+model Webhook {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  /// Секрет подписи HMAC-SHA256, зашифрован AES-256-GCM (crypto/secret-box.ts).
+  secret    String
+  /// События: transaction.created, checkin.created, goal.milestone, achievement.earned.
+  events    String[] @default([])
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deliveries WebhookDelivery[]
+
+  @@index([userId])
+  @@map("webhooks")
+}
+
+/// Запись журнала доставки вебхука (ТЗ §4): статус, число попыток и ошибка.
+/// Хранятся последние 50 на вебхук (лишние удаляются при вставке).
+model WebhookDelivery {
+  id        String   @id @default(cuid())
+  webhookId String   @map("webhook_id")
+  webhook   Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     String
+  /// pending | success | failed.
+  status    String   @default("pending")
+  attempts  Int      @default(0)
+  lastError String?  @map("last_error")
+  /// Тело события для повторной доставки.
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([webhookId, createdAt])
+  @@index([userId])
+  @@index([status, updatedAt])
+  @@map("webhook_deliveries")
+}
+
+/* ===== Семейный режим (ТЗ §4) ===== */
+
+/// Семья на домашнем сервере (ТЗ §4): общие счета и цели на всех участников,
+/// у каждого при этом свой приватный дневник. Владелец (owner_id) управляет
+/// составом и удаляет семью. Личные Account/Goal/CheckIn семья не видит.
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String   @map("owner_id")
+  owner     User     @relation("FamilyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members  FamilyMember[]
+  invites  FamilyInvite[]
+  accounts FamilyAccount[]
+  goals    FamilyGoal[]
+
+  @@index([ownerId])
+  @@map("families")
+}
+
+/// Участник семьи (ТЗ §4): user_id уникален — один пользователь состоит только
+/// в одной семье. role: owner | member.
+model FamilyMember {
+  id       String   @id @default(cuid())
+  familyId String   @map("family_id")
+  family   Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  userId   String   @unique @map("user_id")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String   @default("member")
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  @@index([familyId])
+  @@map("family_members")
+}
+
+/// Одноразовый код-приглашение в семью (ТЗ §4): срок жизни и факт
+/// использования. В базе хранится открытый код (ссылка/код передаётся
+/// владельцем), после вступления проставляются used_at/used_by.
+model FamilyInvite {
+  id         String    @id @default(cuid())
+  familyId   String    @map("family_id")
+  family     Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  code       String    @unique
+  createdBy  String    @map("created_by")
+  creator    User      @relation("FamilyInviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  expiresAt  DateTime  @map("expires_at")
+  usedAt     DateTime? @map("used_at")
+  usedBy     String?   @map("used_by")
+  usedByUser User?     @relation("FamilyInviteUsedBy", fields: [usedBy], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([familyId])
+  @@map("family_invites")
+}
+
+/// Общий счёт семьи (ТЗ §4): карта, наличные или сбережения. Баланс
+/// пересчитывается при каждой операции (доход/расход).
+model FamilyAccount {
+  id        String        @id @default(cuid())
+  familyId  String        @map("family_id")
+  family    Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name      String
+  type      String        @default("card")
+  balance   Decimal       @default(0) @db.Decimal(14, 2)
+  currency  String        @default("RUB")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  transactions FamilyTransaction[]
+
+  @@index([familyId])
+  @@map("family_accounts")
+}
+
+/// Операция по общему счёту семьи (ТЗ §4): доход или расход, кто внёс
+/// (user_id) и на какую сумму. Баланс счёта меняется в одной транзакции БД.
+model FamilyTransaction {
+  id        String        @id @default(cuid())
+  accountId String        @map("account_id")
+  account   FamilyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId    String        @map("user_id")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// income — доход, expense — расход.
+  kind      String
+  amount    Decimal       @db.Decimal(14, 2)
+  note      String?
+  date      DateTime      @db.Date
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([accountId, createdAt])
+  @@index([userId, date])
+  @@map("family_transactions")
+}
+
+/// Общая цель семьи (ТЗ §4): как личная цель, но принадлежит семье. Прогресс,
+/// взнос и прогноз считаются теми же чистыми функциями, что и у личных целей.
+model FamilyGoal {
+  id           String    @id @default(cuid())
+  familyId     String    @map("family_id")
+  family       Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  title        String
+  targetAmount Decimal   @map("target_amount") @db.Decimal(14, 2)
+  savedAmount  Decimal   @default(0) @map("saved_amount") @db.Decimal(14, 2)
+  deadline     DateTime? @db.Date
+  image        String?
+  currency     String    @default("RUB")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  deposits FamilyGoalDeposit[]
+
+  @@index([familyId])
+  @@map("family_goals")
+}
+
+/// Взнос участника в общую цель семьи (ТЗ §4): кто внёс (user_id), сколько и
+/// когда. История даёт фактический темп для прогноза даты достижения.
+model FamilyGoalDeposit {
+  id        String     @id @default(cuid())
+  goalId    String     @map("goal_id")
+  goal      FamilyGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId    String     @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Decimal    @db.Decimal(14, 2)
+  date      DateTime   @db.Date
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([goalId])
+  @@index([userId, date])
+  @@map("family_goal_deposits")
+}
+
+/// Капсула времени (ТЗ §4, P2): письмо себе, которое открывается в заданный
+/// момент вместе со снимком статистики за период [created_at, open_at]. Тело
+/// хранится зашифрованным (SecretBox, суффикс *_encrypted), пока капсула
+/// закрыта — API отдаёт только метаданные (title, open_at).
+model TimeCapsule {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  /// Тело письма, зашифрованное AES-256-GCM (см. crypto/secret-box.ts).
+  bodyEncrypted String    @map("body_encrypted")
+  /// Снимок статистики за период [created_at, open_at], заполняется при открытии.
+  snapshot      Json?
+  openAt        DateTime  @map("open_at")
+  openedAt      DateTime? @map("opened_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, openAt])
+  @@index([openedAt])
+  @@map("time_capsules")
+}
+
+/// Челлендж (ТЗ §4, P2): «30 дней без доставки», «Неделя без импульсных
+/// покупок» и свои испытания. Ведущий (owner_id) задаёт вид, длительность,
+/// старт и видимость. invite_code — механизм приглашения друзей по коду.
+model Challenge {
+  id           String   @id @default(cuid())
+  ownerId      String   @map("owner_id")
+  owner        User     @relation("ChallengeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  /// no_spend_category | streak_checkin | custom.
+  kind         String   @default("custom")
+  durationDays Int      @map("duration_days")
+  startDate    DateTime @map("start_date") @db.Date
+  /// private | friends | public.
+  visibility   String   @default("private")
+  inviteCode   String   @unique @map("invite_code")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  participants ChallengeParticipant[]
+  checks       ChallengeCheck[]
+
+  @@index([ownerId])
+  @@map("challenges")
+}
+
+/// Участник челленджа (ТЗ §4): пара (challenge_id, user_id) уникальна —
+/// повторное вступление идемпотентно. Никнейм берётся из users, приватные
+/// данные участника в рейтинг не попадают.
+model ChallengeParticipant {
+  id          String    @id @default(cuid())
+  challengeId String    @map("challenge_id")
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+  @@map("challenge_participants")
+}
+
+/// Ежедневная отметка «держусь» (ТЗ §4): одна на (челлендж, пользователь,
+/// день). ok = false — день не засчитан; для kind = streak_checkin прогресс
+/// (серия и дни выдержки) считается автоматически по этим отметкам.
+model ChallengeCheck {
+  id          String    @id @default(cuid())
+  challengeId String    @map("challenge_id")
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime  @db.Date
+  ok          Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([challengeId, userId, date])
+  @@index([challengeId, userId])
+  @@map("challenge_checks")
+}
+
+/// Привычка (ТЗ §4, P2): вода, спорт, чтение. goal_type = daily — цель каждый
+/// день; weekly — per_week раз в неделю. archived прячет привычку в архив,
+/// не удаляя историю отметок.
+model Habit {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  /// Иконка — эмодзи из пресета (файлы не загружаются).
+  icon      String   @default("✅")
+  /// daily | weekly.
+  goalType  String   @default("daily") @map("goal_type")
+  /// Сколько раз в неделю для weekly (1–7); у daily не используется.
+  perWeek   Int      @default(1) @map("per_week")
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  logs HabitLog[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+/// Отметка привычки за день (ТЗ §4, P2): пара (habit_id, date) уникальна —
+/// повторная отметка идемпотентна. done = false снимает отметку.
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String   @map("habit_id")
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  done      Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+  @@map("habit_logs")
+}

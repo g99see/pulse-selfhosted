@@ -1,0 +1,49 @@
+name: Сообщить об ошибке / Bug report
+description: Что-то работает не так. / Something is broken.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за отчёт! Не прикладывайте пароли, токены и ключи API. Об уязвимостях — см. SECURITY.md.
+  - type: textarea
+    id: what
+    attributes:
+      label: Что случилось? / What happened?
+      description: Ожидаемое и фактическое поведение. / Expected vs actual behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как воспроизвести / Steps to reproduce
+      placeholder: |
+        1. Открыть ...
+        2. Нажать ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия или коммит / Version or commit
+      placeholder: 'git rev-parse --short HEAD'
+  - type: dropdown
+    id: install
+    attributes:
+      label: Способ установки / Install method
+      options:
+        - install.sh
+        - Docker Compose вручную / manual
+        - Разработка (pnpm dev) / development
+        - Другое / other
+  - type: input
+    id: env
+    attributes:
+      label: Окружение / Environment
+      description: ОС, браузер. / OS, browser.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи / Logs
+      description: '`docker compose logs api web` (без секретов). / Without secrets.'
+      render: shell
