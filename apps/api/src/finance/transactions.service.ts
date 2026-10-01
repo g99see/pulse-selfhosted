@@ -2,8 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
+  convertToBase,
   guessCategoryName,
   parseQuickTransaction,
+  roundRate,
+  type Currency,
   type TransactionCreateInput,
   type TransactionDto,
   type TransactionFilter,
@@ -13,11 +16,20 @@ import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
+import { ExchangeRatesService } from './rates.service';
 
 const withRelations = { account: true, category: true } satisfies Prisma.TransactionInclude;
 type TransactionWithRelations = Prisma.TransactionGetPayload<{ include: typeof withRelations }>;
 
-export function toTransactionDto(transaction: TransactionWithRelations): TransactionDto {
+/** Ключ дня «YYYY-MM-DD» для колонки @db.Date. */
+export function dayKeyOf(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+export function toTransactionDto(
+  transaction: TransactionWithRelations,
+  baseCurrency: string,
+): TransactionDto {
   return {
     id: transaction.id,
     accountId: transaction.accountId,
@@ -30,6 +42,10 @@ export function toTransactionDto(transaction: TransactionWithRelations): Transac
       transaction.type === 'income' || transaction.type === 'transfer' ? transaction.type : 'expense',
     amount: Number(transaction.amount),
     currency: transaction.currency,
+    rate: Number(transaction.rate),
+    amountBase: Number(transaction.amountBase),
+    baseCurrency,
+    toAmount: transaction.toAmount !== null ? Number(transaction.toAmount) : null,
     date: transaction.date.toISOString(),
     comment: transaction.comment,
     transferAccountId: transaction.transferAccountId,
@@ -54,7 +70,24 @@ export class TransactionsService {
     private readonly prisma: PrismaService,
     private readonly accounts: AccountsService,
     private readonly categories: CategoriesService,
+    private readonly rates: ExchangeRatesService,
   ) {}
+
+  /**
+   * Курс валюты операции к основной валюте пользователя: 1 для совпадающих,
+   * переданный клиентом фиксированный курс или справочник курсов на дату.
+   */
+  private async resolveBaseRate(
+    userId: string,
+    currency: string,
+    baseCurrency: string,
+    date: string,
+    fixed?: number,
+  ): Promise<number> {
+    if (currency === baseCurrency) return 1;
+    if (fixed !== undefined) return fixed;
+    return this.rates.resolveRate(userId, currency as Currency, baseCurrency as Currency, date);
+  }
 
   async list(userId: string, filter: TransactionFilter): Promise<TransactionDto[]> {
     const where: Prisma.TransactionWhereInput = { userId };
@@ -68,14 +101,17 @@ export class TransactionsService {
       };
     }
 
-    const transactions = await this.prisma.transaction.findMany({
-      where,
-      include: withRelations,
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-      take: filter.limit,
-    });
+    const [transactions, user] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where,
+        include: withRelations,
+        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+        take: filter.limit,
+      }),
+      this.prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+    ]);
 
-    return transactions.map(toTransactionDto);
+    return transactions.map((transaction) => toTransactionDto(transaction, user.currency));
   }
 
   async create(userId: string, input: TransactionCreateInput): Promise<TransactionDto> {
@@ -84,7 +120,19 @@ export class TransactionsService {
       await this.categories.resolveOwned(userId, input.categoryId);
     }
 
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    // Валюта операции — валюта счёта; отдельная валюта допускается только
+    // совпадающая (баланс счёта ведётся в его валюте).
+    if (input.currency && input.currency !== account.currency) {
+      throw httpError(400, 'currency_mismatch', 'Валюта операции должна совпадать с валютой счёта');
+    }
+    const currency = input.currency ?? account.currency;
+
+    const date = toDateOnly(input.date);
+    const rate = await this.resolveBaseRate(userId, currency, user.currency, dayKeyOf(date), input.rate);
+
     const amount = new Prisma.Decimal(input.amount);
+    const amountBase = new Prisma.Decimal(convertToBase(input.amount, rate));
     const delta = input.type === 'income' ? amount : amount.negated();
 
     const transaction = await this.prisma.$transaction(async (db) => {
@@ -95,8 +143,10 @@ export class TransactionsService {
           categoryId: input.categoryId ?? null,
           type: input.type,
           amount,
-          currency: account.currency,
-          date: toDateOnly(input.date),
+          currency,
+          rate: new Prisma.Decimal(roundRate(rate)),
+          amountBase,
+          date,
           comment: input.comment ?? null,
         },
         include: withRelations,
@@ -110,7 +160,7 @@ export class TransactionsService {
       return created;
     });
 
-    return toTransactionDto(transaction);
+    return toTransactionDto(transaction, user.currency);
   }
 
   /** Быстрый ввод текстом (ТЗ §4): «обед 450» → «Еда», «зарплата +80000» → «Зарплата». */
@@ -154,7 +204,30 @@ export class TransactionsService {
   async transfer(userId: string, input: TransferCreateInput): Promise<TransactionDto> {
     const from = await this.accounts.resolveOwned(userId, input.fromAccountId);
     const to = await this.accounts.resolveOwned(userId, input.toAccountId);
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const date = toDateOnly(input.date);
     const amount = new Prisma.Decimal(input.amount);
+
+    // Перевод между счетами разных валют: две суммы. Если сумма зачисления не
+    // передана, считается по курсу валют на дату перевода.
+    let toAmountValue: number;
+    if (from.currency === to.currency) {
+      toAmountValue = input.amount;
+    } else if (input.toAmount !== undefined) {
+      toAmountValue = input.toAmount;
+    } else {
+      const cross = await this.rates.resolveRate(
+        userId,
+        from.currency as Currency,
+        to.currency as Currency,
+        dayKeyOf(date),
+      );
+      toAmountValue = convertToBase(input.amount, cross);
+    }
+    const toAmount = new Prisma.Decimal(toAmountValue);
+
+    const rate = await this.resolveBaseRate(userId, from.currency, user.currency, dayKeyOf(date));
+    const amountBase = new Prisma.Decimal(convertToBase(input.amount, rate));
 
     const transaction = await this.prisma.$transaction(async (db) => {
       const created = await db.transaction.create({
@@ -165,19 +238,22 @@ export class TransactionsService {
           type: 'transfer',
           amount,
           currency: from.currency,
-          date: toDateOnly(input.date),
+          rate: new Prisma.Decimal(roundRate(rate)),
+          amountBase,
+          toAmount,
+          date,
           comment: input.comment ?? null,
         },
         include: withRelations,
       });
 
       await db.account.update({ where: { id: from.id }, data: { balance: { decrement: amount } } });
-      await db.account.update({ where: { id: to.id }, data: { balance: { increment: amount } } });
+      await db.account.update({ where: { id: to.id }, data: { balance: { increment: toAmount } } });
 
       return created;
     });
 
-    return toTransactionDto(transaction);
+    return toTransactionDto(transaction, user.currency);
   }
 
   async remove(userId: string, id: string): Promise<void> {
@@ -193,9 +269,10 @@ export class TransactionsService {
           data: { balance: { increment: transaction.amount } },
         });
         if (transaction.transferAccountId) {
+          const received = transaction.toAmount ?? transaction.amount;
           await db.account.update({
             where: { id: transaction.transferAccountId },
-            data: { balance: { decrement: transaction.amount } },
+            data: { balance: { decrement: received } },
           });
         }
       } else {

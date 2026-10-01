@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Injectable } from '@nestjs/common';
 import { Prisma, type Account } from '@prisma/client';
-import type { AccountCreateInput, AccountDto, AccountUpdateInput } from '@puls/shared';
+import { crossRate, type AccountCreateInput, type AccountDto, type AccountUpdateInput } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
+import { ExchangeRatesService } from './rates.service';
+
+/** Дата-ключ «YYYY-MM-DD» для сегодняшнего дня (курс на дату). */
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function toAccountDto(account: Account): AccountDto {
   return {
@@ -18,7 +24,10 @@ export function toAccountDto(account: Account): AccountDto {
 /** Счета (ТЗ §3.2): карта, наличные, сбережения — CRUD и общий баланс. */
 @Injectable()
 export class AccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rates: ExchangeRatesService,
+  ) {}
 
   async list(userId: string): Promise<{ accounts: AccountDto[]; totalBalance: number; currency: string }> {
     const [accounts, user] = await Promise.all([
@@ -26,11 +35,23 @@ export class AccountsService {
       this.prisma.user.findUniqueOrThrow({ where: { id: userId } }),
     ]);
 
-    const totalBalance = accounts.reduce((sum, account) => sum + Number(account.balance), 0);
+    // Общий баланс — в основной валюте пользователя; валюты счетов
+    // пересчитываются по ручным курсам (при отсутствии курса — как есть).
+    const needsConversion = accounts.some((account) => account.currency !== user.currency);
+    const points = needsConversion ? await this.rates.points(userId) : [];
+    const date = todayKey();
+    const totalBalance = accounts.reduce((sum, account) => {
+      const rate =
+        account.currency === user.currency
+          ? 1
+          : crossRate(points, account.currency, user.currency, user.currency, date) ?? 1;
+      return sum + Number(account.balance) * rate;
+    }, 0);
+
     return {
       accounts: accounts.map(toAccountDto),
       totalBalance: Math.round(totalBalance * 100) / 100,
-      currency: accounts[0]?.currency ?? user.currency,
+      currency: user.currency,
     };
   }
 
@@ -65,6 +86,7 @@ export class AccountsService {
         ...(input.name !== undefined ? { name: input.name } : {}),
         ...(input.type !== undefined ? { type: input.type } : {}),
         ...(input.balance !== undefined ? { balance: new Prisma.Decimal(input.balance) } : {}),
+        ...(input.currency !== undefined ? { currency: input.currency } : {}),
       },
     });
     return toAccountDto(account);

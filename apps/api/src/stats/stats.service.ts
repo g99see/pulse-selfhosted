@@ -75,7 +75,7 @@ export class StatsService {
           type: { in: ['expense', 'income'] },
           date: { gte: dateOnly(from), lte: dateOnly(to) },
         },
-        select: { type: true, amount: true, date: true },
+        select: { type: true, amountBase: true, date: true },
       }),
       this.prisma.checkIn.findMany({
         where: { userId, createdAt: { gte: start, lt: endExclusive } },
@@ -94,8 +94,8 @@ export class StatsService {
 
     for (const transaction of transactions) {
       const target = bucket(dayKeyOf(transaction.date));
-      if (transaction.type === 'income') target.earned += Number(transaction.amount);
-      else target.spent += Number(transaction.amount);
+      if (transaction.type === 'income') target.earned += Number(transaction.amountBase);
+      else target.spent += Number(transaction.amountBase);
     }
 
     for (const checkIn of checkIns) {
@@ -284,7 +284,7 @@ export class StatsService {
         type: 'expense',
         date: { gte: dateOnly(range.from), lte: dateOnly(range.to) },
       },
-      _sum: { amount: true },
+      _sum: { amountBase: true },
       _count: { _all: true },
     });
 
@@ -303,7 +303,7 @@ export class StatsService {
       .map((group) => ({
         categoryId: group.categoryId,
         categoryName: group.categoryId ? names.get(group.categoryId) ?? null : null,
-        total: roundMoney(Number(group._sum.amount ?? 0)),
+        total: roundMoney(Number(group._sum.amountBase ?? 0)),
         count: group._count._all,
       }))
       .sort(

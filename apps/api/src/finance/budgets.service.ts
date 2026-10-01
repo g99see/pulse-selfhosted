@@ -113,13 +113,13 @@ export class BudgetsService {
         categoryId: { in: categoryIds },
         date: { gte: start, lt: end },
       },
-      _sum: { amount: true },
+      _sum: { amountBase: true },
     });
 
     return new Map(
       grouped
         .filter((row): row is typeof row & { categoryId: string } => row.categoryId !== null)
-        .map((row) => [row.categoryId, Number(row._sum.amount ?? 0)]),
+        .map((row) => [row.categoryId, Number(row._sum.amountBase ?? 0)]),
     );
   }
 }

@@ -6,6 +6,10 @@ import {
   BudgetUpsertSchema,
   CategoryCreateSchema,
   CategoryUpdateSchema,
+  ExchangeRateCreateSchema,
+  ExchangeRateFilterSchema,
+  ImportCommitRequestSchema,
+  ImportPreviewRequestSchema,
   QuickTransactionSchema,
   TransactionCreateSchema,
   TransactionFilterSchema,
@@ -16,6 +20,9 @@ import {
   type BudgetUpsertInput,
   type CategoryCreateInput,
   type CategoryUpdateInput,
+  type ExchangeRateCreateInput,
+  type ImportCommitRequest,
+  type ImportPreviewRequest,
   type TransactionCreateInput,
   type TransferCreateInput,
 } from '@puls/shared';
@@ -26,6 +33,8 @@ import type { AuthenticatedRequest } from '../auth/auth.types';
 import { AccountsService } from './accounts.service';
 import { BudgetsService } from './budgets.service';
 import { CategoriesService } from './categories.service';
+import { ExchangeRatesService } from './rates.service';
+import { ImportService } from './import.service';
 import { TransactionsService } from './transactions.service';
 
 /** Финансы (ТЗ §3.2): категории, счета, транзакции, переводы и бюджеты. */
@@ -37,6 +46,8 @@ export class FinanceController {
     private readonly accounts: AccountsService,
     private readonly transactions: TransactionsService,
     private readonly budgets: BudgetsService,
+    private readonly rates: ExchangeRatesService,
+    private readonly imports: ImportService,
   ) {}
 
   /* ----- Обзор для экрана «Финансы» ----- */
@@ -172,6 +183,26 @@ export class FinanceController {
     return this.transactions.transfer(req.user!.id, body);
   }
 
+  /* ----- Импорт выписки CSV (ТЗ §3.2) ----- */
+
+  @Post('import/preview')
+  @HttpCode(HttpStatus.OK)
+  previewImport(
+    @Body(new ZodValidationPipe(ImportPreviewRequestSchema)) body: ImportPreviewRequest,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.imports.preview(req.user!.id, body);
+  }
+
+  @Post('import/commit')
+  @HttpCode(HttpStatus.CREATED)
+  commitImport(
+    @Body(new ZodValidationPipe(ImportCommitRequestSchema)) body: ImportCommitRequest,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.imports.commit(req.user!.id, body);
+  }
+
   /* ----- Бюджеты ----- */
 
   @Get('budgets')
@@ -205,5 +236,31 @@ export class FinanceController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeBudget(@Param('id') id: string, @Req() req: AuthenticatedRequest): Promise<void> {
     await this.budgets.remove(req.user!.id, id);
+  }
+
+  /* ----- Курсы валют (ТЗ §3.2) ----- */
+
+  @Get('rates')
+  async listRates(@Req() req: AuthenticatedRequest, @Query() query: Record<string, unknown>) {
+    const filter = ExchangeRateFilterSchema.safeParse(query);
+    if (!filter.success) {
+      throw httpError(400, 'validation_error', 'Некорректные параметры фильтра курсов');
+    }
+    return { rates: await this.rates.list(req.user!.id, filter.data) };
+  }
+
+  /** Создаёт или обновляет ручной курс на дату (одна единица base = rate quote). */
+  @Put('rates')
+  upsertRate(
+    @Body(new ZodValidationPipe(ExchangeRateCreateSchema)) body: ExchangeRateCreateInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.rates.upsert(req.user!.id, body);
+  }
+
+  @Delete('rates/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeRate(@Param('id') id: string, @Req() req: AuthenticatedRequest): Promise<void> {
+    await this.rates.remove(req.user!.id, id);
   }
 }
