@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // AES-256-GCM «сейф» для секретов (ТЗ §6): TOTP-секреты, позже — AI-ключи.
 import { describe, expect, it } from 'vitest';
-import {
-  createSecretBox,
-  DEV_TEST_KEY_BASE64,
-  resolveMasterKey,
-  SecretBox,
-} from './secret-box';
+import { createSecretBox, DEV_TEST_KEY_BASE64, resolveMasterKey, SecretBox } from './secret-box';
 
 const KEY = Buffer.alloc(32, 7).toString('base64');
 const OTHER_KEY = Buffer.alloc(32, 9).toString('base64');
@@ -19,7 +14,9 @@ describe('resolveMasterKey', () => {
   });
 
   it('падает на ключе неверной длины', () => {
-    expect(() => resolveMasterKey({ APP_ENCRYPTION_KEY: 'c2hvcnQ=', NODE_ENV: 'production' })).toThrow();
+    expect(() =>
+      resolveMasterKey({ APP_ENCRYPTION_KEY: 'c2hvcnQ=', NODE_ENV: 'production' }),
+    ).toThrow();
   });
 
   it('в production без ключа 2FA недоступна', () => {
@@ -60,7 +57,12 @@ describe('SecretBox (AES-256-GCM)', () => {
   it('не принимает подделанный шифротекст (аутентификация GCM)', () => {
     const box = createSecretBox(KEY);
     const [version, iv, tag, data] = box.encrypt('secret').split('.');
-    const tampered = [version, iv, tag, data.slice(0, -2) + (data.endsWith('AA') ? 'BB' : 'AA')].join('.');
+    const tampered = [
+      version,
+      iv,
+      tag,
+      data.slice(0, -2) + (data.endsWith('AA') ? 'BB' : 'AA'),
+    ].join('.');
     expect(() => box.decrypt(tampered)).toThrow();
   });
 

@@ -71,15 +71,8 @@ export const checkInTimeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
 
 export const CheckInScheduleSchema = z
   .object({
-    timesPerDay: z
-      .number()
-      .int()
-      .min(CHECKIN_TIMES_PER_DAY_MIN)
-      .max(CHECKIN_TIMES_PER_DAY_MAX),
-    times: z
-      .array(checkInTimeSchema)
-      .min(CHECKIN_TIMES_PER_DAY_MIN)
-      .max(CHECKIN_TIMES_PER_DAY_MAX),
+    timesPerDay: z.number().int().min(CHECKIN_TIMES_PER_DAY_MIN).max(CHECKIN_TIMES_PER_DAY_MAX),
+    times: z.array(checkInTimeSchema).min(CHECKIN_TIMES_PER_DAY_MIN).max(CHECKIN_TIMES_PER_DAY_MAX),
   })
   .superRefine((value, ctx) => {
     if (value.times.length !== value.timesPerDay) {

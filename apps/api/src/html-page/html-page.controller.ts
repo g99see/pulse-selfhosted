@@ -15,11 +15,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  HTML_PAGE_MAX_BYTES,
-  HtmlPageSaveSchema,
-  type HtmlPageSaveInput,
-} from '@puls/shared';
+import { HTML_PAGE_MAX_BYTES, HtmlPageSaveSchema, type HtmlPageSaveInput } from '@puls/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { httpError } from '../common/http-error';
 import { SessionGuard } from '../auth/session.guard';
@@ -69,7 +65,10 @@ export class HtmlPageController {
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: HTML_PAGE_MAX_BYTES } }))
-  async upload(@UploadedFile() file: UploadedHtmlFile | undefined, @Req() req: AuthenticatedRequest) {
+  async upload(
+    @UploadedFile() file: UploadedHtmlFile | undefined,
+    @Req() req: AuthenticatedRequest,
+  ) {
     if (!file?.buffer) {
       throw httpError(400, 'file_required', 'Прикрепите файл .html');
     }

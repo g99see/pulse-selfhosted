@@ -29,8 +29,7 @@ function readLocal(): boolean {
   } catch {
     // Приватный режим — читаем cookie как запасной источник.
     return (
-      typeof document !== 'undefined' &&
-      document.cookie.split('; ').includes(`${QUIET_COOKIE}=1`)
+      typeof document !== 'undefined' && document.cookie.split('; ').includes(`${QUIET_COOKIE}=1`)
     );
   }
 }

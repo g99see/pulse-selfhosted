@@ -19,7 +19,11 @@ import { daysInMonth } from '../src/stats';
 
 const monthly = (day: number): RecurrenceRule => ({ frequency: 'monthly', day });
 const weekly = (day: number): RecurrenceRule => ({ frequency: 'weekly', day });
-const yearly = (month: number, day: number): RecurrenceRule => ({ frequency: 'yearly', day, month });
+const yearly = (month: number, day: number): RecurrenceRule => ({
+  frequency: 'yearly',
+  day,
+  month,
+});
 
 describe('длина месяца и високосный год (ТЗ §3.2)', () => {
   it('определяет високосный год, включая вековые исключения', () => {

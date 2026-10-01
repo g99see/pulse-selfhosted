@@ -60,11 +60,13 @@ export function renderReviewPayload(data: ReviewData): string {
   }
   if (data.budgets.length > 0) {
     lines.push('Бюджеты:');
-    for (const budget of data.budgets) lines.push(`- ${budget.name}: ${budget.spent} из ${budget.limit}`);
+    for (const budget of data.budgets)
+      lines.push(`- ${budget.name}: ${budget.spent} из ${budget.limit}`);
   }
   if (data.goals.length > 0) {
     lines.push('Цели:');
-    for (const goal of data.goals) lines.push(`- ${goal.title}: ${goal.saved} из ${goal.target} (${goal.percent}%)`);
+    for (const goal of data.goals)
+      lines.push(`- ${goal.title}: ${goal.saved} из ${goal.target} (${goal.percent}%)`);
   }
   if (data.notes && data.notes.length > 0) {
     lines.push('Заметки чек-инов:');
@@ -109,8 +111,7 @@ export class AiReviewService {
   async review(userId: string, input: AiReviewRequest): Promise<AiReviewResponse> {
     const data = await this.gather(userId, input);
     const payloadText = renderReviewPayload(data);
-    const content =
-      `Данные за период:\n${payloadText}\n\nСделай разбор: три наблюдения и одно предложение.`;
+    const content = `Данные за период:\n${payloadText}\n\nСделай разбор: три наблюдения и одно предложение.`;
 
     const run = await this.chat.runCompletion(userId, `${AI_SYSTEM_PROMPT}${REVIEW_INSTRUCTION}`, [
       { role: 'user', content },

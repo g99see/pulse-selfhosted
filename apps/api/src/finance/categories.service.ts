@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Injectable } from '@nestjs/common';
 import type { Category } from '@prisma/client';
-import { SYSTEM_CATEGORIES, type CategoryCreateInput, type CategoryDto, type CategoryUpdateInput } from '@puls/shared';
+import {
+  SYSTEM_CATEGORIES,
+  type CategoryCreateInput,
+  type CategoryDto,
+  type CategoryUpdateInput,
+} from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 

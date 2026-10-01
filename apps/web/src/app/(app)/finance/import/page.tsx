@@ -187,7 +187,9 @@ export default function ImportPage() {
         {fileName ? (
           <p className="text-xs text-[var(--puls-ink-muted)]" data-testid="import-file-meta">
             {t('finance.import.encoding', { encoding: encoding ?? '' })}
-            {preview ? ` · ${t('finance.import.delimiter', { delimiter: preview.delimiter === '\t' ? 'TAB' : preview.delimiter })}` : ''}
+            {preview
+              ? ` · ${t('finance.import.delimiter', { delimiter: preview.delimiter === '\t' ? 'TAB' : preview.delimiter })}`
+              : ''}
           </p>
         ) : null}
 
@@ -257,9 +259,13 @@ export default function ImportPage() {
                       <td className="py-1 pr-3 text-[var(--puls-ink-muted)]">{row.rowNumber}</td>
                       <td className="py-1 pr-3">{row.date ?? '—'}</td>
                       <td className="py-1 pr-3 [font-variant-numeric:tabular-nums]">
-                        {row.amount === null ? '—' : formatNumber(row.amount, locale, { maximumFractionDigits: 2 })}
+                        {row.amount === null
+                          ? '—'
+                          : formatNumber(row.amount, locale, { maximumFractionDigits: 2 })}
                       </td>
-                      <td className="py-1 pr-3">{row.type ? t(`finance.type.${row.type}`) : '—'}</td>
+                      <td className="py-1 pr-3">
+                        {row.type ? t(`finance.type.${row.type}`) : '—'}
+                      </td>
                       <td className="py-1 pr-3">{row.description || '—'}</td>
                       <td className="py-1 pr-3">{row.categoryName ?? '—'}</td>
                       <td className="py-1">{t(statusKey(row))}</td>
@@ -305,7 +311,11 @@ export default function ImportPage() {
       ) : null}
 
       {result ? (
-        <div data-testid="import-result" role="status" className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]">
+        <div
+          data-testid="import-result"
+          role="status"
+          className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]"
+        >
           {t('finance.import.result', {
             imported: result.imported,
             duplicates: result.duplicates,

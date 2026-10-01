@@ -80,7 +80,10 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
     push.clearOutbox();
   });
 
-  async function signUp(email: string, nickname: string): Promise<{ client: TestClient; userId: string }> {
+  async function signUp(
+    email: string,
+    nickname: string,
+  ): Promise<{ client: TestClient; userId: string }> {
     const client = new TestClient(server);
     await client.csrf();
     const registered = await client.post('/api/auth/register', {
@@ -125,9 +128,9 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
     expect(created.body ?? null).toBeNull();
     expect(created.snapshot ?? null).toBeNull();
     // open_at не раньше суток от создания.
-    expect(new Date(created.openAt).getTime() - new Date(created.createdAt).getTime()).toBeGreaterThanOrEqual(
-      24 * 60 * 60 * 1000,
-    );
+    expect(
+      new Date(created.openAt).getTime() - new Date(created.createdAt).getTime(),
+    ).toBeGreaterThanOrEqual(24 * 60 * 60 * 1000);
 
     // Тело лежит в БД зашифрованным (ТЗ §6) и не содержит открытого текста.
     const row = await prisma.timeCapsule.findFirstOrThrow({ where: { userId } });
@@ -186,9 +189,33 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
     // Заполняем период данными: расход, доход, чек-ины и цель.
     await prisma.transaction.createMany({
       data: [
-        { userId, accountId: account.id, type: 'expense', amount: 1000, amountBase: 1000, currency: 'RUB', date: new Date() },
-        { userId, accountId: account.id, type: 'expense', amount: 500.5, amountBase: 500.5, currency: 'RUB', date: new Date() },
-        { userId, accountId: account.id, type: 'income', amount: 2000, amountBase: 2000, currency: 'RUB', date: new Date() },
+        {
+          userId,
+          accountId: account.id,
+          type: 'expense',
+          amount: 1000,
+          amountBase: 1000,
+          currency: 'RUB',
+          date: new Date(),
+        },
+        {
+          userId,
+          accountId: account.id,
+          type: 'expense',
+          amount: 500.5,
+          amountBase: 500.5,
+          currency: 'RUB',
+          date: new Date(),
+        },
+        {
+          userId,
+          accountId: account.id,
+          type: 'income',
+          amount: 2000,
+          amountBase: 2000,
+          currency: 'RUB',
+          date: new Date(),
+        },
       ],
     });
     await prisma.checkIn.createMany({

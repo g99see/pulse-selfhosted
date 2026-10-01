@@ -138,9 +138,7 @@ describe('OnboardingSchema', () => {
   });
 
   it('requires at least one goal and a valid timezone', () => {
-    expect(() =>
-      OnboardingSchema.parse({ timezone: 'UTC', currency: 'RUB', goals: [] }),
-    ).toThrow();
+    expect(() => OnboardingSchema.parse({ timezone: 'UTC', currency: 'RUB', goals: [] })).toThrow();
     expect(() =>
       OnboardingSchema.parse({ timezone: 'Nope/Nope', currency: 'RUB', goals: ['money'] }),
     ).toThrow();

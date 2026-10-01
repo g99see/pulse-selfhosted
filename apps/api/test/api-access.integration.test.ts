@@ -37,7 +37,9 @@ class HookServer {
 
   async start(): Promise<string> {
     this.requests.length = 0;
-    this.server = createServer((req: IncomingMessage, res: ServerResponse) => this.handle(req, res));
+    this.server = createServer((req: IncomingMessage, res: ServerResponse) =>
+      this.handle(req, res),
+    );
     this.server.listen(0, '127.0.0.1');
     await once(this.server, 'listening');
     const address = this.server.address();
@@ -160,7 +162,11 @@ describe('Открытый API и вебхуки (интеграция с Postgr
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -169,7 +175,11 @@ describe('Открытый API и вебхуки (интеграция с Postgr
   }
 
   async function createAccount(client: TestClient, name = 'API-счёт'): Promise<string> {
-    const response = await client.post('/api/finance/accounts', { name, type: 'card', balance: 1000 });
+    const response = await client.post('/api/finance/accounts', {
+      name,
+      type: 'card',
+      balance: 1000,
+    });
     expect(response.status).toBe(201);
     return (response.body as { id: string }).id;
   }
@@ -276,7 +286,9 @@ describe('Открытый API и вебхуки (интеграция с Postgr
       const anon = new TestClient(server);
       expect((await anon.get('/api/v1/me')).status).toBe(401);
 
-      const bogus = await request(server).get('/api/v1/me').set('Authorization', 'Bearer puls_bogus');
+      const bogus = await request(server)
+        .get('/api/v1/me')
+        .set('Authorization', 'Bearer puls_bogus');
       expect(bogus.status).toBe(401);
       const basic = await request(server).get('/api/v1/me').set('Authorization', 'Basic abc');
       expect(basic.status).toBe(401);
@@ -290,7 +302,7 @@ describe('Открытый API и вебхуки (интеграция с Postgr
 
       const bobToken = await createToken(bob, 'Боба', ['read']);
       const list = await getBearer('/api/v1/transactions', bobToken.token);
-      expect((list.body.transactions as unknown[])).toHaveLength(0);
+      expect(list.body.transactions as unknown[]).toHaveLength(0);
 
       // Чужой токен нельзя отозвать.
       const aliceToken = await createToken(alice, 'Алисы', ['read']);
@@ -310,7 +322,9 @@ describe('Открытый API и вебхуки (интеграция с Postgr
       const anon = new TestClient(server);
       expect((await anon.get('/api/api-tokens')).status).toBe(401);
       await anon.csrf();
-      expect((await anon.post('/api/api-tokens', { name: 'x', scopes: ['read'] })).status).toBe(401);
+      expect((await anon.post('/api/api-tokens', { name: 'x', scopes: ['read'] })).status).toBe(
+        401,
+      );
     });
   });
 

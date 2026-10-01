@@ -29,7 +29,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -64,7 +66,10 @@ async function signUpAndOnboard(
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 }
 
-test('голосовой чек-ин: диктовка заполняет заметку и предлагает теги', async ({ page, request }) => {
+test('голосовой чек-ин: диктовка заполняет заметку и предлагает теги', async ({
+  page,
+  request,
+}) => {
   await page.addInitScript((transcript: string) => {
     class FakeRecognition {
       lang = '';
@@ -112,7 +117,9 @@ test('голосовой чек-ин: диктовка заполняет зам
 
   // Диктовка в итог дня заполняет «Что сегодня получилось?».
   await page.getByTestId('checkin-day-summary-voice').click();
-  await expect(page.getByTestId('checkin-day-summary')).toHaveValue(TRANSCRIPT, { timeout: 10_000 });
+  await expect(page.getByTestId('checkin-day-summary')).toHaveValue(TRANSCRIPT, {
+    timeout: 10_000,
+  });
 
   // Чек-ин сохраняется вместе с заметкой и подтверждённым тегом.
   await page.getByTestId('mood-4').click();
@@ -125,7 +132,10 @@ test('без Web Speech API кнопка микрофона скрыта с по
   await page.addInitScript(() => {
     // Форсируем отсутствие API: так проверяем деградацию интерфейса.
     const speechWindow = window as unknown as Record<string, unknown>;
-    Object.defineProperty(speechWindow, 'SpeechRecognition', { value: undefined, configurable: true });
+    Object.defineProperty(speechWindow, 'SpeechRecognition', {
+      value: undefined,
+      configurable: true,
+    });
     Object.defineProperty(speechWindow, 'webkitSpeechRecognition', {
       value: undefined,
       configurable: true,

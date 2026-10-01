@@ -80,7 +80,10 @@ test.describe('мастер первого запуска (живой API)', () 
   test('POST /api/setup на настроенном инстансе закрыт навсегда', async ({ request }) => {
     const statusResponse = await request.get(`${API_URL}/api/setup/status`);
     expect(statusResponse.ok()).toBeTruthy();
-    const status = (await statusResponse.json()) as { needsSetup: boolean; registrationMode: string };
+    const status = (await statusResponse.json()) as {
+      needsSetup: boolean;
+      registrationMode: string;
+    };
     expect(['open', 'invite', 'closed']).toContain(status.registrationMode);
 
     const csrfResponse = await request.get(`${API_URL}/api/auth/csrf`);

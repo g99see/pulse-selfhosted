@@ -28,7 +28,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -96,7 +98,9 @@ test('семья: общий счёт и цель на двоих, личный 
     await expect(owner.getByRole('heading', { name: 'Семья', exact: true })).toBeVisible();
     await owner.getByTestId('family-name').fill('Наш дом');
     await owner.getByTestId('family-create').click();
-    await expect(owner.getByTestId('family-name-label')).toContainText('Наш дом', { timeout: 15_000 });
+    await expect(owner.getByTestId('family-name-label')).toContainText('Наш дом', {
+      timeout: 15_000,
+    });
     await expect(owner.getByTestId('family-member')).toHaveCount(1);
 
     await owner.getByTestId('family-invite-create').click();
@@ -122,7 +126,9 @@ test('семья: общий счёт и цель на двоих, личный 
     await owner.getByTestId('family-goal-title').fill('Ремонт');
     await owner.getByTestId('family-goal-target').fill('200000');
     await owner.getByTestId('family-goal-create').click();
-    await expect(owner.getByTestId('family-goal').first()).toContainText('Ремонт', { timeout: 15_000 });
+    await expect(owner.getByTestId('family-goal').first()).toContainText('Ремонт', {
+      timeout: 15_000,
+    });
 
     await member.reload();
     const memberGoal = member.getByTestId('family-goal').first();
@@ -133,7 +139,9 @@ test('семья: общий счёт и цель на двоих, личный 
 
     // Владелец видит прогресс общей цели, который внёс участник.
     await owner.reload();
-    await expect(owner.getByTestId('family-goal').first()).toContainText(/100[\s\u00a0]?000/, { timeout: 15_000 });
+    await expect(owner.getByTestId('family-goal').first()).toContainText(/100[\s\u00a0]?000/, {
+      timeout: 15_000,
+    });
 
     // Приватность: в личной истории чек-инов владельца нет записи участника.
     await owner.goto('/checkin');

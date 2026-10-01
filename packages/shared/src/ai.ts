@@ -23,7 +23,8 @@ export const AiKeySetSchema = z
   })
   .superRefine((value, ctx) => {
     if (value.provider === 'openai_compatible') {
-      if (!value.baseUrl) ctx.addIssue({ code: 'custom', path: ['baseUrl'], message: 'Укажите адрес сервера' });
+      if (!value.baseUrl)
+        ctx.addIssue({ code: 'custom', path: ['baseUrl'], message: 'Укажите адрес сервера' });
     } else if (value.apiKey.length < 8) {
       ctx.addIssue({ code: 'custom', path: ['apiKey'], message: 'Ключ слишком короткий' });
     }
@@ -176,7 +177,11 @@ export const AI_PRICE_PER_MTOK: Record<AiProvider, { in: number; out: number }> 
 };
 
 /** Примерная стоимость запроса в USD по токенам и провайдеру. */
-export function estimateAiCostUsd(provider: AiProvider, tokensIn: number, tokensOut: number): number {
+export function estimateAiCostUsd(
+  provider: AiProvider,
+  tokensIn: number,
+  tokensOut: number,
+): number {
   const price = AI_PRICE_PER_MTOK[provider];
   const cost = (tokensIn * price.in + tokensOut * price.out) / 1_000_000;
   return Math.round(cost * 1_000_000) / 1_000_000;

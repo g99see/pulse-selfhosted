@@ -6,7 +6,12 @@
  * разбор), — `complete`; про ключи он ничего не знает.
  */
 import { Inject, Injectable } from '@nestjs/common';
-import { estimateAiCostUsd, type AiInstanceSettingsInput, type AiProvider, type AiTestResponse } from '@puls/shared';
+import {
+  estimateAiCostUsd,
+  type AiInstanceSettingsInput,
+  type AiProvider,
+  type AiTestResponse,
+} from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { AI_HTTP, type AiHttpClient } from './ai-http';
 import { AiKeyService } from './ai-key.service';

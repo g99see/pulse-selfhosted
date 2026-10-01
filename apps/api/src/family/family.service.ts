@@ -36,7 +36,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 type FamilyMemberRow = Prisma.FamilyMemberGetPayload<object>;
 type MemberWithUser = Prisma.FamilyMemberGetPayload<{ include: { user: true } }>;
-type FamilyWithMembers = Prisma.FamilyGetPayload<{ include: { members: { include: { user: true } } } }>;
+type FamilyWithMembers = Prisma.FamilyGetPayload<{
+  include: { members: { include: { user: true } } };
+}>;
 type GoalWithDeposits = Prisma.FamilyGoalGetPayload<{
   include: { deposits: { include: { user: true } } };
 }>;
@@ -307,7 +309,9 @@ export class FamilyService {
     });
     const currency = accounts[0]?.currency ?? 'RUB';
     // Итог складываем как есть: счета семьи ведут в одной основной валюте.
-    const totalBalance = round2(accounts.reduce((sum, account) => sum + Number(account.balance), 0));
+    const totalBalance = round2(
+      accounts.reduce((sum, account) => sum + Number(account.balance), 0),
+    );
     return { accounts: accounts.map(toFamilyAccountDto), totalBalance, currency };
   }
 
@@ -438,14 +442,22 @@ export class FamilyService {
   }
 
   /** PUT /api/family/goals/:id: правка общей цели. */
-  async updateGoal(userId: string, goalId: string, input: FamilyGoalUpdateInput): Promise<FamilyGoalDto> {
+  async updateGoal(
+    userId: string,
+    goalId: string,
+    input: FamilyGoalUpdateInput,
+  ): Promise<FamilyGoalDto> {
     await this.resolveFamilyGoal(userId, goalId);
     const goal = await this.prisma.familyGoal.update({
       where: { id: goalId },
       data: {
         ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.targetAmount !== undefined ? { targetAmount: new Prisma.Decimal(input.targetAmount) } : {}),
-        ...(input.deadline !== undefined ? { deadline: input.deadline ? toDateOnly(input.deadline) : null } : {}),
+        ...(input.targetAmount !== undefined
+          ? { targetAmount: new Prisma.Decimal(input.targetAmount) }
+          : {}),
+        ...(input.deadline !== undefined
+          ? { deadline: input.deadline ? toDateOnly(input.deadline) : null }
+          : {}),
         ...(input.image !== undefined ? { image: input.image } : {}),
       },
       include: { deposits: { include: { user: true }, orderBy: { date: 'asc' } } },

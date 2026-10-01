@@ -54,6 +54,12 @@ describe('uniqueNickname', () => {
   });
 
   it('падает, если свободного никнейма нет за отведённые попытки', async () => {
-    await expect(uniqueNickname(() => true, () => 0.5, 3)).rejects.toThrow(/никнейм/i);
+    await expect(
+      uniqueNickname(
+        () => true,
+        () => 0.5,
+        3,
+      ),
+    ).rejects.toThrow(/никнейм/i);
   });
 });

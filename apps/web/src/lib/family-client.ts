@@ -39,22 +39,32 @@ export const familyApi = {
   join: (code: string) =>
     authFetch<FamilyDto>('/api/family/join', { method: 'POST', body: JSON.stringify({ code }) }),
 
-  removeMember: (userId: string) => authFetch<void>(`/api/family/members/${userId}`, { method: 'DELETE' }),
+  removeMember: (userId: string) =>
+    authFetch<void>(`/api/family/members/${userId}`, { method: 'DELETE' }),
 
   leave: () => authFetch<void>('/api/family/leave', { method: 'POST', body: JSON.stringify({}) }),
 
   accounts: () => authFetch<FamilyAccountsResponse>('/api/family/accounts'),
 
   createAccount: (input: FamilyAccountCreateValues) =>
-    authFetch<FamilyAccountDto>('/api/family/accounts', { method: 'POST', body: JSON.stringify(input) }),
+    authFetch<FamilyAccountDto>('/api/family/accounts', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 
   updateAccount: (id: string, input: FamilyAccountUpdateInput) =>
-    authFetch<FamilyAccountDto>(`/api/family/accounts/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+    authFetch<FamilyAccountDto>(`/api/family/accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 
-  removeAccount: (id: string) => authFetch<void>(`/api/family/accounts/${id}`, { method: 'DELETE' }),
+  removeAccount: (id: string) =>
+    authFetch<void>(`/api/family/accounts/${id}`, { method: 'DELETE' }),
 
   transactions: (accountId: string) =>
-    authFetch<{ transactions: FamilyTransactionDto[] }>(`/api/family/accounts/${accountId}/transactions`),
+    authFetch<{ transactions: FamilyTransactionDto[] }>(
+      `/api/family/accounts/${accountId}/transactions`,
+    ),
 
   addTransaction: (accountId: string, input: FamilyTransactionCreateValues) =>
     authFetch<FamilyTransactionResult>(`/api/family/accounts/${accountId}/transactions`, {
@@ -68,7 +78,10 @@ export const familyApi = {
     authFetch<FamilyGoalDto>('/api/family/goals', { method: 'POST', body: JSON.stringify(input) }),
 
   updateGoal: (id: string, input: FamilyGoalUpdateInput) =>
-    authFetch<FamilyGoalDto>(`/api/family/goals/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+    authFetch<FamilyGoalDto>(`/api/family/goals/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 
   removeGoal: (id: string) => authFetch<void>(`/api/family/goals/${id}`, { method: 'DELETE' }),
 

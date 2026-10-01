@@ -91,7 +91,11 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -267,7 +271,12 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
         data: { userId, name: 'Еда', kind: 'expense', icon: 'utensils', color: '#123456' },
       });
       await prisma.budget.create({
-        data: { userId, categoryId: category.id, month: monthKey, limit: new Prisma.Decimal(50_000) },
+        data: {
+          userId,
+          categoryId: category.id,
+          month: monthKey,
+          limit: new Prisma.Decimal(50_000),
+        },
       });
       await prisma.transaction.create({
         data: {
@@ -296,7 +305,12 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
         data: { userId, name: 'Еда', kind: 'expense', icon: 'utensils', color: '#123456' },
       });
       await prisma.budget.create({
-        data: { userId, categoryId: category.id, month: monthKey, limit: new Prisma.Decimal(50_000) },
+        data: {
+          userId,
+          categoryId: category.id,
+          month: monthKey,
+          limit: new Prisma.Decimal(50_000),
+        },
       });
       await prisma.transaction.create({
         data: {
@@ -333,7 +347,9 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
 
       expect(await achievements.award(userId, 'goal_complete')).toBe(true);
       expect(await achievements.award(userId, 'goal_complete')).toBe(false);
-      expect(await prisma.userAchievement.count({ where: { userId, code: 'goal_complete' } })).toBe(1);
+      expect(await prisma.userAchievement.count({ where: { userId, code: 'goal_complete' } })).toBe(
+        1,
+      );
     });
 
     it('гонка двух вызовов: ровно одна выдача, без ошибок', async () => {
@@ -352,9 +368,9 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       await signUp('unknown@example.com', 'unknownuser');
       const userId = await userIdOf('unknown@example.com');
 
-      await expect(
-        achievements.award(userId, 'does_not_exist' as never),
-      ).rejects.toMatchObject({ status: 400 });
+      await expect(achievements.award(userId, 'does_not_exist' as never)).rejects.toMatchObject({
+        status: 400,
+      });
     });
   });
 
@@ -366,8 +382,12 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
 
       await achievements.award(aliceId, 'goal_complete');
 
-      expect(earnedCode(codes(await alice.get('/api/achievements')), 'goal_complete')?.earned).toBe(true);
-      expect(earnedCode(codes(await bob.get('/api/achievements')), 'goal_complete')?.earned).toBe(false);
+      expect(earnedCode(codes(await alice.get('/api/achievements')), 'goal_complete')?.earned).toBe(
+        true,
+      );
+      expect(earnedCode(codes(await bob.get('/api/achievements')), 'goal_complete')?.earned).toBe(
+        false,
+      );
     });
   });
 });

@@ -7,11 +7,7 @@
  * возвращаются инструментам чата — они не должны попадать в модель.
  */
 import { Injectable } from '@nestjs/common';
-import {
-  addDays,
-  todayKeyInTimezone,
-  type StreakDto,
-} from '@puls/shared';
+import { addDays, todayKeyInTimezone, type StreakDto } from '@puls/shared';
 import { AchievementsService } from '../achievements/achievements.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -121,7 +117,9 @@ export class AiContextService {
     const byCategory = grouped
       .map((row) => ({
         categoryId: row.categoryId ?? 'none',
-        categoryName: row.categoryId ? (nameById.get(row.categoryId) ?? 'Без категории') : 'Без категории',
+        categoryName: row.categoryId
+          ? (nameById.get(row.categoryId) ?? 'Без категории')
+          : 'Без категории',
         total: round2(Number(row._sum.amountBase ?? 0)),
         count: row._count._all,
       }))
@@ -207,7 +205,9 @@ export class AiContextService {
       days,
       avgMood: average(checkIns.map((checkIn) => checkIn.mood)),
       avgEnergy: average(
-        checkIns.map((checkIn) => checkIn.energy).filter((value): value is number => value !== null),
+        checkIns
+          .map((checkIn) => checkIn.energy)
+          .filter((value): value is number => value !== null),
       ),
     };
   }
@@ -221,7 +221,8 @@ export class AiContextService {
     return rows.map((goal) => {
       const target = Number(goal.targetAmount);
       const saved = Number(goal.savedAmount);
-      const percent = target > 0 ? Math.min(100, Math.max(0, Math.round((saved / target) * 100))) : 0;
+      const percent =
+        target > 0 ? Math.min(100, Math.max(0, Math.round((saved / target) * 100))) : 0;
       return {
         title: goal.title,
         targetAmount: round2(target),
@@ -237,7 +238,9 @@ export class AiContextService {
     const today = todayKeyInTimezone(await this.timezoneOf(userId));
     const targetMonth = month ?? today.slice(0, 7);
     const start = dateOnly(`${targetMonth}-01`);
-    const end = new Date(Date.UTC(Number(targetMonth.slice(0, 4)), Number(targetMonth.slice(5, 7)), 0));
+    const end = new Date(
+      Date.UTC(Number(targetMonth.slice(0, 4)), Number(targetMonth.slice(5, 7)), 0),
+    );
 
     const rows = await this.prisma.budget.findMany({
       where: { userId, month: targetMonth },

@@ -90,7 +90,11 @@ describe('Wrapped API — «Год в цифрах» (интеграция с Po
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -110,7 +114,11 @@ describe('Wrapped API — «Год в цифрах» (интеграция с Po
     await prisma.user.update({ where: { id: user.id }, data: { timezone } });
   }
 
-  async function createAccount(client: TestClient, name = 'Карта', balance = 100000): Promise<AccountDto> {
+  async function createAccount(
+    client: TestClient,
+    name = 'Карта',
+    balance = 100000,
+  ): Promise<AccountDto> {
     const response = await client.post('/api/finance/accounts', { name, type: 'card', balance });
     expect(response.status).toBe(201);
     return response.body as AccountDto;
@@ -122,7 +130,13 @@ describe('Wrapped API — «Год в цифрах» (интеграция с Po
     return response.body.categories as CategoryDto[];
   }
 
-  async function addExpense(client: TestClient, accountId: string, amount: number, date: string, categoryId?: string) {
+  async function addExpense(
+    client: TestClient,
+    accountId: string,
+    amount: number,
+    date: string,
+    categoryId?: string,
+  ) {
     const response = await client.post('/api/finance/transactions', {
       accountId,
       categoryId,
@@ -161,17 +175,35 @@ describe('Wrapped API — «Год в цифрах» (интеграция с Po
     await addExpense(client, account.id, 777, '2025-12-15', food.id);
 
     const user = await userByEmail('wrapped@example.com');
-    await prisma.checkIn.create({ data: { userId: user.id, mood: 5, occurredAt: new Date('2026-01-05T09:00:00.000Z') } });
-    await prisma.checkIn.create({ data: { userId: user.id, mood: 3, occurredAt: new Date('2026-01-06T09:00:00.000Z') } });
-    await prisma.checkIn.create({ data: { userId: user.id, mood: 2, occurredAt: new Date('2026-02-10T09:00:00.000Z') } });
+    await prisma.checkIn.create({
+      data: { userId: user.id, mood: 5, occurredAt: new Date('2026-01-05T09:00:00.000Z') },
+    });
+    await prisma.checkIn.create({
+      data: { userId: user.id, mood: 3, occurredAt: new Date('2026-01-06T09:00:00.000Z') },
+    });
+    await prisma.checkIn.create({
+      data: { userId: user.id, mood: 2, occurredAt: new Date('2026-02-10T09:00:00.000Z') },
+    });
 
     // Завершённая и незавершённая цели; updated_at в 2026 — через сырой SQL,
     // чтобы тест не зависел от «сегодня».
     const completed = await prisma.goal.create({
-      data: { userId: user.id, title: 'Отпуск', targetAmount: 1000, savedAmount: 1000, currency: 'RUB' },
+      data: {
+        userId: user.id,
+        title: 'Отпуск',
+        targetAmount: 1000,
+        savedAmount: 1000,
+        currency: 'RUB',
+      },
     });
     await prisma.goal.create({
-      data: { userId: user.id, title: 'Ноутбук', targetAmount: 1000, savedAmount: 500, currency: 'RUB' },
+      data: {
+        userId: user.id,
+        title: 'Ноутбук',
+        targetAmount: 1000,
+        savedAmount: 500,
+        currency: 'RUB',
+      },
     });
     await prisma.$executeRawUnsafe(
       'UPDATE "goals" SET "updated_at" = $1::timestamp WHERE "id" = $2',
@@ -180,7 +212,11 @@ describe('Wrapped API — «Год в цифрах» (интеграция с Po
     );
 
     await prisma.userAchievement.create({
-      data: { userId: user.id, code: 'first_checkin', earnedAt: new Date('2026-03-01T00:00:00.000Z') },
+      data: {
+        userId: user.id,
+        code: 'first_checkin',
+        earnedAt: new Date('2026-03-01T00:00:00.000Z'),
+      },
     });
 
     return client;
@@ -253,7 +289,11 @@ describe('Wrapped API — «Год в цифрах» (интеграция с Po
         achievements: 1,
       });
       expect(body.topCategories).toHaveLength(2);
-      expect(body.topCategories[0]).toMatchObject({ categoryName: 'Транспорт', total: 2000, count: 1 });
+      expect(body.topCategories[0]).toMatchObject({
+        categoryName: 'Транспорт',
+        total: 2000,
+        count: 1,
+      });
       expect(body.topCategories[1]).toMatchObject({ categoryName: 'Еда', total: 1500, count: 2 });
       expect(body.mostExpensiveDay).toEqual({ day: '2026-02-11', spent: 2000 });
       expect(body.mostFrequentWeekday).toEqual({ weekday: 1, count: 2 });

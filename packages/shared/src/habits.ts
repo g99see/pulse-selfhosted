@@ -9,7 +9,18 @@ import { z } from 'zod';
 import { dayBoundsInTimeZone } from './checkin';
 
 /** Готовые иконки-эмодзи для привычки (без загрузки файлов, ТЗ §4). */
-export const HABIT_ICON_PRESETS = ['💧', '🏃', '📚', '🧘', '🥗', '😴', '🚶', '☀️', '🎯', '🦷'] as const;
+export const HABIT_ICON_PRESETS = [
+  '💧',
+  '🏃',
+  '📚',
+  '🧘',
+  '🥗',
+  '😴',
+  '🚶',
+  '☀️',
+  '🎯',
+  '🦷',
+] as const;
 
 /** Частота привычки: каждый день или несколько раз в неделю (ТЗ §4). */
 export const HABIT_CADENCES = ['daily', 'weekly'] as const;

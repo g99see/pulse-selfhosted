@@ -78,7 +78,10 @@ export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
   }
 
   return (
-    <section className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-4" data-testid="habits-today">
+    <section
+      className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-4"
+      data-testid="habits-today"
+    >
       <h3 className="text-sm font-semibold">{t('habits.today.title')}</h3>
       <ul className="flex flex-col gap-2">
         {items.map((item) => (
@@ -98,7 +101,10 @@ export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
               <span className="text-sm font-medium">{item.name}</span>
             </label>
             {item.streak > 0 ? (
-              <span data-testid="habit-today-streak" className="text-xs text-[var(--puls-ink-muted)]">
+              <span
+                data-testid="habit-today-streak"
+                className="text-xs text-[var(--puls-ink-muted)]"
+              >
                 {t('habits.streak', { days: item.streak })}
               </span>
             ) : null}

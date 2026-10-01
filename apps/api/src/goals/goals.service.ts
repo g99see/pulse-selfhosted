@@ -98,7 +98,10 @@ export class GoalsService {
 
   /** Возвращает цель пользователя либо 404 (чужая цель не видна). */
   async resolveOwned(userId: string, id: string): Promise<GoalWithDeposits> {
-    const goal = await this.prisma.goal.findFirst({ where: { id, userId }, include: { deposits: true } });
+    const goal = await this.prisma.goal.findFirst({
+      where: { id, userId },
+      include: { deposits: true },
+    });
     if (!goal) {
       throw httpError(404, 'goal_not_found', 'Цель не найдена');
     }
@@ -153,9 +156,15 @@ export class GoalsService {
       where: { id },
       data: {
         ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.targetAmount !== undefined ? { targetAmount: new Prisma.Decimal(input.targetAmount) } : {}),
-        ...(input.savedAmount !== undefined ? { savedAmount: new Prisma.Decimal(input.savedAmount) } : {}),
-        ...(input.deadline !== undefined ? { deadline: input.deadline ? toDateOnly(input.deadline) : null } : {}),
+        ...(input.targetAmount !== undefined
+          ? { targetAmount: new Prisma.Decimal(input.targetAmount) }
+          : {}),
+        ...(input.savedAmount !== undefined
+          ? { savedAmount: new Prisma.Decimal(input.savedAmount) }
+          : {}),
+        ...(input.deadline !== undefined
+          ? { deadline: input.deadline ? toDateOnly(input.deadline) : null }
+          : {}),
         ...(input.image !== undefined ? { image: input.image } : {}),
         ...(input.visibility !== undefined ? { visibility: input.visibility } : {}),
         ...(input.accountId !== undefined ? { accountId: input.accountId ?? null } : {}),
@@ -201,7 +210,10 @@ export class GoalsService {
         include: { deposits: true },
       });
       if (accountId) {
-        await db.account.update({ where: { id: accountId }, data: { balance: { decrement: amount } } });
+        await db.account.update({
+          where: { id: accountId },
+          data: { balance: { decrement: amount } },
+        });
       }
       return { deposit: created, updated: next };
     });

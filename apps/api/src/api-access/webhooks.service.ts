@@ -33,9 +33,7 @@ export class WebhooksService {
     return {
       id: webhook.id,
       url: webhook.url,
-      events: (webhook.events as WebhookEvent[]).filter((event) =>
-        WEBHOOK_EVENTS.includes(event),
-      ),
+      events: (webhook.events as WebhookEvent[]).filter((event) => WEBHOOK_EVENTS.includes(event)),
       enabled: webhook.enabled,
       createdAt: webhook.createdAt.toISOString(),
       updatedAt: webhook.updatedAt.toISOString(),

@@ -12,7 +12,16 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { AiChatMessage, AiProposalDto, AiReviewPreviewDto, AiUsageDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Alert, Badge, Card, EmptyState, GhostButton, IconBubble, PrimaryButton, Select } from '@/components/ui';
+import {
+  Alert,
+  Badge,
+  Card,
+  EmptyState,
+  GhostButton,
+  IconBubble,
+  PrimaryButton,
+  Select,
+} from '@/components/ui';
 import { aiApi, aiErrorKey, formatAiCost, formatAiTokens } from '@/lib/ai-client';
 import { AuthApiError } from '@/lib/auth-client';
 
@@ -67,7 +76,11 @@ export default function AiPage() {
     const history = messages.slice(-20);
     try {
       const response = await aiApi.chat({ message: text, history });
-      setMessages([...history, { role: 'user', content: text }, { role: 'assistant', content: response.reply }]);
+      setMessages([
+        ...history,
+        { role: 'user', content: text },
+        { role: 'assistant', content: response.reply },
+      ]);
       setProposals(response.proposals);
       setUsage(response.usage);
       setInput('');
@@ -84,7 +97,9 @@ export default function AiPage() {
     setProposalError(null);
     try {
       const response = await aiApi.applyProposal(id);
-      setProposals((previous) => previous.map((item) => (item.id === id ? response.proposal : item)));
+      setProposals((previous) =>
+        previous.map((item) => (item.id === id ? response.proposal : item)),
+      );
       setProposalNotice(t('ai.proposals.applied'));
     } catch {
       setProposalError(t('ai.proposals.error'));
@@ -213,29 +228,29 @@ export default function AiPage() {
         </ul>
 
         <div className="sticky bottom-20 -mx-2 flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-2 lg:bottom-4">
-        <label htmlFor="ai-chat-input" className="text-sm font-medium">
-          {t('ai.chat.placeholder')}
-        </label>
-        <textarea
-          id="ai-chat-input"
-          data-testid="ai-chat-input"
-          aria-describedby="ai-chat-hint"
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          rows={2}
-          maxLength={2000}
-          className="w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 text-sm outline-none focus:border-[var(--puls-primary)]"
-        />
-        <div>
-          <PrimaryButton
-            type="button"
-            data-testid="ai-chat-send"
-            disabled={chatBusy || input.trim().length === 0}
-            onClick={() => void send()}
-          >
-            {chatBusy ? t('ai.chat.sending') : t('ai.chat.send')}
-          </PrimaryButton>
-        </div>
+          <label htmlFor="ai-chat-input" className="text-sm font-medium">
+            {t('ai.chat.placeholder')}
+          </label>
+          <textarea
+            id="ai-chat-input"
+            data-testid="ai-chat-input"
+            aria-describedby="ai-chat-hint"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            rows={2}
+            maxLength={2000}
+            className="w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 text-sm outline-none focus:border-[var(--puls-primary)]"
+          />
+          <div>
+            <PrimaryButton
+              type="button"
+              data-testid="ai-chat-send"
+              disabled={chatBusy || input.trim().length === 0}
+              onClick={() => void send()}
+            >
+              {chatBusy ? t('ai.chat.sending') : t('ai.chat.send')}
+            </PrimaryButton>
+          </div>
         </div>
       </Card>
 
@@ -271,7 +286,9 @@ export default function AiPage() {
                     disabled={proposalBusy === proposal.id}
                     onClick={() => void applyProposal(proposal.id)}
                   >
-                    {proposalBusy === proposal.id ? t('ai.proposals.applying') : t('ai.proposals.apply')}
+                    {proposalBusy === proposal.id
+                      ? t('ai.proposals.applying')
+                      : t('ai.proposals.apply')}
                   </PrimaryButton>
                 )}
               </li>
@@ -347,10 +364,7 @@ export default function AiPage() {
         {preview ? (
           <div className="flex flex-col gap-2" data-testid="ai-review-preview-box">
             <h3 className="text-sm font-semibold">{t('ai.review.previewTitle')}</h3>
-            <p
-              data-testid="ai-review-scope"
-              className="text-sm text-[var(--puls-ink-muted)]"
-            >
+            <p data-testid="ai-review-scope" className="text-sm text-[var(--puls-ink-muted)]">
               {preview.isLocal ? t('ai.review.local') : t('ai.review.remote')}
               {preview.includesNotes ? ` · ${t('ai.review.includesNotes')}` : ''}
               {preview.includesName ? ` · ${t('ai.review.includesName')}` : ''}
@@ -387,7 +401,9 @@ function AiUsageCard({ usage, locale }: { usage: AiUsageDto; locale: 'ru' | 'en'
   return (
     <Card className="flex flex-col gap-2" data-testid="ai-usage">
       <h2 className="font-heading text-lg font-bold">{t('ai.usage.title')}</h2>
-      <p className="text-xs text-[var(--puls-ink-muted)]">{t('ai.usage.month', { month: usage.month })}</p>
+      <p className="text-xs text-[var(--puls-ink-muted)]">
+        {t('ai.usage.month', { month: usage.month })}
+      </p>
       <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-xs text-[var(--puls-ink-muted)]">{t('ai.usage.tokensIn')}</dt>

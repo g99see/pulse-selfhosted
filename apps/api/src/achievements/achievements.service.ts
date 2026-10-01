@@ -215,7 +215,10 @@ export class AchievementsService implements OnModuleInit {
 
     const limitsByMonth = new Map<string, number>();
     for (const budget of budgets) {
-      limitsByMonth.set(budget.month, (limitsByMonth.get(budget.month) ?? 0) + Number(budget.limit));
+      limitsByMonth.set(
+        budget.month,
+        (limitsByMonth.get(budget.month) ?? 0) + Number(budget.limit),
+      );
     }
 
     const pastMonths = [...limitsByMonth.keys()].filter((month) => month < currentMonth);

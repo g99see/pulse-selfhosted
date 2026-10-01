@@ -27,7 +27,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -63,7 +65,13 @@ async function registerAndOnboard(
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 }
 
-const USAGE = { month: '2026-10', tokensIn: 1200, tokensOut: 800, costUsd: 0.02, limitTokens: null };
+const USAGE = {
+  month: '2026-10',
+  tokensIn: 1200,
+  tokensOut: 800,
+  costUsd: 0.02,
+  limitTokens: null,
+};
 
 async function stubStatus(page: import('@playwright/test').Page, enabled: boolean): Promise<void> {
   await page.route('**/api/ai/status', (route) =>
@@ -85,7 +93,10 @@ async function stubStatus(page: import('@playwright/test').Page, enabled: boolea
   );
 }
 
-test('без ключа пункт навигации скрыт, а экран предлагает подключить ключ', async ({ page, request }) => {
+test('без ключа пункт навигации скрыт, а экран предлагает подключить ключ', async ({
+  page,
+  request,
+}) => {
   await registerAndOnboard(page, request);
 
   await stubStatus(page, false);
@@ -108,7 +119,13 @@ test('с ключом чат отвечает, а предложение при�
       body: JSON.stringify({
         reply: 'REPLY-MARKER: на кафе ушло 3200 ₽',
         proposals: [
-          { id: 'p1', kind: 'budget', summary: 'Бюджет на кафе', payload: { limit: 3000 }, status: 'pending' },
+          {
+            id: 'p1',
+            kind: 'budget',
+            summary: 'Бюджет на кафе',
+            payload: { limit: 3000 },
+            status: 'pending',
+          },
         ],
         usage: USAGE,
       }),
@@ -168,6 +185,8 @@ test('предпросмотр разбора показывает, что уй�
   await page.goto('/ai');
   await page.getByTestId('ai-review-preview').click();
 
-  await expect(page.getByTestId('ai-review-payload')).toContainText('PAYLOAD-MARKER', { timeout: 10_000 });
+  await expect(page.getByTestId('ai-review-payload')).toContainText('PAYLOAD-MARKER', {
+    timeout: 10_000,
+  });
   await expect(page.getByTestId('ai-review-scope')).toBeVisible();
 });

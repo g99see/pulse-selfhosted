@@ -18,7 +18,18 @@ export const GOAL_MILESTONES = [25, 50, 75, 100] as const;
 export type GoalMilestone = (typeof GOAL_MILESTONES)[number];
 
 /** Готовые эмодзи-пресеты для цели — без загрузки файлов (ТЗ §3.2). */
-export const GOAL_EMOJI_PRESETS = ['🎯', '💻', '✈️', '🚗', '🏠', '🎁', '📱', '🎓', '💍', '🏖️'] as const;
+export const GOAL_EMOJI_PRESETS = [
+  '🎯',
+  '💻',
+  '✈️',
+  '🚗',
+  '🏠',
+  '🎁',
+  '📱',
+  '🎓',
+  '💍',
+  '🏖️',
+] as const;
 
 /** Ссылка на картинку цели: только http(s), файлы не загружаются. */
 export function isGoalImageUrl(value: string): boolean {
@@ -95,7 +106,8 @@ function asDate(value: Date | string | null | undefined): Date | null {
 
 /** Прогресс в процентах: 0..100, не делит на ноль и не превышает 100. */
 export function goalProgress(savedAmount: number, targetAmount: number): number {
-  if (!Number.isFinite(savedAmount) || !Number.isFinite(targetAmount) || targetAmount <= 0) return 0;
+  if (!Number.isFinite(savedAmount) || !Number.isFinite(targetAmount) || targetAmount <= 0)
+    return 0;
   const percent = Math.round((savedAmount / targetAmount) * 100);
   return Math.min(100, Math.max(0, percent));
 }
@@ -116,7 +128,8 @@ export function crossedMilestones(previousPercent: number, nextPercent: number):
 function monthsUntil(from: Date, deadline: Date): number {
   if (deadline.getTime() <= from.getTime()) return 0;
   const months =
-    (deadline.getUTCFullYear() * 12 + deadline.getUTCMonth()) -
+    deadline.getUTCFullYear() * 12 +
+    deadline.getUTCMonth() -
     (from.getUTCFullYear() * 12 + from.getUTCMonth());
   const dayOverflow = deadline.getUTCDate() > from.getUTCDate() ? 1 : 0;
   return Math.max(1, months + dayOverflow);

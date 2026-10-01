@@ -198,7 +198,11 @@ export function NotificationSettings() {
       </fieldset>
 
       <div className="flex flex-col gap-2">
-        <PrimaryButton type="button" onClick={() => void save()} disabled={!rules || status === 'saving'}>
+        <PrimaryButton
+          type="button"
+          onClick={() => void save()}
+          disabled={!rules || status === 'saving'}
+        >
           {t('notifications.save')}
         </PrimaryButton>
 

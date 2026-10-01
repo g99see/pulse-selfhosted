@@ -64,10 +64,7 @@ export interface CategoryFormValues {
 }
 
 export type CategoryFormError =
-  | 'name_required'
-  | 'name_too_long'
-  | 'icon_invalid'
-  | 'color_invalid';
+  'name_required' | 'name_too_long' | 'icon_invalid' | 'color_invalid';
 
 export interface CategoryFormResult {
   ok: boolean;
@@ -106,7 +103,11 @@ const DEFAULT_ONLY_GLYPHS: Readonly<Record<string, string>> = {
 const FALLBACK_GLYPH = '🏷️';
 
 export function iconGlyph(name: string): string {
-  return CATEGORY_ICONS.find((icon) => icon.name === name)?.glyph ?? DEFAULT_ONLY_GLYPHS[name] ?? FALLBACK_GLYPH;
+  return (
+    CATEGORY_ICONS.find((icon) => icon.name === name)?.glyph ??
+    DEFAULT_ONLY_GLYPHS[name] ??
+    FALLBACK_GLYPH
+  );
 }
 
 /**

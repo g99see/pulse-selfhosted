@@ -149,7 +149,10 @@ export class ProfileService {
   }
 
   /** Строит данные для набора карточек, переиспользуя сервисы домена. */
-  private async buildCards(userId: string, rows: readonly ProfileCardRow[]): Promise<ProfileCardDto[]> {
+  private async buildCards(
+    userId: string,
+    rows: readonly ProfileCardRow[],
+  ): Promise<ProfileCardDto[]> {
     if (rows.length === 0) return [];
 
     const [goals, streak, achievements, report] = await Promise.all([
@@ -211,10 +214,7 @@ export class ProfileService {
   }
 
   /** Полная замена набора карточек: чужие типы удаляются, position — по порядку. */
-  private async replaceCards(
-    userId: string,
-    cards: ProfileUpdateInput['cards'],
-  ): Promise<void> {
+  private async replaceCards(userId: string, cards: ProfileUpdateInput['cards']): Promise<void> {
     const list = cards ?? [];
     const types = list.map((card) => card.type);
 

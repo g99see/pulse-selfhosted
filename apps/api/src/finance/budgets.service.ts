@@ -56,7 +56,9 @@ export class BudgetsService {
       month,
     );
 
-    return budgets.map((budget) => toBudgetDto(budget, spentByCategory.get(budget.categoryId) ?? 0));
+    return budgets.map((budget) =>
+      toBudgetDto(budget, spentByCategory.get(budget.categoryId) ?? 0),
+    );
   }
 
   async upsert(userId: string, input: BudgetUpsertInput): Promise<BudgetDto> {
@@ -76,7 +78,9 @@ export class BudgetsService {
       include: { category: true },
     });
 
-    const spent = (await this.spentByCategory(userId, [input.categoryId], input.month)).get(input.categoryId) ?? 0;
+    const spent =
+      (await this.spentByCategory(userId, [input.categoryId], input.month)).get(input.categoryId) ??
+      0;
     return toBudgetDto(budget, spent);
   }
 
@@ -92,7 +96,10 @@ export class BudgetsService {
       include: { category: true },
     });
 
-    const spent = (await this.spentByCategory(userId, [budget.categoryId], budget.month)).get(budget.categoryId) ?? 0;
+    const spent =
+      (await this.spentByCategory(userId, [budget.categoryId], budget.month)).get(
+        budget.categoryId,
+      ) ?? 0;
     return toBudgetDto(budget, spent);
   }
 
@@ -103,7 +110,11 @@ export class BudgetsService {
     }
   }
 
-  private async spentByCategory(userId: string, categoryIds: string[], month: string): Promise<Map<string, number>> {
+  private async spentByCategory(
+    userId: string,
+    categoryIds: string[],
+    month: string,
+  ): Promise<Map<string, number>> {
     const { start, end } = monthRange(month);
     const grouped = await this.prisma.transaction.groupBy({
       by: ['categoryId'],

@@ -69,7 +69,10 @@ export default function FamilyPage() {
       const { family: current } = await familyApi.get();
       setFamily(current);
       if (current) {
-        const [accountsResponse, goalsResponse] = await Promise.all([familyApi.accounts(), familyApi.goals()]);
+        const [accountsResponse, goalsResponse] = await Promise.all([
+          familyApi.accounts(),
+          familyApi.goals(),
+        ]);
         setAccounts(accountsResponse.accounts);
         setGoals(goalsResponse.goals);
       } else {
@@ -299,7 +302,10 @@ export default function FamilyPage() {
       {!family && !loading ? (
         <section className="flex flex-col gap-4 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
           <EmptyState icon="users" tone="wellbeing" title={t('family.none')} />
-          <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createFamily(event)}>
+          <form
+            className="flex flex-wrap items-end gap-3"
+            onSubmit={(event) => void createFamily(event)}
+          >
             <label htmlFor="family-name" className="flex flex-1 flex-col gap-1">
               <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.name')}</span>
               <input
@@ -320,7 +326,10 @@ export default function FamilyPage() {
             </button>
           </form>
 
-          <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void joinFamily(event)}>
+          <form
+            className="flex flex-wrap items-end gap-3"
+            onSubmit={(event) => void joinFamily(event)}
+          >
             <label htmlFor="family-join-code" className="flex flex-1 flex-col gap-1">
               <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.joinHint')}</span>
               <input
@@ -347,7 +356,10 @@ export default function FamilyPage() {
         <>
           <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 font-heading text-lg font-bold" data-testid="family-name-label">
+              <h2
+                className="flex items-center gap-2 font-heading text-lg font-bold"
+                data-testid="family-name-label"
+              >
                 {family.name}
               </h2>
               <Badge tone="wellbeing">{t(`family.role.${family.role}`)}</Badge>
@@ -368,7 +380,9 @@ export default function FamilyPage() {
                       {member.nickname.slice(0, 2).toUpperCase()}
                     </span>
                     <span className="font-medium">@{member.nickname}</span>
-                    <span className="text-[var(--puls-ink-muted)]">{t(`family.role.${member.role}`)}</span>
+                    <span className="text-[var(--puls-ink-muted)]">
+                      {t(`family.role.${member.role}`)}
+                    </span>
                   </span>
                   {isOwner && member.role !== 'owner' ? (
                     <button
@@ -397,7 +411,10 @@ export default function FamilyPage() {
                 </button>
                 {inviteCode ? (
                   <span className="flex items-center gap-2">
-                    <code data-testid="family-invite-code" className="rounded-[var(--radius-chip)] bg-[var(--puls-bg)] px-3 py-1 text-sm">
+                    <code
+                      data-testid="family-invite-code"
+                      className="rounded-[var(--radius-chip)] bg-[var(--puls-bg)] px-3 py-1 text-sm"
+                    >
                       {inviteCode}
                     </code>
                     <button
@@ -410,7 +427,9 @@ export default function FamilyPage() {
                     </button>
                   </span>
                 ) : (
-                  <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.inviteHint')}</span>
+                  <span className="text-xs text-[var(--puls-ink-muted)]">
+                    {t('family.inviteHint')}
+                  </span>
                 )}
               </div>
             ) : (
@@ -442,9 +461,14 @@ export default function FamilyPage() {
               {t('family.accounts')}
             </h2>
 
-            <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createAccount(event)}>
+            <form
+              className="flex flex-wrap items-end gap-3"
+              onSubmit={(event) => void createAccount(event)}
+            >
               <label htmlFor="family-account-name" className="flex flex-1 flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.account.name')}</span>
+                <span className="text-xs text-[var(--puls-ink-muted)]">
+                  {t('family.account.name')}
+                </span>
                 <input
                   id="family-account-name"
                   data-testid="family-account-name"
@@ -454,7 +478,9 @@ export default function FamilyPage() {
                 />
               </label>
               <label htmlFor="family-account-type" className="flex flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.account.type')}</span>
+                <span className="text-xs text-[var(--puls-ink-muted)]">
+                  {t('family.account.type')}
+                </span>
                 <select
                   id="family-account-type"
                   data-testid="family-account-type"
@@ -470,7 +496,9 @@ export default function FamilyPage() {
                 </select>
               </label>
               <label htmlFor="family-account-balance" className="flex flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.account.balance')}</span>
+                <span className="text-xs text-[var(--puls-ink-muted)]">
+                  {t('family.account.balance')}
+                </span>
                 <input
                   id="family-account-balance"
                   data-testid="family-account-balance"
@@ -500,7 +528,8 @@ export default function FamilyPage() {
                   <span className="flex flex-col">
                     <span className="font-medium">{account.name}</span>
                     <span className="text-xs text-[var(--puls-ink-muted)]">
-                      {t(ACCOUNT_TYPE_KEY[account.type])} · {money(account.balance, account.currency)}
+                      {t(ACCOUNT_TYPE_KEY[account.type])} ·{' '}
+                      {money(account.balance, account.currency)}
                     </span>
                   </span>
                   <button
@@ -513,9 +542,14 @@ export default function FamilyPage() {
                   </button>
                 </div>
 
-                <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void addTransaction(event, account.id)}>
+                <form
+                  className="flex flex-wrap items-end gap-2"
+                  onSubmit={(event) => void addTransaction(event, account.id)}
+                >
                   <label htmlFor={`family-tx-kind-${account.id}`} className="flex flex-col gap-1">
-                    <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.tx.kind')}</span>
+                    <span className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('family.tx.kind')}
+                    </span>
                     <select
                       id={`family-tx-kind-${account.id}`}
                       data-testid="family-tx-kind"
@@ -532,7 +566,9 @@ export default function FamilyPage() {
                     </select>
                   </label>
                   <label htmlFor={`family-tx-amount-${account.id}`} className="flex flex-col gap-1">
-                    <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.tx.amount')}</span>
+                    <span className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('family.tx.amount')}
+                    </span>
                     <input
                       id={`family-tx-amount-${account.id}`}
                       data-testid="family-tx-amount"
@@ -546,8 +582,13 @@ export default function FamilyPage() {
                       className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     />
                   </label>
-                  <label htmlFor={`family-tx-note-${account.id}`} className="flex flex-1 flex-col gap-1">
-                    <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.tx.note')}</span>
+                  <label
+                    htmlFor={`family-tx-note-${account.id}`}
+                    className="flex flex-1 flex-col gap-1"
+                  >
+                    <span className="text-xs text-[var(--puls-ink-muted)]">
+                      {t('family.tx.note')}
+                    </span>
                     <input
                       id={`family-tx-note-${account.id}`}
                       data-testid="family-tx-note"
@@ -602,9 +643,14 @@ export default function FamilyPage() {
               {t('family.goals')}
             </h2>
 
-            <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => void createGoal(event)}>
+            <form
+              className="flex flex-wrap items-end gap-3"
+              onSubmit={(event) => void createGoal(event)}
+            >
               <label htmlFor="family-goal-title" className="flex flex-1 flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.goal.title')}</span>
+                <span className="text-xs text-[var(--puls-ink-muted)]">
+                  {t('family.goal.title')}
+                </span>
                 <input
                   id="family-goal-title"
                   data-testid="family-goal-title"
@@ -614,7 +660,9 @@ export default function FamilyPage() {
                 />
               </label>
               <label htmlFor="family-goal-target" className="flex flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.goal.target')}</span>
+                <span className="text-xs text-[var(--puls-ink-muted)]">
+                  {t('family.goal.target')}
+                </span>
                 <input
                   id="family-goal-target"
                   data-testid="family-goal-target"
@@ -625,7 +673,9 @@ export default function FamilyPage() {
                 />
               </label>
               <label htmlFor="family-goal-deadline" className="flex flex-col gap-1">
-                <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.goal.deadline')}</span>
+                <span className="text-xs text-[var(--puls-ink-muted)]">
+                  {t('family.goal.deadline')}
+                </span>
                 <input
                   id="family-goal-deadline"
                   data-testid="family-goal-deadline"
@@ -646,71 +696,87 @@ export default function FamilyPage() {
             </form>
 
             <div className="grid gap-3 md:grid-cols-2">
-            {goals.map((goal) => (
-              <article
-                key={goal.id}
-                data-testid="family-goal"
-                className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
-              >
-                <div className="flex items-center gap-4">
-                  <ProgressRing size={88} stroke={10} percent={goal.percent} label={t('family.goal.progress', { percent: goal.percent })} />
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate text-lg font-bold">{goal.title}</span>
-                    <span className="text-sm text-[var(--puls-ink-muted)]">
-                      {t('family.goal.saved')}: {money(goal.savedAmount, goal.currency)} /{' '}
-                      {money(goal.targetAmount, goal.currency)} · {t('family.goal.remaining')}:{' '}
-                      {money(goal.remaining, goal.currency)}
-                    </span>
-                    <span className="text-sm text-[var(--puls-ink-muted)]">
-                      {goal.forecastDate
-                        ? t('family.goal.forecast', {
-                            date: formatDate(goal.forecastDate, locale, { dateStyle: 'medium' }),
-                          })
-                        : t('family.goal.forecastUnknown')}
-                    </span>
-                    <span className="text-xs text-[var(--puls-ink-muted)]">
-                      {goal.deposits
-                        .map((deposit) => `${deposit.nickname ? `@${deposit.nickname}: ` : ''}${money(deposit.amount, goal.currency)}`)
-                        .join(', ')}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    data-testid="family-goal-delete"
-                    onClick={() => void removeGoal(goal.id)}
-                    className="self-start text-xs text-[var(--puls-ink-muted)]"
-                  >
-                    {t('family.goal.delete')}
-                  </button>
-                </div>
-
-                <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void deposit(goal, event)}>
-                  <label htmlFor={`family-goal-deposit-${goal.id}`} className="flex flex-col gap-1">
-                    <span className="text-xs text-[var(--puls-ink-muted)]">{t('family.goal.depositAmount')}</span>
-                    <input
-                      id={`family-goal-deposit-${goal.id}`}
-                      data-testid="family-goal-deposit-amount"
-                      inputMode="decimal"
-                      value={depositGoal === goal.id ? depositAmount : ''}
-                      onFocus={() => setDepositGoal(goal.id)}
-                      onChange={(event) => {
-                        setDepositGoal(goal.id);
-                        setDepositAmount(event.target.value);
-                      }}
-                      className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              {goals.map((goal) => (
+                <article
+                  key={goal.id}
+                  data-testid="family-goal"
+                  className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <ProgressRing
+                      size={88}
+                      stroke={10}
+                      percent={goal.percent}
+                      label={t('family.goal.progress', { percent: goal.percent })}
                     />
-                  </label>
-                  <button
-                    type="submit"
-                    data-testid="family-goal-deposit-submit"
-                    disabled={busy || depositGoal !== goal.id}
-                    className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="truncate text-lg font-bold">{goal.title}</span>
+                      <span className="text-sm text-[var(--puls-ink-muted)]">
+                        {t('family.goal.saved')}: {money(goal.savedAmount, goal.currency)} /{' '}
+                        {money(goal.targetAmount, goal.currency)} · {t('family.goal.remaining')}:{' '}
+                        {money(goal.remaining, goal.currency)}
+                      </span>
+                      <span className="text-sm text-[var(--puls-ink-muted)]">
+                        {goal.forecastDate
+                          ? t('family.goal.forecast', {
+                              date: formatDate(goal.forecastDate, locale, { dateStyle: 'medium' }),
+                            })
+                          : t('family.goal.forecastUnknown')}
+                      </span>
+                      <span className="text-xs text-[var(--puls-ink-muted)]">
+                        {goal.deposits
+                          .map(
+                            (deposit) =>
+                              `${deposit.nickname ? `@${deposit.nickname}: ` : ''}${money(deposit.amount, goal.currency)}`,
+                          )
+                          .join(', ')}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      data-testid="family-goal-delete"
+                      onClick={() => void removeGoal(goal.id)}
+                      className="self-start text-xs text-[var(--puls-ink-muted)]"
+                    >
+                      {t('family.goal.delete')}
+                    </button>
+                  </div>
+
+                  <form
+                    className="flex flex-wrap items-end gap-2"
+                    onSubmit={(event) => void deposit(goal, event)}
                   >
-                    {t('family.goal.depositSubmit')}
-                  </button>
-                </form>
-              </article>
-            ))}
+                    <label
+                      htmlFor={`family-goal-deposit-${goal.id}`}
+                      className="flex flex-col gap-1"
+                    >
+                      <span className="text-xs text-[var(--puls-ink-muted)]">
+                        {t('family.goal.depositAmount')}
+                      </span>
+                      <input
+                        id={`family-goal-deposit-${goal.id}`}
+                        data-testid="family-goal-deposit-amount"
+                        inputMode="decimal"
+                        value={depositGoal === goal.id ? depositAmount : ''}
+                        onFocus={() => setDepositGoal(goal.id)}
+                        onChange={(event) => {
+                          setDepositGoal(goal.id);
+                          setDepositAmount(event.target.value);
+                        }}
+                        className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      data-testid="family-goal-deposit-submit"
+                      disabled={busy || depositGoal !== goal.id}
+                      className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                    >
+                      {t('family.goal.depositSubmit')}
+                    </button>
+                  </form>
+                </article>
+              ))}
             </div>
 
             {goals.length === 0 ? (

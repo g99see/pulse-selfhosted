@@ -70,7 +70,11 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -79,7 +83,10 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
     return client;
   }
 
-  async function createCheckIn(client: TestClient, body: Record<string, unknown>): Promise<CheckInDto> {
+  async function createCheckIn(
+    client: TestClient,
+    body: Record<string, unknown>,
+  ): Promise<CheckInDto> {
     const response = await client.post('/api/checkins', body);
     expect(response.status).toBe(201);
     return response.body as CheckInDto;

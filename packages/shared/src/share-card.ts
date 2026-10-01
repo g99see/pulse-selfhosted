@@ -69,10 +69,7 @@ export interface ShareMoodCardData {
 
 /** Данные одной из четырёх карточек (дискриминатор `type`). */
 export type ShareCardData =
-  | ShareGoalCardData
-  | ShareStreakCardData
-  | ShareAchievementCardData
-  | ShareMoodCardData;
+  ShareGoalCardData | ShareStreakCardData | ShareAchievementCardData | ShareMoodCardData;
 
 export interface ShareCardOptions {
   locale?: Locale;
@@ -382,22 +379,28 @@ function buildGoalSection(data: ShareGoalCardData, context: SectionContext): Sec
   const center = (SHARE_CARD_SIZES[format].height * (format === 'story' ? 0.42 : 0.38)) | 0;
   const markup: string[] = [];
 
-  markup.push(text(centerX, center - 200, labels.goalTitle.toUpperCase(), {
-    size: 40,
-    weight: 700,
-    fill: palette.muted,
-    letterSpacing: 4,
-  }));
-  markup.push(text(centerX, center + 60, formatPercent(data.percent), {
-    size: bigSize,
-    weight: 800,
-    fill: accent,
-  }));
-  markup.push(text(centerX, center + 170, data.title, {
-    size: format === 'story' ? 60 : 48,
-    weight: 700,
-    fill: palette.ink,
-  }));
+  markup.push(
+    text(centerX, center - 200, labels.goalTitle.toUpperCase(), {
+      size: 40,
+      weight: 700,
+      fill: palette.muted,
+      letterSpacing: 4,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 60, formatPercent(data.percent), {
+      size: bigSize,
+      weight: 800,
+      fill: accent,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 170, data.title, {
+      size: format === 'story' ? 60 : 48,
+      weight: 700,
+      fill: palette.ink,
+    }),
+  );
 
   // Прогресс-бар (ТЗ §8: прогресс полосами).
   const barWidth = format === 'story' ? 760 : 640;
@@ -406,7 +409,9 @@ function buildGoalSection(data: ShareGoalCardData, context: SectionContext): Sec
   const barY = center + 240;
   const fraction = clamp(data.percent / 100, 0, 1);
   const radius = barHeight / 2;
-  markup.push(`<rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${radius}" fill="${palette.surface}"/>`);
+  markup.push(
+    `<rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${radius}" fill="${palette.surface}"/>`,
+  );
   markup.push(
     `<rect x="${barX}" y="${barY}" width="${Math.round(barWidth * fraction)}" height="${barHeight}" rx="${radius}" fill="${accent}"/>`,
   );
@@ -433,22 +438,28 @@ function buildStreakSection(data: ShareStreakCardData, context: SectionContext):
   const center = (SHARE_CARD_SIZES[format].height * (format === 'story' ? 0.42 : 0.38)) | 0;
   const markup: string[] = [];
 
-  markup.push(text(centerX, center - 200, labels.streakTitle.toUpperCase(), {
-    size: 40,
-    weight: 700,
-    fill: palette.muted,
-    letterSpacing: 4,
-  }));
-  markup.push(text(centerX, center + 80, String(Math.max(0, data.current)), {
-    size: bigSize,
-    weight: 800,
-    fill: accent,
-  }));
-  markup.push(text(centerX, center + 170, labels.daysInRow(Math.max(0, data.current)), {
-    size: format === 'story' ? 56 : 46,
-    weight: 700,
-    fill: palette.ink,
-  }));
+  markup.push(
+    text(centerX, center - 200, labels.streakTitle.toUpperCase(), {
+      size: 40,
+      weight: 700,
+      fill: palette.muted,
+      letterSpacing: 4,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 80, String(Math.max(0, data.current)), {
+      size: bigSize,
+      weight: 800,
+      fill: accent,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 170, labels.daysInRow(Math.max(0, data.current)), {
+      size: format === 'story' ? 56 : 46,
+      weight: 700,
+      fill: palette.ink,
+    }),
+  );
   if (data.longest > data.current) {
     markup.push(
       text(centerX, center + 280, `${labels.streakTitle}: ${data.longest}`, {
@@ -468,26 +479,34 @@ function buildAchievementSection(data: ShareAchievementCardData, context: Sectio
   const markup: string[] = [];
   const title = shareAchievementTitle(data.code, locale);
 
-  markup.push(text(centerX, center - 200, labels.achievementTitle.toUpperCase(), {
-    size: 40,
-    weight: 700,
-    fill: palette.muted,
-    letterSpacing: 4,
-  }));
-  markup.push(`<text x="${centerX}" y="${center - 20}" text-anchor="middle" font-size="${format === 'story' ? 220 : 170}">${escapeXml(achievementEmoji(data.code))}</text>`);
-  markup.push(text(centerX, center + 150, title, {
-    size: format === 'story' ? 68 : 54,
-    weight: 800,
-    fill: palette.ink,
-  }));
+  markup.push(
+    text(centerX, center - 200, labels.achievementTitle.toUpperCase(), {
+      size: 40,
+      weight: 700,
+      fill: palette.muted,
+      letterSpacing: 4,
+    }),
+  );
+  markup.push(
+    `<text x="${centerX}" y="${center - 20}" text-anchor="middle" font-size="${format === 'story' ? 220 : 170}">${escapeXml(achievementEmoji(data.code))}</text>`,
+  );
+  markup.push(
+    text(centerX, center + 150, title, {
+      size: format === 'story' ? 68 : 54,
+      weight: 800,
+      fill: palette.ink,
+    }),
+  );
 
   if (data.earnedAt) {
     const day = data.earnedAt.slice(0, 10);
-    markup.push(text(centerX, center + 240, `${labels.earnedOn}: ${day}`, {
-      size: 40,
-      weight: 500,
-      fill: accent,
-    }));
+    markup.push(
+      text(centerX, center + 240, `${labels.earnedOn}: ${day}`, {
+        size: 40,
+        weight: 500,
+        fill: accent,
+      }),
+    );
   }
 
   return { markup };
@@ -499,27 +518,35 @@ function buildMoodSection(data: ShareMoodCardData, context: SectionContext): Sec
   const center = (SHARE_CARD_SIZES[format].height * (format === 'story' ? 0.42 : 0.38)) | 0;
   const markup: string[] = [];
 
-  markup.push(text(centerX, center - 200, labels.moodTitle.toUpperCase(), {
-    size: 40,
-    weight: 700,
-    fill: palette.muted,
-    letterSpacing: 4,
-  }));
-  markup.push(text(centerX, center + 80, data.average === null ? '—' : formatMood(data.average, locale), {
-    size: bigSize,
-    weight: 800,
-    fill: accent,
-  }));
-  markup.push(text(centerX, center + 170, data.average === null ? labels.noData : labels.outOfFive, {
-    size: format === 'story' ? 56 : 46,
-    weight: 600,
-    fill: palette.ink,
-  }));
-  markup.push(text(centerX, center + 270, labels.checkins(Math.max(0, data.checkins)), {
-    size: 40,
-    weight: 500,
-    fill: palette.muted,
-  }));
+  markup.push(
+    text(centerX, center - 200, labels.moodTitle.toUpperCase(), {
+      size: 40,
+      weight: 700,
+      fill: palette.muted,
+      letterSpacing: 4,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 80, data.average === null ? '—' : formatMood(data.average, locale), {
+      size: bigSize,
+      weight: 800,
+      fill: accent,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 170, data.average === null ? labels.noData : labels.outOfFive, {
+      size: format === 'story' ? 56 : 46,
+      weight: 600,
+      fill: palette.ink,
+    }),
+  );
+  markup.push(
+    text(centerX, center + 270, labels.checkins(Math.max(0, data.checkins)), {
+      size: 40,
+      weight: 500,
+      fill: palette.muted,
+    }),
+  );
 
   return { markup };
 }

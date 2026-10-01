@@ -120,7 +120,13 @@ export class ExchangeRatesService {
     if (this.provider) {
       const fetched = await this.provider.fetchRate(from, to, date);
       if (fetched !== null && fetched > 0) {
-        await this.upsert(userId, { date, base: from, quote: to, rate: fetched, source: 'provider' });
+        await this.upsert(userId, {
+          date,
+          base: from,
+          quote: to,
+          rate: fetched,
+          source: 'provider',
+        });
         return roundRate(fetched);
       }
     }

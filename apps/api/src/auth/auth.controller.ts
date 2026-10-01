@@ -177,7 +177,11 @@ export class AuthController {
     @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ sent: true }> {
-    const limit = await this.rateLimit.consume(`resend:ip:${req.ip ?? 'unknown'}`, RESEND_LIMIT, WINDOW_SECONDS);
+    const limit = await this.rateLimit.consume(
+      `resend:ip:${req.ip ?? 'unknown'}`,
+      RESEND_LIMIT,
+      WINDOW_SECONDS,
+    );
     if (!limit.allowed) {
       res.setHeader('Retry-After', String(limit.retryAfterSeconds));
       throw httpError(429, 'rate_limited', 'Слишком много запросов. Попробуйте позже', {
@@ -205,7 +209,10 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(SessionGuard)
-  async logout(@Req() req: AuthenticatedRequest, @Res({ passthrough: true }) res: Response): Promise<void> {
+  async logout(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     await this.sessions.revoke(req.user!.id, req.session!.id);
     res.clearCookie(SESSION_COOKIE, clearCookieOptions());
   }

@@ -94,7 +94,9 @@ export class ChallengesService {
     if (!challenge) throw httpError(404, 'challenge_not_found', 'Челлендж не найден');
 
     const participant = this.isParticipant(challenge, userId);
-    const follower = participant ? false : await isFollowing(this.prisma, userId, challenge.ownerId);
+    const follower = participant
+      ? false
+      : await isFollowing(this.prisma, userId, challenge.ownerId);
     if (!canViewChallenge(challenge.visibility as ChallengeVisibility, participant, follower)) {
       throw httpError(404, 'challenge_not_found', 'Челлендж не найден');
     }
@@ -204,9 +206,7 @@ export class ChallengesService {
   /** GET /api/challenges/:id: челлендж с учётом видимости. */
   async get(userId: string, id: string): Promise<ChallengeDto> {
     const challenge = await this.requireVisible(userId, id);
-    const checks = this.isParticipant(challenge, userId)
-      ? await this.viewerChecks(id, userId)
-      : [];
+    const checks = this.isParticipant(challenge, userId) ? await this.viewerChecks(id, userId) : [];
     return this.toDto(challenge, userId, checks);
   }
 

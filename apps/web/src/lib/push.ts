@@ -9,7 +9,8 @@ import { API_BASE_URL } from './api';
 export function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = typeof atob === 'function' ? atob(base64) : Buffer.from(base64, 'base64').toString('binary');
+  const raw =
+    typeof atob === 'function' ? atob(base64) : Buffer.from(base64, 'base64').toString('binary');
 
   const output = new Uint8Array(new ArrayBuffer(raw.length));
   for (let index = 0; index < raw.length; index += 1) {

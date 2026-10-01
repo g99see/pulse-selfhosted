@@ -39,7 +39,9 @@ describe('providerAvailability', () => {
   });
 
   it('игнорирует пустые строки', () => {
-    expect(providerAvailability({ GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '' }).google).toBe(false);
+    expect(providerAvailability({ GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '' }).google).toBe(
+      false,
+    );
   });
 });
 

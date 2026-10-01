@@ -2,11 +2,7 @@
 // Юнит-тесты клиента курсов (ТЗ §3.2): сетевой запрос подменён фейком,
 // реальных обращений к API в автотестах нет.
 import { describe, expect, it } from 'vitest';
-import {
-  FrankfurterRatesProvider,
-  createRatesProvider,
-  type FetchLike,
-} from './rates-provider';
+import { FrankfurterRatesProvider, createRatesProvider, type FetchLike } from './rates-provider';
 
 function fakeFetch(payload: unknown, ok = true): { calls: string[]; fetch: FetchLike } {
   const calls: string[] = [];

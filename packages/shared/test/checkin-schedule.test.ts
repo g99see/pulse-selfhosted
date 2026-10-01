@@ -32,7 +32,9 @@ describe('расписание чек-инов (ТЗ §3.3)', () => {
   });
 
   it('отклоняет дубликаты и неверный формат времени', () => {
-    expect(() => CheckInScheduleSchema.parse({ timesPerDay: 2, times: ['09:00', '09:00'] })).toThrow();
+    expect(() =>
+      CheckInScheduleSchema.parse({ timesPerDay: 2, times: ['09:00', '09:00'] }),
+    ).toThrow();
     expect(() => CheckInScheduleSchema.parse({ timesPerDay: 1, times: ['9:00'] })).toThrow();
     expect(() => CheckInScheduleSchema.parse({ timesPerDay: 1, times: ['25:00'] })).toThrow();
   });

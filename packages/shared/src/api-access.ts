@@ -74,7 +74,10 @@ export const WebhookCreateSchema = z
       .string()
       .trim()
       .max(2048)
-      .refine((value) => /^https?:\/\//i.test(value), 'Адрес должен начинаться с http:// или https://'),
+      .refine(
+        (value) => /^https?:\/\//i.test(value),
+        'Адрес должен начинаться с http:// или https://',
+      ),
     events: z.array(webhookEventSchema).min(1).max(WEBHOOK_EVENTS.length),
     enabled: z.boolean().default(true),
   })

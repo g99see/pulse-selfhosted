@@ -41,7 +41,9 @@ export default async function LandingPage() {
         <nav className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5">
             <Logo size={36} />
-            <span className="font-heading text-xl font-extrabold">{t('landing.brand', locale)}</span>
+            <span className="font-heading text-xl font-extrabold">
+              {t('landing.brand', locale)}
+            </span>
           </Link>
           <Link
             href="/login"
@@ -60,7 +62,9 @@ export default async function LandingPage() {
             <h1 className="text-4xl leading-[1.08] font-extrabold sm:text-6xl">
               {t('landing.title', locale)}
             </h1>
-            <p className="max-w-xl text-lg text-[var(--puls-ink-muted)]">{t('landing.lead', locale)}</p>
+            <p className="max-w-xl text-lg text-[var(--puls-ink-muted)]">
+              {t('landing.lead', locale)}
+            </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/register"
@@ -111,7 +115,9 @@ export default async function LandingPage() {
                 <span className="font-heading text-xl font-extrabold">{money(DEMO.spent)}</span>
               </div>
               <ProgressBar
-                tone={budget.percent >= 100 ? 'warning' : budget.percent >= 80 ? 'wellbeing' : 'finance'}
+                tone={
+                  budget.percent >= 100 ? 'warning' : budget.percent >= 80 ? 'wellbeing' : 'finance'
+                }
                 value={Math.min(DEMO.spent, DEMO.budget)}
                 max={DEMO.budget}
                 label={t('landing.demo.budgetShare', locale, {
@@ -134,7 +140,9 @@ export default async function LandingPage() {
                 className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6 shadow-sm"
               >
                 <IconBubble name={feature.icon} tone={feature.tone} size={44} />
-                <h3 className="text-lg font-bold">{t(`landing.feature.${feature.key}.title`, locale)}</h3>
+                <h3 className="text-lg font-bold">
+                  {t(`landing.feature.${feature.key}.title`, locale)}
+                </h3>
                 <p className="text-sm text-[var(--puls-ink-muted)]">
                   {t(`landing.feature.${feature.key}.text`, locale)}
                 </p>

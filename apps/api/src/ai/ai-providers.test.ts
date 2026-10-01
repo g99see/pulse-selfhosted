@@ -32,7 +32,13 @@ function fakeHttp(response: Partial<AiHttpResponse> & { body?: unknown; throwErr
 }
 
 function anthropicSettings(overrides: Partial<AiProviderSettings> = {}): AiProviderSettings {
-  return { provider: 'anthropic', apiKey: 'sk-ant-secret', baseUrl: null, model: 'claude-3-5-haiku-latest', ...overrides };
+  return {
+    provider: 'anthropic',
+    apiKey: 'sk-ant-secret',
+    baseUrl: null,
+    model: 'claude-3-5-haiku-latest',
+    ...overrides,
+  };
 }
 
 const simpleRequest: AiCompletionRequest = {
@@ -62,21 +68,30 @@ describe('Адаптер Anthropic', () => {
     expect(body.model).toBe('claude-3-5-haiku-latest');
 
     expect(result.text).toBe('Здравствуйте');
-    expect(result.toolCalls).toEqual([{ id: 'tu_1', name: 'propose_budget', arguments: { limit: 1000 } }]);
+    expect(result.toolCalls).toEqual([
+      { id: 'tu_1', name: 'propose_budget', arguments: { limit: 1000 } },
+    ]);
     expect(result.tokensIn).toBe(120);
     expect(result.tokensOut).toBe(45);
   });
 
   it('передаёт инструменты как input_schema и результат tool-сообщения как tool_result', async () => {
     const { http, recorded } = fakeHttp({
-      body: { content: [{ type: 'text', text: 'ок' }], usage: { input_tokens: 1, output_tokens: 1 } },
+      body: {
+        content: [{ type: 'text', text: 'ок' }],
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
     });
     const adapter = createAiAdapter('anthropic', http);
     await adapter.complete(anthropicSettings(), {
       system: 'sys',
       tools: [{ name: 't', description: 'd', parameters: { type: 'object' } }],
       messages: [
-        { role: 'assistant', content: '', toolCalls: [{ id: 'tu_9', name: 't', arguments: { a: 1 } }] },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [{ id: 'tu_9', name: 't', arguments: { a: 1 } }],
+        },
         { role: 'tool', content: 'результат', toolCallId: 'tu_9' },
       ],
     });
@@ -84,8 +99,14 @@ describe('Адаптер Anthropic', () => {
     const body = recorded[0].request.body as { messages: unknown[]; tools: unknown[] };
     expect(body.tools).toEqual([{ name: 't', description: 'd', input_schema: { type: 'object' } }]);
     expect(body.messages).toEqual([
-      { role: 'assistant', content: [{ type: 'tool_use', id: 'tu_9', name: 't', input: { a: 1 } }] },
-      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tu_9', content: 'результат' }] },
+      {
+        role: 'assistant',
+        content: [{ type: 'tool_use', id: 'tu_9', name: 't', input: { a: 1 } }],
+      },
+      {
+        role: 'user',
+        content: [{ type: 'tool_result', tool_use_id: 'tu_9', content: 'результат' }],
+      },
     ]);
   });
 });
@@ -117,7 +138,11 @@ describe('Адаптер OpenAI-совместимый', () => {
             message: {
               content: null,
               tool_calls: [
-                { id: 'call_1', type: 'function', function: { name: 'propose_goal', arguments: '{"title":"Отпуск"}' } },
+                {
+                  id: 'call_1',
+                  type: 'function',
+                  function: { name: 'propose_goal', arguments: '{"title":"Отпуск"}' },
+                },
               ],
             },
           },
@@ -131,11 +156,15 @@ describe('Адаптер OpenAI-совместимый', () => {
       simpleRequest,
     );
     expect(result.text).toBe('');
-    expect(result.toolCalls).toEqual([{ id: 'call_1', name: 'propose_goal', arguments: { title: 'Отпуск' } }]);
+    expect(result.toolCalls).toEqual([
+      { id: 'call_1', name: 'propose_goal', arguments: { title: 'Отпуск' } },
+    ]);
   });
 
   it('для openrouter использует его базовый адрес по умолчанию', async () => {
-    const { http, recorded } = fakeHttp({ body: { choices: [{ message: { content: 'x' } }], usage: {} } });
+    const { http, recorded } = fakeHttp({
+      body: { choices: [{ message: { content: 'x' } }], usage: {} },
+    });
     const adapter = createAiAdapter('openrouter', http);
     await adapter.complete(
       { provider: 'openrouter', apiKey: 'sk-or', baseUrl: null, model: 'openai/gpt-4o-mini' },
@@ -145,10 +174,17 @@ describe('Адаптер OpenAI-совместимый', () => {
   });
 
   it('для openai_compatible требует baseUrl и кладёт system первым сообщением', async () => {
-    const { http, recorded } = fakeHttp({ body: { choices: [{ message: { content: 'локально' } }], usage: {} } });
+    const { http, recorded } = fakeHttp({
+      body: { choices: [{ message: { content: 'локально' } }], usage: {} },
+    });
     const adapter = createAiAdapter('openai_compatible', http);
     await adapter.complete(
-      { provider: 'openai_compatible', apiKey: '', baseUrl: 'http://ollama:11434/v1', model: 'llama3.1' },
+      {
+        provider: 'openai_compatible',
+        apiKey: '',
+        baseUrl: 'http://ollama:11434/v1',
+        model: 'llama3.1',
+      },
       simpleRequest,
     );
     expect(recorded[0].request.url).toBe('http://ollama:11434/v1/chat/completions');
@@ -157,7 +193,9 @@ describe('Адаптер OpenAI-совместимый', () => {
   });
 
   it('маппит tool-сообщение в роль tool с tool_call_id', async () => {
-    const { http, recorded } = fakeHttp({ body: { choices: [{ message: { content: 'ок' } }], usage: {} } });
+    const { http, recorded } = fakeHttp({
+      body: { choices: [{ message: { content: 'ок' } }], usage: {} },
+    });
     const adapter = createAiAdapter('openai', http);
     await adapter.complete(
       { provider: 'openai', apiKey: 'sk', baseUrl: null, model: 'gpt-4o-mini' },
@@ -165,7 +203,11 @@ describe('Адаптер OpenAI-совместимый', () => {
         system: 's',
         tools: [{ name: 't', description: 'd', parameters: { type: 'object' } }],
         messages: [
-          { role: 'assistant', content: 'думаю', toolCalls: [{ id: 'c1', name: 't', arguments: { a: 1 } }] },
+          {
+            role: 'assistant',
+            content: 'думаю',
+            toolCalls: [{ id: 'c1', name: 't', arguments: { a: 1 } }],
+          },
           { role: 'tool', content: 'результат', toolCallId: 'c1' },
         ],
       },
@@ -174,7 +216,12 @@ describe('Адаптер OpenAI-совместимый', () => {
       messages: unknown[];
       tools: unknown[];
     };
-    expect(body.tools).toEqual([{ type: 'function', function: { name: 't', description: 'd', parameters: { type: 'object' } } }]);
+    expect(body.tools).toEqual([
+      {
+        type: 'function',
+        function: { name: 't', description: 'd', parameters: { type: 'object' } },
+      },
+    ]);
     expect(body.messages).toEqual([
       { role: 'system', content: 's' },
       {
@@ -198,16 +245,20 @@ describe('Классификация ошибок провайдера', () => {
     const { http } = fakeHttp({ status, ok: false, body: { error: 'secret details' } });
     const adapter = createAiAdapter('openai', http);
     await expect(
-      adapter.complete({ provider: 'openai', apiKey: 'sk', baseUrl: null, model: 'gpt-4o-mini' }, simpleRequest),
+      adapter.complete(
+        { provider: 'openai', apiKey: 'sk', baseUrl: null, model: 'gpt-4o-mini' },
+        simpleRequest,
+      ),
     ).rejects.toMatchObject({ kind });
   });
 
   it('сетевая ошибка → unreachable, без утечки деталей', async () => {
     const { http } = fakeHttp({ throwError: new Error('ECONNREFUSED 1.2.3.4') });
     const adapter = createAiAdapter('anthropic', http);
-    const error = await adapter
-      .complete(anthropicSettings(), simpleRequest)
-      .then(() => null, (e: unknown) => e as AiProviderError);
+    const error = await adapter.complete(anthropicSettings(), simpleRequest).then(
+      () => null,
+      (e: unknown) => e as AiProviderError,
+    );
     expect(error).toBeInstanceOf(AiProviderError);
     expect(error!.kind).toBe('unreachable');
     expect(error!.message).not.toContain('1.2.3.4');

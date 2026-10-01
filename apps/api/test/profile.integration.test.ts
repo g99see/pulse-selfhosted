@@ -82,7 +82,11 @@ describe('Profile API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -135,7 +139,11 @@ describe('Profile API (интеграция с PostgreSQL)', () => {
 
       expect(profile.bio).toBe('Коплю на мечту');
       expect(profile.avatarUrl).toBe('https://example.com/a.png');
-      expect(profile.cards.map((card) => card.type).sort()).toEqual(['avg_mood', 'goals', 'savings']);
+      expect(profile.cards.map((card) => card.type).sort()).toEqual([
+        'avg_mood',
+        'goals',
+        'savings',
+      ]);
       expect(profile.cards.find((card) => card.type === 'savings')?.mode).toBe('amount');
     });
 
@@ -202,7 +210,9 @@ describe('Profile API (интеграция с PostgreSQL)', () => {
     it('не раскрывает карточки чужого пользователя (изоляция)', async () => {
       const a = await signUp('iso-a@example.com', 'isoalpha');
       await getOwn(a);
-      await a.put('/api/profile', { cards: [{ type: 'savings', visibility: 'public', mode: 'amount' }] });
+      await a.put('/api/profile', {
+        cards: [{ type: 'savings', visibility: 'public', mode: 'amount' }],
+      });
       await setProfileVisibility('isoalpha', 'public');
 
       const b = await signUp('iso-b@example.com', 'isobeta');

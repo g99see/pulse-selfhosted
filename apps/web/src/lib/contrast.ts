@@ -41,9 +41,7 @@ function channelLuminance(channel: number): number {
 /** Относительная яркость цвета (0 — чёрный, 1 — белый). */
 export function relativeLuminance(hex: string): number {
   const { r, g, b } = parseHexColor(hex);
-  return (
-    0.2126 * channelLuminance(r) + 0.7152 * channelLuminance(g) + 0.0722 * channelLuminance(b)
-  );
+  return 0.2126 * channelLuminance(r) + 0.7152 * channelLuminance(g) + 0.0722 * channelLuminance(b);
 }
 
 /** Контраст двух цветов: от 1 (совпадают) до 21 (чёрный на белом). */

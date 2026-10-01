@@ -15,7 +15,16 @@ import {
 import { AuthShell } from '@/components/auth-shell';
 import { type IconName } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
-import { Alert, Card, Field, GhostButton, IconBubble, PrimaryButton, ProgressBar, Select } from '@/components/ui';
+import {
+  Alert,
+  Card,
+  Field,
+  GhostButton,
+  IconBubble,
+  PrimaryButton,
+  ProgressBar,
+  Select,
+} from '@/components/ui';
 import { AuthApiError, authApi } from '@/lib/auth-client';
 import { authErrorKey } from '@/lib/i18n';
 import { LOCALE_NAMES } from '@/lib/locale';
@@ -268,7 +277,9 @@ export default function OnboardingPage() {
             >
               {VISIBILITIES.map((visibility) => (
                 <option key={visibility} value={visibility}>
-                  {t(`auth.onboarding.visibility${visibility[0].toUpperCase()}${visibility.slice(1)}`)}
+                  {t(
+                    `auth.onboarding.visibility${visibility[0].toUpperCase()}${visibility.slice(1)}`,
+                  )}
                 </option>
               ))}
             </Select>

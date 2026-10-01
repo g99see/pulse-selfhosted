@@ -52,7 +52,9 @@ async function verificationTokenFor(
     .find((message) => message.to === email && message.kind === 'email-verification');
 
   expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
   return token as string;
 }
@@ -98,10 +100,17 @@ test('жалоба → модератор видит и закрывает её 
   const reporterPage = await reporterContext.newPage();
   await signUpAndOnboard(reporterPage, request);
 
-  const csrfCookie = (await reporterContext.cookies()).find((cookie) => cookie.name === 'puls_csrf');
+  const csrfCookie = (await reporterContext.cookies()).find(
+    (cookie) => cookie.name === 'puls_csrf',
+  );
   const reported = await reporterPage.request.post(`${API_URL}/api/reports`, {
     headers: { 'x-csrf-token': csrfCookie?.value ?? '' },
-    data: { targetType: 'html_page', targetId, reason: 'phishing', details: 'Форма собирает пароли' },
+    data: {
+      targetType: 'html_page',
+      targetId,
+      reason: 'phishing',
+      details: 'Форма собирает пароли',
+    },
   });
   expect(reported.status()).toBe(201);
   await reporterContext.close();

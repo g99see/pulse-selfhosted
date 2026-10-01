@@ -1,14 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ModerationResolveSchema,
   ReportsQuerySchema,
@@ -34,9 +25,7 @@ export class ModerationController {
 
   /** Список жалоб с фильтром по статусу: GET /api/moderation/reports?status=open. */
   @Get('reports')
-  async listReports(
-    @Query(new ZodValidationPipe(ReportsQuerySchema)) query: ReportsQueryInput,
-  ) {
+  async listReports(@Query(new ZodValidationPipe(ReportsQuerySchema)) query: ReportsQueryInput) {
     return { reports: await this.moderation.listReports(query.status) };
   }
 

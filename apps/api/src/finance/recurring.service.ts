@@ -224,11 +224,7 @@ export class RecurringService {
   }
 
   /** Пауза или возобновление платежа (ТЗ §3.2). */
-  async setActive(
-    userId: string,
-    id: string,
-    active: boolean,
-  ): Promise<RecurringPaymentDto> {
+  async setActive(userId: string, id: string, active: boolean): Promise<RecurringPaymentDto> {
     return this.update(userId, id, { active });
   }
 

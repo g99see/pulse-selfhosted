@@ -84,7 +84,11 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -93,7 +97,12 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
     return client;
   }
 
-  async function createAccount(client: TestClient, name: string, type = 'savings', balance = 0): Promise<AccountDto> {
+  async function createAccount(
+    client: TestClient,
+    name: string,
+    type = 'savings',
+    balance = 0,
+  ): Promise<AccountDto> {
     const response = await client.post('/api/finance/accounts', { name, type, balance });
     expect(response.status).toBe(201);
     return response.body as AccountDto;
@@ -132,7 +141,11 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
 
     it('считает нужный взнос в месяц к сроку (сценарий 2)', async () => {
       const client = await signUp('goal-month@example.com', 'goalmonth');
-      const goal = await createGoal(client, { title: 'Ноутбук', targetAmount: 120000, deadline: '2027-03-01' });
+      const goal = await createGoal(client, {
+        title: 'Ноутбук',
+        targetAmount: 120000,
+        deadline: '2027-03-01',
+      });
 
       const expected = requiredMonthlyContribution(120000, 0, '2027-03-01', new Date());
       expect(goal.requiredMonthly).toBe(expected);
@@ -141,7 +154,11 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
 
     it('правит, читает и удаляет цель', async () => {
       const client = await signUp('goal-edit@example.com', 'goaledit');
-      const goal = await createGoal(client, { title: 'Отпуск', targetAmount: 80000, visibility: 'private' });
+      const goal = await createGoal(client, {
+        title: 'Отпуск',
+        targetAmount: 80000,
+        visibility: 'private',
+      });
 
       const updated = await client.put(`/api/goals/${goal.id}`, {
         title: 'Отпуск на море',
@@ -149,7 +166,11 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
         visibility: 'subscribers',
       });
       expect(updated.status).toBe(200);
-      expect(updated.body).toMatchObject({ title: 'Отпуск на море', targetAmount: 100000, visibility: 'subscribers' });
+      expect(updated.body).toMatchObject({
+        title: 'Отпуск на море',
+        targetAmount: 100000,
+        visibility: 'subscribers',
+      });
 
       const fetched = await client.get(`/api/goals/${goal.id}`);
       expect(fetched.status).toBe(200);
@@ -174,7 +195,10 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
 
       expect((await client.post('/api/goals', { title: '', targetAmount: 100 })).status).toBe(400);
       expect((await client.post('/api/goals', { title: 'x', targetAmount: -5 })).status).toBe(400);
-      expect((await client.post('/api/goals', { title: 'x', targetAmount: 100, visibility: 'friends' })).status).toBe(400);
+      expect(
+        (await client.post('/api/goals', { title: 'x', targetAmount: 100, visibility: 'friends' }))
+          .status,
+      ).toBe(400);
     });
   });
 
@@ -185,7 +209,11 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
 
       const deposit = await client.post(`/api/goals/${goal.id}/deposit`, { amount: 60000 });
       expect(deposit.status).toBe(201);
-      expect(deposit.body.goal).toMatchObject({ savedAmount: 60000, remaining: 60000, percent: 50 });
+      expect(deposit.body.goal).toMatchObject({
+        savedAmount: 60000,
+        remaining: 60000,
+        percent: 50,
+      });
       expect(deposit.body.goal.milestones).toEqual([25, 50]);
       expect(deposit.body.milestone).toEqual({ percent: 50, reached: [25, 50] });
       expect(deposit.body.deposit.amount).toBe(60000);
@@ -215,9 +243,16 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
     it('пополнение со счёта-сбережений списывает сумму со счёта', async () => {
       const client = await signUp('goal-account@example.com', 'goalaccount');
       const account = await createAccount(client, 'Копилка', 'savings', 50000);
-      const goal = await createGoal(client, { title: 'Ноутбук', targetAmount: 120000, accountId: account.id });
+      const goal = await createGoal(client, {
+        title: 'Ноутбук',
+        targetAmount: 120000,
+        accountId: account.id,
+      });
 
-      const deposit = await client.post(`/api/goals/${goal.id}/deposit`, { amount: 20000, accountId: account.id });
+      const deposit = await client.post(`/api/goals/${goal.id}/deposit`, {
+        amount: 20000,
+        accountId: account.id,
+      });
       expect(deposit.status).toBe(201);
       expect(deposit.body.goal.savedAmount).toBe(20000);
 
@@ -229,7 +264,9 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
       const client = await signUp('goal-bad-deposit@example.com', 'goalbaddep');
       const goal = await createGoal(client, { title: 'Цель', targetAmount: 1000 });
       expect((await client.post(`/api/goals/${goal.id}/deposit`, { amount: 0 })).status).toBe(400);
-      expect((await client.post(`/api/goals/${goal.id}/deposit`, { amount: -10 })).status).toBe(400);
+      expect((await client.post(`/api/goals/${goal.id}/deposit`, { amount: -10 })).status).toBe(
+        400,
+      );
     });
   });
 
@@ -244,7 +281,9 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
       expect((await bob.get(`/api/goals/${aliceGoal.id}`)).status).toBe(404);
       expect((await bob.put(`/api/goals/${aliceGoal.id}`, { title: 'Взлом' })).status).toBe(404);
       expect((await bob.del(`/api/goals/${aliceGoal.id}`)).status).toBe(404);
-      expect((await bob.post(`/api/goals/${aliceGoal.id}/deposit`, { amount: 100 })).status).toBe(404);
+      expect((await bob.post(`/api/goals/${aliceGoal.id}/deposit`, { amount: 100 })).status).toBe(
+        404,
+      );
 
       // Данные Алисы целы.
       expect((await alice.get(`/api/goals/${aliceGoal.id}`)).body.savedAmount).toBe(0);

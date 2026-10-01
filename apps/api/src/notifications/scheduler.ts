@@ -23,8 +23,7 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
   private readonly tickMs = Number(process.env.NOTIFICATIONS_TICK_MS ?? DEFAULT_TICK_MS);
   /** В тестах автостарт выключен: тесты сами вызывают runOnce(). */
   private readonly autoStart =
-    process.env.NODE_ENV !== 'test' &&
-    (process.env.NOTIFICATIONS_SCHEDULER ?? 'on') !== 'off';
+    process.env.NODE_ENV !== 'test' && (process.env.NOTIFICATIONS_SCHEDULER ?? 'on') !== 'off';
 
   private queue: Queue | null = null;
   private worker: Worker | null = null;

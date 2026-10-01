@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Injectable } from '@nestjs/common';
 import { Prisma, type Account } from '@prisma/client';
-import { crossRate, type AccountCreateInput, type AccountDto, type AccountUpdateInput } from '@puls/shared';
+import {
+  crossRate,
+  type AccountCreateInput,
+  type AccountDto,
+  type AccountUpdateInput,
+} from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { ExchangeRatesService } from './rates.service';
@@ -29,7 +34,9 @@ export class AccountsService {
     private readonly rates: ExchangeRatesService,
   ) {}
 
-  async list(userId: string): Promise<{ accounts: AccountDto[]; totalBalance: number; currency: string }> {
+  async list(
+    userId: string,
+  ): Promise<{ accounts: AccountDto[]; totalBalance: number; currency: string }> {
     const [accounts, user] = await Promise.all([
       this.prisma.account.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
       this.prisma.user.findUniqueOrThrow({ where: { id: userId } }),
@@ -44,7 +51,7 @@ export class AccountsService {
       const rate =
         account.currency === user.currency
           ? 1
-          : crossRate(points, account.currency, user.currency, user.currency, date) ?? 1;
+          : (crossRate(points, account.currency, user.currency, user.currency, date) ?? 1);
       return sum + Number(account.balance) * rate;
     }, 0);
 

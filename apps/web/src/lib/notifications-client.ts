@@ -16,8 +16,7 @@ export interface SubscriptionsResponse {
 }
 
 export const notificationsApi = {
-  vapidPublicKey: () =>
-    authFetch<VapidPublicKeyResponse>('/api/notifications/vapid-public-key'),
+  vapidPublicKey: () => authFetch<VapidPublicKeyResponse>('/api/notifications/vapid-public-key'),
 
   rules: () => authFetch<{ rules: NotificationRuleConfig[] }>('/api/notifications/rules'),
 

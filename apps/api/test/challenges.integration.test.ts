@@ -85,7 +85,11 @@ describe('Challenges API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -134,10 +138,15 @@ describe('Challenges API (интеграция с PostgreSQL)', () => {
       const dto = joined.body as ChallengeDto;
       expect(dto.isParticipating).toBe(true);
       expect(dto.participantsCount).toBe(2);
-      expect(dto.participants.map((participant) => participant.nickname).sort()).toEqual(['chb1', 'chb2']);
+      expect(dto.participants.map((participant) => participant.nickname).sort()).toEqual([
+        'chb1',
+        'chb2',
+      ]);
 
       // Повторное вступление идемпотентно.
-      expect((await b.post('/api/challenges/join', { code: challenge.inviteCode })).status).toBe(200);
+      expect((await b.post('/api/challenges/join', { code: challenge.inviteCode })).status).toBe(
+        200,
+      );
       expect((await b.get(`/api/challenges/${challenge.id}`)).body.participantsCount).toBe(2);
     });
 
@@ -210,7 +219,9 @@ describe('Challenges API (интеграция с PostgreSQL)', () => {
       const a = await signUp('ch-k3@example.com', 'chk3');
       const b = await signUp('ch-k4@example.com', 'chk4');
       const challenge = await createChallenge(a, { visibility: 'public' });
-      expect((await b.post(`/api/challenges/${challenge.id}/check`, { ok: true })).status).toBe(404);
+      expect((await b.post(`/api/challenges/${challenge.id}/check`, { ok: true })).status).toBe(
+        404,
+      );
     });
   });
 
@@ -259,7 +270,9 @@ describe('Challenges API (интеграция с PostgreSQL)', () => {
       expect(invited.status).toBe(201);
       expect((invited.body as ChallengeDto).participantsCount).toBe(2);
 
-      const forbidden = await a.post(`/api/challenges/${challenge.id}/invite`, { nickname: 'chi3' });
+      const forbidden = await a.post(`/api/challenges/${challenge.id}/invite`, {
+        nickname: 'chi3',
+      });
       expect(forbidden.status).toBe(403);
       expect(forbidden.body.code).toBe('not_following');
     });

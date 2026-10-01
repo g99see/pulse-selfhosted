@@ -50,7 +50,11 @@ const CHANNEL_SET = new Set<string>(NOTIFICATION_CHANNELS);
 
 /** Достаёт список времен из JSON-расписания {"times": ["09:00", ...]}. */
 export function scheduleTimes(schedule: unknown): string[] {
-  if (schedule && typeof schedule === 'object' && Array.isArray((schedule as { times?: unknown }).times)) {
+  if (
+    schedule &&
+    typeof schedule === 'object' &&
+    Array.isArray((schedule as { times?: unknown }).times)
+  ) {
     return normalizeTimes((schedule as { times: string[] }).times);
   }
   return timesForCount(DEFAULT_TIMES_PER_DAY);

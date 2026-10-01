@@ -80,11 +80,7 @@ export class NotificationDispatcher implements DeliveryDispatcher {
       timezone: context.timezone,
     });
     const buttons = delivery.type === 'checkins' ? moodKeyboard() : undefined;
-    return this.telegram.sendToUser(
-      delivery.userId,
-      `${payload.title}\n${payload.body}`,
-      buttons,
-    );
+    return this.telegram.sendToUser(delivery.userId, `${payload.title}\n${payload.body}`, buttons);
   }
 
   /**

@@ -74,12 +74,41 @@ const COLUMN_KEYWORDS: ReadonlyArray<{ column: ImportColumn; words: readonly str
   { column: 'debit', words: ['дебет', 'debit', 'расход', 'списание'] },
   { column: 'credit', words: ['кредит', 'credit', 'поступление', 'зачисление', 'приход', 'доход'] },
   { column: 'amount', words: ['сумма', 'amount', 'sum'] },
-  { column: 'description', words: ['описание', 'назначение', 'комментарий', 'примечание', 'description', 'details', 'memo'] },
+  {
+    column: 'description',
+    words: [
+      'описание',
+      'назначение',
+      'комментарий',
+      'примечание',
+      'description',
+      'details',
+      'memo',
+    ],
+  },
   { column: 'type', words: ['тип', 'type', 'направление', 'вид операции'] },
 ];
 
-const EXPENSE_TYPE_WORDS = ['расход', 'списание', 'дебет', 'debit', 'expense', 'out', 'оплата', 'payment'];
-const INCOME_TYPE_WORDS = ['доход', 'поступление', 'зачисление', 'приход', 'кредит', 'credit', 'income', 'in'];
+const EXPENSE_TYPE_WORDS = [
+  'расход',
+  'списание',
+  'дебет',
+  'debit',
+  'expense',
+  'out',
+  'оплата',
+  'payment',
+];
+const INCOME_TYPE_WORDS = [
+  'доход',
+  'поступление',
+  'зачисление',
+  'приход',
+  'кредит',
+  'credit',
+  'income',
+  'in',
+];
 
 function normalizeCell(value: string | undefined): string {
   return (value ?? '').trim();
@@ -279,7 +308,11 @@ export function parseImportRowType(value: string): ImportRowType | null {
   return null;
 }
 
-function columnFraction(sample: string[][], index: number, test: (cell: string) => boolean): number {
+function columnFraction(
+  sample: string[][],
+  index: number,
+  test: (cell: string) => boolean,
+): number {
   if (sample.length === 0) return 0;
   const values = sample.map((row) => normalizeCell(row[index])).filter((cell) => cell !== '');
   if (values.length === 0) return 0;
@@ -287,7 +320,10 @@ function columnFraction(sample: string[][], index: number, test: (cell: string) 
 }
 
 /** Автоопределение колонок по заголовкам, с запасным вариантом — по данным (ТЗ §3.2). */
-export function detectColumnMapping(headers: string[], sample: string[][] = []): ImportColumnMapping {
+export function detectColumnMapping(
+  headers: string[],
+  sample: string[][] = [],
+): ImportColumnMapping {
   const mapping: ImportColumnMapping = {};
   const taken = new Set<number>();
 
@@ -308,7 +344,10 @@ export function detectColumnMapping(headers: string[], sample: string[][] = []):
 
   if (mapping.date === undefined) {
     const best = available
-      .map((index) => ({ index, fraction: columnFraction(sample, index, (cell) => parseImportDate(cell) !== null) }))
+      .map((index) => ({
+        index,
+        fraction: columnFraction(sample, index, (cell) => parseImportDate(cell) !== null),
+      }))
       .sort((a, b) => b.fraction - a.fraction)[0];
     if (best && best.fraction >= 0.5) {
       mapping.date = best.index;
@@ -320,7 +359,10 @@ export function detectColumnMapping(headers: string[], sample: string[][] = []):
 
   if (mapping.amount === undefined && mapping.debit === undefined && mapping.credit === undefined) {
     const best = rest
-      .map((index) => ({ index, fraction: columnFraction(sample, index, (cell) => parseImportAmount(cell) !== null) }))
+      .map((index) => ({
+        index,
+        fraction: columnFraction(sample, index, (cell) => parseImportAmount(cell) !== null),
+      }))
       .sort((a, b) => b.fraction - a.fraction)[0];
     if (best && best.fraction >= 0.5) {
       mapping.amount = best.index;
@@ -331,7 +373,10 @@ export function detectColumnMapping(headers: string[], sample: string[][] = []):
   if (mapping.description === undefined) {
     const remaining = headers.map((_, index) => index).filter((index) => !taken.has(index));
     const best = remaining
-      .map((index) => ({ index, fraction: columnFraction(sample, index, (cell) => parseImportAmount(cell) === null) }))
+      .map((index) => ({
+        index,
+        fraction: columnFraction(sample, index, (cell) => parseImportAmount(cell) === null),
+      }))
       .sort((a, b) => b.fraction - a.fraction)[0];
     if (best && best.fraction > 0) mapping.description = best.index;
   }
@@ -375,8 +420,10 @@ export function buildImportPreview(
     let type: ImportRowType | null = null;
 
     if (mapping.debit !== undefined || mapping.credit !== undefined) {
-      const debit = mapping.debit !== undefined ? parseImportAmount(cell(row, mapping.debit)) : null;
-      const credit = mapping.credit !== undefined ? parseImportAmount(cell(row, mapping.credit)) : null;
+      const debit =
+        mapping.debit !== undefined ? parseImportAmount(cell(row, mapping.debit)) : null;
+      const credit =
+        mapping.credit !== undefined ? parseImportAmount(cell(row, mapping.credit)) : null;
       if (debit !== null && Math.abs(debit) > 0) {
         amount = Math.abs(debit);
         type = 'expense';
@@ -392,7 +439,8 @@ export function buildImportPreview(
       }
     }
 
-    const explicitType = mapping.type !== undefined ? parseImportRowType(cell(row, mapping.type)) : null;
+    const explicitType =
+      mapping.type !== undefined ? parseImportRowType(cell(row, mapping.type)) : null;
     if (explicitType && amount !== null) type = explicitType;
 
     const description = cell(row, mapping.description).slice(0, 500);

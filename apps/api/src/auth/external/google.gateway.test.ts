@@ -18,7 +18,9 @@ describe('GoogleOAuthClient.buildAuthUrl', () => {
 
     expect(`${url.origin}${url.pathname}`).toBe('https://accounts.google.com/o/oauth2/v2/auth');
     expect(url.searchParams.get('client_id')).toBe('client-id');
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:3001/api/auth/google/callback');
+    expect(url.searchParams.get('redirect_uri')).toBe(
+      'http://localhost:3001/api/auth/google/callback',
+    );
     expect(url.searchParams.get('response_type')).toBe('code');
     expect(url.searchParams.get('scope')).toBe('openid email profile');
     expect(url.searchParams.get('state')).toBe('the-state');

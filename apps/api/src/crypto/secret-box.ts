@@ -37,9 +37,7 @@ function decodeKey(value: string): Buffer {
 }
 
 /** Решает, каким ключом шифровать; в production без ключа — unavailable. */
-export function resolveMasterKey(
-  env: NodeJS.ProcessEnv = process.env,
-): MasterKeyResolution {
+export function resolveMasterKey(env: NodeJS.ProcessEnv = process.env): MasterKeyResolution {
   const provided = env.APP_ENCRYPTION_KEY?.trim();
   if (provided) {
     decodeKey(provided); // проверяем длину сразу, чтобы упасть при старте

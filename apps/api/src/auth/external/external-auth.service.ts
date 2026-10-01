@@ -32,7 +32,10 @@ export function googlePlaceholderEmail(subject: string): string {
 
 /** true — email технический, UI предложит указать настоящий (ТЗ §3.1). */
 export function needsEmail(user: { email: string }): boolean {
-  return user.email.endsWith(`@${TELEGRAM_EMAIL_DOMAIN}`) || user.email.endsWith(`@${GOOGLE_EMAIL_DOMAIN}`);
+  return (
+    user.email.endsWith(`@${TELEGRAM_EMAIL_DOMAIN}`) ||
+    user.email.endsWith(`@${GOOGLE_EMAIL_DOMAIN}`)
+  );
 }
 
 export interface IssuedExternalSession {
@@ -54,12 +57,18 @@ export class ExternalAuthService {
     private readonly sessions: SessionService,
   ) {}
 
-  async loginWithGoogle(claims: GoogleIdTokenClaims, context: SessionContext): Promise<IssuedExternalSession> {
+  async loginWithGoogle(
+    claims: GoogleIdTokenClaims,
+    context: SessionContext,
+  ): Promise<IssuedExternalSession> {
     const user = await this.resolveGoogleUser(claims);
     return this.issueSession(user, context);
   }
 
-  async loginWithTelegram(verified: TelegramVerifiedUser, context: SessionContext): Promise<IssuedExternalSession> {
+  async loginWithTelegram(
+    verified: TelegramVerifiedUser,
+    context: SessionContext,
+  ): Promise<IssuedExternalSession> {
     const user = await this.resolveTelegramUser(verified);
     return this.issueSession(user, context);
   }
@@ -71,7 +80,10 @@ export class ExternalAuthService {
     if (verifiedEmail) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (user && user.emailVerifiedAt === null && user.email === verifiedEmail) {
-        await this.prisma.user.update({ where: { id: userId }, data: { emailVerifiedAt: new Date() } });
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { emailVerifiedAt: new Date() },
+        });
       }
     }
   }
@@ -166,7 +178,12 @@ export class ExternalAuthService {
       const byEmail = await this.prisma.user.findUnique({ where: { email: verifiedEmail } });
       if (byEmail) {
         await this.prisma.externalIdentity.create({
-          data: { userId: byEmail.id, provider: 'google', subject: claims.sub, email: verifiedEmail },
+          data: {
+            userId: byEmail.id,
+            provider: 'google',
+            subject: claims.sub,
+            email: verifiedEmail,
+          },
         });
         if (byEmail.emailVerifiedAt === null) {
           return this.prisma.user.update({
@@ -219,7 +236,11 @@ export class ExternalAuthService {
     });
     if (existing) {
       if (existing.userId === userId) return;
-      throw httpError(409, 'identity_taken', 'Эта учётная запись уже привязана к другому пользователю');
+      throw httpError(
+        409,
+        'identity_taken',
+        'Эта учётная запись уже привязана к другому пользователю',
+      );
     }
 
     const own = await this.prisma.externalIdentity.findFirst({ where: { userId, provider } });
@@ -240,7 +261,8 @@ export class ExternalAuthService {
 
   private async generateNickname(): Promise<string> {
     return uniqueNickname(
-      async (candidate) => (await this.prisma.user.findUnique({ where: { nickname: candidate } })) !== null,
+      async (candidate) =>
+        (await this.prisma.user.findUnique({ where: { nickname: candidate } })) !== null,
     );
   }
 

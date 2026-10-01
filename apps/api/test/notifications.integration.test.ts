@@ -69,7 +69,11 @@ describe('Notifications API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -121,7 +125,9 @@ describe('Notifications API (интеграция с PostgreSQL)', () => {
         times: ['09:00', '15:00', '21:00'],
         quietHours: { start: 22, end: 8 },
       });
-      expect(rules.some((rule) => rule.type === 'weekly_report' && rule.channel === 'email')).toBe(true);
+      expect(rules.some((rule) => rule.type === 'weekly_report' && rule.channel === 'email')).toBe(
+        true,
+      );
     });
 
     it('включает и выключает типы отдельно, меняет расписание и тихие часы', async () => {

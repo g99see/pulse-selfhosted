@@ -29,7 +29,10 @@ describe('readStatementFile', () => {
       arrayBuffer: async () => bytes.buffer,
     } as unknown as File;
 
-    await expect(readStatementFile(file)).resolves.toMatchObject({ text: 'a;b\n1;2', encoding: 'utf-8' });
+    await expect(readStatementFile(file)).resolves.toMatchObject({
+      text: 'a;b\n1;2',
+      encoding: 'utf-8',
+    });
   });
 
   it('отклоняет файл больше 2 МБ', async () => {

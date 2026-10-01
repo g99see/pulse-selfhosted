@@ -60,7 +60,12 @@ export const FamilyJoinSchema = z.object({
 export type FamilyJoinInput = z.infer<typeof FamilyJoinSchema>;
 
 export const FamilyInviteCreateSchema = z.object({
-  expiresInHours: z.number().int().min(1).max(FAMILY_INVITE_HOURS_MAX).default(FAMILY_INVITE_HOURS_DEFAULT),
+  expiresInHours: z
+    .number()
+    .int()
+    .min(1)
+    .max(FAMILY_INVITE_HOURS_MAX)
+    .default(FAMILY_INVITE_HOURS_DEFAULT),
 });
 export type FamilyInviteCreateInput = z.infer<typeof FamilyInviteCreateSchema>;
 export type FamilyInviteCreateValues = z.input<typeof FamilyInviteCreateSchema>;

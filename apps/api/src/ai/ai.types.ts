@@ -61,11 +61,7 @@ export interface AiProviderSettings {
 
 /** Классификация ошибок провайдера — без тел ответов и секретов. */
 export type AiProviderErrorKind =
-  | 'invalid_key'
-  | 'unreachable'
-  | 'model_not_found'
-  | 'limit_reached'
-  | 'unknown';
+  'invalid_key' | 'unreachable' | 'model_not_found' | 'limit_reached' | 'unknown';
 
 /** Ошибка при обращении к провайдеру: несёт только машинный код. */
 export class AiProviderError extends Error {

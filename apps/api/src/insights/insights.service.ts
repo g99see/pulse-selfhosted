@@ -118,7 +118,11 @@ export class InsightsService {
   }
 
   /** Оценка «полезно / не полезно» — уменьшает показ неполезных типов. */
-  async feedback(userId: string, id: string, feedback: InsightFeedback): Promise<InsightsFeedbackResponse> {
+  async feedback(
+    userId: string,
+    id: string,
+    feedback: InsightFeedback,
+  ): Promise<InsightsFeedbackResponse> {
     const existing = await this.prisma.insight.findFirst({ where: { id, userId } });
     if (!existing) throw httpError(404, 'insight_not_found', 'Инсайт не найден');
 
@@ -176,7 +180,10 @@ export class InsightsService {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
     const day = todayKeyInTimezone(user.timezone, now);
     const stats = await this.feedbackStats(userId);
-    const candidates = rankInsights(await this.buildCandidates(userId, now), stats).slice(0, FEED_LIMIT);
+    const candidates = rankInsights(await this.buildCandidates(userId, now), stats).slice(
+      0,
+      FEED_LIMIT,
+    );
 
     const created: InsightDto[] = [];
     for (const candidate of candidates) {
@@ -202,7 +209,10 @@ export class InsightsService {
    * Недельный разбор: 3 инсайта и 1 предложение (ТЗ §3.5). Идемпотентно по
    * ISO-неделе; уведомление типа weekly_report уходит только при первой генерации.
    */
-  async weekly(userId: string, now: Date = new Date()): Promise<{ report: WeeklyReportResponse; created: boolean }> {
+  async weekly(
+    userId: string,
+    now: Date = new Date(),
+  ): Promise<{ report: WeeklyReportResponse; created: boolean }> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { notificationRules: true },
@@ -301,16 +311,26 @@ export class InsightsService {
   }
 
   /** Непрерывный ряд дней с последней известной энергией за день. */
-  private energyDays(checkIns: readonly CheckInDto[], timezone: string, today: string): { day: string; energy: number | null }[] {
+  private energyDays(
+    checkIns: readonly CheckInDto[],
+    timezone: string,
+    today: string,
+  ): { day: string; energy: number | null }[] {
     const byDay = this.groupCheckIns(checkIns, timezone);
     return this.dayRange(today).map((day) => {
-      const energies = (byDay.get(day) ?? []).map((checkIn) => checkIn.energy).filter((value): value is number => value !== null);
+      const energies = (byDay.get(day) ?? [])
+        .map((checkIn) => checkIn.energy)
+        .filter((value): value is number => value !== null);
       return { day, energy: energies.length > 0 ? energies[energies.length - 1]! : null };
     });
   }
 
   /** Непрерывный ряд дней со средним настроением и наличием спорта. */
-  private moodDays(checkIns: readonly CheckInDto[], timezone: string, today: string): { day: string; mood: number | null; tags: string[] }[] {
+  private moodDays(
+    checkIns: readonly CheckInDto[],
+    timezone: string,
+    today: string,
+  ): { day: string; mood: number | null; tags: string[] }[] {
     const byDay = this.groupCheckIns(checkIns, timezone);
     return this.dayRange(today).map((day) => {
       const entries = byDay.get(day) ?? [];
@@ -322,7 +342,10 @@ export class InsightsService {
     });
   }
 
-  private groupCheckIns(checkIns: readonly CheckInDto[], timezone: string): Map<string, CheckInDto[]> {
+  private groupCheckIns(
+    checkIns: readonly CheckInDto[],
+    timezone: string,
+  ): Map<string, CheckInDto[]> {
     const byDay = new Map<string, CheckInDto[]>();
     for (const checkIn of checkIns) {
       const day = todayKeyInTimezone(timezone, new Date(checkIn.occurredAt));
@@ -375,7 +398,8 @@ export class InsightsService {
     // Без сохранённого правила тип включён по умолчанию (ТЗ §3.6).
     if (rule && !rule.enabled) return;
 
-    const channel = (rule?.channel as NotificationChannel | undefined) ?? DEFAULT_CHANNELS.weekly_report;
+    const channel =
+      (rule?.channel as NotificationChannel | undefined) ?? DEFAULT_CHANNELS.weekly_report;
 
     await this.dispatcher.dispatch(
       {

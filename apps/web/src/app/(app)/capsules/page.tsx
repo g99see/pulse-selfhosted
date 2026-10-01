@@ -160,7 +160,9 @@ export default function CapsulesPage() {
           </label>
 
           <label htmlFor="capsule-preset" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('capsules.form.openAtLabel')}</span>
+            <span className="text-xs text-[var(--puls-ink-muted)]">
+              {t('capsules.form.openAtLabel')}
+            </span>
             <select
               id="capsule-preset"
               data-testid="capsule-preset"
@@ -184,7 +186,9 @@ export default function CapsulesPage() {
                 onChange={(event) => setCustomOpenAt(event.target.value)}
                 className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
-              <span className="text-xs text-[var(--puls-ink-muted)]">{t('capsules.form.openAtHint')}</span>
+              <span className="text-xs text-[var(--puls-ink-muted)]">
+                {t('capsules.form.openAtHint')}
+              </span>
             </label>
           ) : null}
 
@@ -203,93 +207,104 @@ export default function CapsulesPage() {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-      {capsules.map((capsule) => {
-        const detail = details[capsule.id];
-        return (
-          <Card key={capsule.id} className="flex flex-col gap-3">
-            <div
-              data-testid="capsule-card"
-              data-capsule-id={capsule.id}
-              data-open={capsule.open ? 'true' : 'false'}
-              className="flex items-start justify-between gap-3"
-            >
-              <div className="flex min-w-0 flex-1 items-start gap-3">
-              <IconBubble name={capsule.open ? 'sparkle' : 'capsule'} tone={capsule.open ? 'finance' : 'wellbeing'} />
-              <div className="flex min-w-0 flex-col gap-1">
-                <span className="truncate font-heading text-lg font-bold">{capsule.title}</span>
-                <span>
-                  <Badge tone={capsule.open ? 'finance' : 'wellbeing'}>
-                    {capsule.open ? t('capsules.opened') : t('capsules.closed')}
-                  </Badge>
-                </span>
-                <span className="text-sm text-[var(--puls-ink-muted)]">
-                  {t('capsules.opensAt', {
-                    date: formatDate(capsule.openAt, locale, { dateStyle: 'long' }),
-                  })}
-                </span>
-                {!capsule.open && now !== null ? (
-                  <span data-testid="capsule-countdown" className="text-xs text-[var(--puls-ink-muted)]">
-                    {t('capsules.remainingDays', { count: remainingDays(capsule.openAt) })}
-                  </span>
-                ) : null}
-              </div>
-              </div>
-              <button
-                type="button"
-                data-testid="capsule-delete"
-                onClick={() => void remove(capsule.id)}
-                className="shrink-0 rounded-[var(--radius-chip)] px-2 py-1 text-xs text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
+        {capsules.map((capsule) => {
+          const detail = details[capsule.id];
+          return (
+            <Card key={capsule.id} className="flex flex-col gap-3">
+              <div
+                data-testid="capsule-card"
+                data-capsule-id={capsule.id}
+                data-open={capsule.open ? 'true' : 'false'}
+                className="flex items-start justify-between gap-3"
               >
-                {t('capsules.delete')}
-              </button>
-            </div>
-
-            {capsule.open && detail ? (
-              <>
-                <p data-testid="capsule-letter" className="whitespace-pre-wrap text-sm">
-                  {detail.body}
-                </p>
-
-                {detail.snapshot ? (
-                  <section
-                    data-testid="capsule-snapshot"
-                    className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
-                  >
-                    <h2 className="text-sm font-semibold">{t('capsules.snapshot.title')}</h2>
-                    <span className="text-sm">
-                      {t('capsules.snapshot.spent')}: {formatMoneyLocale(detail.snapshot.spent, locale, currency)}
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <IconBubble
+                    name={capsule.open ? 'sparkle' : 'capsule'}
+                    tone={capsule.open ? 'finance' : 'wellbeing'}
+                  />
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate font-heading text-lg font-bold">{capsule.title}</span>
+                    <span>
+                      <Badge tone={capsule.open ? 'finance' : 'wellbeing'}>
+                        {capsule.open ? t('capsules.opened') : t('capsules.closed')}
+                      </Badge>
                     </span>
-                    <span className="text-sm">
-                      {t('capsules.snapshot.earned')}: {formatMoneyLocale(detail.snapshot.earned, locale, currency)}
+                    <span className="text-sm text-[var(--puls-ink-muted)]">
+                      {t('capsules.opensAt', {
+                        date: formatDate(capsule.openAt, locale, { dateStyle: 'long' }),
+                      })}
                     </span>
-                    <span className="text-sm">
-                      {t('capsules.snapshot.mood')}:{' '}
-                      {detail.snapshot.avgMood === null
-                        ? t('capsules.snapshot.noMood')
-                        : formatNumber(detail.snapshot.avgMood, locale, { maximumFractionDigits: 1 })}
-                    </span>
-                    <span className="text-sm">
-                      {t('capsules.snapshot.checkins')}: {formatNumber(detail.snapshot.checkins, locale)}
-                    </span>
-                    {detail.snapshot.goals.length > 0 ? (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm">{t('capsules.snapshot.goals')}:</span>
-                        <ul className="flex flex-col gap-1">
-                          {detail.snapshot.goals.map((goal) => (
-                            <li key={goal.title} className="text-xs text-[var(--puls-ink-muted)]">
-                              {goal.title} — {formatNumber(goal.percent, locale)}%
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    {!capsule.open && now !== null ? (
+                      <span
+                        data-testid="capsule-countdown"
+                        className="text-xs text-[var(--puls-ink-muted)]"
+                      >
+                        {t('capsules.remainingDays', { count: remainingDays(capsule.openAt) })}
+                      </span>
                     ) : null}
-                  </section>
-                ) : null}
-              </>
-            ) : null}
-          </Card>
-        );
-      })}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  data-testid="capsule-delete"
+                  onClick={() => void remove(capsule.id)}
+                  className="shrink-0 rounded-[var(--radius-chip)] px-2 py-1 text-xs text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
+                >
+                  {t('capsules.delete')}
+                </button>
+              </div>
+
+              {capsule.open && detail ? (
+                <>
+                  <p data-testid="capsule-letter" className="whitespace-pre-wrap text-sm">
+                    {detail.body}
+                  </p>
+
+                  {detail.snapshot ? (
+                    <section
+                      data-testid="capsule-snapshot"
+                      className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
+                    >
+                      <h2 className="text-sm font-semibold">{t('capsules.snapshot.title')}</h2>
+                      <span className="text-sm">
+                        {t('capsules.snapshot.spent')}:{' '}
+                        {formatMoneyLocale(detail.snapshot.spent, locale, currency)}
+                      </span>
+                      <span className="text-sm">
+                        {t('capsules.snapshot.earned')}:{' '}
+                        {formatMoneyLocale(detail.snapshot.earned, locale, currency)}
+                      </span>
+                      <span className="text-sm">
+                        {t('capsules.snapshot.mood')}:{' '}
+                        {detail.snapshot.avgMood === null
+                          ? t('capsules.snapshot.noMood')
+                          : formatNumber(detail.snapshot.avgMood, locale, {
+                              maximumFractionDigits: 1,
+                            })}
+                      </span>
+                      <span className="text-sm">
+                        {t('capsules.snapshot.checkins')}:{' '}
+                        {formatNumber(detail.snapshot.checkins, locale)}
+                      </span>
+                      {detail.snapshot.goals.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm">{t('capsules.snapshot.goals')}:</span>
+                          <ul className="flex flex-col gap-1">
+                            {detail.snapshot.goals.map((goal) => (
+                              <li key={goal.title} className="text-xs text-[var(--puls-ink-muted)]">
+                                {goal.title} — {formatNumber(goal.percent, locale)}%
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                    </section>
+                  ) : null}
+                </>
+              ) : null}
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

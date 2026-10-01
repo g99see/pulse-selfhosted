@@ -12,7 +12,13 @@ import { httpError } from '../common/http-error';
 import { TransactionsService } from '../finance/transactions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatsService } from '../stats/stats.service';
-import { moodKeyboard, parseCallback, parseCommand, undoKeyboard, type InlineButton } from './commands';
+import {
+  moodKeyboard,
+  parseCallback,
+  parseCommand,
+  undoKeyboard,
+  type InlineButton,
+} from './commands';
 import { generateLinkCode, hashLinkCode, linkCodeMatches, LINK_CODE_TTL_MS } from './link-code';
 import {
   alreadyLinkedText,
@@ -124,7 +130,11 @@ export class TelegramService implements OnModuleInit {
       data: { userId, codeHash: hashLinkCode(code), expiresAt },
     });
 
-    return { code, expiresAt: expiresAt.toISOString(), ttlSeconds: Math.round(LINK_CODE_TTL_MS / 1000) };
+    return {
+      code,
+      expiresAt: expiresAt.toISOString(),
+      ttlSeconds: Math.round(LINK_CODE_TTL_MS / 1000),
+    };
   }
 
   /** Отвязка чата текущего пользователя. */
@@ -299,9 +309,7 @@ export class TelegramService implements OnModuleInit {
   }
 
   /** Находит действующий одноразовый код; null — истёк, использован или не найден. */
-  private async resolveCode(
-    code: string,
-  ): Promise<{ id: string; userId: string } | null> {
+  private async resolveCode(code: string): Promise<{ id: string; userId: string } | null> {
     const record = await this.prisma.telegramLinkCode.findUnique({
       where: { codeHash: hashLinkCode(code) },
     });

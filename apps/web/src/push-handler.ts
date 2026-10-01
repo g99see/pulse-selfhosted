@@ -38,13 +38,19 @@ export interface PushNotificationOptions extends NotificationOptions {
 
 export interface PushScopeLike {
   addEventListener(type: 'push', listener: (event: PushEventLike) => void): void;
-  addEventListener(type: 'notificationclick', listener: (event: NotificationClickEventLike) => void): void;
-  registration: { showNotification(title: string, options?: PushNotificationOptions): Promise<void> };
+  addEventListener(
+    type: 'notificationclick',
+    listener: (event: NotificationClickEventLike) => void,
+  ): void;
+  registration: {
+    showNotification(title: string, options?: PushNotificationOptions): Promise<void>;
+  };
   clients?: {
     openWindow(url: string): Promise<unknown>;
-    matchAll(options: { type: string; includeUncontrolled?: boolean }): Promise<
-      Array<{ url: string; focus(): Promise<unknown> }>
-    >;
+    matchAll(options: {
+      type: string;
+      includeUncontrolled?: boolean;
+    }): Promise<Array<{ url: string; focus(): Promise<unknown> }>>;
     claim?(): Promise<void>;
   };
   location?: { origin: string };
@@ -85,7 +91,10 @@ export function parsePushPayload(raw: unknown): PushPayload | null {
     url: typeof value.url === 'string' ? value.url : undefined,
     checkinUrl: typeof value.checkinUrl === 'string' ? value.checkinUrl : undefined,
     actions,
-    data: typeof value.data === 'object' && value.data ? (value.data as Record<string, unknown>) : undefined,
+    data:
+      typeof value.data === 'object' && value.data
+        ? (value.data as Record<string, unknown>)
+        : undefined,
   };
 }
 

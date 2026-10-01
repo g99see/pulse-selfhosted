@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { CHECKIN_ACTIONS, buildNotificationEmail, buildPushPayload, checkinGreeting } from './messages';
+import {
+  CHECKIN_ACTIONS,
+  buildNotificationEmail,
+  buildPushPayload,
+  checkinGreeting,
+} from './messages';
 
 describe('buildPushPayload', () => {
   it('для чек-ина несёт кнопки настроения 1–5 и путь API (ТЗ §9)', () => {

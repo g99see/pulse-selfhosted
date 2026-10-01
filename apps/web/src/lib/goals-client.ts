@@ -27,7 +27,10 @@ export const goalsApi = {
   remove: (id: string) => authFetch<void>(`/api/goals/${id}`, { method: 'DELETE' }),
 
   deposit: (id: string, input: GoalDepositInput) =>
-    authFetch<GoalDepositResult>(`/api/goals/${id}/deposit`, { method: 'POST', body: JSON.stringify(input) }),
+    authFetch<GoalDepositResult>(`/api/goals/${id}/deposit`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 };
 
 /** Событие «цели изменились» — карточка на главной перечитывает прогресс. */

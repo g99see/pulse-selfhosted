@@ -60,7 +60,14 @@ export class AiKeyService {
       const provider = this.parseProvider(userKey.provider);
       if (provider) {
         const apiKey = this.secrets.decrypt(userKey.apiKeyEncrypted);
-        return this.build('user', provider, apiKey, userKey.baseUrl, userKey.model, userKey.apiKeyLast4);
+        return this.build(
+          'user',
+          provider,
+          apiKey,
+          userKey.baseUrl,
+          userKey.model,
+          userKey.apiKeyLast4,
+        );
       }
     }
 
@@ -80,7 +87,9 @@ export class AiKeyService {
 
   /** Общий ключ экземпляра (расшифрованный) или null, если не настроен. */
   async resolveInstanceKey(): Promise<ResolvedAiKey | null> {
-    const instance = await this.prisma.instanceSettings.findUnique({ where: { id: INSTANCE_SETTINGS_ID } });
+    const instance = await this.prisma.instanceSettings.findUnique({
+      where: { id: INSTANCE_SETTINGS_ID },
+    });
     if (!instance?.aiProvider || instance.aiApiKeyEncrypted === null) return null;
     const provider = this.parseProvider(instance.aiProvider);
     if (!provider) return null;
@@ -154,7 +163,9 @@ export class AiKeyService {
 
   /** Настройки AI экземпляра для админки (без самого ключа). */
   async getInstanceSettings(): Promise<AiInstanceSettingsDto> {
-    const instance = await this.prisma.instanceSettings.findUnique({ where: { id: INSTANCE_SETTINGS_ID } });
+    const instance = await this.prisma.instanceSettings.findUnique({
+      where: { id: INSTANCE_SETTINGS_ID },
+    });
     const provider = this.parseProvider(instance?.aiProvider);
     return {
       provider,
@@ -170,7 +181,9 @@ export class AiKeyService {
    * меняется; `null` очищает. Пустой apiKey оставляет прежний ключ.
    */
   async setInstanceSettings(input: AiInstanceSettingsInput): Promise<void> {
-    const current = await this.prisma.instanceSettings.findUnique({ where: { id: INSTANCE_SETTINGS_ID } });
+    const current = await this.prisma.instanceSettings.findUnique({
+      where: { id: INSTANCE_SETTINGS_ID },
+    });
 
     let encrypted = current?.aiApiKeyEncrypted ?? null;
     let last4 = current?.aiApiKeyLast4 ?? null;
@@ -183,17 +196,40 @@ export class AiKeyService {
     const baseUrl = input.baseUrl === undefined ? (current?.aiBaseUrl ?? null) : input.baseUrl;
     const model = input.model === undefined ? (current?.aiModel ?? null) : input.model;
     const monthlyTokenLimit =
-      input.monthlyTokenLimit === undefined ? (current?.aiMonthlyTokenLimit ?? null) : input.monthlyTokenLimit;
+      input.monthlyTokenLimit === undefined
+        ? (current?.aiMonthlyTokenLimit ?? null)
+        : input.monthlyTokenLimit;
 
     await this.prisma.instanceSettings.upsert({
       where: { id: INSTANCE_SETTINGS_ID },
-      create: { id: INSTANCE_SETTINGS_ID, aiProvider: provider, aiApiKeyEncrypted: encrypted, aiApiKeyLast4: last4, aiBaseUrl: baseUrl, aiModel: model, aiMonthlyTokenLimit: monthlyTokenLimit },
-      update: { aiProvider: provider, aiApiKeyEncrypted: encrypted, aiApiKeyLast4: last4, aiBaseUrl: baseUrl, aiModel: model, aiMonthlyTokenLimit: monthlyTokenLimit },
+      create: {
+        id: INSTANCE_SETTINGS_ID,
+        aiProvider: provider,
+        aiApiKeyEncrypted: encrypted,
+        aiApiKeyLast4: last4,
+        aiBaseUrl: baseUrl,
+        aiModel: model,
+        aiMonthlyTokenLimit: monthlyTokenLimit,
+      },
+      update: {
+        aiProvider: provider,
+        aiApiKeyEncrypted: encrypted,
+        aiApiKeyLast4: last4,
+        aiBaseUrl: baseUrl,
+        aiModel: model,
+        aiMonthlyTokenLimit: monthlyTokenLimit,
+      },
     });
   }
 
   /** Накапливает расход токенов за месяц (upsert по user_id + month). */
-  async recordUsage(userId: string, tokensIn: number, tokensOut: number, costUsd: number, now: Date = new Date()): Promise<void> {
+  async recordUsage(
+    userId: string,
+    tokensIn: number,
+    tokensOut: number,
+    costUsd: number,
+    now: Date = new Date(),
+  ): Promise<void> {
     const month = usageMonth(now);
     await this.prisma.aiUsage.upsert({
       where: { userId_month: { userId, month } },

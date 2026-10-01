@@ -31,7 +31,9 @@ describe('validateRateForm', () => {
   });
 
   it('отклоняет неизвестную валюту', () => {
-    expect(validateRateForm({ date: '2026-10-01', base: 'USD', quote: 'GBP', rate: '95' }).ok).toBe(false);
+    expect(validateRateForm({ date: '2026-10-01', base: 'USD', quote: 'GBP', rate: '95' }).ok).toBe(
+      false,
+    );
   });
 
   it('отклоняет неположительный курс', () => {

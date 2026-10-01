@@ -1,5 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { DeleteAccountSchema, ExportQuerySchema, type DeleteAccountInput } from '@puls/shared';
 import { httpError } from '../common/http-error';
@@ -34,7 +45,10 @@ export class AccountController {
     const parsed = ExportQuerySchema.safeParse(query);
     if (!parsed.success) {
       throw httpError(400, 'validation_error', 'Некорректный формат выгрузки', {
-        issues: parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+        issues: parsed.error.issues.map((issue) => ({
+          path: issue.path.join('.'),
+          message: issue.message,
+        })),
       });
     }
 
@@ -57,7 +71,10 @@ export class AccountController {
     if (parsed.data.format === 'csv') {
       const archive = await this.exporter.exportZip(user.id);
       res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', contentDisposition(exportFilename(user.nickname, 'zip')));
+      res.setHeader(
+        'Content-Disposition',
+        contentDisposition(exportFilename(user.nickname, 'zip')),
+      );
       res.send(archive);
       return;
     }

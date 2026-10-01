@@ -89,10 +89,10 @@ export function crossRate(
   const direct = pickRate(points, from, to, targetDate);
   if (direct) return direct.rate;
 
-  const fromToBase = from === base ? 1 : pickRate(points, from, base, targetDate)?.rate ?? null;
+  const fromToBase = from === base ? 1 : (pickRate(points, from, base, targetDate)?.rate ?? null);
   if (fromToBase === null) return null;
 
-  const toToBase = to === base ? 1 : pickRate(points, to, base, targetDate)?.rate ?? null;
+  const toToBase = to === base ? 1 : (pickRate(points, to, base, targetDate)?.rate ?? null);
   if (toToBase === null || toToBase === 0) return null;
 
   return fromToBase / toToBase;

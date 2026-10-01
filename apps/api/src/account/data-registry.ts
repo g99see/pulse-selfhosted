@@ -28,7 +28,12 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'users', entity: 'user', keyColumn: 'id', secretColumns: ['two_fa_secret'] },
   { table: 'accounts', entity: 'accounts', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'categories', entity: 'categories', keyColumn: 'user_id', orderBy: '"created_at"' },
-  { table: 'transactions', entity: 'transactions', keyColumn: 'user_id', orderBy: '"date", "created_at"' },
+  {
+    table: 'transactions',
+    entity: 'transactions',
+    keyColumn: 'user_id',
+    orderBy: '"date", "created_at"',
+  },
   { table: 'budgets', entity: 'budgets', keyColumn: 'user_id', orderBy: '"month"' },
   { table: 'goals', entity: 'goals', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'goal_deposits', entity: 'goalDeposits', keyColumn: 'user_id', orderBy: '"created_at"' },
@@ -43,16 +48,41 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     orderBy: '"created_at"',
   },
   { table: 'check_ins', entity: 'checkIns', keyColumn: 'user_id', orderBy: '"occurred_at"' },
-  { table: 'notification_rules', entity: 'notificationRules', keyColumn: 'user_id', orderBy: '"type"' },
+  {
+    table: 'notification_rules',
+    entity: 'notificationRules',
+    keyColumn: 'user_id',
+    orderBy: '"type"',
+  },
   { table: 'daily_stats', entity: 'dailyStats', keyColumn: 'user_id', orderBy: '"date"' },
   // Курсы валют (ТЗ §3.2): дата, пара и курс — не секреты, выгружаем.
-  { table: 'exchange_rates', entity: 'exchangeRates', keyColumn: 'user_id', orderBy: '"date", "base", "quote"' },
+  {
+    table: 'exchange_rates',
+    entity: 'exchangeRates',
+    keyColumn: 'user_id',
+    orderBy: '"date", "base", "quote"',
+  },
   // Внешние привязки входа (ТЗ §3.1, §7): subject не секрет, выгружаем как есть.
-  { table: 'external_identities', entity: 'externalIdentities', keyColumn: 'user_id', orderBy: '"created_at"' },
+  {
+    table: 'external_identities',
+    entity: 'externalIdentities',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
   // Привязка Telegram-чата (ТЗ §3.6): chat_id — идентификатор чата, выгружается как есть.
-  { table: 'telegram_links', entity: 'telegramLinks', keyColumn: 'user_id', orderBy: '"linked_at"' },
+  {
+    table: 'telegram_links',
+    entity: 'telegramLinks',
+    keyColumn: 'user_id',
+    orderBy: '"linked_at"',
+  },
   // Полученные достижения (ТЗ §4): код бейджа и дата — не секреты, выгружаем.
-  { table: 'user_achievements', entity: 'userAchievements', keyColumn: 'user_id', orderBy: '"earned_at"' },
+  {
+    table: 'user_achievements',
+    entity: 'userAchievements',
+    keyColumn: 'user_id',
+    orderBy: '"earned_at"',
+  },
   // Инсайты и оценки рекомендаций (ТЗ §3.5): тип, ключ текста и параметры — не секреты.
   { table: 'insights', entity: 'insights', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Публичный профиль (ТЗ §3.7): описание, аватар и обложка — не секреты, выгружаем.
@@ -64,7 +94,12 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   // HTML-страница профиля (ТЗ §3.8): флаг публикации и текущая версия — данные пользователя.
   { table: 'html_pages', entity: 'htmlPages', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Версии HTML-страницы (ТЗ §3.8): код, заметка и результат проверки — его данные.
-  { table: 'html_page_versions', entity: 'htmlPageVersions', keyColumn: 'user_id', orderBy: '"created_at"' },
+  {
+    table: 'html_page_versions',
+    entity: 'htmlPageVersions',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
   // Посты ленты (ТЗ §3.7): тип, payload и приватность — не секреты, выгружаем.
   { table: 'posts', entity: 'posts', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Реакции пользователя (ТЗ §3.7): post_id и эмодзи — его действия, выгружаем.
@@ -72,15 +107,30 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   // Комментарии пользователя (ТЗ §3.7): тело — собственная запись, выгружаем.
   { table: 'comments', entity: 'comments', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Личный AI-ключ (ТЗ §3.9): сам ключ — секрет, выгружаем провайдера и last4.
-  { table: 'user_ai_keys', entity: 'userAiKeys', keyColumn: 'user_id', secretColumns: ['api_key_encrypted'] },
+  {
+    table: 'user_ai_keys',
+    entity: 'userAiKeys',
+    keyColumn: 'user_id',
+    secretColumns: ['api_key_encrypted'],
+  },
   // Учёт токенов AI (ТЗ §3.9): месяц, токены и стоимость — не секреты.
   { table: 'ai_usage', entity: 'aiUsage', keyColumn: 'user_id', orderBy: '"month"' },
   // Предложения AI-помощника (ТЗ §3.9): тип, текст и параметры — данные пользователя.
   { table: 'ai_proposals', entity: 'aiProposals', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Участие в семье (ТЗ §4): семья, роль и дата вступления — данные пользователя.
-  { table: 'family_members', entity: 'familyMembers', keyColumn: 'user_id', orderBy: '"joined_at"' },
+  {
+    table: 'family_members',
+    entity: 'familyMembers',
+    keyColumn: 'user_id',
+    orderBy: '"joined_at"',
+  },
   // Операции по семейным счетам (ТЗ §4): вид, сумма и счёт — действия пользователя.
-  { table: 'family_transactions', entity: 'familyTransactions', keyColumn: 'user_id', orderBy: '"date", "created_at"' },
+  {
+    table: 'family_transactions',
+    entity: 'familyTransactions',
+    keyColumn: 'user_id',
+    orderBy: '"date", "created_at"',
+  },
   // Взносы в общие цели семьи (ТЗ §4): сумма и дата — действия пользователя.
   {
     table: 'family_goal_deposits',

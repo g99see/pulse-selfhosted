@@ -17,7 +17,15 @@ function makeStubs() {
     }),
     listTransactions: vi.fn(async (userId: string, options: { limit?: number }) => {
       seen.push(userId);
-      return [{ date: '2026-10-01', type: 'expense', amount: 1, categoryName: 'Еда', limit: options.limit }];
+      return [
+        {
+          date: '2026-10-01',
+          type: 'expense',
+          amount: 1,
+          categoryName: 'Еда',
+          limit: options.limit,
+        },
+      ];
     }),
     moodSeries: vi.fn(async (userId: string) => {
       seen.push(userId);
@@ -42,12 +50,30 @@ function makeStubs() {
     timezoneOf: vi.fn(async () => 'Europe/Moscow'),
   } as unknown as AiContextService;
 
-  const created: { userId: string; kind: string; summary: string; payload: Record<string, unknown> }[] = [];
+  const created: {
+    userId: string;
+    kind: string;
+    summary: string;
+    payload: Record<string, unknown>;
+  }[] = [];
   const proposals = {
-    create: vi.fn(async (input: { userId: string; kind: string; summary: string; payload: Record<string, unknown> }) => {
-      created.push(input);
-      return { id: `p-${created.length}`, kind: input.kind, summary: input.summary, payload: input.payload, status: 'pending' };
-    }),
+    create: vi.fn(
+      async (input: {
+        userId: string;
+        kind: string;
+        summary: string;
+        payload: Record<string, unknown>;
+      }) => {
+        created.push(input);
+        return {
+          id: `p-${created.length}`,
+          kind: input.kind,
+          summary: input.summary,
+          payload: input.payload,
+          status: 'pending',
+        };
+      },
+    ),
   } as unknown as AiProposalsService;
 
   return { context, proposals, seen, created };
@@ -80,7 +106,11 @@ describe('AiToolsService (изоляция пользователей)', () => {
     });
 
     expect(seen).toEqual(['user-a']);
-    expect(context.spendingSummary).toHaveBeenCalledWith('user-a', { from: '2026-10-01', to: undefined, categoryId: undefined });
+    expect(context.spendingSummary).toHaveBeenCalledWith('user-a', {
+      from: '2026-10-01',
+      to: undefined,
+      categoryId: undefined,
+    });
   });
 
   it('предложение бюджета сохраняется за сессионным пользователем, ничего не создавая', async () => {
@@ -102,7 +132,11 @@ describe('AiToolsService (изоляция пользователей)', () => {
     const { context, proposals } = makeStubs();
     const tools = new AiToolsService(context, proposals);
 
-    const execution = await tools.execute('user-a', { id: 'x', name: 'drop_all_data', arguments: {} });
+    const execution = await tools.execute('user-a', {
+      id: 'x',
+      name: 'drop_all_data',
+      arguments: {},
+    });
     expect(execution.result).toMatchObject({ error: 'unknown_tool: drop_all_data' });
   });
 });

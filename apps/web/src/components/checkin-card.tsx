@@ -109,7 +109,10 @@ export function CheckInCard() {
 
         {/* Пока стрик грузится, строка держит место — иначе карточка «прыгает» (CLS). */}
         {!streakLoaded && streak === null ? (
-          <p aria-hidden="true" className="h-5 w-40 animate-pulse rounded-full bg-[var(--puls-surface)]/60" />
+          <p
+            aria-hidden="true"
+            className="h-5 w-40 animate-pulse rounded-full bg-[var(--puls-surface)]/60"
+          />
         ) : streak && streak.current > 0 ? (
           <p
             data-testid="checkin-streak"
@@ -127,7 +130,11 @@ export function CheckInCard() {
         />
 
         {saved ? (
-          <p role="status" data-testid="checkin-card-saved" className="text-sm text-[var(--puls-wellbeing-text)]">
+          <p
+            role="status"
+            data-testid="checkin-card-saved"
+            className="text-sm text-[var(--puls-wellbeing-text)]"
+          >
             {t('checkin.card.saved')}
           </p>
         ) : (

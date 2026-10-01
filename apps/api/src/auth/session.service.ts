@@ -27,7 +27,10 @@ const LAST_SEEN_THROTTLE_MS = 5 * 60 * 1000;
 export class SessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, context: SessionContext = {}): Promise<{ token: string; session: Session }> {
+  async create(
+    userId: string,
+    context: SessionContext = {},
+  ): Promise<{ token: string; session: Session }> {
     const token = generateToken();
     const expiresAt = new Date(Date.now() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
 

@@ -23,9 +23,18 @@ const goal: ShareCardData = {
   currency: 'RUB',
 };
 
-const streak: ShareCardData = { type: 'checkin_streak', current: 12, longest: 20, checkedToday: true };
+const streak: ShareCardData = {
+  type: 'checkin_streak',
+  current: 12,
+  longest: 20,
+  checkedToday: true,
+};
 
-const achievement: ShareCardData = { type: 'achievement', code: 'goal_half', earnedAt: '2026-10-01T10:00:00.000Z' };
+const achievement: ShareCardData = {
+  type: 'achievement',
+  code: 'goal_half',
+  earnedAt: '2026-10-01T10:00:00.000Z',
+};
 
 const mood: ShareCardData = { type: 'avg_mood', average: 4.2, checkins: 18, month: '2026-10' };
 
@@ -72,7 +81,10 @@ describe('renderShareCard', () => {
   });
 
   it('экранирует пользовательское название и не пропускает разметку', () => {
-    const svg = renderShareCard({ ...goal, title: '<script>alert(1)</script>' }, { format: 'square' });
+    const svg = renderShareCard(
+      { ...goal, title: '<script>alert(1)</script>' },
+      { format: 'square' },
+    );
     expect(svg).not.toContain('<script>');
     expect(svg).toContain('&lt;script&gt;');
   });
@@ -116,7 +128,12 @@ describe('renderShareCard', () => {
 describe('ShareCardQuerySchema', () => {
   it('по умолчанию story, ru и без сумм', () => {
     const parsed = ShareCardQuerySchema.parse({ type: 'goal_progress' });
-    expect(parsed).toMatchObject({ type: 'goal_progress', format: 'story', locale: 'ru', amounts: 0 });
+    expect(parsed).toMatchObject({
+      type: 'goal_progress',
+      format: 'story',
+      locale: 'ru',
+      amounts: 0,
+    });
   });
 
   it('принимает amounts=1 и отклоняет неизвестный тип', () => {

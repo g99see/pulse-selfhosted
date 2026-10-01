@@ -46,7 +46,11 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
   ): Promise<{ client: TestClient; userId: string }> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
 
     const token = mail.lastVerificationTokenFor(email);
@@ -68,7 +72,9 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
 
     it('мутирующий запрос без CSRF-заголовка отклоняется', async () => {
       const response = await import('supertest').then(({ default: request }) =>
-        request(server).post('/api/auth/register').send({ email: 'a@b.co', password: PASSWORD, nickname: 'abc' }),
+        request(server)
+          .post('/api/auth/register')
+          .send({ email: 'a@b.co', password: PASSWORD, nickname: 'abc' }),
       );
 
       expect(response.status).toBe(403);
@@ -101,7 +107,11 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
     it('возвращает 409 email_taken на повторный email', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      await client.post('/api/auth/register', { email: 'dup@example.com', password: PASSWORD, nickname: 'first' });
+      await client.post('/api/auth/register', {
+        email: 'dup@example.com',
+        password: PASSWORD,
+        nickname: 'first',
+      });
 
       const response = await client.post('/api/auth/register', {
         email: 'dup@example.com',
@@ -116,7 +126,11 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
     it('возвращает 409 nickname_taken на повторный никнейм', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      await client.post('/api/auth/register', { email: 'one@example.com', password: PASSWORD, nickname: 'same' });
+      await client.post('/api/auth/register', {
+        email: 'one@example.com',
+        password: PASSWORD,
+        nickname: 'same',
+      });
 
       const response = await client.post('/api/auth/register', {
         email: 'two@example.com',
@@ -148,9 +162,16 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
     it('не даёт войти до подтверждения (403 email_not_verified)', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      await client.post('/api/auth/register', { email: 'noverify@example.com', password: PASSWORD, nickname: 'noverify' });
+      await client.post('/api/auth/register', {
+        email: 'noverify@example.com',
+        password: PASSWORD,
+        nickname: 'noverify',
+      });
 
-      const response = await client.post('/api/auth/login', { email: 'noverify@example.com', password: PASSWORD });
+      const response = await client.post('/api/auth/login', {
+        email: 'noverify@example.com',
+        password: PASSWORD,
+      });
 
       expect(response.status).toBe(403);
       expect(response.body.code).toBe('email_not_verified');
@@ -159,7 +180,11 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
     it('подтверждает email, сразу логинит и помечает адрес', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      await client.post('/api/auth/register', { email: 'ok@example.com', password: PASSWORD, nickname: 'okuser' });
+      await client.post('/api/auth/register', {
+        email: 'ok@example.com',
+        password: PASSWORD,
+        nickname: 'okuser',
+      });
 
       const token = mail.lastVerificationTokenFor('ok@example.com') as string;
       const response = await client.post('/api/auth/verify-email', { token });
@@ -175,7 +200,11 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
     it('отклоняет повторно использованный токен (400 invalid_token)', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      await client.post('/api/auth/register', { email: 'once@example.com', password: PASSWORD, nickname: 'onceuser' });
+      await client.post('/api/auth/register', {
+        email: 'once@example.com',
+        password: PASSWORD,
+        nickname: 'onceuser',
+      });
       const token = mail.lastVerificationTokenFor('once@example.com') as string;
 
       expect((await client.post('/api/auth/verify-email', { token })).status).toBe(200);
@@ -187,10 +216,16 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
     it('resend выдаёт новый токен и инвалидирует старый', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      await client.post('/api/auth/register', { email: 'resend@example.com', password: PASSWORD, nickname: 'resenduser' });
+      await client.post('/api/auth/register', {
+        email: 'resend@example.com',
+        password: PASSWORD,
+        nickname: 'resenduser',
+      });
       const oldToken = mail.lastVerificationTokenFor('resend@example.com') as string;
 
-      const resent = await client.post('/api/auth/verify-email/resend', { email: 'resend@example.com' });
+      const resent = await client.post('/api/auth/verify-email/resend', {
+        email: 'resend@example.com',
+      });
       expect(resent.status).toBe(202);
       const newToken = mail.lastVerificationTokenFor('resend@example.com') as string;
       expect(newToken).not.toBe(oldToken);
@@ -208,7 +243,10 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
       const client = new TestClient(server);
       await client.csrf();
 
-      const response = await client.post('/api/auth/login', { email: 'login@example.com', password: PASSWORD });
+      const response = await client.post('/api/auth/login', {
+        email: 'login@example.com',
+        password: PASSWORD,
+      });
       expect(response.status).toBe(200);
       expect(client.cookies['puls_session']).toBeTruthy();
 
@@ -224,7 +262,10 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
       const client = new TestClient(server);
       await client.csrf();
 
-      const response = await client.post('/api/auth/login', { email: 'wrong@example.com', password: 'Nope123456' });
+      const response = await client.post('/api/auth/login', {
+        email: 'wrong@example.com',
+        password: 'Nope123456',
+      });
       expect(response.status).toBe(401);
       expect(response.body.code).toBe('invalid_credentials');
     });
@@ -282,7 +323,10 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         expect(response.status).toBe(401);
       }
 
-      const blocked = await client.post('/api/auth/login', { email: 'flood@example.com', password: 'WrongPass1' });
+      const blocked = await client.post('/api/auth/login', {
+        email: 'flood@example.com',
+        password: 'WrongPass1',
+      });
       expect(blocked.status).toBe(429);
       expect(blocked.body.code).toBe('rate_limited');
       expect(Number(blocked.headers['retry-after'])).toBeGreaterThan(0);
@@ -317,7 +361,10 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         onboardingCompleted: true,
       });
 
-      const stored = await prisma.user.findUnique({ where: { id: userId }, include: { accounts: true } });
+      const stored = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { accounts: true },
+      });
       expect(stored?.notificationsEnabled).toBe(false);
       expect(stored?.quietHoursStart).toBe(23);
       expect(stored?.onboardingStep).toBe(4);

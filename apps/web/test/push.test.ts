@@ -88,9 +88,9 @@ describe('buildCheckinRequest', () => {
 
 describe('openTargetFor', () => {
   it('берёт URL из data, иначе корень приложения', () => {
-    expect(openTargetFor(parsePushPayload({ title: 't', body: 'b', data: { url: '/app/finance' } }))).toBe(
-      '/app/finance',
-    );
+    expect(
+      openTargetFor(parsePushPayload({ title: 't', body: 'b', data: { url: '/app/finance' } })),
+    ).toBe('/app/finance');
     expect(openTargetFor(null)).toBe('/app');
   });
 });

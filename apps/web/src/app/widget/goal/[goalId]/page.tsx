@@ -38,11 +38,7 @@ export async function generateMetadata({
   return { title: t('widget.title', locale), robots: { index: false, follow: false } };
 }
 
-export default async function GoalWidgetPage({
-  params,
-}: {
-  params: Promise<{ goalId: string }>;
-}) {
+export default async function GoalWidgetPage({ params }: { params: Promise<{ goalId: string }> }) {
   const { goalId } = await params;
   const locale = await getRequestLocale();
   const widget = await fetchWidget(goalId);

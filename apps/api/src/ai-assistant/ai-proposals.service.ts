@@ -76,7 +76,11 @@ export class AiProposalsService {
       return { proposal: toAiProposalDto(proposal), applied: stored };
     }
 
-    const applied = await this.createFromPayload(userId, proposal.kind as AiProposalKind, proposal.payload);
+    const applied = await this.createFromPayload(
+      userId,
+      proposal.kind as AiProposalKind,
+      proposal.payload,
+    );
     const updated = await this.prisma.aiProposal.update({
       where: { id: proposal.id },
       data: { status: 'applied', appliedAt: new Date(), result: applied as object },
@@ -91,7 +95,8 @@ export class AiProposalsService {
   ): Promise<{ kind: AiProposalKind; id: string }> {
     if (kind === 'budget') {
       const parsed = AiBudgetProposalPayloadSchema.safeParse(payload);
-      if (!parsed.success) throw httpError(400, 'ai_proposal_invalid_payload', 'Некорректные параметры бюджета');
+      if (!parsed.success)
+        throw httpError(400, 'ai_proposal_invalid_payload', 'Некорректные параметры бюджета');
       const budget = await this.budgets.upsert(userId, {
         categoryId: parsed.data.categoryId,
         month: parsed.data.month,
@@ -102,7 +107,8 @@ export class AiProposalsService {
 
     if (kind === 'goal') {
       const parsed = AiGoalProposalPayloadSchema.safeParse(payload);
-      if (!parsed.success) throw httpError(400, 'ai_proposal_invalid_payload', 'Некорректные параметры цели');
+      if (!parsed.success)
+        throw httpError(400, 'ai_proposal_invalid_payload', 'Некорректные параметры цели');
       const goal = await this.goals.create(userId, {
         title: parsed.data.title,
         targetAmount: parsed.data.targetAmount,
@@ -114,7 +120,8 @@ export class AiProposalsService {
     }
 
     const parsed = AiReminderProposalPayloadSchema.safeParse(payload);
-    if (!parsed.success) throw httpError(400, 'ai_proposal_invalid_payload', 'Некорректные параметры напоминания');
+    if (!parsed.success)
+      throw httpError(400, 'ai_proposal_invalid_payload', 'Некорректные параметры напоминания');
     await this.notifications.updateRules(userId, [
       {
         type: parsed.data.notificationType,

@@ -27,7 +27,10 @@ export type ExportQueryInput = z.infer<typeof ExportQuerySchema>;
  * Проверку совпадения с никнеймом делает API: здесь только форма.
  */
 export const DeleteAccountSchema = z.object({
-  password: z.string().min(1, { message: 'Введите пароль' }).max(128, { message: 'Пароль слишком длинный' }),
+  password: z
+    .string()
+    .min(1, { message: 'Введите пароль' })
+    .max(128, { message: 'Пароль слишком длинный' }),
   confirm: z.string().trim().min(1, { message: 'Введите никнейм для подтверждения' }).max(64),
 });
 export type DeleteAccountInput = z.infer<typeof DeleteAccountSchema>;

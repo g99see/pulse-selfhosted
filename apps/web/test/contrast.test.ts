@@ -49,10 +49,7 @@ describe('расчёт контраста (ТЗ §6, WCAG 2.1 AA)', () => {
   });
 
   it('симметричен относительно порядка аргументов', () => {
-    expect(contrastRatio('#F2A25C', '#FFFFFF')).toBeCloseTo(
-      contrastRatio('#FFFFFF', '#F2A25C'),
-      5,
-    );
+    expect(contrastRatio('#F2A25C', '#FFFFFF')).toBeCloseTo(contrastRatio('#FFFFFF', '#F2A25C'), 5);
   });
 
   it('держит 4.5:1 для всех текстовых пар светлой темы', () => {

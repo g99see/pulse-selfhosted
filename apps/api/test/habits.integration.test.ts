@@ -37,7 +37,9 @@ interface HabitTodayItem extends HabitDto, HabitStatsLike {
 /** Ключ календарного дня (UTC) со сдвигом от сегодня. */
 function dayKey(offset = 0): string {
   const now = new Date();
-  const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + offset));
+  const date = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + offset),
+  );
   return date.toISOString().slice(0, 10);
 }
 
@@ -82,7 +84,11 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -102,12 +108,23 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
       const client = await signUp('habit@example.com', 'habituser');
       const habit = await createHabit(client, { name: 'Вода', icon: '💧', cadence: 'daily' });
 
-      expect(habit).toMatchObject({ name: 'Вода', icon: '💧', cadence: 'daily', perWeek: 1, archived: false });
+      expect(habit).toMatchObject({
+        name: 'Вода',
+        icon: '💧',
+        cadence: 'daily',
+        perWeek: 1,
+        archived: false,
+      });
     });
 
     it('создаёт недельную привычку с целью в неделю', async () => {
       const client = await signUp('habit-week@example.com', 'habitweek');
-      const habit = await createHabit(client, { name: 'Спорт', icon: '🏃', cadence: 'weekly', perWeek: 3 });
+      const habit = await createHabit(client, {
+        name: 'Спорт',
+        icon: '🏃',
+        cadence: 'weekly',
+        perWeek: 3,
+      });
       expect(habit).toMatchObject({ cadence: 'weekly', perWeek: 3 });
     });
 
@@ -115,7 +132,10 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
       const client = await signUp('habit-edit@example.com', 'habitedit');
       const habit = await createHabit(client, { name: 'Чтение' });
 
-      const updated = await client.put(`/api/habits/${habit.id}`, { name: 'Чтение 20 минут', perWeek: 5 });
+      const updated = await client.put(`/api/habits/${habit.id}`, {
+        name: 'Чтение 20 минут',
+        perWeek: 5,
+      });
       expect(updated.status).toBe(200);
       expect(updated.body).toMatchObject({ name: 'Чтение 20 минут', cadence: 'daily', perWeek: 1 });
 
@@ -137,7 +157,9 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
     it('отклоняет неверные данные', async () => {
       const client = await signUp('habit-bad@example.com', 'habitbad');
       expect((await client.post('/api/habits', { name: '' })).status).toBe(400);
-      expect((await client.post('/api/habits', { name: 'x', cadence: 'monthly' })).status).toBe(400);
+      expect((await client.post('/api/habits', { name: 'x', cadence: 'monthly' })).status).toBe(
+        400,
+      );
       expect((await client.post('/api/habits', { name: 'x', perWeek: 8 })).status).toBe(400);
     });
   });
@@ -171,7 +193,10 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
       const habit = await createHabit(client, { name: 'Прогулка' });
       await client.post(`/api/habits/${habit.id}/log`, { date: dayKey(0) });
 
-      const removed = await client.post(`/api/habits/${habit.id}/log`, { date: dayKey(0), done: false });
+      const removed = await client.post(`/api/habits/${habit.id}/log`, {
+        date: dayKey(0),
+        done: false,
+      });
       expect(removed.status).toBe(201);
       expect(removed.body.log).toBeNull();
       expect(removed.body.stats).toMatchObject({ streak: 0, totalDone: 0 });
@@ -190,7 +215,12 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
     it('today показывает активные привычки с отметкой сегодня', async () => {
       const client = await signUp('habit-today@example.com', 'habittoday');
       const water = await createHabit(client, { name: 'Вода', icon: '💧' });
-      const sport = await createHabit(client, { name: 'Спорт', icon: '🏃', cadence: 'weekly', perWeek: 3 });
+      const sport = await createHabit(client, {
+        name: 'Спорт',
+        icon: '🏃',
+        cadence: 'weekly',
+        perWeek: 3,
+      });
       await client.post(`/api/habits/${water.id}/log`, { date: dayKey(0) });
 
       const response = await client.get('/api/habits/today');
@@ -199,7 +229,10 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
       const items = response.body.habits as HabitTodayItem[];
       expect(items).toHaveLength(2);
       expect(items.find((item) => item.id === water.id)).toMatchObject({ done: true, streak: 1 });
-      expect(items.find((item) => item.id === sport.id)).toMatchObject({ done: false, cadence: 'weekly' });
+      expect(items.find((item) => item.id === sport.id)).toMatchObject({
+        done: false,
+        cadence: 'weekly',
+      });
     });
 
     it('today не показывает архивные привычки', async () => {
@@ -239,7 +272,9 @@ describe('Habits API (интеграция с PostgreSQL)', () => {
       expect((await bob.get(`/api/habits/${aliceHabit.id}`)).status).toBe(404);
       expect((await bob.put(`/api/habits/${aliceHabit.id}`, { name: 'Взлом' })).status).toBe(404);
       expect((await bob.del(`/api/habits/${aliceHabit.id}`)).status).toBe(404);
-      expect((await bob.post(`/api/habits/${aliceHabit.id}/log`, { date: dayKey(0) })).status).toBe(404);
+      expect((await bob.post(`/api/habits/${aliceHabit.id}/log`, { date: dayKey(0) })).status).toBe(
+        404,
+      );
 
       expect((await alice.get(`/api/habits/${aliceHabit.id}`)).body.name).toBe('Привычка Алисы');
     });

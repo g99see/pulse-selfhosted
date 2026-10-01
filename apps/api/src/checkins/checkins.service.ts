@@ -35,7 +35,11 @@ export function resolveOccurredAt(value: string | undefined, now: Date): Date {
     throw httpError(400, 'validation_error', 'Нельзя заполнить чек-ин в будущем');
   }
   if (!isWithinBackdateWindow(parsed, now)) {
-    throw httpError(400, 'checkin_window_expired', 'Заполнить задним числом можно в течение 24 часов');
+    throw httpError(
+      400,
+      'checkin_window_expired',
+      'Заполнить задним числом можно в течение 24 часов',
+    );
   }
   return parsed;
 }
@@ -155,7 +159,8 @@ export class CheckinsService {
     if (input.note !== undefined) data.note = input.note;
     if (input.daySummary !== undefined) data.daySummary = input.daySummary;
     if (input.slot !== undefined) data.slot = input.slot;
-    if (input.occurredAt !== undefined) data.occurredAt = resolveOccurredAt(input.occurredAt, new Date());
+    if (input.occurredAt !== undefined)
+      data.occurredAt = resolveOccurredAt(input.occurredAt, new Date());
 
     const updated = await this.prisma.checkIn.update({ where: { id }, data });
     return toCheckInDto(updated);

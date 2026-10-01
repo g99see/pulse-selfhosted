@@ -84,10 +84,17 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
     mail.clearOutbox();
   });
 
-  async function signUp(email: string, nickname: string): Promise<{ client: TestClient; userId: string }> {
+  async function signUp(
+    email: string,
+    nickname: string,
+  ): Promise<{ client: TestClient; userId: string }> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
 
     const token = mail.lastVerificationTokenFor(email);
@@ -100,9 +107,16 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
 
   /** Наполняет аккаунт данными всех сущностей, кроме тех, что создаёт только API. */
   async function seed(client: TestClient, userId: string): Promise<void> {
-    const account = await client.post('/api/finance/accounts', { name: 'Карта', type: 'card', balance: 10000 });
+    const account = await client.post('/api/finance/accounts', {
+      name: 'Карта',
+      type: 'card',
+      balance: 10000,
+    });
     expect(account.status).toBe(201);
-    const category = await client.post('/api/finance/categories', { name: 'Кафе', kind: 'expense' });
+    const category = await client.post('/api/finance/categories', {
+      name: 'Кафе',
+      kind: 'expense',
+    });
     expect(category.status).toBe(201);
 
     await client.post('/api/finance/transactions', {
@@ -113,9 +127,15 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
       comment: 'обед',
       date: '2026-10-01',
     });
-    await client.put('/api/finance/budgets', { categoryId: category.body.id, month: '2026-10', limit: 5000 });
+    await client.put('/api/finance/budgets', {
+      categoryId: category.body.id,
+      month: '2026-10',
+      limit: 5000,
+    });
 
-    await prisma.checkIn.create({ data: { userId, mood: 4, energy: 3, tags: ['работа'], note: 'спокойный день' } });
+    await prisma.checkIn.create({
+      data: { userId, mood: 4, energy: 3, tags: ['работа'], note: 'спокойный день' },
+    });
     await prisma.notificationRule.create({
       data: { userId, type: 'checkins', channel: 'web_push', schedule: { times: ['09:00'] } },
     });
@@ -162,7 +182,9 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('application/json');
-      expect(response.headers['content-disposition']).toMatch(/^attachment; filename="puls-export-exportuser-\d{4}-\d{2}-\d{2}\.json"/);
+      expect(response.headers['content-disposition']).toMatch(
+        /^attachment; filename="puls-export-exportuser-\d{4}-\d{2}-\d{2}\.json"/,
+      );
       expect(response.headers['cache-control']).toBe('no-store');
 
       const doc = response.body as {
@@ -177,7 +199,11 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
       expect(doc.format).toBe('puls.export');
       expect(doc.version).toBe(1);
       expect(Number.isNaN(Date.parse(doc.generatedAt))).toBe(false);
-      expect(doc.user).toMatchObject({ email: 'export@example.com', nickname: 'exportuser', currency: 'RUB' });
+      expect(doc.user).toMatchObject({
+        email: 'export@example.com',
+        nickname: 'exportuser',
+        currency: 'RUB',
+      });
       expect(doc.user).not.toHaveProperty('password_hash');
       expect(doc.user).not.toHaveProperty('passwordHash');
       expect(doc.user).not.toHaveProperty('password');
@@ -203,7 +229,10 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
       const response = await bob.client.get('/api/account/export');
 
       expect(response.status).toBe(200);
-      const doc = response.body as { data: Record<string, unknown[]>; user: Record<string, unknown> };
+      const doc = response.body as {
+        data: Record<string, unknown[]>;
+        user: Record<string, unknown>;
+      };
       expect(doc.user.email).toBe('bob-export@example.com');
       expect(doc.data.accounts).toHaveLength(0);
       expect(doc.data.transactions).toHaveLength(0);
@@ -223,12 +252,14 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
       const { client, userId } = await signUp('csv@example.com', 'csvuser');
       await seed(client, userId);
 
-      const account = (await client.get('/api/finance/accounts')).body.accounts[0] as { id: string };
+      const account = (await client.get('/api/finance/accounts')).body.accounts[0] as {
+        id: string;
+      };
       await client.post('/api/finance/transactions', {
         accountId: account.id,
         type: 'expense',
         amount: 100,
-        comment: '=cmd|\'/C calc\'!A0',
+        comment: "=cmd|'/C calc'!A0",
         date: '2026-10-02',
       });
 
@@ -236,7 +267,9 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('application/zip');
-      expect(response.headers['content-disposition']).toMatch(/^attachment; filename="puls-export-csvuser-\d{4}-\d{2}-\d{2}\.zip"/);
+      expect(response.headers['content-disposition']).toMatch(
+        /^attachment; filename="puls-export-csvuser-\d{4}-\d{2}-\d{2}\.zip"/,
+      );
 
       const zip = response.body as Buffer;
       expect(Buffer.isBuffer(zip)).toBe(true);
@@ -257,7 +290,13 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
         ]),
       );
       // Сессии, токены и push-подписки в выгрузку не попадают.
-      expect(names).not.toEqual(expect.arrayContaining(['sessions.csv', 'email_verification_tokens.csv', 'push_subscriptions.csv']));
+      expect(names).not.toEqual(
+        expect.arrayContaining([
+          'sessions.csv',
+          'email_verification_tokens.csv',
+          'push_subscriptions.csv',
+        ]),
+      );
 
       const usersCsv = files.find((file) => file.name === 'users.csv')?.text ?? '';
       expect(usersCsv).toContain('csv@example.com');
@@ -307,11 +346,17 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
     it('отклоняет несовпадающее подтверждение и неверный пароль', async () => {
       const { client, userId } = await signUp('confirm@example.com', 'confirmuser');
 
-      const mismatch = await client.del('/api/account', { password: PASSWORD, confirm: 'другой-ник' });
+      const mismatch = await client.del('/api/account', {
+        password: PASSWORD,
+        confirm: 'другой-ник',
+      });
       expect(mismatch.status).toBe(400);
       expect(mismatch.body.code).toBe('confirmation_mismatch');
 
-      const wrongPassword = await client.del('/api/account', { password: 'WrongPass123', confirm: 'confirmuser' });
+      const wrongPassword = await client.del('/api/account', {
+        password: 'WrongPass123',
+        confirm: 'confirmuser',
+      });
       expect(wrongPassword.status).toBe(403);
       expect(wrongPassword.body.code).toBe('invalid_password');
 
@@ -324,17 +369,25 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
       await seed(alice.client, alice.userId);
       await seed(bob.client, bob.userId);
 
-      const response = await alice.client.del('/api/account', { password: PASSWORD, confirm: 'alicedeluser' });
+      const response = await alice.client.del('/api/account', {
+        password: PASSWORD,
+        confirm: 'alicedeluser',
+      });
       expect(response.status).toBe(204);
 
       // Cookie сессии сброшен.
       const setCookie = response.headers['set-cookie'] as unknown as string[] | undefined;
-      expect(Array.isArray(setCookie) ? setCookie.join(';') : String(setCookie)).toMatch(/puls_session=;/);
+      expect(Array.isArray(setCookie) ? setCookie.join(';') : String(setCookie)).toMatch(
+        /puls_session=;/,
+      );
 
       // Сессия больше не действует: после сброса cookie повторный запрос — 401.
       expect((await alice.client.get('/api/auth/me')).status).toBe(401);
       await alice.client.csrf();
-      expect((await alice.client.del('/api/account', { password: PASSWORD, confirm: 'alicedeluser' })).status).toBe(401);
+      expect(
+        (await alice.client.del('/api/account', { password: PASSWORD, confirm: 'alicedeluser' }))
+          .status,
+      ).toBe(401);
 
       // Ни одной строки по user_id во всех таблицах схемы.
       const tables = await listUserTables(prisma);
@@ -358,7 +411,9 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
     it('без сессии — 401', async () => {
       const anon = new TestClient(server);
       await anon.csrf();
-      expect((await anon.del('/api/account', { password: PASSWORD, confirm: 'nobody' })).status).toBe(401);
+      expect(
+        (await anon.del('/api/account', { password: PASSWORD, confirm: 'nobody' })).status,
+      ).toBe(401);
     });
   });
 });

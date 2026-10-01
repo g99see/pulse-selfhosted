@@ -55,7 +55,9 @@ async function verificationTokenFor(request: APIRequestContext, email: string): 
     .reverse()
     .find((message) => message.to === email && message.kind === 'email-verification');
   expect(letter, `письмо для ${email}`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(letter?.link ?? letter?.text ?? '')?.[1];
+  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
+    letter?.link ?? letter?.text ?? '',
+  )?.[1];
   expect(token).toBeTruthy();
   return token as string;
 }

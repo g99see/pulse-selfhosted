@@ -20,7 +20,9 @@ describe('resolveOccurredAt (ТЗ §3.3)', () => {
   });
 
   it('принимает время в пределах 24 часов', () => {
-    expect(resolveOccurredAt('2026-09-30T13:00:00.000Z', NOW).toISOString()).toBe('2026-09-30T13:00:00.000Z');
+    expect(resolveOccurredAt('2026-09-30T13:00:00.000Z', NOW).toISOString()).toBe(
+      '2026-09-30T13:00:00.000Z',
+    );
   });
 
   it('отклоняет старше 24 часов кодом checkin_window_expired', () => {

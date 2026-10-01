@@ -34,9 +34,18 @@ import type { SessionContext } from '../session.service';
 import { constantTimeEqual } from '../tokens';
 import { ExternalAuthService, needsEmail } from './external-auth.service';
 import { GOOGLE_OAUTH_GATEWAY, type GoogleOAuthGateway } from './google.gateway';
-import { OAuthStateService, OAUTH_STATE_TTL_SECONDS, type OAuthIntent } from './oauth-state.service';
+import {
+  OAuthStateService,
+  OAUTH_STATE_TTL_SECONDS,
+  type OAuthIntent,
+} from './oauth-state.service';
 import { googleConfig, providerAvailability, telegramConfig, type GoogleConfig } from './providers';
-import { TelegramAuthError, verifyTelegramAuth, type TelegramAuthPayload, type TelegramVerifiedUser } from './telegram';
+import {
+  TelegramAuthError,
+  verifyTelegramAuth,
+  type TelegramAuthPayload,
+  type TelegramVerifiedUser,
+} from './telegram';
 
 /** httpOnly-cookie со state: JS её не читает и подделать не может. */
 export const OAUTH_STATE_COOKIE = 'puls_oauth_state';
@@ -57,7 +66,10 @@ function stateCookieOptions(): CookieOptions {
 
 @Controller('auth')
 export class ExternalAuthController {
-  private readonly webAppUrl = (process.env.WEB_APP_URL ?? 'http://localhost:3000').replace(/\/+$/, '');
+  private readonly webAppUrl = (process.env.WEB_APP_URL ?? 'http://localhost:3000').replace(
+    /\/+$/,
+    '',
+  );
   private readonly configuredRedirectUri = process.env.GOOGLE_REDIRECT_URI ?? '';
 
   constructor(
@@ -75,7 +87,8 @@ export class ExternalAuthController {
   @Get('google/start')
   async googleStart(@Req() req: Request, @Res() res: Response): Promise<void> {
     const config = googleConfig();
-    if (!config) throw httpError(404, 'provider_disabled', 'Вход через Google не настроен на этом сервере');
+    if (!config)
+      throw httpError(404, 'provider_disabled', 'Вход через Google не настроен на этом сервере');
 
     await this.beginGoogle(req, res, config, 'login');
   }
@@ -84,7 +97,8 @@ export class ExternalAuthController {
   @UseGuards(SessionGuard)
   async linkGoogleStart(@Req() req: AuthenticatedRequest, @Res() res: Response): Promise<void> {
     const config = googleConfig();
-    if (!config) throw httpError(404, 'provider_disabled', 'Вход через Google не настроен на этом сервере');
+    if (!config)
+      throw httpError(404, 'provider_disabled', 'Вход через Google не настроен на этом сервере');
 
     await this.beginGoogle(req, res, config, 'link', req.user!.id);
   }
@@ -98,7 +112,8 @@ export class ExternalAuthController {
     @Res() res: Response,
   ): Promise<void> {
     const config = googleConfig();
-    if (!config) throw httpError(404, 'provider_disabled', 'Вход через Google не настроен на этом сервере');
+    if (!config)
+      throw httpError(404, 'provider_disabled', 'Вход через Google не настроен на этом сервере');
 
     const failed = (reason: string): void => {
       res.redirect(`${this.webAppUrl}/login?error=${reason}`);
@@ -158,10 +173,14 @@ export class ExternalAuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ user: ReturnType<typeof toPublicUser>; needsEmail: boolean }> {
     const config = telegramConfig();
-    if (!config) throw httpError(404, 'provider_disabled', 'Вход через Telegram не настроен на этом сервере');
+    if (!config)
+      throw httpError(404, 'provider_disabled', 'Вход через Telegram не настроен на этом сервере');
 
     const verified = this.verifyTelegram(body, config.botToken);
-    const { user, token, expiresAt } = await this.external.loginWithTelegram(verified, contextOf(req));
+    const { user, token, expiresAt } = await this.external.loginWithTelegram(
+      verified,
+      contextOf(req),
+    );
     res.cookie(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
     return { user: toPublicUser(user), needsEmail: needsEmail(user) };
   }
@@ -180,7 +199,8 @@ export class ExternalAuthController {
     @Req() req: AuthenticatedRequest,
   ) {
     const config = telegramConfig();
-    if (!config) throw httpError(404, 'provider_disabled', 'Вход через Telegram не настроен на этом сервере');
+    if (!config)
+      throw httpError(404, 'provider_disabled', 'Вход через Telegram не настроен на этом сервере');
 
     const verified = this.verifyTelegram(body, config.botToken);
     await this.external.linkTelegramIdentity(req.user!.id, verified);
@@ -190,7 +210,10 @@ export class ExternalAuthController {
   @Delete('identities/:provider')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(SessionGuard)
-  async unlink(@Param('provider') provider: string, @Req() req: AuthenticatedRequest): Promise<void> {
+  async unlink(
+    @Param('provider') provider: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
     const parsed = ExternalProviderSchema.safeParse(provider);
     if (!parsed.success) throw httpError(404, 'identity_not_found', 'Неизвестный способ входа');
 

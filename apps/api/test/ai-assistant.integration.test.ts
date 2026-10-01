@@ -46,7 +46,12 @@ class FakeAiProvider {
   }
 }
 
-const textResult = (text: string): AiCompletionResult => ({ text, toolCalls: [], tokensIn: 10, tokensOut: 5 });
+const textResult = (text: string): AiCompletionResult => ({
+  text,
+  toolCalls: [],
+  tokensIn: 10,
+  tokensOut: 5,
+});
 const toolResult = (name: string, args: Record<string, unknown>): AiCompletionResult => ({
   text: '',
   toolCalls: [{ id: `call-${name}`, name, arguments: args }],
@@ -111,9 +116,19 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
     mail.clearOutbox();
   });
 
-  async function signUp(email: string, nickname: string, timezone = 'Europe/Moscow'): Promise<TestClient> {
+  async function signUp(
+    email: string,
+    nickname: string,
+    timezone = 'Europe/Moscow',
+  ): Promise<TestClient> {
     const user = await prisma.user.create({
-      data: { email, nickname, timezone, emailVerifiedAt: new Date(), onboardingCompletedAt: new Date() },
+      data: {
+        email,
+        nickname,
+        timezone,
+        emailVerifiedAt: new Date(),
+        onboardingCompletedAt: new Date(),
+      },
     });
     const { token } = await sessions.create(user.id, { userAgent: 'vitest' });
     const client = new TestClient(server);
@@ -125,7 +140,9 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
   const userByEmail = (email: string) => prisma.user.findUniqueOrThrow({ where: { email } });
 
   async function seedExpense(userId: string, amount: number, categoryId?: string): Promise<void> {
-    const account = await prisma.account.create({ data: { userId, name: 'Карта', type: 'card', balance: 0 } });
+    const account = await prisma.account.create({
+      data: { userId, name: 'Карта', type: 'card', balance: 0 },
+    });
     const day = new Date().toISOString().slice(0, 10);
     await prisma.transaction.create({
       data: {
@@ -159,14 +176,19 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
     expect(provider.calls[0]!.request.system).toBe(AI_SYSTEM_PROMPT);
     expect(provider.calls[0]!.request.tools?.length).toBeGreaterThan(0);
     // Второй вызов содержит результат вызова инструмента для этой же сессии.
-    const toolMessage = provider.calls[1]!.request.messages.find((message) => message.role === 'tool');
+    const toolMessage = provider.calls[1]!.request.messages.find(
+      (message) => message.role === 'tool',
+    );
     expect(toolMessage?.toolCallId).toBe('call-get_spending_summary');
     expect(provider.calls[1]!.userId).toBe((await userByEmail('ai-loop@example.com')).id);
   });
 
   it('предложение сохраняется pending, применяется кнопкой и идемпотентно', async () => {
     const client = await signUp('ai-propose@example.com', 'proposer');
-    const categories = (await client.get('/api/finance/categories')).body.categories as { id: string; kind: string }[];
+    const categories = (await client.get('/api/finance/categories')).body.categories as {
+      id: string;
+      kind: string;
+    }[];
     const category = categories.find((item) => item.kind === 'expense')!;
     const month = new Date().toISOString().slice(0, 7);
 
@@ -206,7 +228,9 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
 
   it('напоминание применяется как правило уведомлений', async () => {
     const client = await signUp('ai-reminder@example.com', 'reminderer');
-    provider.push(toolResult('propose_reminder', { notificationType: 'budget', times: ['10:00', '20:00'] }));
+    provider.push(
+      toolResult('propose_reminder', { notificationType: 'budget', times: ['10:00', '20:00'] }),
+    );
     provider.push(textResult('Предлагаю напоминание о бюджете.'));
 
     const chat = await client.post('/api/ai/chat', { message: 'Напомни про бюджет' });
@@ -268,7 +292,9 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
     const response = await a.post('/api/ai/chat', { message: 'Мои траты' });
     expect(response.status).toBe(200);
 
-    const toolMessage = provider.calls[1]!.request.messages.find((message) => message.role === 'tool');
+    const toolMessage = provider.calls[1]!.request.messages.find(
+      (message) => message.role === 'tool',
+    );
     expect(toolMessage?.content).toContain('1111');
     expect(toolMessage?.content).not.toContain('9999');
   });
@@ -277,7 +303,13 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
     const client = await signUp('ai-support@example.com', 'supporter');
     const user = await userByEmail('ai-support@example.com');
     await prisma.insight.create({
-      data: { userId: user.id, type: 'wellbeing_concern', textKey: 'insights.text.wellbeingConcern', params: {}, source: 'rule' },
+      data: {
+        userId: user.id,
+        type: 'wellbeing_concern',
+        textKey: 'insights.text.wellbeingConcern',
+        params: {},
+        source: 'rule',
+      },
     });
     provider.push(textResult('Мне жаль, что вам тяжело.'));
 

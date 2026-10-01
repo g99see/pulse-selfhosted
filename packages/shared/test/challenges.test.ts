@@ -105,10 +105,7 @@ describe('дни выдержки и серия', () => {
     expect(challengeCurrentStreak(checks, new Date('2026-10-08T10:00:00Z'))).toBe(3);
     // Пропущен день 7 — серия рвётся на дне 6.
     expect(
-      challengeCurrentStreak(
-        [{ date: '2026-10-06', ok: true }],
-        new Date('2026-10-08T10:00:00Z'),
-      ),
+      challengeCurrentStreak([{ date: '2026-10-06', ok: true }], new Date('2026-10-08T10:00:00Z')),
     ).toBe(0);
   });
 

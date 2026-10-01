@@ -61,7 +61,11 @@ describe('Жалобы и модерация (интеграция с PostgreSQL
   async function signUp(email: string, nickname: string): Promise<TestClient> {
     const client = new TestClient(server);
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
+    const registered = await client.post('/api/auth/register', {
+      email,
+      password: PASSWORD,
+      nickname,
+    });
     expect(registered.status).toBe(201);
     const token = mail.lastVerificationTokenFor(email);
     expect(token).toBeTruthy();
@@ -100,15 +104,18 @@ describe('Жалобы и модерация (интеграция с PostgreSQL
       const anon = new TestClient(server);
       await anon.csrf();
       expect(
-        (await anon.post('/api/reports', { targetType: 'post', targetId: 'p1', reason: 'spam' })).status,
+        (await anon.post('/api/reports', { targetType: 'post', targetId: 'p1', reason: 'spam' }))
+          .status,
       ).toBe(401);
 
       const client = await signUp('report-bad@example.com', 'reportbad');
       expect(
-        (await client.post('/api/reports', { targetType: 'nope', targetId: 'p1', reason: 'spam' })).status,
+        (await client.post('/api/reports', { targetType: 'nope', targetId: 'p1', reason: 'spam' }))
+          .status,
       ).toBe(400);
       expect(
-        (await client.post('/api/reports', { targetType: 'post', targetId: '', reason: 'spam' })).status,
+        (await client.post('/api/reports', { targetType: 'post', targetId: '', reason: 'spam' }))
+          .status,
       ).toBe(400);
       // Пояснение длиннее 1000 символов не проходит (ТЗ §3.7).
       expect(
@@ -227,10 +234,9 @@ describe('Жалобы и модерация (интеграция с PostgreSQL
       expect((actions.body as { actions: ModerationActionDto[] }).actions).toHaveLength(1);
 
       // Повторное решение по закрытой жалобе — 409.
-      const again = await moderatorClient.post(
-        `/api/moderation/reports/${reports[0].id}/resolve`,
-        { action: 'dismiss' },
-      );
+      const again = await moderatorClient.post(`/api/moderation/reports/${reports[0].id}/resolve`, {
+        action: 'dismiss',
+      });
       expect(again.status).toBe(409);
     });
 

@@ -9,7 +9,14 @@ import { encodeQr, qrDataUrl, qrToSvg } from './qr';
 const URI =
   'otpauth://totp/Puls:user@example.com?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=Puls&algorithm=SHA1&digits=6&period=30';
 
-const SNAPSHOTS: ReadonlyArray<{ data: string; ecc: 'L' | 'M' | 'Q'; mask?: number; version: number; size: number; matrix: string }> = [
+const SNAPSHOTS: ReadonlyArray<{
+  data: string;
+  ecc: 'L' | 'M' | 'Q';
+  mask?: number;
+  version: number;
+  size: number;
+  matrix: string;
+}> = [
   {
     data: 'HELLO',
     ecc: 'L',

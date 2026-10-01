@@ -41,12 +41,18 @@ describe('Схемы привычек', () => {
 
   it('правка принимает архивацию и частичные поля', () => {
     expect(HabitUpdateSchema.parse({ archived: true })).toEqual({ archived: true });
-    expect(HabitUpdateSchema.parse({ name: 'Спорт', perWeek: 3 })).toEqual({ name: 'Спорт', perWeek: 3 });
+    expect(HabitUpdateSchema.parse({ name: 'Спорт', perWeek: 3 })).toEqual({
+      name: 'Спорт',
+      perWeek: 3,
+    });
   });
 
   it('отметка по умолчанию — done=true без даты', () => {
     expect(HabitLogSchema.parse({})).toEqual({ done: true });
-    expect(HabitLogSchema.parse({ date: '2026-10-01' })).toEqual({ date: '2026-10-01', done: true });
+    expect(HabitLogSchema.parse({ date: '2026-10-01' })).toEqual({
+      date: '2026-10-01',
+      done: true,
+    });
     expect(HabitLogSchema.safeParse({ date: 'не дата' }).success).toBe(false);
   });
 });

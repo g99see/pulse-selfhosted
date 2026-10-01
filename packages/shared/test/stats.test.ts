@@ -58,7 +58,9 @@ describe('zonedDayBounds', () => {
   });
 
   it('работает для UTC и отрицательных смещений', () => {
-    expect(zonedDayBounds('2026-10-01', 'UTC').start.toISOString()).toBe('2026-10-01T00:00:00.000Z');
+    expect(zonedDayBounds('2026-10-01', 'UTC').start.toISOString()).toBe(
+      '2026-10-01T00:00:00.000Z',
+    );
     expect(zonedDayBounds('2026-10-01', 'UTC').end.toISOString()).toBe('2026-10-02T00:00:00.000Z');
 
     const newYork = zonedDayBounds('2026-10-01', 'America/New_York');
@@ -103,7 +105,12 @@ describe('суммы трат и доходов (ТЗ §3.4, переводы н
   it('на пустом списке возвращает 0 и убирает ошибки округления', () => {
     expect(sumSpent([])).toBe(0);
     expect(sumEarned([])).toBe(0);
-    expect(sumSpent([{ type: 'expense', amount: 0.1 }, { type: 'expense', amount: 0.2 }])).toBe(0.3);
+    expect(
+      sumSpent([
+        { type: 'expense', amount: 0.1 },
+        { type: 'expense', amount: 0.2 },
+      ]),
+    ).toBe(0.3);
   });
 });
 
@@ -154,7 +161,9 @@ describe('периоды отчётов (ТЗ §3.4)', () => {
       to: '2026-10-04',
     });
     // Воскресенье остаётся в той же неделе.
-    expect(periodRange('week', 'UTC', new Date('2026-10-04T23:00:00.000Z')).from).toBe('2026-09-28');
+    expect(periodRange('week', 'UTC', new Date('2026-10-04T23:00:00.000Z')).from).toBe(
+      '2026-09-28',
+    );
   });
 
   it('месяц — от первого до последнего числа', () => {
@@ -275,5 +284,3 @@ describe('сравнение периодов (ТЗ §3.4, разница в п�
     expect(comparison.earned.change).toBe(0);
   });
 });
-
-

@@ -152,7 +152,9 @@ export function ApiAccessSection() {
       <div data-testid="api-access-section" className="flex flex-col gap-6">
         <div>
           <h2 className="font-heading text-lg font-bold">{t('settings.apiAccess.title')}</h2>
-          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('settings.apiAccess.hint')}</p>
+          <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">
+            {t('settings.apiAccess.hint')}
+          </p>
         </div>
 
         {error ? <Alert>{error}</Alert> : null}
@@ -204,7 +206,11 @@ export function ApiAccessSection() {
               <p data-testid="api-token-value" className="break-all font-mono text-sm">
                 {createdToken}
               </p>
-              <GhostButton type="button" data-testid="api-token-copy" onClick={() => void copy(createdToken)}>
+              <GhostButton
+                type="button"
+                data-testid="api-token-copy"
+                onClick={() => void copy(createdToken)}
+              >
                 {copied ? t('settings.apiAccess.copied') : t('settings.apiAccess.copy')}
               </GhostButton>
             </div>
@@ -224,7 +230,9 @@ export function ApiAccessSection() {
                 >
                   <div className="flex flex-col">
                     <span className="font-medium">{token.name}</span>
-                    <span className="font-mono text-xs text-[var(--puls-ink-muted)]">{token.prefix}…</span>
+                    <span className="font-mono text-xs text-[var(--puls-ink-muted)]">
+                      {token.prefix}…
+                    </span>
                     <span className="text-xs text-[var(--puls-ink-muted)]">
                       {t('settings.apiAccess.lastUsed')}:{' '}
                       {token.lastUsedAt

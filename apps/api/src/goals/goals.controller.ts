@@ -1,5 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   GoalCreateSchema,
   GoalDepositSchema,

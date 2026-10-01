@@ -106,10 +106,17 @@ describe('схемы мультивалютности (ТЗ §3.2)', () => {
   });
 
   it('TransactionCreateSchema принимает валюту и курс', () => {
-    const parsed = TransactionCreateSchema.parse({ accountId: 'a', amount: 10, currency: 'usd', rate: 95 });
+    const parsed = TransactionCreateSchema.parse({
+      accountId: 'a',
+      amount: 10,
+      currency: 'usd',
+      rate: 95,
+    });
     expect(parsed.currency).toBe('USD');
     expect(parsed.rate).toBe(95);
-    expect(TransactionCreateSchema.safeParse({ accountId: 'a', amount: 10, rate: 0 }).success).toBe(false);
+    expect(TransactionCreateSchema.safeParse({ accountId: 'a', amount: 10, rate: 0 }).success).toBe(
+      false,
+    );
   });
 
   it('ExchangeRateCreateSchema требует разные валюты и положительный курс', () => {
@@ -121,10 +128,16 @@ describe('схемы мультивалютности (ТЗ §3.2)', () => {
     });
     expect(parsed).toMatchObject({ base: 'USD', quote: 'RUB', rate: 95, source: 'manual' });
     expect(
-      ExchangeRateCreateSchema.safeParse({ date: '2026-10-01', base: 'USD', quote: 'USD', rate: 1 }).success,
+      ExchangeRateCreateSchema.safeParse({ date: '2026-10-01', base: 'USD', quote: 'USD', rate: 1 })
+        .success,
     ).toBe(false);
     expect(
-      ExchangeRateCreateSchema.safeParse({ date: '2026-10-01', base: 'USD', quote: 'RUB', rate: -1 }).success,
+      ExchangeRateCreateSchema.safeParse({
+        date: '2026-10-01',
+        base: 'USD',
+        quote: 'RUB',
+        rate: -1,
+      }).success,
     ).toBe(false);
   });
 
