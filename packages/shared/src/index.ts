@@ -26,4 +26,5 @@ export * from './html-templates';
 export * from './social';
 export * from './profile';
 export * from './html-page';
+export * from './ai';
 export * from './moderation';
