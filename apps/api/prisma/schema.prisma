@@ -89,6 +89,8 @@ model User {
   htmlPage           HtmlPage?
   /// Версии HTML-страницы (ТЗ §3.8): последние 10 сохранений с откатом.
   htmlPageVersions   HtmlPageVersion[]
+  /// Предложения AI-помощника (ТЗ §3.9): бюджет, цель или напоминание.
+  aiProposals        AiProposal[]
 
   /// Личный AI-ключ (ТЗ §3.9) — один на пользователя; приоритетнее общего.
   aiKey              UserAiKey?
@@ -246,6 +248,31 @@ model Budget {
   @@unique([userId, categoryId, month])
   @@index([userId, month])
   @@map("budgets")
+}
+
+/// Предложение AI-помощника (ТЗ §3.9): бюджет, цель или напоминание, которое
+/// модель предлагает, но не сохраняет сама. Строка создаётся pending и ни на что
+/// не влияет; «Применить» валидирует payload и создаёт сущность через её сервис.
+/// result хранит { kind, id } созданного — повтор идемпотентен и не дублирует.
+model AiProposal {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// budget | goal | reminder.
+  kind      String
+  /// Человекочитаемое описание для кнопки «Применить».
+  summary   String
+  /// Параметры действия: схема зависит от kind, валидируется при применении.
+  payload   Json
+  /// pending | applied.
+  status    String    @default("pending")
+  /// Что создано при «Применить»: { kind, id } — для идемпотентного повтора.
+  result    Json?
+  appliedAt DateTime? @map("applied_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("ai_proposals")
 }
 
 /// Правило уведомлений (ТЗ §3.6, §7): тип, канал, расписание и тихие часы.
