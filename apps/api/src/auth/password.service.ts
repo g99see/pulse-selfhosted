@@ -17,12 +17,11 @@ export class PasswordService {
   private readonly logger = new Logger(PasswordService.name);
   private readonly settings: Argon2Settings;
 
-  constructor(settings?: Partial<Argon2Settings>) {
+  constructor() {
     this.settings = {
       memoryCost: Number(process.env.ARGON2_MEMORY_COST ?? 19_456),
       timeCost: Number(process.env.ARGON2_TIME_COST ?? 2),
       parallelism: Number(process.env.ARGON2_PARALLELISM ?? 1),
-      ...settings,
     };
   }
 

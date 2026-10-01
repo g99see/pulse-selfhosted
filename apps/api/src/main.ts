@@ -11,18 +11,11 @@ if (existsSync(envFile)) {
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-
-  // Служебные эндпоинты остаются на корне (/health), остальное — под /api.
-  app.setGlobalPrefix('api', { exclude: ['health'] });
-
-  const origins = (process.env.CORS_ORIGIN ?? 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-  app.enableCors({ origin: origins, credentials: true });
+  configureApp(app);
 
   const port = Number(process.env.API_PORT ?? 3001);
   await app.listen(port, '0.0.0.0');

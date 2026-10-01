@@ -4,7 +4,14 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // Юнит-тесты рядом с исходниками + интеграционные против PostgreSQL.
+    include: ['src/**/*.test.ts', 'test/**/*.integration.test.ts'],
+    setupFiles: ['./test/setup-files.ts'],
+    globalSetup: ['./test/global-setup.ts'],
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
+    // Тесты пишут в одну схему БД — не гоняем файлы параллельно.
+    fileParallelism: false,
     passWithNoTests: false,
   },
 });

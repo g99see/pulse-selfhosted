@@ -110,10 +110,9 @@ export class ValkeyRateLimitStore implements RateLimitStore {
 export class RateLimitService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RateLimitService.name);
   private readonly memory = new MemoryRateLimitStore();
+  private readonly redisUrl = process.env.REDIS_URL ?? '';
   private redis: Redis | null = null;
   private remote: RateLimitStore | null = null;
-
-  constructor(private readonly redisUrl = process.env.REDIS_URL ?? '') {}
 
   async onModuleInit(): Promise<void> {
     if (process.env.RATE_LIMIT_STORE === 'memory' || this.redisUrl.length === 0) {
