@@ -51,6 +51,22 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'user_achievements', entity: 'userAchievements', keyColumn: 'user_id', orderBy: '"earned_at"' },
   // Инсайты и оценки рекомендаций (ТЗ §3.5): тип, ключ текста и параметры — не секреты.
   { table: 'insights', entity: 'insights', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Публичный профиль (ТЗ §3.7): описание, аватар и обложка — не секреты, выгружаем.
+  { table: 'profiles', entity: 'profiles', keyColumn: 'user_id' },
+  // Карточки профиля (ТЗ §3.7): тип, приватность, режим и HTML — данные пользователя.
+  { table: 'profile_cards', entity: 'profileCards', keyColumn: 'user_id', orderBy: '"position"' },
+  // Жалобы, поданные пользователем (ТЗ §3.7): цель, причина и пояснение — его данные.
+  { table: 'reports', entity: 'reports', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // HTML-страница профиля (ТЗ §3.8): флаг публикации и текущая версия — данные пользователя.
+  { table: 'html_pages', entity: 'htmlPages', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Версии HTML-страницы (ТЗ §3.8): код, заметка и результат проверки — его данные.
+  { table: 'html_page_versions', entity: 'htmlPageVersions', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Посты ленты (ТЗ §3.7): тип, payload и приватность — не секреты, выгружаем.
+  { table: 'posts', entity: 'posts', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Реакции пользователя (ТЗ §3.7): post_id и эмодзи — его действия, выгружаем.
+  { table: 'reactions', entity: 'reactions', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Комментарии пользователя (ТЗ §3.7): тело — собственная запись, выгружаем.
+  { table: 'comments', entity: 'comments', keyColumn: 'user_id', orderBy: '"created_at"' },
 ];
 
 /** Таблицы с user_id, которые намеренно не выгружаются (секреты и артефакты). */
@@ -61,6 +77,8 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового кода привязки Telegram' },
   { table: 'two_factor_backup_codes', reason: 'секрет: хеши одноразовых резервных кодов 2FA' },
   { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
+  // Журнал модерации (ТЗ §2, §3.8): внутренний аудит экземпляра, не данные автора.
+  { table: 'moderation_actions', reason: 'внутренний журнал модерации экземпляра' },
 ];
 
 /** Колонки, которые никогда не попадают в выгрузку, в какой бы таблице ни лежали. */

@@ -58,6 +58,12 @@ services:
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
       RATES_PROVIDER: ${RATES_PROVIDER:-}
       APP_VERSION: ${APP_VERSION:-0.1.0}
+      # HTML-страница профиля (ТЗ §3.8): публичный домен песочницы нужен API,
+      # чтобы строить ссылку для iframe и CSP frame-ancestors основного домена.
+      DOMAIN: ${DOMAIN:-localhost}
+      SANDBOX_DOMAIN: ${SANDBOX_DOMAIN:-usercontent.localhost}
+      # Антивирус: host:port clamd. Пусто — заглушка noop с логом.
+      CLAMAV_HOST: ${CLAMAV_HOST:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -156,6 +162,8 @@ services:
       DOMAIN: ${DOMAIN:-localhost}
       SANDBOX_DOMAIN: ${SANDBOX_DOMAIN:-usercontent.localhost}
       ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+      # Публичный origin основного сайта — CSP frame-ancestors песочницы.
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
       # Caddy должен знать внешний порт HTTPS, иначе редирект с 80 ведёт на занятый 443.
       HTTPS_PORT: ${HTTPS_PORT:-443}
     volumes:

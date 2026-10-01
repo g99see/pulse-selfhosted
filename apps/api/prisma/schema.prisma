@@ -70,6 +70,25 @@ model User {
   telegramLink       TelegramLink?
   telegramLinkCodes  TelegramLinkCode[]
   insights           Insight[]
+  posts              Post[]
+  reactions          Reaction[]
+  comments           Comment[]
+  /// Подписки, которые оформил пользователь (ТЗ §3.7).
+  following          Follow[] @relation("FollowFollower")
+  /// Подписчики пользователя (ТЗ §3.7).
+  followers          Follow[] @relation("FollowFollowing")
+  /// Жалобы, поданные этим пользователем (ТЗ §3.7, §3.8).
+  reports            Report[]
+  /// Действия модерации, совершённые этим пользователем (ТЗ §2, §3.8).
+  moderationActions  ModerationAction[]
+  /// Публичный профиль (ТЗ §3.7): описание, аватар и обложка.
+  profile            Profile?
+  /// Карточки публичного профиля (ТЗ §3.7).
+  profileCards       ProfileCard[]
+  /// HTML-страница профиля (ТЗ §3.8) — одна на пользователя.
+  htmlPage           HtmlPage?
+  /// Версии HTML-страницы (ТЗ §3.8): последние 10 сохранений с откатом.
+  htmlPageVersions   HtmlPageVersion[]
 
   @@map("users")
 }
@@ -525,4 +544,268 @@ model UserAchievement {
   @@unique([userId, code])
   @@index([userId, earnedAt])
   @@map("user_achievements")
+}
+
+/// Подписка пользователя на другого (ТЗ §3.7): направленное ребро графа.
+/// Пара (follower_id, following_id) уникальна — повторная подписка идемпотентна.
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String   @map("follower_id")
+  follower    User     @relation("FollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String   @map("following_id")
+  following   User     @relation("FollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+/// Пост в ленте (ТЗ §3.7): достижение, новая цель или пройденная веха.
+/// payload — компактные данные для карточки (код бейджа, id/название цели,
+/// процент), суммы в ленте не публикуются. visibility — уровень приватности.
+model Post {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// achievement | goal | milestone.
+  type       String
+  payload    Json     @default("{}")
+  /// public | subscribers | private (ТЗ §3.7).
+  visibility String   @default("subscribers")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  reactions Reaction[]
+  comments  Comment[]
+
+  @@index([userId, createdAt])
+  @@index([createdAt, id])
+  @@map("posts")
+}
+
+/// Реакция-эмодзи на пост (ТЗ §3.7). Тройка (post_id, user_id, emoji)
+/// уникальна: один и тот же эмодзи нельзя поставить дважды.
+model Reaction {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+  @@index([userId])
+  @@map("reactions")
+}
+
+/// Комментарий к посту (ТЗ §3.7): тело не длиннее 500 символов (проверка в
+/// схеме shared). Удалять может автор комментария или владелец поста.
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@map("comments")
+}
+
+/// Публичный профиль (ТЗ §3.7): короткое описание, аватар и обложка. Одна
+/// строка на пользователя; набор карточек — в ProfileCard. Видимость самого
+/// профиля задаёт User.profileVisibility (public | subscribers | private).
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Короткое описание профиля (не длиннее 280 символов — проверка в shared).
+  bio       String?
+  /// Ссылка на аватар: http(s) или null (файлы не загружаются).
+  avatarUrl String?  @map("avatar_url")
+  /// Ссылка на обложку: http(s) или null.
+  coverUrl  String?  @map("cover_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+/// Карточка публичного профиля (ТЗ §3.7): тип, приватность, режим показа
+/// (проценты по умолчанию либо сумма) и необязательный HTML. Одна карточка
+/// каждого типа на пользователя (пара user_id + type уникальна). Суммы по
+/// умолчанию скрыты — показываются проценты (mode = percent).
+model ProfileCard {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Тип карточки: savings | checkin_streak | avg_mood | achievements | goals | html_page.
+  type       String
+  /// Приватность карточки: public | subscribers | private (private — только владельцу).
+  visibility String   @default("private")
+  /// Режим показа: percent (по умолчанию) | amount (только savings и goals).
+  mode       String   @default("percent")
+  /// Заголовок карточки (необязательный, до 80 символов).
+  title      String?
+  /// HTML-страница карточки (только для type = html_page, до 20 000 символов).
+  html       String?
+  /// Порядок отображения в профиле.
+  position   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("profile_cards")
+}
+
+/// Тип цели жалобы (ТЗ §3.7, §3.8): профиль, пост, комментарий или HTML-страница.
+enum ReportTargetType {
+  profile
+  post
+  comment
+  html_page
+
+  @@map("report_target_type")
+}
+
+/// Причина жалобы (ТЗ §3.7): спам, оскорбления, фишинг, незаконный контент, иное.
+enum ReportReason {
+  spam
+  abuse
+  phishing
+  illegal
+  other
+
+  @@map("report_reason")
+}
+
+/// Статус жалобы: открыта, рассмотрена, отклонена.
+enum ReportStatus {
+  open
+  resolved
+  dismissed
+
+  @@map("report_status")
+}
+
+/// Действие модератора по жалобе (ТЗ §2, §3.8).
+enum ModerationActionKind {
+  hide
+  unhide
+  ban_html
+  unban_html
+  dismiss
+
+  @@map("moderation_action_kind")
+}
+
+/// Жалоба на профиль или контент (ТЗ §3.7, §3.8). Любой вошедший может
+/// пожаловаться; дубль на ту же цель от того же автора и жалоба на себя
+/// блокируются на уровне сервиса. Каскадом удаляется вместе с автором.
+model Report {
+  id         String           @id @default(cuid())
+  reporterId String           @map("user_id")
+  reporter   User             @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType ReportTargetType @map("target_type")
+  /// Идентификатор цели: id пользователя, поста, комментария или HTML-страницы.
+  targetId   String           @map("target_id")
+  reason     ReportReason
+  /// Пояснение пользователя, до 1000 символов (проверяет zod-схема).
+  details    String?
+  status     ReportStatus     @default(open)
+  /// id модератора, закрывшего жалобу (без FK: журнал переживает удаление).
+  resolvedBy String?          @map("resolved_by")
+  /// Итог рассмотрения: текст решения модератора.
+  resolution String?
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@index([reporterId])
+  @@map("reports")
+}
+
+/// Действие модерации (ТЗ §2, §3.8): журнал скрытий, разблокировок HTML
+/// и отклонений. Каскадом удаляется вместе с модератором-автором.
+model ModerationAction {
+  id          String               @id @default(cuid())
+  moderatorId String               @map("user_id")
+  moderator   User                 @relation(fields: [moderatorId], references: [id], onDelete: Cascade)
+  action      ModerationActionKind
+  targetType  ReportTargetType     @map("target_type")
+  targetId    String               @map("target_id")
+  note        String?
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  @@index([targetType, targetId])
+  @@index([moderatorId])
+  @@map("moderation_actions")
+}
+
+/// Флаг скрытия контента (ТЗ §3.8): одна запись на цель. Профиль, лента и
+/// HTML-страница спрашивают его через ModerationService.isHidden().
+model ContentFlag {
+  id         String           @id @default(cuid())
+  targetType ReportTargetType @map("target_type")
+  targetId   String           @map("target_id")
+  hidden     Boolean          @default(false)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@unique([targetType, targetId])
+  @@index([hidden])
+  @@map("content_flags")
+}
+
+/// HTML-страница в публичном профиле (ТЗ §3.8): одна страница на пользователя,
+/// отдаётся с отдельного домена песочницы. published управляет видимостью (при
+/// этом показ дополнительно требует карточку html_page с публичной видимостью),
+/// currentVersionId — текущая версия. Блокировка по жалобам — через ContentFlag
+/// (target_type = html_page).
+model HtmlPage {
+  id               String            @id @default(cuid())
+  userId           String            @unique @map("user_id")
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Опубликована ли страница. blocked-версию опубликовать нельзя (ТЗ §3.8).
+  published        Boolean           @default(false)
+  /// Текущая версия; при удалении версии ссылка обнуляется.
+  currentVersionId String?           @unique @map("current_version_id")
+  currentVersion   HtmlPageVersion?  @relation("HtmlPageCurrent", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  versions HtmlPageVersion[] @relation("HtmlPageVersions")
+
+  @@map("html_pages")
+}
+
+/// Версия HTML-страницы (ТЗ §3.8): хранятся последние 10 сохранений, более
+/// старые удаляются. html — до 2 МБ. check_status/check_reasons — результат
+/// автопроверки этой версии (ok | blocked | flagged). Откат создаёт новую версию.
+model HtmlPageVersion {
+  id          String   @id @default(cuid())
+  pageId      String   @map("page_id")
+  page        HtmlPage @relation("HtmlPageVersions", fields: [pageId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// HTML-код версии; размер до 2 МБ проверяется в shared/schema.ts.
+  html        String
+  /// Необязательная заметка к версии (до 200 символов).
+  note        String?
+  /// Результат автопроверки: ok | blocked | flagged.
+  checkStatus String   @default("ok") @map("check_status")
+  /// Причины автопроверки — массив HtmlCheckReason.
+  checkReasons Json    @default("[]") @map("check_reasons")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  currentFor HtmlPage? @relation("HtmlPageCurrent")
+
+  @@index([pageId, createdAt])
+  @@index([userId])
+  @@map("html_page_versions")
 }

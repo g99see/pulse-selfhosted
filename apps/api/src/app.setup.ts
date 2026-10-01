@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { INestApplication } from '@nestjs/common';
+import { RequestMethod } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
 
@@ -8,7 +9,11 @@ import { json } from 'express';
  * CORS с cookie, разбор cookie и доверие одному прокси (Caddy впереди).
  */
 export function configureApp(app: INestApplication): void {
-  app.setGlobalPrefix('api', { exclude: ['health'] });
+  // Публичная отдача HTML песочницы (ТЗ §3.8) живёт вне префикса /api:
+  // на домене SANDBOX_DOMAIN Caddy проксирует сюда только /sandbox/*.
+  app.setGlobalPrefix('api', {
+    exclude: ['health', { path: 'sandbox/:nickname', method: RequestMethod.GET }],
+  });
 
   // Импорт банковской выписки (ТЗ §3.2) присылает CSV до 2 МБ в теле JSON;
   // стандартного лимита Express (100 КБ) не хватает. Наш парсер регистрируется

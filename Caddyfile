@@ -32,14 +32,27 @@
 	}
 }
 
-# Песочница пользовательского HTML: отдельный домен, никакого доступа
-# к cookie основного сайта, запрет форм и автоперенаправлений.
+# Песочница пользовательского HTML (ТЗ §3.8, §6): отдельный домен, никакого
+# доступа к cookie основного сайта. Проксируем ТОЛЬКО /sandbox/* на API,
+# остальное — 404. Cookie срезаются в обе стороны: вошедший пользователь
+# основного сайта не «протекает» в песочницу.
 {$SANDBOX_DOMAIN:usercontent.localhost} {
-	root * /srv/usercontent
-	file_server
+	handle /sandbox/* {
+		reverse_proxy api:3001 {
+			header_up -Cookie
+			header_down -Set-Cookie
+		}
+	}
+	handle {
+		respond 404
+	}
+
 	header {
-		Content-Security-Policy "default-src 'none'; img-src * data:; style-src 'unsafe-inline'; font-src *; frame-ancestors {$DOMAIN:localhost}; form-action 'none'; base-uri 'none'"
+		# Строгая CSP — backstop поверх той, что ставит API (ТЗ §3.8).
+		Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https:; img-src https: data:; form-action 'none'; base-uri 'none'; frame-ancestors {$PUBLIC_ORIGIN:http://localhost}"
 		X-Content-Type-Options "nosniff"
-		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "no-referrer"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
 	}
 }

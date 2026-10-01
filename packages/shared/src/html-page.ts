@@ -41,6 +41,8 @@ export const HtmlCheckCodes = [
   'external_script',
   /** Скрипт обращается к внешнему адресу (fetch / XHR / sendBeacon). */
   'external_request',
+  /** Антивирус (ClamAV) нашёл угрозу в файле. */
+  'antivirus',
 ] as const;
 export const HtmlCheckCodeSchema = z.enum(HtmlCheckCodes);
 export type HtmlCheckCode = (typeof HtmlCheckCodes)[number];
@@ -77,6 +79,7 @@ const REASON_MESSAGES: Record<HtmlCheckCode, string> = {
   javascript_url: 'Ссылка javascript: вместо обычного адреса',
   external_script: 'Подключён внешний скрипт — CSP его заблокирует',
   external_request: 'Скрипт обращается к стороннему адресу',
+  antivirus: 'Антивирус нашёл угрозу в этом файле',
 };
 
 /** Слова, выдающие фишинговую ссылку (логин, пароль, банк и т.п.). */
