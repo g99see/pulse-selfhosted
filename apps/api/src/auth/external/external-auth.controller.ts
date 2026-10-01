@@ -23,6 +23,7 @@ import {
 } from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
 import { ExternalProviderSchema, TelegramAuthSchema } from '@puls/shared';
+import { cookieSecure } from '../../common/cookie-secure';
 import { httpError } from '../../common/http-error';
 import { ZodValidationPipe } from '../../common/zod-validation.pipe';
 import { toPublicUser } from '../auth.service';
@@ -41,7 +42,7 @@ import { TelegramAuthError, verifyTelegramAuth, type TelegramAuthPayload, type T
 export const OAUTH_STATE_COOKIE = 'puls_oauth_state';
 
 function secureCookies(): boolean {
-  return process.env.NODE_ENV === 'production';
+  return cookieSecure();
 }
 
 function stateCookieOptions(): CookieOptions {
