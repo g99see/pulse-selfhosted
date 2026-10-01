@@ -149,7 +149,7 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
         </p>
       ) : null}
 
-      <ul className="flex flex-col divide-y divide-[var(--puls-ink-muted)]/15" data-testid="recurring-list">
+      <ul className={`flex flex-col divide-y divide-[var(--puls-ink-muted)]/15 ${loading ? 'min-h-11' : ''}`} data-testid="recurring-list">
         {payments.map((payment) => (
           <li key={payment.id} className="flex items-center justify-between gap-3 py-2" data-testid="recurring-item">
             <span className="flex flex-col">
@@ -328,7 +328,7 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
       </form>
 
       <h3 className="text-sm font-semibold">{t('finance.recurring.upcoming')}</h3>
-      <ul className="flex flex-col gap-1 text-sm" data-testid="recurring-upcoming">
+      <ul className={`flex flex-col gap-1 text-sm ${loading ? 'min-h-5' : ''}`} data-testid="recurring-upcoming">
         {upcoming.map((item) => (
           <li key={`${item.paymentId}-${item.date}`} className="flex items-center justify-between gap-3">
             <span>

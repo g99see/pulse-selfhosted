@@ -164,9 +164,11 @@ function CategoryFormFields({
 export function CategoryManager({
   categories,
   onChanged,
+  loading = false,
 }: {
   categories: CategoryDto[];
   onChanged: () => void;
+  loading?: boolean;
 }) {
   const { t } = useT();
 
@@ -404,7 +406,7 @@ export function CategoryManager({
         <h3 className="text-sm font-semibold">{t('finance.categories.system')}</h3>
         <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.systemHint')}</p>
         <ul
-          className="flex flex-wrap gap-2"
+          className={`flex flex-wrap gap-2 ${loading ? 'min-h-32' : ''}`}
           data-testid="finance-system-categories"
           aria-label={t('finance.categories.systemListLabel')}
         >

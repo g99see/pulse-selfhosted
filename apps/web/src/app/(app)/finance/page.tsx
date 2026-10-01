@@ -181,7 +181,13 @@ export default function FinancePage() {
               {money(overview.totalBalance)}
             </span>
           </p>
-        ) : null}
+        ) : (
+          // Резервируем строку до загрузки данных, чтобы шапка не сдвигала макет (CLS).
+          <p className="text-sm text-[var(--puls-ink-muted)]">
+            {t('finance.total')}{' '}
+            <span className="font-semibold text-[var(--puls-ink)] [font-variant-numeric:tabular-nums]" />
+          </p>
+        )}
       </div>
 
       {error ? (
@@ -192,7 +198,7 @@ export default function FinancePage() {
 
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t('finance.accounts')}</h2>
-        <ul className={`flex flex-col gap-2 ${loading ? 'min-h-24' : ''}`} data-testid="finance-accounts">
+        <ul className="flex min-h-24 flex-col gap-2" data-testid="finance-accounts">
           {accounts.map((account) => (
             <li
               key={account.id}
@@ -276,7 +282,7 @@ export default function FinancePage() {
         </form>
       </section>
 
-      <CategoryManager categories={categories} onChanged={() => void reload()} />
+      <CategoryManager categories={categories} loading={loading} onChanged={() => void reload()} />
 
       <RecurringSection accounts={accounts} categories={categories} currency={currency} onChanged={() => void reload()} />
 
@@ -336,7 +342,7 @@ export default function FinancePage() {
           </label>
         </div>
 
-        <ul className={`flex flex-col divide-y divide-[var(--puls-ink-muted)]/15 ${loading ? 'min-h-48' : ''}`} data-testid="finance-transactions">
+        <ul className="flex min-h-48 flex-col divide-y divide-[var(--puls-ink-muted)]/15" data-testid="finance-transactions">
           {transactions.map((transaction) => (
             <li key={transaction.id} className="flex items-center justify-between gap-3 py-2">
               <span className="flex items-center gap-2">
@@ -398,7 +404,7 @@ export default function FinancePage() {
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t('finance.budgets')}</h2>
 
-        <ul className={`flex flex-col gap-3 ${loading ? 'min-h-24' : ''}`} data-testid="finance-budgets">
+        <ul className="flex min-h-24 flex-col gap-3" data-testid="finance-budgets">
           {budgets.map((budget) => (
             <li key={budget.id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-sm">
