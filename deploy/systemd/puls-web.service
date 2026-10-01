@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# «Пульс» — веб-клиент (Next.js 15, `next start`). Пользовательский
+# systemd-юнит; вместе с puls-api.service поднимается после перезагрузки без
+# входа (при включённом linger, см. deploy/systemd/README.md).
+#
+# Установка:
+#   cp deploy/systemd/puls-web.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now puls-web.service
+[Unit]
+Description=Пульс — web (:3000)
+Documentation=file://%h/projects/puls/docs/PRESENTATION.md
+After=network-online.target puls-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/puls/apps/web
+EnvironmentFile=%h/.config/puls/env
+ExecStart=%h/.nvm/versions/node/v24.18.0/bin/node node_modules/next/dist/bin/next start --port 3000
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=default.target
