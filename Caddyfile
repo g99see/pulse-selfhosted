@@ -2,7 +2,15 @@
 # с отдельного поддомена песочницы (ТЗ §3.8).
 {
 	email {$ACME_EMAIL:admin@example.com}
-	# Порт HTTPS внутри контейнера; задаётся окружением, если на хосте 443 занят.
+	# Встроенный HTTP->HTTPS-редирект Caddy всегда ведёт на стандартный порт
+	# 443: `https_port` — параметр «для внутреннего использования» и в адрес
+	# редиректа не попадает (см. makeRedirRoute в autohttps.go Caddy). Из-за
+	# этого при нестандартном HTTPS_PORT клиент после редиректа попадал на
+	# занятый/недоступный 443. Поэтому отключаем авто-редирект и делаем его
+	# явно ниже — с внешним портом.
+	auto_https disable_redirects
+	# Порт TLS внутри контейнера. Compose публикует тот же порт на хосте.
+	# Клиентский адрес формирует явный редирект (см. блоки http:// внизу).
 	https_port {$HTTPS_PORT:443}
 }
 
@@ -55,4 +63,19 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		-Server
 	}
+}
+
+# Явный HTTP->HTTPS-редирект (см. auto_https disable_redirects вверху).
+# Порт добавляем в адрес только для нестандартного HTTPS_PORT, чтобы в
+# обычной установке (443) адрес остался каноническим `https://<домен>...`.
+http://{$DOMAIN:localhost} {
+	@nonstd_https expression "{$HTTPS_PORT:443}" != "443"
+	redir @nonstd_https https://{$DOMAIN:localhost}:{$HTTPS_PORT:443}{uri} 308
+	redir https://{$DOMAIN:localhost}{uri} 308
+}
+
+http://{$SANDBOX_DOMAIN:usercontent.localhost} {
+	@nonstd_https expression "{$HTTPS_PORT:443}" != "443"
+	redir @nonstd_https https://{$SANDBOX_DOMAIN:usercontent.localhost}:{$HTTPS_PORT:443}{uri} 308
+	redir https://{$SANDBOX_DOMAIN:usercontent.localhost}{uri} 308
 }
