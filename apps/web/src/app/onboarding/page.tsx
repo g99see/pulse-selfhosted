@@ -18,7 +18,6 @@ import { authErrorKey, t } from '@/lib/i18n';
 
 const TOTAL_STEPS = 4;
 const GOALS: GoalKind[] = ['money', 'health', 'habits'];
-const ACCOUNT_TYPES: AccountType[] = ['card', 'cash', 'savings'];
 const VISIBILITIES: ProfileVisibility[] = ['private', 'subscribers', 'public'];
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
