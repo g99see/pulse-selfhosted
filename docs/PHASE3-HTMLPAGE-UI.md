@@ -12,7 +12,7 @@
 | Сетевой слой и адрес песочницы | `apps/web/src/lib/html-page-client.ts` |
 | Компонент публичной вкладки (iframe песочницы) | `apps/web/src/components/public-html-page.tsx` |
 | Редактор: код слева, предпросмотр справа, вкладки на мобильном | `apps/web/src/app/(app)/page-editor/page.tsx` |
-| Публичная страница `/@nickname/page` | `apps/web/src/app/public-page/[nickname]/page.tsx` |
+| Публичная страница `/@nickname/page` | `apps/web/src/app/u/[nickname]/page/page.tsx` |
 | Rewrite короткого адреса | `apps/web/next.config.mjs` |
 | E2E: шаблон → сохранение → откат версии | `apps/web/e2e/html-page.spec.ts` |
 | Строки интерфейса (ru/en) | `apps/web/src/lib/i18n.ts` (ключи `htmlPage.*`, `app.nav.page`) |
@@ -54,16 +54,17 @@
 
 Next.js резервирует `@` за parallel routes (`isParallelRouteSegment`), и литеральный
 `@` в дереве маршрутов выразить нельзя (Vercel issue #52391: единственный путь —
-middleware/rewrite). Поэтому в `next.config.mjs` добавлен rewrite:
+rewrite). Поэтому в `next.config.mjs` есть rewrite:
 
 ```
-/@:nickname/page  →  /public-page/:nickname
+/@:nickname/page  →  /u/:nickname/page
+/@:nickname       →  /u/:nickname        (публичный профиль, блок A)
 ```
 
-Реальный маршрут — `src/app/public-page/[nickname]/page.tsx`: проверяет никнейм
-по `NICKNAME_REGEX`, рендерит `PublicHtmlPage`. Если блок A заведёт собственный
-`@[nickname]`-маршрут профиля, этот rewrite ничего не ломает — он срабатывает
-только на `/@:nickname/page`.
+Реальный маршрут HTML-страницы — `src/app/u/[nickname]/page/page.tsx`, рядом с
+профилем блока A (`src/app/u/[nickname]/page.tsx`): проверяет никнейм по
+`NICKNAME_REGEX` и рендерит `PublicHtmlPage`. В карточке `html_page` публичного
+профиля добавлена ссылка «Открыть на отдельном домене» на эту вкладку.
 
 ## Автопроверка в интерфейсе
 

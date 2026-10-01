@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Публичная вкладка HTML-страницы (ТЗ §3.8): короткий адрес
- * `/<домен>/@nickname/page`. Next.js резервирует `@` за parallel routes,
- * поэтому литеральный `@` в дереве маршрутов выразить нельзя — браузерный
- * адрес `/@nickname/page` приходит сюда через rewrite в next.config.mjs.
+ * Публичная HTML-страница профиля — отдельная вкладка (ТЗ §3.8):
+ * короткий адрес `/@nickname/page`. Символ `@` зарезервирован Next за
+ * parallel routes, поэтому адрес приходит сюда rewrite'ом из next.config.mjs
+ * (`/@:nickname/page` → `/u/:nickname/page`) — рядом с публичным профилем
+ * `/u/:nickname` (блок A).
  *
  * Страница показывает пользовательский HTML в изолированном iframe с домена
  * песочницы (`sandbox="allow-scripts"`, `referrerPolicy="no-referrer"`).
  */
 import { notFound } from 'next/navigation';
 import { NICKNAME_REGEX } from '@puls/shared';
-import { t } from '@/lib/i18n';
 import { PublicHtmlPage } from '@/components/public-html-page';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PublicHtmlPageRoute({
+export default async function PublicHtmlPageTab({
   params,
 }: {
   params: Promise<{ nickname: string }>;
