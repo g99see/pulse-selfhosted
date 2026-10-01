@@ -76,8 +76,9 @@ test.describe('язык', () => {
     const ru = await (await request.get('/', { headers: { cookie: 'puls_locale=ru' } })).text();
     const en = await (await request.get('/', { headers: { cookie: 'puls_locale=en' } })).text();
 
-    expect(ru).toContain('₽');
-    expect(en).toContain('RUB');
+    // Пример на лендинге — в евро: в ru знак после числа через пробел, в en — перед числом.
+    expect(ru).toMatch(/415,00\s€/);
+    expect(en).toContain('€415.00');
   });
 });
 
