@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Module } from '@nestjs/common';
+import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
 import { CheckinsModule } from './checkins/checkins.module';
 import { FinanceModule } from './finance/finance.module';
@@ -17,6 +18,7 @@ import { StatsModule } from './stats/stats.module';
     CheckinsModule,
     NotificationsModule,
     StatsModule,
+    AccountModule,
   ],
 })
 export class AppModule {}
