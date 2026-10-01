@@ -4,6 +4,7 @@
 import { InstallPrompt } from '@/components/install-prompt';
 import { useT } from '@/components/locale-provider';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { NotificationSettings } from '@/components/notification-settings';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Card } from '@/components/ui';
 
@@ -24,6 +25,8 @@ export default function ProfileSettingsPage() {
       <Card>
         <InstallPrompt />
       </Card>
+
+      <NotificationSettings />
     </div>
   );
 }
