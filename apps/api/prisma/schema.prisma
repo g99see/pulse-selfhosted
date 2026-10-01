@@ -116,6 +116,8 @@ model User {
   familyTransactions   FamilyTransaction[]
   /// Взносы пользователя в общие цели семьи (ТЗ §4).
   familyGoalDeposits   FamilyGoalDeposit[]
+  /// Капсулы времени пользователя (ТЗ §4, P2).
+  timeCapsules         TimeCapsule[]
 
   /// Привычки пользователя (ТЗ §4, P2).
   habits               Habit[]
@@ -1219,4 +1221,26 @@ model ChallengeCheck {
   @@unique([challengeId, userId, date])
   @@index([challengeId, userId])
   @@map("challenge_checks")
+}
+
+/// Капсула времени (ТЗ §4, P2): письмо себе, которое открывается в заданный
+/// момент вместе со снимком статистики за период [created_at, open_at]. Тело
+/// хранится зашифрованным (SecretBox, суффикс *_encrypted), пока капсула
+/// закрыта — API отдаёт только метаданные (title, open_at).
+model TimeCapsule {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  /// Тело письма, зашифрованное AES-256-GCM (см. crypto/secret-box.ts).
+  bodyEncrypted String    @map("body_encrypted")
+  /// Снимок статистики за период [created_at, open_at], заполняется при открытии.
+  snapshot      Json?
+  openAt        DateTime  @map("open_at")
+  openedAt      DateTime? @map("opened_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, openAt])
+  @@index([openedAt])
+  @@map("time_capsules")
 }

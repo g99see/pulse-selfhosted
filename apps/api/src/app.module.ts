@@ -7,6 +7,7 @@ import { AiModule } from './ai/ai.module';
 import { ApiAccessModule } from './api-access/api-access.module';
 import { AuthModule } from './auth/auth.module';
 import { ExternalAuthModule } from './auth/external/external-auth.module';
+import { CapsulesModule } from './capsules/capsules.module';
 import { ChallengesModule } from './challenges/challenges.module';
 import { CheckinsModule } from './checkins/checkins.module';
 import { FamilyModule } from './family/family.module';
@@ -42,6 +43,7 @@ import { WidgetsModule } from './widgets/widgets.module';
     ChallengesModule,
     HabitsModule,
     CheckinsModule,
+    CapsulesModule,
     FamilyModule,
     NotificationsModule,
     StatsModule,
