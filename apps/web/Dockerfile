@@ -18,6 +18,8 @@ FROM deps AS build
 ARG NEXT_PUBLIC_API_URL=http://localhost/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
+# Включает output: 'standalone' в next.config.mjs (см. комментарий там).
+ENV BUILD_STANDALONE=1
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/web apps/web
