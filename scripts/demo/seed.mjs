@@ -119,7 +119,12 @@ function secretBoxEncrypt(plaintext) {
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
   const data = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-  return ['v1', iv.toString('base64url'), cipher.getAuthTag().toString('base64url'), data.toString('base64url')].join('.');
+  return [
+    'v1',
+    iv.toString('base64url'),
+    cipher.getAuthTag().toString('base64url'),
+    data.toString('base64url'),
+  ].join('.');
 }
 
 /* ---------- системные категории (совпадают с миграцией/сервисом) ---------- */
@@ -163,17 +168,51 @@ function saveCredentials(creds) {
 /* ---------- содержимое ---------- */
 
 const EXPENSE_TEMPLATES = [
-  { cat: 'Еда', items: ['обед', 'продукты', 'кофе с собой', 'ужин в кафе', 'доставка еды'], min: 220, max: 1600, freq: 0.72 },
+  {
+    cat: 'Еда',
+    items: ['обед', 'продукты', 'кофе с собой', 'ужин в кафе', 'доставка еды'],
+    min: 220,
+    max: 1600,
+    freq: 0.72,
+  },
   { cat: 'Транспорт', items: ['метро', 'такси', 'заправка'], min: 60, max: 900, freq: 0.42 },
-  { cat: 'Развлечения', items: ['кино', 'бар с друзьями', 'концерт'], min: 500, max: 3200, freq: 0.12 },
+  {
+    cat: 'Развлечения',
+    items: ['кино', 'бар с друзьями', 'концерт'],
+    min: 500,
+    max: 3200,
+    freq: 0.12,
+  },
   { cat: 'Здоровье', items: ['аптека', 'приём у врача'], min: 400, max: 3800, freq: 0.06 },
-  { cat: 'Покупки', items: ['одежда', 'маркетплейс', 'техника для дома'], min: 900, max: 6500, freq: 0.16 },
+  {
+    cat: 'Покупки',
+    items: ['одежда', 'маркетплейс', 'техника для дома'],
+    min: 900,
+    max: 6500,
+    freq: 0.16,
+  },
   { cat: 'Связь', items: ['мобильная связь', 'домашний интернет'], min: 400, max: 800, freq: 0.05 },
-  { cat: 'Подписки', items: ['подписка на музыку', 'облачное хранилище'], min: 199, max: 699, freq: 0.05 },
+  {
+    cat: 'Подписки',
+    items: ['подписка на музыку', 'облачное хранилище'],
+    min: 199,
+    max: 699,
+    freq: 0.05,
+  },
   { cat: 'Жильё', items: ['коммунальные услуги'], min: 3000, max: 6000, freq: 0.03 },
 ];
 
-const MOOD_TAGS = ['спорт', 'работа', 'семья', 'прогулка', 'сон', 'продуктивно', 'устал', 'стресс', 'хорошее настроение'];
+const MOOD_TAGS = [
+  'спорт',
+  'работа',
+  'семья',
+  'прогулка',
+  'сон',
+  'продуктивно',
+  'устал',
+  'стресс',
+  'хорошее настроение',
+];
 const NOTES = [
   'День прошёл спокойно, много успел.',
   'Немного устал, но в целом хороший день.',
@@ -192,13 +231,26 @@ async function main() {
 
     // 1. Системные категории — общие, пользовательские данные не трогаем.
     for (const [id, name, icon, color, kind] of SYSTEM_CATEGORIES) {
-      await prisma.category.upsert({ where: { id }, create: { id, name, icon, color, kind, isSystem: true }, update: {} });
+      await prisma.category.upsert({
+        where: { id },
+        create: { id, name, icon, color, kind, isSystem: true },
+        update: {},
+      });
     }
     const categoryRows = await prisma.category.findMany({ where: { userId: null } });
     const catId = new Map(categoryRows.map((row) => [row.name, row.id]));
 
     // 2. Идемпотентность: убираем прошлых демо-пользователей (каскад снесёт всё).
-    await prisma.user.deleteMany({ where: { OR: [{ email: DEMO.email }, { email: FRIEND.email }, { nickname: DEMO.nickname }, { nickname: FRIEND.nickname }] } });
+    await prisma.user.deleteMany({
+      where: {
+        OR: [
+          { email: DEMO.email },
+          { email: FRIEND.email },
+          { nickname: DEMO.nickname },
+          { nickname: FRIEND.nickname },
+        ],
+      },
+    });
 
     // 3. Учётные данные (переиспользуем, если файл уже есть).
     const stored = loadCredentials();
@@ -207,7 +259,13 @@ async function main() {
       friend: { email: FRIEND.email, nickname: FRIEND.nickname, password: randomPassword() },
     };
 
-    const hash = (password) => argon2.hash(password, { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 });
+    const hash = (password) =>
+      argon2.hash(password, {
+        type: argon2.argon2id,
+        memoryCost: 19456,
+        timeCost: 2,
+        parallelism: 1,
+      });
     const verifiedAt = new Date();
 
     const demo = await prisma.user.create({
@@ -250,9 +308,27 @@ async function main() {
     });
 
     // 4. Счета.
-    const card = await prisma.account.create({ data: { userId: demo.id, name: 'Зарплатная карта', type: 'card', balance: 0, currency: 'RUB' } });
-    const cash = await prisma.account.create({ data: { userId: demo.id, name: 'Наличные', type: 'cash', balance: 30000, currency: 'RUB' } });
-    const savings = await prisma.account.create({ data: { userId: demo.id, name: 'Накопительный счёт', type: 'savings', balance: 120000, currency: 'RUB' } });
+    const card = await prisma.account.create({
+      data: {
+        userId: demo.id,
+        name: 'Зарплатная карта',
+        type: 'card',
+        balance: 0,
+        currency: 'RUB',
+      },
+    });
+    const cash = await prisma.account.create({
+      data: { userId: demo.id, name: 'Наличные', type: 'cash', balance: 30000, currency: 'RUB' },
+    });
+    const savings = await prisma.account.create({
+      data: {
+        userId: demo.id,
+        name: 'Накопительный счёт',
+        type: 'savings',
+        balance: 120000,
+        currency: 'RUB',
+      },
+    });
 
     // 5. Транзакции за ~90 дней с реальной динамикой.
     const transactions = [];
@@ -268,12 +344,34 @@ async function main() {
 
       // Зарплата раз в месяц (5-го) и редкий прочий доход.
       if (dom === 5) {
-        transactions.push({ userId: demo.id, accountId: card.id, categoryId: catId.get('Зарплата'), type: 'income', amount: 95000, currency: 'RUB', rate: 1, amountBase: 95000, date: day, comment: 'зарплата' });
+        transactions.push({
+          userId: demo.id,
+          accountId: card.id,
+          categoryId: catId.get('Зарплата'),
+          type: 'income',
+          amount: 95000,
+          currency: 'RUB',
+          rate: 1,
+          amountBase: 95000,
+          date: day,
+          comment: 'зарплата',
+        });
         balanceDelta.set(card.id, balanceDelta.get(card.id) + 95000);
       }
       if (rnd() < 0.12) {
         const amount = between(1500, 9000);
-        transactions.push({ userId: demo.id, accountId: card.id, categoryId: catId.get('Прочий доход'), type: 'income', amount, currency: 'RUB', rate: 1, amountBase: amount, date: day, comment: pick(['кэшбэк', 'возврат за заказ', 'подарок']) });
+        transactions.push({
+          userId: demo.id,
+          accountId: card.id,
+          categoryId: catId.get('Прочий доход'),
+          type: 'income',
+          amount,
+          currency: 'RUB',
+          rate: 1,
+          amountBase: amount,
+          date: day,
+          comment: pick(['кэшбэк', 'возврат за заказ', 'подарок']),
+        });
         balanceDelta.set(card.id, balanceDelta.get(card.id) + amount);
       }
 
@@ -283,7 +381,18 @@ async function main() {
         const fromCash = rnd() < 0.08;
         const account = fromCash ? cash : card;
         const comment = pick(template.items);
-        transactions.push({ userId: demo.id, accountId: account.id, categoryId: catId.get(template.cat), type: 'expense', amount, currency: 'RUB', rate: 1, amountBase: amount, date: day, comment });
+        transactions.push({
+          userId: demo.id,
+          accountId: account.id,
+          categoryId: catId.get(template.cat),
+          type: 'expense',
+          amount,
+          currency: 'RUB',
+          rate: 1,
+          amountBase: amount,
+          date: day,
+          comment,
+        });
         balanceDelta.set(account.id, balanceDelta.get(account.id) - amount);
       }
     }
@@ -292,18 +401,43 @@ async function main() {
     for (const offset of [60, 20]) {
       const day = addDays(TODAY, -offset);
       const amount = offset === 60 ? 20000 : 15000;
-      transactions.push({ userId: demo.id, accountId: card.id, transferAccountId: savings.id, type: 'transfer', amount, currency: 'RUB', rate: 1, amountBase: amount, toAmount: amount, date: day, comment: 'перевод на накопления' });
+      transactions.push({
+        userId: demo.id,
+        accountId: card.id,
+        transferAccountId: savings.id,
+        type: 'transfer',
+        amount,
+        currency: 'RUB',
+        rate: 1,
+        amountBase: amount,
+        toAmount: amount,
+        date: day,
+        comment: 'перевод на накопления',
+      });
       balanceDelta.set(card.id, balanceDelta.get(card.id) - amount);
       balanceDelta.set(savings.id, balanceDelta.get(savings.id) + amount);
     }
 
     await prisma.transaction.createMany({
-      data: transactions.map((item) => ({ ...item, createdAt: atHour(item.date, 12), updatedAt: atHour(item.date, 12) })),
+      data: transactions.map((item) => ({
+        ...item,
+        createdAt: atHour(item.date, 12),
+        updatedAt: atHour(item.date, 12),
+      })),
     });
 
-    await prisma.account.update({ where: { id: card.id }, data: { balance: round2((balanceDelta.get(card.id) ?? 0)) } });
-    await prisma.account.update({ where: { id: cash.id }, data: { balance: round2(30000 + (balanceDelta.get(cash.id) ?? 0)) } });
-    await prisma.account.update({ where: { id: savings.id }, data: { balance: round2(120000 + (balanceDelta.get(savings.id) ?? 0)) } });
+    await prisma.account.update({
+      where: { id: card.id },
+      data: { balance: round2(balanceDelta.get(card.id) ?? 0) },
+    });
+    await prisma.account.update({
+      where: { id: cash.id },
+      data: { balance: round2(30000 + (balanceDelta.get(cash.id) ?? 0)) },
+    });
+    await prisma.account.update({
+      where: { id: savings.id },
+      data: { balance: round2(120000 + (balanceDelta.get(savings.id) ?? 0)) },
+    });
 
     // 6. Бюджеты на текущий и два прошлых месяца.
     const budgetPlan = [
@@ -315,10 +449,19 @@ async function main() {
     ];
     const budgets = [];
     for (const monthOffset of [0, 1, 2]) {
-      const monthDate = new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - monthOffset, 1));
+      const monthDate = new Date(
+        Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - monthOffset, 1),
+      );
       const month = monthKey(monthDate);
       for (const [name, limit] of budgetPlan) {
-        budgets.push({ userId: demo.id, categoryId: catId.get(name), month, limit, createdAt: new Date(), updatedAt: new Date() });
+        budgets.push({
+          userId: demo.id,
+          categoryId: catId.get(name),
+          month,
+          limit,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
       }
     }
     await prisma.budget.createMany({ data: budgets, skipDuplicates: true });
@@ -354,10 +497,29 @@ async function main() {
 
     // 8. Две цели, одна — примерно наполовину.
     const goalHoliday = await prisma.goal.create({
-      data: { userId: demo.id, title: 'Отпуск на море', targetAmount: 200000, savedAmount: 100000, deadline: addDays(TODAY, 120), image: '🏖️', visibility: 'public', currency: 'RUB' },
+      data: {
+        userId: demo.id,
+        title: 'Отпуск на море',
+        targetAmount: 200000,
+        savedAmount: 100000,
+        deadline: addDays(TODAY, 120),
+        image: '🏖️',
+        visibility: 'public',
+        currency: 'RUB',
+      },
     });
     const goalLaptop = await prisma.goal.create({
-      data: { userId: demo.id, title: 'Новый ноутбук', targetAmount: 120000, savedAmount: 30000, deadline: addDays(TODAY, 200), image: '💻', visibility: 'subscribers', accountId: savings.id, currency: 'RUB' },
+      data: {
+        userId: demo.id,
+        title: 'Новый ноутбук',
+        targetAmount: 120000,
+        savedAmount: 30000,
+        deadline: addDays(TODAY, 200),
+        image: '💻',
+        visibility: 'subscribers',
+        accountId: savings.id,
+        currency: 'RUB',
+      },
     });
 
     const holidayDeposits = [0, 30, 60].map((offset, index) => ({
@@ -379,21 +541,59 @@ async function main() {
     await prisma.goalDeposit.createMany({ data: [...holidayDeposits, ...laptopDeposits] });
 
     // 9. Привычки с отметками и серией.
-    const habitWater = await prisma.habit.create({ data: { userId: demo.id, name: 'Вода 8 стаканов', icon: '💧', goalType: 'daily' } });
-    const habitStretch = await prisma.habit.create({ data: { userId: demo.id, name: 'Зарядка утром', icon: '🏃', goalType: 'daily' } });
-    const habitReading = await prisma.habit.create({ data: { userId: demo.id, name: 'Чтение 20 минут', icon: '📚', goalType: 'weekly', perWeek: 5 } });
+    const habitWater = await prisma.habit.create({
+      data: { userId: demo.id, name: 'Вода 8 стаканов', icon: '💧', goalType: 'daily' },
+    });
+    const habitStretch = await prisma.habit.create({
+      data: { userId: demo.id, name: 'Зарядка утром', icon: '🏃', goalType: 'daily' },
+    });
+    const habitReading = await prisma.habit.create({
+      data: {
+        userId: demo.id,
+        name: 'Чтение 20 минут',
+        icon: '📚',
+        goalType: 'weekly',
+        perWeek: 5,
+      },
+    });
 
     const habitLogs = [];
     for (let offset = 29; offset >= 0; offset -= 1) {
       const day = addDays(TODAY, -offset);
-      if (offset <= 11 || rnd() < 0.75) habitLogs.push({ habitId: habitWater.id, userId: demo.id, date: day, done: true, createdAt: new Date(), updatedAt: new Date() });
-      if (rnd() < 0.7) habitLogs.push({ habitId: habitStretch.id, userId: demo.id, date: day, done: true, createdAt: new Date(), updatedAt: new Date() });
-      if (rnd() < 0.55) habitLogs.push({ habitId: habitReading.id, userId: demo.id, date: day, done: true, createdAt: new Date(), updatedAt: new Date() });
+      if (offset <= 11 || rnd() < 0.75)
+        habitLogs.push({
+          habitId: habitWater.id,
+          userId: demo.id,
+          date: day,
+          done: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      if (rnd() < 0.7)
+        habitLogs.push({
+          habitId: habitStretch.id,
+          userId: demo.id,
+          date: day,
+          done: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      if (rnd() < 0.55)
+        habitLogs.push({
+          habitId: habitReading.id,
+          userId: demo.id,
+          date: day,
+          done: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
     }
     await prisma.habitLog.createMany({ data: habitLogs, skipDuplicates: true });
 
     // 10. Регулярный платёж (аренда).
-    const nextMonth = new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() + 1, 5, 7, 0, 0));
+    const nextMonth = new Date(
+      Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() + 1, 5, 7, 0, 0),
+    );
     await prisma.recurringPayment.create({
       data: {
         userId: demo.id,
@@ -429,25 +629,95 @@ async function main() {
       ],
       skipDuplicates: true,
     });
-    const familyAccount = await prisma.familyAccount.create({ data: { familyId: family.id, name: 'Общий счёт семьи', type: 'card', balance: 50000, currency: 'RUB' } });
+    const familyAccount = await prisma.familyAccount.create({
+      data: {
+        familyId: family.id,
+        name: 'Общий счёт семьи',
+        type: 'card',
+        balance: 50000,
+        currency: 'RUB',
+      },
+    });
     await prisma.familyTransaction.createMany({
       data: [
-        { accountId: familyAccount.id, userId: demo.id, kind: 'income', amount: 40000, note: 'взнос в общий бюджет', date: addDays(TODAY, -25), createdAt: new Date() },
-        { accountId: familyAccount.id, userId: friend.id, kind: 'income', amount: 25000, note: 'взнос в общий бюджет', date: addDays(TODAY, -25), createdAt: new Date() },
-        { accountId: familyAccount.id, userId: demo.id, kind: 'expense', amount: 12000, note: 'продукты на неделю', date: addDays(TODAY, -10), createdAt: new Date() },
-        { accountId: familyAccount.id, userId: friend.id, kind: 'expense', amount: 8000, note: 'бытовая химия', date: addDays(TODAY, -4), createdAt: new Date() },
+        {
+          accountId: familyAccount.id,
+          userId: demo.id,
+          kind: 'income',
+          amount: 40000,
+          note: 'взнос в общий бюджет',
+          date: addDays(TODAY, -25),
+          createdAt: new Date(),
+        },
+        {
+          accountId: familyAccount.id,
+          userId: friend.id,
+          kind: 'income',
+          amount: 25000,
+          note: 'взнос в общий бюджет',
+          date: addDays(TODAY, -25),
+          createdAt: new Date(),
+        },
+        {
+          accountId: familyAccount.id,
+          userId: demo.id,
+          kind: 'expense',
+          amount: 12000,
+          note: 'продукты на неделю',
+          date: addDays(TODAY, -10),
+          createdAt: new Date(),
+        },
+        {
+          accountId: familyAccount.id,
+          userId: friend.id,
+          kind: 'expense',
+          amount: 8000,
+          note: 'бытовая химия',
+          date: addDays(TODAY, -4),
+          createdAt: new Date(),
+        },
       ],
     });
-    const familyGoal = await prisma.familyGoal.create({ data: { familyId: family.id, title: 'Ремонт кухни', targetAmount: 150000, savedAmount: 60000, deadline: addDays(TODAY, 180), image: '🛠️', currency: 'RUB' } });
+    const familyGoal = await prisma.familyGoal.create({
+      data: {
+        familyId: family.id,
+        title: 'Ремонт кухни',
+        targetAmount: 150000,
+        savedAmount: 60000,
+        deadline: addDays(TODAY, 180),
+        image: '🛠️',
+        currency: 'RUB',
+      },
+    });
     await prisma.familyGoalDeposit.createMany({
       data: [
-        { goalId: familyGoal.id, userId: demo.id, amount: 40000, date: addDays(TODAY, -40), createdAt: new Date() },
-        { goalId: familyGoal.id, userId: friend.id, amount: 20000, date: addDays(TODAY, -12), createdAt: new Date() },
+        {
+          goalId: familyGoal.id,
+          userId: demo.id,
+          amount: 40000,
+          date: addDays(TODAY, -40),
+          createdAt: new Date(),
+        },
+        {
+          goalId: familyGoal.id,
+          userId: friend.id,
+          amount: 20000,
+          date: addDays(TODAY, -12),
+          createdAt: new Date(),
+        },
       ],
     });
 
     // 13. Пост в ленте (веха цели) — виден подписчикам.
-    await prisma.post.create({ data: { userId: demo.id, type: 'achievement', payload: { code: 'goal_half' }, visibility: 'public', createdAt: addDays(TODAY, -14) } });
+    await prisma.post.create({
+      data: {
+        userId: demo.id,
+        type: 'achievement',
+        payload: { code: 'goal_half' },
+        visibility: 'public',
+        createdAt: addDays(TODAY, -14),
+      },
+    });
 
     // 14. Челлендж на серию чек-инов, участники demo и friend.
     const challenge = await prisma.challenge.create({
@@ -469,7 +739,13 @@ async function main() {
       skipDuplicates: true,
     });
     await prisma.challengeCheck.createMany({
-      data: [0, 1, 2, 3, 4].map((offset) => ({ challengeId: challenge.id, userId: demo.id, date: addDays(TODAY, -offset), ok: true, createdAt: new Date() })),
+      data: [0, 1, 2, 3, 4].map((offset) => ({
+        challengeId: challenge.id,
+        userId: demo.id,
+        date: addDays(TODAY, -offset),
+        ok: true,
+        createdAt: new Date(),
+      })),
       skipDuplicates: true,
     });
 
@@ -478,30 +754,67 @@ async function main() {
       data: {
         userId: demo.id,
         title: 'Письмо себе через год',
-        bodyEncrypted: secretBoxEncrypt('Привет из прошлого! Если ты читаешь это — год прошёл не зря.'),
+        bodyEncrypted: secretBoxEncrypt(
+          'Привет из прошлого! Если ты читаешь это — год прошёл не зря.',
+        ),
         openAt: addDays(TODAY, 365),
       },
     });
 
     // 16. Достижения (детерминированные; остальные подтянет ленивый сервис).
     await prisma.userAchievement.createMany({
-      data: ['first_checkin', 'checkin_streak_7', 'first_transaction', 'first_budget_closed', 'first_goal', 'goal_half'].map((code) => ({ userId: demo.id, code, earnedAt: addDays(TODAY, -7) })),
+      data: [
+        'first_checkin',
+        'checkin_streak_7',
+        'first_transaction',
+        'first_budget_closed',
+        'first_goal',
+        'goal_half',
+      ].map((code) => ({ userId: demo.id, code, earnedAt: addDays(TODAY, -7) })),
       skipDuplicates: true,
     });
 
     // 17. Публичный профиль с карточками.
-    await prisma.profile.create({ data: { userId: demo.id, bio: 'Веду бюджет и слежу за самочувствием в «Пульсе». Люблю спорт и книги.' } });
-    await prisma.profile.create({ data: { userId: friend.id, bio: 'Учусь копить и держать баланс.' } });
+    await prisma.profile.create({
+      data: {
+        userId: demo.id,
+        bio: 'Веду бюджет и слежу за самочувствием в «Пульсе». Люблю спорт и книги.',
+      },
+    });
+    await prisma.profile.create({
+      data: { userId: friend.id, bio: 'Учусь копить и держать баланс.' },
+    });
 
-    const cardSnippet = '<p style="margin:0"><strong>Демо-карточка</strong> — я веду бюджет в «Пульсе».</p>';
+    const cardSnippet =
+      '<p style="margin:0"><strong>Демо-карточка</strong> — я веду бюджет в «Пульсе».</p>';
     await prisma.profileCard.createMany({
       data: [
         { userId: demo.id, type: 'savings', visibility: 'public', mode: 'amount', position: 0 },
-        { userId: demo.id, type: 'checkin_streak', visibility: 'public', mode: 'percent', position: 1 },
+        {
+          userId: demo.id,
+          type: 'checkin_streak',
+          visibility: 'public',
+          mode: 'percent',
+          position: 1,
+        },
         { userId: demo.id, type: 'avg_mood', visibility: 'public', mode: 'percent', position: 2 },
-        { userId: demo.id, type: 'achievements', visibility: 'public', mode: 'percent', position: 3 },
+        {
+          userId: demo.id,
+          type: 'achievements',
+          visibility: 'public',
+          mode: 'percent',
+          position: 3,
+        },
         { userId: demo.id, type: 'goals', visibility: 'public', mode: 'percent', position: 4 },
-        { userId: demo.id, type: 'html_page', visibility: 'public', mode: 'percent', title: 'Визитка', html: cardSnippet, position: 5 },
+        {
+          userId: demo.id,
+          type: 'html_page',
+          visibility: 'public',
+          mode: 'percent',
+          title: 'Визитка',
+          html: cardSnippet,
+          position: 5,
+        },
       ],
       skipDuplicates: true,
     });
@@ -509,9 +822,19 @@ async function main() {
     // 18. HTML-страница из шаблона «Визитка» (публикация + версия).
     const htmlPage = await prisma.htmlPage.create({ data: { userId: demo.id, published: false } });
     const version = await prisma.htmlPageVersion.create({
-      data: { pageId: htmlPage.id, userId: demo.id, html: BUSINESS_CARD_HTML, note: 'Шаблон «Визитка»', checkStatus: 'ok', checkReasons: [] },
+      data: {
+        pageId: htmlPage.id,
+        userId: demo.id,
+        html: BUSINESS_CARD_HTML,
+        note: 'Шаблон «Визитка»',
+        checkStatus: 'ok',
+        checkReasons: [],
+      },
     });
-    await prisma.htmlPage.update({ where: { id: htmlPage.id }, data: { currentVersionId: version.id, published: true } });
+    await prisma.htmlPage.update({
+      where: { id: htmlPage.id },
+      data: { currentVersionId: version.id, published: true },
+    });
 
     // 19. Сохраняем учётные данные.
     saveCredentials(creds);
@@ -535,7 +858,11 @@ async function main() {
     console.log(`Учётные данные: ${CRED_PATH} (права 600)`);
     console.log(`Пароль demo (единожды): ${creds.demo.password}`);
     console.log(`Пароль friend (единожды): ${creds.friend.password}`);
-    console.log(apiTouched ? 'Ленивые сервисы прогреты через API.' : 'API недоступен — прогреются при первом открытии страниц.');
+    console.log(
+      apiTouched
+        ? 'Ленивые сервисы прогреты через API.'
+        : 'API недоступен — прогреются при первом открытии страниц.',
+    );
   } finally {
     await prisma.$disconnect();
   }
@@ -581,7 +908,8 @@ const BUSINESS_CARD_HTML = `<!DOCTYPE html>
 /* ---------- необязательный прогрев через HTTP API ---------- */
 
 async function tryTriggerApi(demoCreds) {
-  const base = process.env.SEED_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  const base =
+    process.env.SEED_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
   const cookies = new Map();
   const applyCookies = (response) => {
     const setCookies = response.headers.getSetCookie?.() ?? [];

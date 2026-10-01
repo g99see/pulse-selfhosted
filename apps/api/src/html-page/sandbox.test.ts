@@ -5,10 +5,11 @@ import { sandboxCsp } from './sandbox.controller';
 
 describe('sandboxCsp', () => {
   it('использует https для обычного домена', () => {
-    expect(sandboxCsp('puls.example.com', undefined)).toContain('frame-ancestors https://puls.example.com');
+    // '' вместо undefined: иначе параметр по умолчанию берёт PUBLIC_ORIGIN из окружения.
+    expect(sandboxCsp('puls.example.com', '')).toContain('frame-ancestors https://puls.example.com');
   });
   it('использует http для localhost', () => {
-    expect(sandboxCsp('localhost', undefined)).toContain('frame-ancestors http://localhost');
+    expect(sandboxCsp('localhost', '')).toContain('frame-ancestors http://localhost');
   });
   it('PUBLIC_ORIGIN задаёт точный origin', () => {
     const csp = sandboxCsp('192.168.1.50', 'http://192.168.1.50:8081/');
