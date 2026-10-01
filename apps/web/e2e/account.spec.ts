@@ -61,8 +61,10 @@ test('экспорт данных и удаление аккаунта из на
   await page.getByTestId('onboarding-finish').click();
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
-  // Настройки → секция «Данные и приватность».
-  await page.goto('/settings');
+  // Настройки: переходим из экрана настроек в секцию «Данные и приватность».
+  await page.goto('/app/profile');
+  await page.getByTestId('open-data-privacy').click();
+  await expect(page).toHaveURL(/\/settings$/);
   await expect(page.getByRole('heading', { name: 'Данные и приватность' })).toBeVisible();
 
   // Экспорт JSON: файл скачивается и содержит данные пользователя без секретов.

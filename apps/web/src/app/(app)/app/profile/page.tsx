@@ -7,6 +7,7 @@ import { LocaleSwitcher } from '@/components/locale-switcher';
 import { NotificationSettings } from '@/components/notification-settings';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Card } from '@/components/ui';
+import Link from 'next/link';
 
 /** Профиль и настройки: тема, язык и установка PWA (ТЗ §7, §8). */
 export default function ProfileSettingsPage() {
@@ -27,6 +28,17 @@ export default function ProfileSettingsPage() {
       </Card>
 
       <NotificationSettings />
+
+      <Card className="flex items-center justify-between gap-3">
+        <span className="font-semibold">{t('settings.data.title')}</span>
+        <Link
+          href="/settings"
+          data-testid="open-data-privacy"
+          className="rounded-[var(--radius-button)] border border-[var(--puls-ink-muted)]/30 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+        >
+          {t('settings.data.exportJson')} / {t('settings.data.exportCsv')}
+        </Link>
+      </Card>
     </div>
   );
 }
