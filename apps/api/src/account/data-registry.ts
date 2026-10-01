@@ -67,6 +67,12 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'reactions', entity: 'reactions', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Комментарии пользователя (ТЗ §3.7): тело — собственная запись, выгружаем.
   { table: 'comments', entity: 'comments', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Личный AI-ключ (ТЗ §3.9): сам ключ — секрет, выгружаем провайдера и last4.
+  { table: 'user_ai_keys', entity: 'userAiKeys', keyColumn: 'user_id', secretColumns: ['api_key_encrypted'] },
+  // Учёт токенов AI (ТЗ §3.9): месяц, токены и стоимость — не секреты.
+  { table: 'ai_usage', entity: 'aiUsage', keyColumn: 'user_id', orderBy: '"month"' },
+  // Предложения AI-помощника (ТЗ §3.9): тип, текст и параметры — данные пользователя.
+  { table: 'ai_proposals', entity: 'aiProposals', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Участие в семье (ТЗ §4): семья, роль и дата вступления — данные пользователя.
   { table: 'family_members', entity: 'familyMembers', keyColumn: 'user_id', orderBy: '"joined_at"' },
   // Операции по семейным счетам (ТЗ §4): вид, сумма и счёт — действия пользователя.
@@ -78,12 +84,6 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     keyColumn: 'user_id',
     orderBy: '"date", "created_at"',
   },
-  // Предложения AI-помощника (ТЗ §3.9): тип, текст и параметры — данные пользователя.
-  { table: 'ai_proposals', entity: 'aiProposals', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // Личный AI-ключ (ТЗ §3.9): сам ключ — секрет, выгружаем провайдера и last4.
-  { table: 'user_ai_keys', entity: 'userAiKeys', keyColumn: 'user_id', secretColumns: ['api_key_encrypted'] },
-  // Учёт токенов AI (ТЗ §3.9): месяц, токены и стоимость — не секреты.
-  { table: 'ai_usage', entity: 'aiUsage', keyColumn: 'user_id', orderBy: '"month"' },
   // Журнал доставок вебхуков (ТЗ §4): событие, статус и ошибка — данные пользователя.
   {
     table: 'webhook_deliveries',
@@ -105,7 +105,7 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'moderation_actions', reason: 'внутренний журнал модерации экземпляра' },
   // Токены открытого API (ТЗ §4): секрет — хеш токена.
   { table: 'api_tokens', reason: 'секрет: хеш личного токена доступа' },
-  // Вебхуки (ТЗ §4): секрет — зашифрованный секрет подписи вебхука.
+  // Вебхуки (ТЗ §4): секрет — зашифрованный ключ подписи.
   { table: 'webhooks', reason: 'секрет: зашифрованный секрет подписи вебхука' },
 ];
 
