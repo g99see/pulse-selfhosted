@@ -18,16 +18,14 @@ const nextConfig = {
   // Линтер запускается отдельным шагом CI, а не внутри сборки.
   eslint: { ignoreDuringBuilds: true },
   /**
-   * Публичная HTML-страница профиля (ТЗ §3.8) живёт по адресу
-   * `/@nickname/page`. Символ `@` зарезервирован Next за parallel routes,
-   * поэтому короткий адрес отдаём rewrite'ом на обычный маршрут
-   * `/public-page/:nickname` (см. src/app/public-page/[nickname]).
+   * Публичные страницы профиля (ТЗ §3.7, §3.8) живут по коротким адресам
+   * `/@nickname` и `/@nickname/page`. Символ `@` зарезервирован Next за
+   * parallel routes, поэтому отдаём их rewrite'ами на маршруты `/u/:nickname`
+   * и `/u/:nickname/page` (см. src/app/u/[nickname]).
    */
   async rewrites() {
     return [
-      { source: '/@:nickname/page', destination: '/public-page/:nickname' },
-      // Короткий адрес публичного профиля (ТЗ §3.7): /@nickname → /u/:nickname
-      // (символ @ в дереве маршрутов Next выразить нельзя).
+      { source: '/@:nickname/page', destination: '/u/:nickname/page' },
       { source: '/@:nickname', destination: '/u/:nickname' },
     ];
   },
