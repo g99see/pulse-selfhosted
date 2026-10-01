@@ -10,6 +10,7 @@ import {
   budgetSuggestionCandidate,
   categorySpendRiseCandidates,
   countryFromTimezone,
+  feedbackStatsFromRows,
   hiddenInsightTypes,
   insightTypePenalty,
   isWeeklyReportDue,
@@ -249,6 +250,16 @@ describe('Оценка «полезно / не полезно» (ТЗ §3.5)', (
       { type: 'low_energy_streak', useful: 0, notUseful: 3 },
     ]);
     expect(ranked.map((candidate) => candidate.type)).toEqual(['mood_with_sport']);
+  });
+
+  it('сворачивает строки счётчиков из groupBy', () => {
+    expect(
+      feedbackStatsFromRows([
+        { type: 'category_spend_up', feedback: 'useful', count: 2 },
+        { type: 'category_spend_up', feedback: 'not_useful', count: 1 },
+        { type: 'unknown_type', feedback: 'useful', count: 5 },
+      ]),
+    ).toEqual([{ type: 'category_spend_up', useful: 2, notUseful: 1 }]);
   });
 });
 

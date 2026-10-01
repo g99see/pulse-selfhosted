@@ -339,6 +339,29 @@ export function hiddenInsightTypes(
     .map((stat) => stat.type);
 }
 
+/** Строка счётчика оценок, как её отдаёт groupBy (type, feedback, count). */
+export interface FeedbackCountRow {
+  type: string;
+  feedback: string;
+  count: number;
+}
+
+/** Сворачивает строки groupBy в счётчики оценок по типу инсайта. */
+export function feedbackStatsFromRows(rows: readonly FeedbackCountRow[]): TypeFeedbackStat[] {
+  const stats = new Map<InsightType, TypeFeedbackStat>();
+
+  for (const row of rows) {
+    if (!(INSIGHT_TYPES as readonly string[]).includes(row.type)) continue;
+    const type = row.type as InsightType;
+    const stat = stats.get(type) ?? { type, useful: 0, notUseful: 0 };
+    if (row.feedback === 'useful') stat.useful += row.count;
+    else if (row.feedback === 'not_useful') stat.notUseful += row.count;
+    stats.set(type, stat);
+  }
+
+  return [...stats.values()];
+}
+
 /** Сортировка кандидатов по весу с учётом оценок пользователя. */
 export function rankInsights(
   candidates: readonly InsightCandidate[],

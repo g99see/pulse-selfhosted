@@ -30,9 +30,19 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'categories', entity: 'categories', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'transactions', entity: 'transactions', keyColumn: 'user_id', orderBy: '"date", "created_at"' },
   { table: 'budgets', entity: 'budgets', keyColumn: 'user_id', orderBy: '"month"' },
+  {
+    table: 'recurring_payments',
+    entity: 'recurringPayments',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
   { table: 'check_ins', entity: 'checkIns', keyColumn: 'user_id', orderBy: '"occurred_at"' },
   { table: 'notification_rules', entity: 'notificationRules', keyColumn: 'user_id', orderBy: '"type"' },
   { table: 'daily_stats', entity: 'dailyStats', keyColumn: 'user_id', orderBy: '"date"' },
+  // Внешние привязки входа (ТЗ §3.1, §7): subject не секрет, выгружаем как есть.
+  { table: 'external_identities', entity: 'externalIdentities', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Привязка Telegram-чата (ТЗ §3.6): chat_id — идентификатор чата, выгружается как есть.
+  { table: 'telegram_links', entity: 'telegramLinks', keyColumn: 'user_id', orderBy: '"linked_at"' },
 ];
 
 /** Таблицы с user_id, которые намеренно не выгружаются (секреты и артефакты). */
@@ -40,6 +50,7 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'sessions', reason: 'секрет: хеш токена серверной сессии' },
   { table: 'email_verification_tokens', reason: 'секрет: одноразовый токен подтверждения email' },
   { table: 'push_subscriptions', reason: 'секрет: endpoint и ключи шифрования web push' },
+  { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового кода привязки Telegram' },
 ];
 
 /** Колонки, которые никогда не попадают в выгрузку, в какой бы таблице ни лежали. */
