@@ -7,8 +7,7 @@
 #   scripts/dev-run.sh start|stop|status|restart|logs [api|web]
 #
 # Окружение берётся из окружения процесса; если DATABASE_URL не задан —
-# подхватывается ~/.config/puls/env, затем ~/.config/hermes/puls-test.env
-# (адреса Postgres/Valkey в docker-сети этой машины).
+# подхватывается ~/.config/puls/env (формат KEY=value или export KEY=value).
 #
 # Логи и PID: ~/.local/state/puls/
 set -uo pipefail
@@ -21,8 +20,8 @@ WEB_PORT="${WEB_PORT:-3000}"
 
 mkdir -p "$STATE_DIR"
 
-# --- выбор Node: на этой машине /usr/bin/node (v20) падает на нативных
-# модулях, собранных под Node 26. Ищем подходящий интерпретатор явно.
+# --- выбор Node: системный node может не подходить под нативные модули
+# (argon2, Prisma). Ищем подходящий интерпретатор явно (nvm, затем PATH).
 detect_node() {
   local candidates=()
   # nvm: текущая версия из alias, затем любые установленные (от новых к старым).
@@ -37,8 +36,6 @@ detect_node() {
       candidates+=("$HOME/.nvm/versions/node/$d/bin/node")
     done < <(ls -1 "$HOME/.nvm/versions/node" | sort -Vr)
   fi
-  candidates+=("$HOME/.hermes/node/bin/node")
-  candidates+=("/home/goosee/.hermes/tools/node-26.7.0-linux-x64/bin/node")
 
   local node
   for node in "${candidates[@]}"; do
@@ -63,7 +60,7 @@ load_env() {
   # Промышленное окружение, если задано явно, не трогаем.
   if [ -n "${DATABASE_URL:-}" ]; then return 0; fi
   local file raw key val
-  for file in "$HOME/.config/puls/env" "$HOME/.config/hermes/puls-test.env"; do
+  for file in "$HOME/.config/puls/env"; do
     [ -f "$file" ] || continue
     while IFS= read -r raw || [ -n "$raw" ]; do
       raw="${raw#"${raw%%[![:space:]]*}"}"

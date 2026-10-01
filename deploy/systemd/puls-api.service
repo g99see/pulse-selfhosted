@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # «Пульс» — API (NestJS + Prisma). Пользовательский systemd-юнит: стартует
-# после входа пользователя, а благодаря `loginctl enable-linger goosee` — и
+# после входа пользователя, а благодаря `loginctl enable-linger $USER` — и
 # после перезагрузки без входа в систему.
 #
 # Установка (см. deploy/systemd/README.md):

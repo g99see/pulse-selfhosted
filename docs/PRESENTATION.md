@@ -13,7 +13,7 @@
 - [ ] Поднять сервисы: `scripts/dev-run.sh start` (или заранее установленные
       systemd-юниты — см. `deploy/systemd/`).
 - [ ] Загрузить демо-данные (идемпотентно):
-      `. ~/.config/hermes/puls-test.env && node scripts/demo/seed.mjs`.
+      `node scripts/demo/seed.mjs` (нужен `DATABASE_URL` в окружении, `.env` или `~/.config/puls/env`).
       Seed создаёт демо-пользователя `demo` и `friend` и наполняет БД примерами
       транзакций, чек-инов, целей, привычек, постов и семьи.
 - [ ] Взять логин и пароль демо-пользователя из `~/.config/puls/demo-credentials`

@@ -17,9 +17,9 @@ systemd. С включённым lingering они стартуют **после 
 
 ```bash
 # 1. Окружение с секретами (права 600). Создаётся один раз:
-#    скопируйте адреса БД из тестового окружения и добавьте настройки портов.
+#    задайте DATABASE_URL, REDIS_URL и прочие переменные (формат KEY=value).
 mkdir -p ~/.config/puls
-cp ~/.config/hermes/puls-test.env ~/.config/puls/env   # затем поправьте под формат KEY=value
+cp .env.example ~/.config/puls/env   # затем заполните значения
 chmod 600 ~/.config/puls/env
 
 # 2. Сборка приложения (один раз и после обновлений кода):
@@ -31,7 +31,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now puls-api.service puls-web.service
 
 # 4. Запуск без входа в систему (нужен root один раз):
-sudo loginctl enable-linger goosee
+sudo loginctl enable-linger "$USER"
 ```
 
 ## Проверка

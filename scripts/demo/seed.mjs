@@ -42,7 +42,7 @@ const DEMO = { email: 'demo@puls.local', nickname: 'demo' };
 const FRIEND = { email: 'friend@puls.local', nickname: 'friend' };
 const CRED_PATH = join(homedir(), '.config', 'puls', 'demo-credentials');
 
-/** Разбор простого файла вида `export KEY=value` (puls-test.env, puls/env). */
+/** Разбор простого файла вида `export KEY=value` (.env, puls/env). */
 function loadEnvFile(path) {
   if (!existsSync(path)) return;
   for (const raw of readFileSync(path, 'utf8').split('\n')) {
@@ -59,13 +59,13 @@ function loadEnvFile(path) {
   }
 }
 
-// Окружение: сначала явное (уже экспортированное), затем персональный env,
-// затем тестовое окружение этой машины (Postgres/Valkey в docker-сети).
+// Окружение: сначала явное (уже экспортированное), затем `.env` в корне
+// репозитория, затем ~/.config/puls/env.
+if (!process.env.DATABASE_URL) loadEnvFile(join(REPO_ROOT, '.env'));
 if (!process.env.DATABASE_URL) loadEnvFile(join(homedir(), '.config', 'puls', 'env'));
-if (!process.env.DATABASE_URL) loadEnvFile(join(homedir(), '.config', 'hermes', 'puls-test.env'));
 
 if (!process.env.DATABASE_URL) {
-  console.error('Не задан DATABASE_URL (ни в окружении, ни в ~/.config/puls/env).');
+  console.error('Не задан DATABASE_URL (ни в окружении, ни в .env, ни в ~/.config/puls/env).');
   process.exit(1);
 }
 
