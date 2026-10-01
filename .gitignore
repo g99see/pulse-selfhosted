@@ -7,6 +7,9 @@ dist/
 .next/
 out/
 *.tsbuildinfo
+# кеш и сборка документации VitePress
+docs-site/.vitepress/cache/
+docs-site/.vitepress/dist/
 # service worker PWA генерируется сборкой (ТЗ §7)
 apps/web/public/sw.js
 apps/web/public/sw.js.map

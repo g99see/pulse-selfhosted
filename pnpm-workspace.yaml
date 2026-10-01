@@ -1,11 +1,15 @@
 packages:
   - apps/*
   - packages/*
+  - docs-site
 
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
   prisma: true
+  # esbuild нужен для сборки VitePress (документация, ТЗ §10): postinstall
+  # ставит платформенный бинарник. Без него vitepress build падает.
+  esbuild: true
   # Нативный модуль: pnpm 11 падает с ERR_PNPM_IGNORED_BUILDS без явного разрешения.
   # Сборка не компилируется — пакет везёт готовые prebuilds, в т.ч. linux-x64 musl.
   argon2: true
