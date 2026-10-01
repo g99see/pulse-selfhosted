@@ -3,6 +3,7 @@
 
 import { DataPrivacySection } from '@/components/data-privacy-section';
 import { AiKeySection } from '@/components/ai-key-section';
+import { ApiAccessSection } from '@/components/api-access-section';
 import { LinkedAccountsSection } from '@/components/linked-accounts-section';
 import { TelegramSection } from '@/components/telegram-section';
 import { TwoFactorSection } from '@/components/two-factor-section';
@@ -21,6 +22,7 @@ export default function SettingsPage() {
 
       <DataPrivacySection />
       <AiKeySection />
+      <ApiAccessSection />
       <LinkedAccountsSection />
       <TelegramSection />
       <TwoFactorSection />
