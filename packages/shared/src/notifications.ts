@@ -296,8 +296,96 @@ export function nextDeliveryTime(options: NextDeliveryOptions): Date {
   return wallTimeToInstant(fallbackDay.year, fallbackDay.month, fallbackDay.day, 9, 0, timezone);
 }
 
-/* ----- Умное время (ТЗ §3.6) ----- */
+/* ----- Выбор due-уведомлений для планировщика ----- */
 
+export interface DeliveryWindow {
+  /** Нижняя граница (исключительно). */
+  from: Date;
+  /** Верхняя граница (включительно). */
+  to: Date;
+  timezone: string;
+}
+
+export interface DeliveryScheduleOptions {
+  times?: readonly string[] | number;
+  quietHours?: QuietHours;
+  morningTime?: string;
+}
+
+function isAfterDay(
+  day: { year: number; month: number; day: number },
+  limit: { year: number; month: number; day: number },
+): boolean {
+  if (day.year !== limit.year) return day.year > limit.year;
+  if (day.month !== limit.month) return day.month > limit.month;
+  return day.day > limit.day;
+}
+
+/**
+ * Был ли плановый момент отправки в интервале (from, to]. Используется
+ * планировщиком, чтобы выбрать «созревшие» уведомления (ТЗ §9).
+ */
+export function deliveryOccurredBetween(
+  window: DeliveryWindow,
+  options: DeliveryScheduleOptions = {},
+): boolean {
+  const fromMs = window.from.getTime();
+  const toMs = window.to.getTime();
+  if (!(toMs > fromMs)) return false;
+
+  const timezone = window.timezone || 'UTC';
+  const quiet = options.quietHours ?? DEFAULT_QUIET_HOURS;
+  const times = withMorningTime(normalizeTimes(options.times), options.morningTime);
+
+  const start = localParts(window.from, timezone);
+  const end = localParts(window.to, timezone);
+  const startDay = addDays(start.year, start.month, start.day, -1);
+
+  for (let offset = 0; offset <= 8; offset += 1) {
+    const day = addDays(startDay.year, startDay.month, startDay.day, offset);
+    if (isAfterDay(day, end)) break;
+
+    for (const time of times) {
+      const parsed = parseTimeOfDay(time);
+      if (!parsed) continue;
+
+      const slot = shiftOutOfQuietHours(
+        { ...day, hour: parsed.hour, minute: parsed.minute },
+        quiet,
+      );
+      const instant = wallTimeToInstant(
+        slot.year,
+        slot.month,
+        slot.day,
+        slot.hour,
+        slot.minute,
+        timezone,
+      ).getTime();
+
+      if (instant > fromMs && instant <= toMs) return true;
+    }
+  }
+
+  return false;
+}
+
+/** Типы включённых правил, у которых в окне есть плановая отправка. */
+export function selectDueTypes(
+  rules: readonly NotificationRuleConfig[],
+  window: DeliveryWindow,
+): NotificationType[] {
+  return rules
+    .filter((rule) => rule.enabled)
+    .filter((rule) =>
+      deliveryOccurredBetween(window, {
+        times: rule.times,
+        quietHours: rule.quietHours,
+      }),
+    )
+    .map((rule) => rule.type);
+}
+
+/* ----- Умное время (ТЗ §3.6) ----- */
 /**
  * Привычное время ответа — медиана времени ответов (локально). Возвращает
  * «HH:MM» или null, если данных нет. Устойчиво к выбросам (медиана).

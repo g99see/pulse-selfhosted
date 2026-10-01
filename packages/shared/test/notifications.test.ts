@@ -12,6 +12,8 @@ import {
   typicalAnswerTime,
   withMorningTime,
   defaultNotificationRules,
+  deliveryOccurredBetween,
+  selectDueTypes,
   type NotificationRuleConfig,
 } from '../src/notifications';
 
@@ -207,5 +209,72 @@ describe('правила по типам уведомлений', () => {
     expect(isTypeEnabled(disabled, 'payments')).toBe(false);
     expect(isTypeEnabled(disabled, 'checkins')).toBe(true);
     expect(isTypeEnabled(disabled, 'budget')).toBe(true);
+  });
+});
+
+describe('due-выбор для планировщика', () => {
+  it('находит слот внутри окна', () => {
+    expect(
+      deliveryOccurredBetween(
+        {
+          from: new Date('2026-10-01T08:00:00Z'),
+          to: new Date('2026-10-01T09:30:00Z'),
+          timezone: 'UTC',
+        },
+        { times: 3 },
+      ),
+    ).toBe(true);
+  });
+
+  it('не находит слот, если он ещё не наступил', () => {
+    expect(
+      deliveryOccurredBetween(
+        {
+          from: new Date('2026-10-01T09:30:00Z'),
+          to: new Date('2026-10-01T14:00:00Z'),
+          timezone: 'UTC',
+        },
+        { times: 3 },
+      ),
+    ).toBe(false);
+  });
+
+  it('включает правую границу окна', () => {
+    expect(
+      deliveryOccurredBetween(
+        {
+          from: new Date('2026-10-01T14:00:00Z'),
+          to: new Date('2026-10-01T15:00:00Z'),
+          timezone: 'UTC',
+        },
+        { times: 3 },
+      ),
+    ).toBe(true);
+  });
+
+  it('учитывает сдвиг тихих часов при выборе due', () => {
+    expect(
+      deliveryOccurredBetween(
+        {
+          from: new Date('2026-10-01T21:00:00Z'),
+          to: new Date('2026-10-02T08:30:00Z'),
+          timezone: 'UTC',
+        },
+        { times: ['22:30'], quietHours: { start: 22, end: 8 } },
+      ),
+    ).toBe(true);
+  });
+
+  it('выбирает только включённые типы', () => {
+    const rules = defaultNotificationRules().map((rule) =>
+      rule.type === 'checkins' ? { ...rule, enabled: false } : { ...rule, times: ['09:00'] },
+    );
+    const due = selectDueTypes(rules, {
+      from: new Date('2026-10-01T08:00:00Z'),
+      to: new Date('2026-10-01T09:30:00Z'),
+      timezone: 'UTC',
+    });
+    expect(due).not.toContain('checkins');
+    expect(due).toContain('payments');
   });
 });
