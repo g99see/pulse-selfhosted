@@ -5,6 +5,7 @@
  * Суммы передаются как числа, в БД хранятся как Decimal(14,2).
  */
 import { z } from 'zod';
+import { isCurrency } from './money';
 import { AccountTypeSchema, type AccountType } from './auth';
 
 export const TRANSACTION_KINDS = ['expense', 'income', 'transfer'] as const;
@@ -16,6 +17,16 @@ export type CategoryKind = z.infer<typeof CategoryKindSchema>;
 
 /** Сумма транзакции/бюджета: положительная, до 1 млрд. */
 const amountSchema = z.number().finite().positive().max(1_000_000_000);
+
+/** Код валюты из поддерживаемого набора (RUB, USD, EUR). */
+export const currencyCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .refine(isCurrency, { message: 'Неподдерживаемая валюта' });
+
+/** Курс валюты: положительный, до 1 млн (Decimal(18, 8)). */
+const rateSchema = z.number().finite().positive().max(1_000_000);
 
 /** Ключ месяца «YYYY-MM». */
 export const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, {
@@ -106,7 +117,7 @@ export const AccountCreateSchema = z.object({
   name: z.string().trim().min(1, { message: 'Введите название счёта' }).max(80),
   type: AccountTypeSchema.default('card'),
   balance: z.number().finite().min(0).max(1_000_000_000).default(0),
-  currency: z.string().length(3).optional(),
+  currency: currencyCodeSchema.optional(),
 });
 export type AccountCreateInput = z.infer<typeof AccountCreateSchema>;
 export type AccountCreateValues = z.input<typeof AccountCreateSchema>;
@@ -115,6 +126,7 @@ export const AccountUpdateSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
   type: AccountTypeSchema.optional(),
   balance: z.number().finite().min(0).max(1_000_000_000).optional(),
+  currency: currencyCodeSchema.optional(),
 });
 export type AccountUpdateInput = z.infer<typeof AccountUpdateSchema>;
 
@@ -129,6 +141,10 @@ export const TransactionCreateSchema = z.object({
   categoryId: z.string().min(1).optional(),
   type: z.enum(['expense', 'income']).default('expense'),
   amount: amountSchema,
+  /** Валюта операции; по умолчанию — валюта счёта (ТЗ §3.2). */
+  currency: currencyCodeSchema.optional(),
+  /** Зафиксированный курс валюты операции к основной валюте пользователя. */
+  rate: rateSchema.optional(),
   comment: z.string().trim().max(500).optional(),
   date: dateSchema.optional(),
 });
@@ -140,6 +156,8 @@ export const TransferCreateSchema = z
     fromAccountId: z.string().min(1),
     toAccountId: z.string().min(1),
     amount: amountSchema,
+    /** Сумма зачисления в валюте счёта-получателя (для счетов разных валют). */
+    toAmount: amountSchema.optional(),
     comment: z.string().trim().max(500).optional(),
     date: dateSchema.optional(),
   })
@@ -171,6 +189,41 @@ export const TransactionFilterSchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).default(100),
 });
 export type TransactionFilter = z.infer<typeof TransactionFilterSchema>;
+
+/* ----- Курсы валют (ТЗ §3.2) ----- */
+
+/** Ручной курс: одна единица base стоит rate единиц quote на дату. */
+export const ExchangeRateCreateSchema = z
+  .object({
+    date: dateSchema,
+    base: currencyCodeSchema,
+    quote: currencyCodeSchema,
+    rate: rateSchema,
+    source: z.enum(['manual', 'provider']).default('manual'),
+  })
+  .refine((value) => value.base !== value.quote, {
+    message: 'Валюты курса должны отличаться',
+    path: ['quote'],
+  });
+export type ExchangeRateCreateInput = z.infer<typeof ExchangeRateCreateSchema>;
+export type ExchangeRateCreateValues = z.input<typeof ExchangeRateCreateSchema>;
+
+export const ExchangeRateFilterSchema = z.object({
+  date: dateSchema.optional(),
+  base: currencyCodeSchema.optional(),
+  quote: currencyCodeSchema.optional(),
+});
+export type ExchangeRateFilter = z.infer<typeof ExchangeRateFilterSchema>;
+
+/** Курс валюты в ответах API. */
+export interface ExchangeRateDto {
+  id: string;
+  date: string;
+  base: string;
+  quote: string;
+  rate: number;
+  source: string;
+}
 
 /* ----- Контракты ответов API (общие для web и api) ----- */
 
@@ -220,6 +273,14 @@ export interface TransactionDto {
   type: TransactionKind;
   amount: number;
   currency: string;
+  /** Курс валюты операции к основной валюте пользователя на дату операции. */
+  rate: number;
+  /** Сумма в основной валюте пользователя (amount × rate). */
+  amountBase: number;
+  /** Основная валюта пользователя, в которой посчитан amountBase. */
+  baseCurrency: string;
+  /** Сумма зачисления при переводе в валюте счёта-получателя. */
+  toAmount: number | null;
   date: string;
   comment: string | null;
   transferAccountId: string | null;

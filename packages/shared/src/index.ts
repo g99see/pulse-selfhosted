@@ -17,6 +17,7 @@ export * from './notifications';
 export * from './telegram';
 export * from './recurring';
 export * from './account';
+export * from './two-factor';
 export * from './achievements';
 export * from './external-auth';
 export * from './goals';
