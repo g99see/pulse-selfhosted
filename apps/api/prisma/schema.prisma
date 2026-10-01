@@ -19,6 +19,10 @@ model User {
   passwordHash    String?   @map("password_hash")
   emailVerifiedAt DateTime? @map("email_verified_at")
 
+  /// Роль пользователя (ТЗ §9 п.7): user | moderator | admin.
+  /// Первый пользователь, созданный мастером первого запуска, — admin.
+  role String @default("user")
+
   // Онбординг (ТЗ §3.1): валюта, часовой пояс, цели, уведомления, приватность.
   timezone             String    @default("UTC")
   currency             String    @default("RUB")
@@ -36,6 +40,12 @@ model User {
   checkinTimes       String[] @default(["09:00", "15:00", "21:00"]) @map("checkin_times")
 
   twoFaEnabled Boolean  @default(false) @map("two_fa_enabled")
+  /// TOTP-секрет, зашифрованный AES-256-GCM (см. crypto/secret-box.ts).
+  twoFaSecret      String?   @map("two_fa_secret")
+  /// Момент подтверждения кода при включении (secret -> enabled).
+  twoFaConfirmedAt DateTime? @map("two_fa_confirmed_at")
+  /// Последний принятый шаг TOTP — защита от повторного использования кода.
+  twoFaLastStep    Int?      @map("two_fa_last_step")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -49,8 +59,17 @@ model User {
   notificationRules  NotificationRule[]
   pushSubscriptions  PushSubscription[]
   dailyStats         DailyStat[]
+  userAchievements   UserAchievement[]
   savingsGoals       Goal[]
   goalDeposits       GoalDeposit[]
+  recurringPayments  RecurringPayment[]
+  twoFactorBackupCodes TwoFactorBackupCode[]
+  twoFactorChallenges  TwoFactorChallenge[]
+  externalIdentities ExternalIdentity[]
+  exchangeRates      ExchangeRate[]
+  telegramLink       TelegramLink?
+  telegramLinkCodes  TelegramLinkCode[]
+  insights           Insight[]
 
   @@map("users")
 }
@@ -102,6 +121,7 @@ model Account {
   transfers    Transaction[] @relation("TransferTarget")
   goals        Goal[]
   goalDeposits GoalDeposit[]
+  recurringPayments RecurringPayment[]
 
   @@index([userId])
   @@map("accounts")
@@ -146,6 +166,7 @@ model Category {
 
   transactions Transaction[]
   budgets      Budget[]
+  recurringPayments RecurringPayment[]
 
   @@index([userId])
   @@map("categories")
@@ -166,11 +187,20 @@ model Transaction {
   type              String   @default("expense")
   amount            Decimal  @db.Decimal(14, 2)
   currency          String   @default("RUB")
+  /// Курс валюты операции к основной валюте пользователя на дату (ТЗ §3.2).
+  rate              Decimal  @default(1) @db.Decimal(18, 8)
+  /// Сумма в основной валюте пользователя: amount × rate.
+  amountBase        Decimal  @default(0) @map("amount_base") @db.Decimal(14, 2)
+  /// Сумма зачисления при переводе между счетами разных валют.
+  toAmount          Decimal? @map("to_amount") @db.Decimal(14, 2)
   date              DateTime @db.Date
   comment           String?
+  /// Хеш строки импорта банковской выписки (ТЗ §3.2): идемпотентность повторного импорта.
+  importHash        String?  @map("import_hash")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
+  @@unique([userId, importHash])
   @@index([userId, date])
   @@index([accountId])
   @@index([categoryId])
@@ -248,6 +278,117 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
+/// Привязка Telegram-чата к аккаунту (ТЗ §3.6, §4): один чат — один аккаунт,
+/// у пользователя один чат. Через неё бот пишет чек-ины и траты в чат.
+model TelegramLink {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatId    String   @unique @map("chat_id")
+  username  String?
+  linkedAt  DateTime @default(now()) @map("linked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("telegram_links")
+}
+
+/// Одноразовый код привязки Telegram (ТЗ §3.6): TTL 10 минут, в БД только
+/// SHA-256 от кода. После применения помечается used_at.
+model TelegramLinkCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @unique @map("code_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("telegram_link_codes")
+}
+
+/// Внешняя учётная запись (ТЗ §3.1, §7): вход через Google и Telegram.
+/// subject — стабильный идентификатор у провайдера (sub у Google, id у Telegram);
+/// пара (provider, subject) уникальна. email для Telegram может отсутствовать.
+model ExternalIdentity {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider  String
+  subject   String
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, subject])
+  @@index([userId])
+  @@map("external_identities")
+}
+
+/// Настройки инстанса (ТЗ §9 п.7, §10): режим регистрации и отметка о том, что
+/// мастер первого запуска завершён. Одна строка на инстанс (id = "instance").
+model InstanceSettings {
+  id               String    @id @default("instance")
+  /// open — регистрация свободна; invite — только по приглашению (пока недоступно);
+  /// closed — регистрация закрыта (POST /auth/register → 403 registration_closed).
+  registrationMode String    @default("open") @map("registration_mode")
+  setupCompletedAt DateTime? @map("setup_completed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("instance_settings")
+}
+
+/// Одноразовый резервный код 2FA (ТЗ §6). В БД только SHA-256 от кода;
+/// после использования помечается used_at и больше не принимается.
+model TwoFactorBackupCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @map("code_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("two_factor_backup_codes")
+}
+
+/// Временный пропуск шага 2FA между проверкой пароля и вводом кода (ТЗ §6):
+/// хранится только хеш токена, срок жизни короткий, выставляется один раз.
+model TwoFactorChallenge {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("two_factor_challenges")
+}
+
+/// Курс валюты (ТЗ §3.2): одна единица base стоит rate единиц quote на дату.
+/// Ручные курсы вводятся пользователем; source = provider — подтянуты с API.
+/// Курс фиксируется в транзакции на дату операции (Transaction.rate).
+model ExchangeRate {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  base      String
+  quote     String
+  rate      Decimal  @db.Decimal(18, 8)
+  source    String   @default("manual")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, date, base, quote])
+  @@index([userId, date])
+  @@map("exchange_rates")
+}
+
 /// Цель накоплений (ТЗ §3.2, §7): сумма, срок, картинка и приватность.
 /// saved_amount меняется пополнениями (GoalDeposit) в одной транзакции.
 model Goal {
@@ -291,4 +432,97 @@ model GoalDeposit {
   @@index([goalId])
   @@index([userId, date])
   @@map("goal_deposits")
+}
+
+/// Инсайт-рекомендация на правилах (ТЗ §3.5, §7): текст задаётся ключом i18n и
+/// параметрами, пользователь оценивает «полезно / не полезно». source = weekly —
+/// элементы недельного разбора, periodKey делает генерацию идемпотентной.
+model Insight {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Тип правила: category_spend_up, low_energy_streak, mood_with_sport,
+  /// budget_exceeded, budget_suggestion, wellbeing_concern.
+  type       String
+  /// Ключ текста в i18n (строки не хранятся в БД).
+  textKey    String    @map("text_key")
+  /// Параметры подстановки в шаблон текста.
+  params     Json      @default("{}")
+  /// rule — из ленты правил, weekly — из недельного разбора.
+  source     String    @default("rule")
+  /// Ключ периода (ISO-неделя или день) — защищает от повторной генерации.
+  periodKey  String?   @map("period_key")
+  /// Действие предложения: { kind: "budget", categoryId, month, limit, ... }.
+  action     Json?
+  /// Когда предложение применили (создан бюджет).
+  appliedAt  DateTime? @map("applied_at")
+  /// Оценка пользователя: useful | not_useful.
+  feedback   String?
+  feedbackAt DateTime? @map("feedback_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@unique([userId, type, periodKey])
+  @@index([userId, createdAt])
+  @@map("insights")
+}
+
+/// Регулярный платёж (ТЗ §3.2): аренда, подписки и другие периодические
+/// списания. Расписание — частота + день (weekly: 1–7 Пн–Вс; monthly и yearly:
+/// 1–31 с прижатием к концу месяца: 31-е → 30/28/29; month — только для yearly).
+/// Время time_of_day считается в часовом поясе timezone (с учётом DST).
+/// next_run_at — ближайшее списание, active — пауза/возобновление,
+/// reminded_for — идемпотентность напоминания за 1 день.
+model RecurringPayment {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  amount        Decimal   @db.Decimal(14, 2)
+  type          String    @default("expense")
+  accountId     String    @map("account_id")
+  account       Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  categoryId    String?   @map("category_id")
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  frequency     String    @default("monthly")
+  scheduleDay   Int       @map("schedule_day")
+  scheduleMonth Int?      @map("schedule_month")
+  timeOfDay     String    @default("10:00") @map("time_of_day")
+  timezone      String    @default("UTC")
+  nextRunAt     DateTime  @map("next_run_at")
+  active        Boolean   @default(true)
+  lastRunAt     DateTime? @map("last_run_at")
+  remindedFor   DateTime? @map("reminded_for")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, active, nextRunAt])
+  @@map("recurring_payments")
+}
+
+/// Каталог достижений (ТЗ §2, §4): код бейджа и JSON-условие выдачи.
+/// Заполняется сервисом достижений при старте приложения (идемпотентно).
+model Achievement {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  /// Условие выдачи: { kind, threshold, group } (ТЗ §4).
+  condition Json     @default("{}")
+  /// Порядок отображения в сетке достижений.
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("achievements")
+}
+
+/// Полученное пользователем достижение (ТЗ §4). Пара (user_id, code)
+/// уникальна — выдача идемпотентна и защищена от гонки на уровне БД.
+model UserAchievement {
+  id       String   @id @default(cuid())
+  userId   String   @map("user_id")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code     String
+  earnedAt DateTime @default(now()) @map("earned_at")
+
+  @@unique([userId, code])
+  @@index([userId, earnedAt])
+  @@map("user_achievements")
 }

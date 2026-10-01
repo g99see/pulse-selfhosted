@@ -1,26 +1,38 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Module } from '@nestjs/common';
 import { AccountModule } from './account/account.module';
+import { AchievementsModule } from './achievements/achievements.module';
 import { AuthModule } from './auth/auth.module';
+import { ExternalAuthModule } from './auth/external/external-auth.module';
 import { CheckinsModule } from './checkins/checkins.module';
 import { FinanceModule } from './finance/finance.module';
 import { GoalsModule } from './goals/goals.module';
 import { HealthModule } from './health/health.module';
+import { InsightsModule } from './insights/insights.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RecurringModule } from './finance/recurring.module';
+import { SetupModule } from './setup/setup.module';
 import { StatsModule } from './stats/stats.module';
+import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
   imports: [
     PrismaModule,
     HealthModule,
     AuthModule,
+    ExternalAuthModule,
     FinanceModule,
+    RecurringModule,
     GoalsModule,
     CheckinsModule,
     NotificationsModule,
     StatsModule,
     AccountModule,
+    AchievementsModule,
+    TelegramModule,
+    SetupModule,
+    InsightsModule,
   ],
 })
 export class AppModule {}

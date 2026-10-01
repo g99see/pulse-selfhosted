@@ -47,9 +47,17 @@ services:
       CORS_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
       WEB_APP_URL: ${PUBLIC_ORIGIN:-http://localhost}
       SMTP_URL: ${SMTP_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-Пульс <noreply@example.com>}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      RATES_PROVIDER: ${RATES_PROVIDER:-}
+      APP_VERSION: ${APP_VERSION:-0.1.0}
     depends_on:
       postgres:
         condition: service_healthy
@@ -96,6 +104,46 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    networks:
+      - puls
+
+  # Плановый бэкап (ТЗ §6, §10): дамп PostgreSQL + метаданные (версия миграции)
+  # в ./backups, ротация старых архивов, healthcheck по свежести последнего
+  # успешного бэкапа. Восстановление — scripts/restore.sh, обновление — scripts/upgrade.sh.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # root нужен, чтобы писать в bind-mount ./backups независимо от UID хоста.
+    user: '0:0'
+    environment:
+      PGHOST: postgres
+      PGPORT: '5432'
+      PGUSER: ${POSTGRES_USER:-puls}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-puls}
+      PGDATABASE: ${POSTGRES_DB:-puls}
+      BACKUP_MODE: local
+      BACKUP_DIR: /backups
+      BACKUP_KEEP: ${BACKUP_KEEP:-7}
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      APP_VERSION: ${APP_VERSION:-0.1.0}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+    entrypoint: ['sh', '/usr/local/bin/backup.sh', '--daemon']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Свежесть последнего успешного бэкапа: не старше двух интервалов.
+      test:
+        [
+          'CMD-SHELL',
+          'test -f /backups/.last-success && [ "$$(( $$(date +%s) - $$(stat -c %Y /backups/.last-success) ))" -lt "$$(( $${BACKUP_INTERVAL_HOURS:-24} * 7200 ))" ]',
+        ]
+      interval: 5m
+      timeout: 10s
+      retries: 3
       start_period: 30s
     networks:
       - puls

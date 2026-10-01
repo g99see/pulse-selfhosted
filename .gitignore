@@ -27,6 +27,9 @@ blob-report/
 .pgdata/
 apps/api/prisma/*.db
 
+# резервные копии (том сервиса backup, ТЗ §10)
+/backups/
+
 # logs & os
 *.log
 npm-debug.log*
