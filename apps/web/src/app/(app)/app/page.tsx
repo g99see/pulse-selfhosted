@@ -2,10 +2,11 @@
 'use client';
 
 import { CheckInCard } from '@/components/checkin-card';
+import { TodayStats } from '@/components/today-stats';
 import { useT } from '@/components/locale-provider';
 import { Card } from '@/components/ui';
 
-/** Главная кабинета (ТЗ §8): карточка чек-ина и подтверждение онбординга. */
+/** Главная кабинета (ТЗ §8): карточка чек-ина, дашборд дня и онбординг. */
 export default function AppHomePage() {
   const { t } = useT();
 
@@ -14,6 +15,8 @@ export default function AppHomePage() {
       <h1 className="text-3xl font-extrabold">{t('app.today.title')}</h1>
 
       <CheckInCard />
+
+      <TodayStats />
 
       <Card>
         <p className="text-[var(--puls-finance-text)]">{t('app.today.onboardingDone')}</p>

@@ -14,7 +14,7 @@ const NAV: Array<{ key: string; href: string | null }> = [
   { key: 'app.nav.home', href: '/app' },
   { key: 'app.nav.finance', href: '/finance' },
   { key: 'app.nav.add', href: null },
-  { key: 'app.nav.stats', href: null },
+  { key: 'app.nav.stats', href: '/stats' },
   { key: 'app.nav.profile', href: '/app/profile' },
 ];
 
