@@ -55,7 +55,9 @@ export class SetupService {
     const passwordHash = await this.passwords.hash(input.password);
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${SETUP_LOCK_KEY})`;
+      // pg_advisory_xact_lock возвращает void — Prisma не умеет его
+      // десериализовать, поэтому приводим результат к text.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${SETUP_LOCK_KEY}::bigint)::text`;
 
       const users = await tx.user.count();
       if (users > 0) {
