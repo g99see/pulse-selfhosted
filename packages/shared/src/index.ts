@@ -21,3 +21,8 @@ export * from './two-factor';
 export * from './achievements';
 export * from './external-auth';
 export * from './goals';
+export * from './share-card';
+export * from './html-templates';
+export * from './social';
+export * from './profile';
+export * from './html-page';
