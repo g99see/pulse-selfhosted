@@ -39,6 +39,9 @@ model User {
   verificationTokens EmailVerificationToken[]
   accounts           Account[]
   checkIns           CheckIn[]
+  categories         Category[]
+  transactions       Transaction[]
+  budgets            Budget[]
 
   @@map("users")
 }
@@ -86,6 +89,9 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  transactions Transaction[] @relation("TransactionAccount")
+  transfers    Transaction[] @relation("TransferTarget")
+
   @@index([userId])
   @@map("accounts")
 }
@@ -104,4 +110,66 @@ model CheckIn {
 
   @@index([userId, createdAt])
   @@map("check_ins")
+}
+
+/// Категория транзакции (ТЗ §7): userId = null — системная, иначе своя.
+model Category {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  icon      String   @default("tag")
+  color     String   @default("#6E6E7A")
+  kind      String   @default("expense")
+  isSystem  Boolean  @default(false) @map("is_system")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@index([userId])
+  @@map("categories")
+}
+
+/// Транзакция (ТЗ §7): доход, расход или перевод между счетами.
+/// Перевод не считается расходом: type = 'transfer', transferAccountId — получатель.
+model Transaction {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String   @map("account_id")
+  account           Account  @relation("TransactionAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  categoryId        String?  @map("category_id")
+  category          Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  transferAccountId String?  @map("transfer_account_id")
+  transferAccount   Account? @relation("TransferTarget", fields: [transferAccountId], references: [id], onDelete: SetNull)
+  type              String   @default("expense")
+  amount            Decimal  @db.Decimal(14, 2)
+  currency          String   @default("RUB")
+  date              DateTime @db.Date
+  comment           String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, date])
+  @@index([accountId])
+  @@index([categoryId])
+  @@map("transactions")
+}
+
+/// Бюджет на месяц по категории (ТЗ §3.2): month в формате «YYYY-MM».
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  month      String
+  limit      Decimal  @db.Decimal(14, 2)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+  @@map("budgets")
 }
