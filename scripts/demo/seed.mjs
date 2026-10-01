@@ -2,7 +2,7 @@
 /**
  * Демо-данные «Пульса» (одна команда, идемпотентно).
  *
- * Запуск:  node scripts/demo/seed.mjs
+ * Запуск:  node scripts/demo/seed.mjs [--locale ru|en] [--currency RUB|EUR|USD|...]
  * (или через dev-run.sh / systemd — окружение подхватывается автоматически).
  *
  * Что делает скрипт:
@@ -21,6 +21,15 @@
  * уходит всё их содержимое), затем создаются заново. Пароли сохраняются в
  * `~/.config/puls/demo-credentials` (права 600) и переиспользуются при повторных
  * запусках — в репозиторий ничего не пишется.
+ *
+ * Параметры (флаги или переменные окружения; флаг приоритетнее):
+ *   --locale ru|en       DEMO_LOCALE    язык демо-контента (по умолчанию ru)
+ *   --currency <ISO>     DEMO_CURRENCY  валюта (по умолчанию RUB); суммы
+ *                        пересчитываются от рублей коэффициентом CURRENCY_FACTORS
+ *                        и округляются до «красивых» значений
+ *   --help               эта справка
+ * Системные категории (sys-food и др.) всегда остаются с русскими названиями —
+ * веб локализует их по id.
  */
 
 import { createRequire } from 'node:module';
@@ -37,6 +46,72 @@ const REPO_ROOT = resolve(HERE, '..', '..');
 const requireApi = createRequire(join(REPO_ROOT, 'apps/api', 'package.json'));
 const { PrismaClient } = requireApi('@prisma/client');
 const argon2 = requireApi('argon2');
+
+/* ---------- параметры запуска ---------- */
+
+const LOCALES = ['ru', 'en'];
+/** Коэффициент пересчёта от RUB (ориентировочный курс; допустимые валюты — только эти). */
+const CURRENCY_FACTORS = {
+  RUB: 1,
+  EUR: 0.01,
+  USD: 0.011,
+  GBP: 0.0085,
+  CHF: 0.0095,
+  PLN: 0.045,
+  CZK: 0.25,
+  TRY: 0.4,
+  UAH: 0.45,
+  BYN: 0.035,
+  GEL: 0.03,
+  KZT: 5.5,
+};
+
+const HELP = `Демо-данные «Пульса»
+
+Использование: node scripts/demo/seed.mjs [параметры]
+
+  --locale ru|en     язык демо-контента (env DEMO_LOCALE, по умолчанию ru)
+  --currency <ISO>   валюта (env DEMO_CURRENCY, по умолчанию RUB);
+                     поддерживаются: ${Object.keys(CURRENCY_FACTORS).join(', ')}
+  --help, -h         показать эту справку
+
+Примеры:
+  node scripts/demo/seed.mjs
+  node scripts/demo/seed.mjs --locale en --currency EUR
+  DEMO_LOCALE=en DEMO_CURRENCY=USD node scripts/demo/seed.mjs`;
+
+function parseOptions(argv) {
+  const opts = { locale: process.env.DEMO_LOCALE, currency: process.env.DEMO_CURRENCY };
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      console.log(HELP);
+      process.exit(0);
+    }
+    const match = /^--(locale|currency)(?:=(.*))?$/.exec(arg);
+    if (!match) {
+      console.error(`Неизвестный параметр: ${arg}\n\n${HELP}`);
+      process.exit(1);
+    }
+    opts[match[1]] = match[2] ?? argv[(i += 1)];
+  }
+  const locale = (opts.locale || 'ru').trim().toLowerCase();
+  const currency = (opts.currency || 'RUB').trim().toUpperCase();
+  if (!LOCALES.includes(locale)) {
+    console.error(`Неподдерживаемая локаль «${locale}». Доступно: ${LOCALES.join(', ')}.`);
+    process.exit(1);
+  }
+  if (!(currency in CURRENCY_FACTORS)) {
+    console.error(
+      `Неподдерживаемая валюта «${currency}». Доступно: ${Object.keys(CURRENCY_FACTORS).join(', ')}.`,
+    );
+    process.exit(1);
+  }
+  return { locale, currency };
+}
+
+const { locale: LOCALE, currency: CURRENCY } = parseOptions(process.argv.slice(2));
+const FACTOR = CURRENCY_FACTORS[CURRENCY];
 
 const DEMO = { email: 'demo@puls.local', nickname: 'demo' };
 const FRIEND = { email: 'friend@puls.local', nickname: 'friend' };
@@ -87,6 +162,14 @@ function monthKey(date) {
 }
 function round2(value) {
   return Math.round(value * 100) / 100;
+}
+/** Сумма в рублях → выбранная валюта, до копеек/центов. */
+function fx(rub) {
+  return round2(rub * FACTOR);
+}
+/** Сумма в рублях → выбранная валюта, округлённая до «красивого» шага (10/50/100). */
+function nice(rub, step = 10) {
+  return Math.max(step, Math.round((rub * FACTOR) / step) * step);
 }
 
 const TODAY = utcDay(new Date());
@@ -167,67 +250,163 @@ function saveCredentials(creds) {
 
 /* ---------- содержимое ---------- */
 
+/** Шаблоны трат: категория (русское имя системной категории), диапазон в рублях, частота. */
 const EXPENSE_TEMPLATES = [
-  {
-    cat: 'Еда',
-    items: ['обед', 'продукты', 'кофе с собой', 'ужин в кафе', 'доставка еды'],
-    min: 220,
-    max: 1600,
-    freq: 0.72,
-  },
-  { cat: 'Транспорт', items: ['метро', 'такси', 'заправка'], min: 60, max: 900, freq: 0.42 },
-  {
-    cat: 'Развлечения',
-    items: ['кино', 'бар с друзьями', 'концерт'],
-    min: 500,
-    max: 3200,
-    freq: 0.12,
-  },
-  { cat: 'Здоровье', items: ['аптека', 'приём у врача'], min: 400, max: 3800, freq: 0.06 },
-  {
-    cat: 'Покупки',
-    items: ['одежда', 'маркетплейс', 'техника для дома'],
-    min: 900,
-    max: 6500,
-    freq: 0.16,
-  },
-  { cat: 'Связь', items: ['мобильная связь', 'домашний интернет'], min: 400, max: 800, freq: 0.05 },
-  {
-    cat: 'Подписки',
-    items: ['подписка на музыку', 'облачное хранилище'],
-    min: 199,
-    max: 699,
-    freq: 0.05,
-  },
-  { cat: 'Жильё', items: ['коммунальные услуги'], min: 3000, max: 6000, freq: 0.03 },
+  { cat: 'Еда', min: 220, max: 1600, freq: 0.72 },
+  { cat: 'Транспорт', min: 60, max: 900, freq: 0.42 },
+  { cat: 'Развлечения', min: 500, max: 3200, freq: 0.12 },
+  { cat: 'Здоровье', min: 400, max: 3800, freq: 0.06 },
+  { cat: 'Покупки', min: 900, max: 6500, freq: 0.16 },
+  { cat: 'Связь', min: 400, max: 800, freq: 0.05 },
+  { cat: 'Подписки', min: 199, max: 699, freq: 0.05 },
+  { cat: 'Жильё', min: 3000, max: 6000, freq: 0.03 },
 ];
 
-const MOOD_TAGS = [
-  'спорт',
-  'работа',
-  'семья',
-  'прогулка',
-  'сон',
-  'продуктивно',
-  'устал',
-  'стресс',
-  'хорошее настроение',
-];
-const NOTES = [
-  'День прошёл спокойно, много успел.',
-  'Немного устал, но в целом хороший день.',
-  'Много встреч, мало времени на себя.',
-  'Выспался и был продуктивен.',
-  'Вечером прогулка — стало легче.',
-  null,
-  null,
-];
+/* ---------- тексты по локалям ---------- */
+
+const TEXT = {
+  ru: {
+    accounts: { card: 'Зарплатная карта', cash: 'Наличные', savings: 'Накопительный счёт' },
+    // Названия трат по русским именам системных категорий.
+    expenseItems: {
+      Еда: ['обед', 'продукты', 'кофе с собой', 'ужин в кафе', 'доставка еды'],
+      Транспорт: ['метро', 'такси', 'заправка'],
+      Развлечения: ['кино', 'бар с друзьями', 'концерт'],
+      Здоровье: ['аптека', 'приём у врача'],
+      Покупки: ['одежда', 'маркетплейс', 'техника для дома'],
+      Связь: ['мобильная связь', 'домашний интернет'],
+      Подписки: ['подписка на музыку', 'облачное хранилище'],
+      Жильё: ['коммунальные услуги'],
+    },
+    salary: 'зарплата',
+    otherIncome: ['кэшбэк', 'возврат за заказ', 'подарок'],
+    transfer: 'перевод на накопления',
+    moodTags: [
+      'спорт',
+      'работа',
+      'семья',
+      'прогулка',
+      'сон',
+      'продуктивно',
+      'устал',
+      'стресс',
+      'хорошее настроение',
+    ],
+    notes: [
+      'День прошёл спокойно, много успел.',
+      'Немного устал, но в целом хороший день.',
+      'Много встреч, мало времени на себя.',
+      'Выспался и был продуктивен.',
+      'Вечером прогулка — стало легче.',
+      null,
+      null,
+    ],
+    daySummary: 'Неделя позади: держусь в графике.',
+    goalHoliday: 'Отпуск на море',
+    goalLaptop: 'Новый ноутбук',
+    habits: { water: 'Вода 8 стаканов', stretch: 'Зарядка утром', reading: 'Чтение 20 минут' },
+    rent: 'Аренда квартиры',
+    familyName: 'Семья Демо',
+    familyAccount: 'Общий счёт семьи',
+    familyContribution: 'взнос в общий бюджет',
+    familyGroceries: 'продукты на неделю',
+    familyHousehold: 'бытовая химия',
+    familyGoal: 'Ремонт кухни',
+    challenge: '30 дней осознанных трат',
+    capsuleTitle: 'Письмо себе через год',
+    capsuleBody: 'Привет из прошлого! Если ты читаешь это — год прошёл не зря.',
+    bio: 'Веду бюджет и слежу за самочувствием в «Пульсе». Люблю спорт и книги.',
+    friendBio: 'Учусь копить и держать баланс.',
+    cardTitle: 'Визитка',
+    cardSnippet: 'Демо-карточка',
+    cardSnippetText: ' — я веду бюджет в «Пульсе».',
+    pageNote: 'Шаблон «Визитка»',
+    page: {
+      lang: 'ru',
+      title: 'Визитка',
+      name: 'Демо Пользователь',
+      role: 'Продуктовый дизайнер',
+      bio: 'Коротко о себе: веду бюджет и дневник самочувствия в «Пульсе».',
+      mail: 'Почта',
+      site: 'Сайт',
+    },
+  },
+  en: {
+    accounts: { card: 'Salary card', cash: 'Cash', savings: 'Savings account' },
+    expenseItems: {
+      Еда: ['lunch', 'groceries', 'takeaway coffee', 'dinner at a cafe', 'food delivery'],
+      Транспорт: ['metro', 'taxi', 'fuel'],
+      Развлечения: ['cinema', 'drinks with friends', 'concert'],
+      Здоровье: ['pharmacy', 'doctor visit'],
+      Покупки: ['clothes', 'online marketplace', 'home appliances'],
+      Связь: ['mobile plan', 'home internet'],
+      Подписки: ['music subscription', 'cloud storage'],
+      Жильё: ['utilities'],
+    },
+    salary: 'salary',
+    otherIncome: ['cashback', 'order refund', 'gift'],
+    transfer: 'transfer to savings',
+    moodTags: [
+      'sport',
+      'work',
+      'family',
+      'walk',
+      'sleep',
+      'productive',
+      'tired',
+      'stress',
+      'good mood',
+    ],
+    notes: [
+      'A calm day, got a lot done.',
+      'A bit tired, but overall a good day.',
+      'Lots of meetings, little time for myself.',
+      'Slept well and felt productive.',
+      'An evening walk helped me feel better.',
+      null,
+      null,
+    ],
+    daySummary: "Another week done: I'm keeping to my routine.",
+    goalHoliday: 'Beach holiday',
+    goalLaptop: 'New laptop',
+    habits: {
+      water: 'Drink 8 glasses of water',
+      stretch: 'Morning exercise',
+      reading: 'Read for 20 minutes',
+    },
+    rent: 'Apartment rent',
+    familyName: 'Demo Family',
+    familyAccount: 'Family shared account',
+    familyContribution: 'contribution to the shared budget',
+    familyGroceries: 'groceries for the week',
+    familyHousehold: 'household supplies',
+    familyGoal: 'Kitchen renovation',
+    challenge: '30 days of mindful spending',
+    capsuleTitle: 'A letter to myself in a year',
+    capsuleBody: 'Hello from the past! If you are reading this, the year was not wasted.',
+    bio: 'I track my budget and well-being in Puls. I love sports and books.',
+    friendBio: 'Learning to save and keep a balance.',
+    cardTitle: 'Business card',
+    cardSnippet: 'Demo card',
+    cardSnippetText: ' — I track my budget in Puls.',
+    pageNote: 'Business card template',
+    page: {
+      lang: 'en',
+      title: 'Business card',
+      name: 'Demo User',
+      role: 'Product designer',
+      bio: 'A few words about me: I track my budget and well-being diary in Puls.',
+      mail: 'Email',
+      site: 'Website',
+    },
+  },
+}[LOCALE];
 
 async function main() {
   const prisma = new PrismaClient();
 
   try {
-    console.log('Демо-данные «Пульса»: старт.');
+    console.log(`Демо-данные «Пульса»: старт (locale=${LOCALE}, currency=${CURRENCY}).`);
 
     // 1. Системные категории — общие, пользовательские данные не трогаем.
     for (const [id, name, icon, color, kind] of SYSTEM_CATEGORIES) {
@@ -276,8 +455,8 @@ async function main() {
         emailVerifiedAt: verifiedAt,
         role: 'user',
         timezone: 'Europe/Moscow',
-        currency: 'RUB',
-        locale: 'ru',
+        currency: CURRENCY,
+        locale: LOCALE,
         goals: ['money', 'health', 'habits'],
         notificationsEnabled: true,
         quietHoursStart: 23,
@@ -298,8 +477,8 @@ async function main() {
         emailVerifiedAt: verifiedAt,
         role: 'user',
         timezone: 'Europe/Moscow',
-        currency: 'RUB',
-        locale: 'ru',
+        currency: CURRENCY,
+        locale: LOCALE,
         goals: ['money'],
         profileVisibility: 'public',
         onboardingStep: 4,
@@ -308,25 +487,34 @@ async function main() {
     });
 
     // 4. Счета.
+    const CASH_START = nice(30000);
+    const SAVINGS_START = nice(120000, 100);
+    const SALARY = nice(95000, 50);
     const card = await prisma.account.create({
       data: {
         userId: demo.id,
-        name: 'Зарплатная карта',
+        name: TEXT.accounts.card,
         type: 'card',
         balance: 0,
-        currency: 'RUB',
+        currency: CURRENCY,
       },
     });
     const cash = await prisma.account.create({
-      data: { userId: demo.id, name: 'Наличные', type: 'cash', balance: 30000, currency: 'RUB' },
+      data: {
+        userId: demo.id,
+        name: TEXT.accounts.cash,
+        type: 'cash',
+        balance: CASH_START,
+        currency: CURRENCY,
+      },
     });
     const savings = await prisma.account.create({
       data: {
         userId: demo.id,
-        name: 'Накопительный счёт',
+        name: TEXT.accounts.savings,
         type: 'savings',
-        balance: 120000,
-        currency: 'RUB',
+        balance: SAVINGS_START,
+        currency: CURRENCY,
       },
     });
 
@@ -349,45 +537,45 @@ async function main() {
           accountId: card.id,
           categoryId: catId.get('Зарплата'),
           type: 'income',
-          amount: 95000,
-          currency: 'RUB',
+          amount: SALARY,
+          currency: CURRENCY,
           rate: 1,
-          amountBase: 95000,
+          amountBase: SALARY,
           date: day,
-          comment: 'зарплата',
+          comment: TEXT.salary,
         });
-        balanceDelta.set(card.id, balanceDelta.get(card.id) + 95000);
+        balanceDelta.set(card.id, balanceDelta.get(card.id) + SALARY);
       }
       if (rnd() < 0.12) {
-        const amount = between(1500, 9000);
+        const amount = between(1500 * FACTOR, 9000 * FACTOR);
         transactions.push({
           userId: demo.id,
           accountId: card.id,
           categoryId: catId.get('Прочий доход'),
           type: 'income',
           amount,
-          currency: 'RUB',
+          currency: CURRENCY,
           rate: 1,
           amountBase: amount,
           date: day,
-          comment: pick(['кэшбэк', 'возврат за заказ', 'подарок']),
+          comment: pick(TEXT.otherIncome),
         });
         balanceDelta.set(card.id, balanceDelta.get(card.id) + amount);
       }
 
       for (const template of EXPENSE_TEMPLATES) {
         if (rnd() > template.freq) continue;
-        const amount = round2(between(template.min, template.max));
+        const amount = round2(between(template.min * FACTOR, template.max * FACTOR));
         const fromCash = rnd() < 0.08;
         const account = fromCash ? cash : card;
-        const comment = pick(template.items);
+        const comment = pick(TEXT.expenseItems[template.cat]);
         transactions.push({
           userId: demo.id,
           accountId: account.id,
           categoryId: catId.get(template.cat),
           type: 'expense',
           amount,
-          currency: 'RUB',
+          currency: CURRENCY,
           rate: 1,
           amountBase: amount,
           date: day,
@@ -400,19 +588,19 @@ async function main() {
     // Два перевода на накопительный счёт.
     for (const offset of [60, 20]) {
       const day = addDays(TODAY, -offset);
-      const amount = offset === 60 ? 20000 : 15000;
+      const amount = offset === 60 ? nice(20000) : nice(15000);
       transactions.push({
         userId: demo.id,
         accountId: card.id,
         transferAccountId: savings.id,
         type: 'transfer',
         amount,
-        currency: 'RUB',
+        currency: CURRENCY,
         rate: 1,
         amountBase: amount,
         toAmount: amount,
         date: day,
-        comment: 'перевод на накопления',
+        comment: TEXT.transfer,
       });
       balanceDelta.set(card.id, balanceDelta.get(card.id) - amount);
       balanceDelta.set(savings.id, balanceDelta.get(savings.id) + amount);
@@ -432,20 +620,20 @@ async function main() {
     });
     await prisma.account.update({
       where: { id: cash.id },
-      data: { balance: round2(30000 + (balanceDelta.get(cash.id) ?? 0)) },
+      data: { balance: round2(CASH_START + (balanceDelta.get(cash.id) ?? 0)) },
     });
     await prisma.account.update({
       where: { id: savings.id },
-      data: { balance: round2(120000 + (balanceDelta.get(savings.id) ?? 0)) },
+      data: { balance: round2(SAVINGS_START + (balanceDelta.get(savings.id) ?? 0)) },
     });
 
     // 6. Бюджеты на текущий и два прошлых месяца.
     const budgetPlan = [
-      ['Еда', 30000],
-      ['Транспорт', 8000],
-      ['Развлечения', 10000],
-      ['Покупки', 20000],
-      ['Жильё', 8000],
+      ['Еда', nice(30000)],
+      ['Транспорт', nice(8000)],
+      ['Развлечения', nice(10000)],
+      ['Покупки', nice(20000)],
+      ['Жильё', nice(8000)],
     ];
     const budgets = [];
     for (const monthOffset of [0, 1, 2]) {
@@ -475,7 +663,7 @@ async function main() {
       const moodBase = 3 + (rnd() < 0.6 ? 1 : 0) - (rnd() < 0.25 ? 1 : 0);
       const mood = Math.max(1, Math.min(5, moodBase));
       const tagCount = 1 + Math.floor(rnd() * 2);
-      const tags = [...new Set(Array.from({ length: tagCount }, () => pick(MOOD_TAGS)))];
+      const tags = [...new Set(Array.from({ length: tagCount }, () => pick(TEXT.moodTags)))];
       const occurredAt = atHour(day, 18); // ~21:00 по Москве
       checkIns.push({
         userId: demo.id,
@@ -486,8 +674,8 @@ async function main() {
         water: Math.round(between(4, 10)),
         steps: Math.round(between(2500, 14000)),
         tags,
-        note: pick(NOTES),
-        daySummary: offset % 7 === 0 ? 'Неделя позади: держусь в графике.' : null,
+        note: pick(TEXT.notes),
+        daySummary: offset % 7 === 0 ? TEXT.daySummary : null,
         slot: 'evening',
         occurredAt,
         createdAt: occurredAt,
@@ -496,29 +684,31 @@ async function main() {
     await prisma.checkIn.createMany({ data: checkIns });
 
     // 8. Две цели, одна — примерно наполовину.
+    const holidayAmounts = [nice(40000), nice(30000), nice(30000)];
+    const laptopAmount = nice(30000);
     const goalHoliday = await prisma.goal.create({
       data: {
         userId: demo.id,
-        title: 'Отпуск на море',
-        targetAmount: 200000,
-        savedAmount: 100000,
+        title: TEXT.goalHoliday,
+        targetAmount: nice(200000, 100),
+        savedAmount: holidayAmounts.reduce((sum, value) => sum + value, 0),
         deadline: addDays(TODAY, 120),
         image: '🏖️',
         visibility: 'public',
-        currency: 'RUB',
+        currency: CURRENCY,
       },
     });
     const goalLaptop = await prisma.goal.create({
       data: {
         userId: demo.id,
-        title: 'Новый ноутбук',
-        targetAmount: 120000,
-        savedAmount: 30000,
+        title: TEXT.goalLaptop,
+        targetAmount: nice(120000, 100),
+        savedAmount: laptopAmount,
         deadline: addDays(TODAY, 200),
         image: '💻',
         visibility: 'subscribers',
         accountId: savings.id,
-        currency: 'RUB',
+        currency: CURRENCY,
       },
     });
 
@@ -526,7 +716,7 @@ async function main() {
       goalId: goalHoliday.id,
       userId: demo.id,
       accountId: savings.id,
-      amount: index === 0 ? 40000 : 30000,
+      amount: holidayAmounts[index],
       date: addDays(TODAY, -(offset + 10)),
       createdAt: new Date(),
     }));
@@ -534,7 +724,7 @@ async function main() {
       goalId: goalLaptop.id,
       userId: demo.id,
       accountId: savings.id,
-      amount: 30000,
+      amount: laptopAmount,
       date: addDays(TODAY, -offset),
       createdAt: new Date(),
     }));
@@ -542,15 +732,15 @@ async function main() {
 
     // 9. Привычки с отметками и серией.
     const habitWater = await prisma.habit.create({
-      data: { userId: demo.id, name: 'Вода 8 стаканов', icon: '💧', goalType: 'daily' },
+      data: { userId: demo.id, name: TEXT.habits.water, icon: '💧', goalType: 'daily' },
     });
     const habitStretch = await prisma.habit.create({
-      data: { userId: demo.id, name: 'Зарядка утром', icon: '🏃', goalType: 'daily' },
+      data: { userId: demo.id, name: TEXT.habits.stretch, icon: '🏃', goalType: 'daily' },
     });
     const habitReading = await prisma.habit.create({
       data: {
         userId: demo.id,
-        name: 'Чтение 20 минут',
+        name: TEXT.habits.reading,
         icon: '📚',
         goalType: 'weekly',
         perWeek: 5,
@@ -597,8 +787,8 @@ async function main() {
     await prisma.recurringPayment.create({
       data: {
         userId: demo.id,
-        name: 'Аренда квартиры',
-        amount: 35000,
+        name: TEXT.rent,
+        amount: nice(35000, 50),
         type: 'expense',
         accountId: card.id,
         categoryId: catId.get('Жильё'),
@@ -621,7 +811,9 @@ async function main() {
     });
 
     // 12. Семья с общим счётом и общей целью.
-    const family = await prisma.family.create({ data: { name: 'Семья Демо', ownerId: demo.id } });
+    const family = await prisma.family.create({
+      data: { name: TEXT.familyName, ownerId: demo.id },
+    });
     await prisma.familyMember.createMany({
       data: [
         { familyId: family.id, userId: demo.id, role: 'owner' },
@@ -632,10 +824,10 @@ async function main() {
     const familyAccount = await prisma.familyAccount.create({
       data: {
         familyId: family.id,
-        name: 'Общий счёт семьи',
+        name: TEXT.familyAccount,
         type: 'card',
-        balance: 50000,
-        currency: 'RUB',
+        balance: nice(50000),
+        currency: CURRENCY,
       },
     });
     await prisma.familyTransaction.createMany({
@@ -644,8 +836,8 @@ async function main() {
           accountId: familyAccount.id,
           userId: demo.id,
           kind: 'income',
-          amount: 40000,
-          note: 'взнос в общий бюджет',
+          amount: nice(40000),
+          note: TEXT.familyContribution,
           date: addDays(TODAY, -25),
           createdAt: new Date(),
         },
@@ -653,8 +845,8 @@ async function main() {
           accountId: familyAccount.id,
           userId: friend.id,
           kind: 'income',
-          amount: 25000,
-          note: 'взнос в общий бюджет',
+          amount: nice(25000),
+          note: TEXT.familyContribution,
           date: addDays(TODAY, -25),
           createdAt: new Date(),
         },
@@ -662,8 +854,8 @@ async function main() {
           accountId: familyAccount.id,
           userId: demo.id,
           kind: 'expense',
-          amount: 12000,
-          note: 'продукты на неделю',
+          amount: nice(12000),
+          note: TEXT.familyGroceries,
           date: addDays(TODAY, -10),
           createdAt: new Date(),
         },
@@ -671,8 +863,8 @@ async function main() {
           accountId: familyAccount.id,
           userId: friend.id,
           kind: 'expense',
-          amount: 8000,
-          note: 'бытовая химия',
+          amount: nice(8000),
+          note: TEXT.familyHousehold,
           date: addDays(TODAY, -4),
           createdAt: new Date(),
         },
@@ -681,12 +873,12 @@ async function main() {
     const familyGoal = await prisma.familyGoal.create({
       data: {
         familyId: family.id,
-        title: 'Ремонт кухни',
-        targetAmount: 150000,
-        savedAmount: 60000,
+        title: TEXT.familyGoal,
+        targetAmount: nice(150000, 100),
+        savedAmount: nice(40000) + nice(20000),
         deadline: addDays(TODAY, 180),
         image: '🛠️',
-        currency: 'RUB',
+        currency: CURRENCY,
       },
     });
     await prisma.familyGoalDeposit.createMany({
@@ -694,14 +886,14 @@ async function main() {
         {
           goalId: familyGoal.id,
           userId: demo.id,
-          amount: 40000,
+          amount: nice(40000),
           date: addDays(TODAY, -40),
           createdAt: new Date(),
         },
         {
           goalId: familyGoal.id,
           userId: friend.id,
-          amount: 20000,
+          amount: nice(20000),
           date: addDays(TODAY, -12),
           createdAt: new Date(),
         },
@@ -723,7 +915,7 @@ async function main() {
     const challenge = await prisma.challenge.create({
       data: {
         ownerId: demo.id,
-        title: '30 дней осознанных трат',
+        title: TEXT.challenge,
         kind: 'streak_checkin',
         durationDays: 30,
         startDate: addDays(TODAY, -5),
@@ -753,10 +945,8 @@ async function main() {
     await prisma.timeCapsule.create({
       data: {
         userId: demo.id,
-        title: 'Письмо себе через год',
-        bodyEncrypted: secretBoxEncrypt(
-          'Привет из прошлого! Если ты читаешь это — год прошёл не зря.',
-        ),
+        title: TEXT.capsuleTitle,
+        bodyEncrypted: secretBoxEncrypt(TEXT.capsuleBody),
         openAt: addDays(TODAY, 365),
       },
     });
@@ -778,15 +968,14 @@ async function main() {
     await prisma.profile.create({
       data: {
         userId: demo.id,
-        bio: 'Веду бюджет и слежу за самочувствием в «Пульсе». Люблю спорт и книги.',
+        bio: TEXT.bio,
       },
     });
     await prisma.profile.create({
-      data: { userId: friend.id, bio: 'Учусь копить и держать баланс.' },
+      data: { userId: friend.id, bio: TEXT.friendBio },
     });
 
-    const cardSnippet =
-      '<p style="margin:0"><strong>Демо-карточка</strong> — я веду бюджет в «Пульсе».</p>';
+    const cardSnippet = `<p style="margin:0"><strong>${TEXT.cardSnippet}</strong>${TEXT.cardSnippetText}</p>`;
     await prisma.profileCard.createMany({
       data: [
         { userId: demo.id, type: 'savings', visibility: 'public', mode: 'amount', position: 0 },
@@ -811,7 +1000,7 @@ async function main() {
           type: 'html_page',
           visibility: 'public',
           mode: 'percent',
-          title: 'Визитка',
+          title: TEXT.cardTitle,
           html: cardSnippet,
           position: 5,
         },
@@ -825,8 +1014,8 @@ async function main() {
       data: {
         pageId: htmlPage.id,
         userId: demo.id,
-        html: BUSINESS_CARD_HTML,
-        note: 'Шаблон «Визитка»',
+        html: businessCardHtml(TEXT.page),
+        note: TEXT.pageNote,
         checkStatus: 'ok',
         checkReasons: [],
       },
@@ -870,12 +1059,12 @@ async function main() {
 
 /* ---------- шаблон «Визитка» (копия packages/shared/src/html-templates.ts) ---------- */
 
-const BUSINESS_CARD_HTML = `<!DOCTYPE html>
-<html lang="ru">
+const businessCardHtml = (page) => `<!DOCTYPE html>
+<html lang="${page.lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Визитка</title>
+<title>${page.title}</title>
 <style>
   :root { color-scheme: light dark; }
   * { box-sizing: border-box; }
@@ -894,12 +1083,12 @@ const BUSINESS_CARD_HTML = `<!DOCTYPE html>
 <body>
   <main class="card">
     <div class="avatar" aria-hidden="true">🙂</div>
-    <h1>Демо Пользователь</h1>
-    <p class="role">Продуктовый дизайнер</p>
-    <p class="bio">Коротко о себе: веду бюджет и дневник самочувствия в «Пульсе».</p>
+    <h1>${page.name}</h1>
+    <p class="role">${page.role}</p>
+    <p class="bio">${page.bio}</p>
     <ul>
-      <li><span class="label">Почта</span><a href="mailto:demo@puls.local">demo@puls.local</a></li>
-      <li><span class="label">Сайт</span><a href="https://example.com" rel="noopener noreferrer" target="_blank">example.com</a></li>
+      <li><span class="label">${page.mail}</span><a href="mailto:demo@puls.local">demo@puls.local</a></li>
+      <li><span class="label">${page.site}</span><a href="https://example.com" rel="noopener noreferrer" target="_blank">example.com</a></li>
     </ul>
   </main>
 </body>
