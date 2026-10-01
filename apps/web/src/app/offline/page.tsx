@@ -21,6 +21,7 @@ export default async function OfflinePage() {
         <EmptyState
           icon="pulse"
           tone="primary"
+          as="h1"
           title={<span className="text-2xl font-extrabold">{t('offline.title', locale)}</span>}
           text={t('offline.body', locale)}
           action={

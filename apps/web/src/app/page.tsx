@@ -104,10 +104,10 @@ export default async function LandingPage() {
             </div>
             <div className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4">
               <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-sm font-semibold">
+                <h2 className="flex items-center gap-2 text-sm font-semibold">
                   <Icon name="wallet" size={16} />
                   {t('landing.demo.budgetTitle', locale)}
-                </span>
+                </h2>
                 <span className="font-heading text-xl font-extrabold">{money(DEMO.spent)}</span>
               </div>
               <ProgressBar

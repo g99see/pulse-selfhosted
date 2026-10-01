@@ -234,12 +234,15 @@ export function EmptyState({
   title,
   text,
   action,
+  as: Heading = 'p',
 }: {
   icon?: IconName;
   tone?: Exclude<Tone, 'neutral'>;
   title: ReactNode;
   text?: ReactNode;
   action?: ReactNode;
+  /** Тег заголовка: на странице, где пустое состояние — главное содержимое, это h1. */
+  as?: 'p' | 'h1' | 'h2' | 'h3';
 }) {
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
@@ -257,7 +260,7 @@ export function EmptyState({
           <Icon name={icon} size={36} />
         </span>
       </div>
-      <p className="font-heading text-lg font-bold">{title}</p>
+      <Heading className="font-heading text-lg font-bold">{title}</Heading>
       {text ? <p className="max-w-sm text-sm text-[var(--puls-ink-muted)]">{text}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
