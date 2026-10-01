@@ -54,3 +54,5 @@ import { TelegramModule } from './telegram/telegram.module';
   ],
 })
 export class AppModule {}
+import { WrappedModule } from './wrapped/wrapped.module';
+    WrappedModule,
