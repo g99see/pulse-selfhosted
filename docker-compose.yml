@@ -64,6 +64,14 @@ services:
       SANDBOX_DOMAIN: ${SANDBOX_DOMAIN:-usercontent.localhost}
       # Антивирус: host:port clamd. Пусто — заглушка noop с логом.
       CLAMAV_HOST: ${CLAMAV_HOST:-}
+      # Открытый API/вебхуки (Фаза 4, блок E): разрешить доставку вебхуков на
+      # приватные адреса (127.0.0.1, 10/8, 192.168/16 и т.п.). По умолчанию
+      # запрещено — защита от SSRF. Включайте только для локальных интеграций.
+      WEBHOOKS_ALLOW_PRIVATE: ${WEBHOOKS_ALLOW_PRIVATE:-0}
+    # Локальные AI-провайдеры (Фаза 4, ТЗ §3.9): Ollama/LM Studio на хосте
+    # доступны из контейнера api по имени host.docker.internal.
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       postgres:
         condition: service_healthy
@@ -184,11 +192,35 @@ services:
     networks:
       - puls
 
+  # --- Локальный AI-провайдер (Фаза 4, ТЗ §3.9): необязательный сервис. ---
+  # Чтобы данные не покидали сервер, поднимите Ollama и выберите в настройках AI
+  # провайдер «OpenAI-совместимый». Адрес: http://ollama:11434/v1 (из этого же
+  # compose) либо http://host.docker.internal:11434/v1 (Ollama на хосте).
+  # Включается профилем: docker compose --profile ai-local up -d
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   restart: unless-stopped
+  #   profiles: ['ai-local']
+  #   ports:
+  #     - '${OLLAMA_PORT:-11434}:11434'
+  #   volumes:
+  #     - ollama_models:/root/.ollama
+  #   healthcheck:
+  #     test: ['CMD', 'ollama', 'list']
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 30s
+  #   networks:
+  #     - puls
+
 volumes:
   pgdata:
   valkeydata:
   caddy_data:
   caddy_config:
+  # Данные локальной модели Ollama (раскомментируйте вместе с сервисом выше).
+  # ollama_models:
 
 networks:
   puls:

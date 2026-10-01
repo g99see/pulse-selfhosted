@@ -6,8 +6,14 @@
 Полностью **self-hosted** и **open-source** (AGPL-3.0-or-later): вы разворачиваете сервис
 на своём сервере одной командой Docker Compose и полностью контролируете данные.
 
-Текущий статус: **Фаза 0 — каркас и dev-инфраструктура**. Функциональность MVP — в Фазе 1
-(см. [`docs/PLAN.md`](docs/PLAN.md)).
+Текущий статус: **Фаза 4 — AI-помощник, семейный режим, открытый API и документация**.
+Фазы 1–3 реализованы: финансы, самочувствие, статистика, уведомления, PWA, цели,
+импорт CSV, 2FA, вход через Google и Telegram, Telegram-бот, публичный профиль и
+соцсеть, HTML-страница с песочницей, модерация и шаринг. План — [`docs/PLAN.md`](docs/PLAN.md),
+статус блоков Фазы 4 — [`docs-site/phase4.md`](docs-site/phase4.md).
+
+Полная документация (установка, настройка, использование, AI, API, администрирование)
+публикуется из пакета [`docs-site/`](docs-site/) на VitePress.
 
 ## Стек
 
@@ -32,6 +38,7 @@ packages/
 docker-compose.yml       postgres, valkey, api, web, caddy, backup + healthchecks
 docker-compose.dev.yml   dev-оверрайд: порты 5432 и 6379 на хост
 Caddyfile                маршрутизация + песочница пользовательского HTML
+docs-site/               документация на VitePress (пакет @puls/docs)
 scripts/                 backup.sh, restore.sh, upgrade.sh — эксплуатация (ТЗ §10)
 ```
 
@@ -60,12 +67,18 @@ pnpm test:smoke      # Vitest: smoke-тест API против живого Post
 pnpm e2e             # Playwright: один smoke-сценарий лендинга
 pnpm format:check    # Prettier
 pnpm license:check   # совместимость лицензий зависимостей
+pnpm --filter @puls/docs build   # сборка документации (VitePress)
+pnpm --filter @puls/docs dev     # локальный просмотр документации
 ```
 
 ## Установка за 15 минут
 
 Требования: Docker с Compose (и git). Node/pnpm для установки не нужны —
 всё собирается в контейнерах.
+
+Пошаговое руководство (домены и `SANDBOX_DOMAIN`, DNS, HTTPS, мастер первого
+запуска) — [`docs-site/guide/installation.md`](docs-site/guide/installation.md);
+описание всех переменных — [`docs-site/guide/configuration.md`](docs-site/guide/configuration.md).
 
 ```bash
 # 1. Код
