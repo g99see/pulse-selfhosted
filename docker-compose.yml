@@ -136,11 +136,7 @@ services:
         condition: service_healthy
     healthcheck:
       # Свежесть последнего успешного бэкапа: не старше двух интервалов.
-      test:
-        [
-          'CMD-SHELL',
-          'test -f /backups/.last-success && [ "$$(( $$(date +%s) - $$(stat -c %Y /backups/.last-success) ))" -lt "$$(( $${BACKUP_INTERVAL_HOURS:-24} * 7200 ))" ]',
-        ]
+      test: ['CMD', 'sh', '/usr/local/bin/backup.sh', '--healthcheck']
       interval: 5m
       timeout: 10s
       retries: 3

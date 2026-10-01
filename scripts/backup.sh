@@ -145,9 +145,28 @@ run_daemon() {
   done
 }
 
+# Проверка свежести последнего успешного бэкапа (healthcheck сервиса backup):
+# маркер существует и не старше двух интервалов.
+run_healthcheck() {
+  marker="$BACKUP_DIR/.last-success"
+  if [ ! -f "$marker" ]; then
+    echo "[backup] healthcheck: маркера $marker нет"
+    return 1
+  fi
+  now=$(date +%s)
+  mtime=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker")
+  max_age=$((${BACKUP_INTERVAL_HOURS:-24} * 7200))
+  age=$((now - mtime))
+  if [ "$age" -ge "$max_age" ]; then
+    echo "[backup] healthcheck: бэкап устарел ($age с назад)"
+    return 1
+  fi
+  echo "[backup] healthcheck: бэкап свежий ($age с назад)"
+}
+
 detect_mode
-if [ "${1:-}" = '--daemon' ]; then
-  run_daemon
-else
-  backup_once
-fi
+case "${1:-}" in
+  --daemon) run_daemon ;;
+  --healthcheck) run_healthcheck ;;
+  *) backup_once ;;
+esac
