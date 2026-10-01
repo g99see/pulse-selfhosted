@@ -73,6 +73,13 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'user_ai_keys', entity: 'userAiKeys', keyColumn: 'user_id', secretColumns: ['api_key_encrypted'] },
   // Учёт токенов AI (ТЗ §3.9): месяц, токены и стоимость — не секреты.
   { table: 'ai_usage', entity: 'aiUsage', keyColumn: 'user_id', orderBy: '"month"' },
+  // Журнал доставок вебхуков (ТЗ §4): событие, статус и ошибка — данные пользователя.
+  {
+    table: 'webhook_deliveries',
+    entity: 'webhookDeliveries',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
 ];
 
 /** Таблицы с user_id, которые намеренно не выгружаются (секреты и артефакты). */
@@ -85,6 +92,10 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
   // Журнал модерации (ТЗ §2, §3.8): внутренний аудит экземпляра, не данные автора.
   { table: 'moderation_actions', reason: 'внутренний журнал модерации экземпляра' },
+  // Токены открытого API (ТЗ §4): секрет — хеш токена.
+  { table: 'api_tokens', reason: 'секрет: хеш личного токена доступа' },
+  // Вебхуки (ТЗ §4): секрет — зашифрованный секрет подписи вебхука.
+  { table: 'webhooks', reason: 'секрет: зашифрованный секрет подписи вебхука' },
 ];
 
 /** Колонки, которые никогда не попадают в выгрузку, в какой бы таблице ни лежали. */

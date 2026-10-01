@@ -4,6 +4,7 @@ import { AccountModule } from './account/account.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { AiAssistantModule } from './ai-assistant/ai-assistant.module';
 import { AiModule } from './ai/ai.module';
+import { ApiAccessModule } from './api-access/api-access.module';
 import { AuthModule } from './auth/auth.module';
 import { ExternalAuthModule } from './auth/external/external-auth.module';
 import { CheckinsModule } from './checkins/checkins.module';
@@ -47,6 +48,7 @@ import { TelegramModule } from './telegram/telegram.module';
     ShareModule,
     HtmlPageModule,
     SocialModule,
+    ApiAccessModule,
   ],
 })
 export class AppModule {}
