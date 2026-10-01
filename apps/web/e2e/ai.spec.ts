@@ -131,7 +131,7 @@ test('с ключом чат отвечает, а предложение при�
   );
 
   await page.reload();
-  await expect(page.getByTestId('nav-ai')).toBeVisible();
+  await expect(page.getByTestId('nav-ai').filter({ visible: true })).toHaveCount(1);
 
   await page.goto('/ai');
   await page.getByTestId('ai-chat-input').fill('Сколько я потратил на кафе?');
