@@ -6,3 +6,4 @@ export * from './mood';
 export * from './checkin';
 export * from './money';
 export * from './dates';
+export * from './auth';
