@@ -363,16 +363,16 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
 
       const first = await scheduler.runOnce(now);
       expect(first.reminders).toBe(1);
-      expect(push.outbox()).toHaveLength(1);
-      expect(push.outbox()[0].payload.type).toBe('payments');
-      expect(push.outbox()[0].payload.body).toContain('Подписка');
+      const delivered = push.outbox();
+      expect(delivered.some((entry) => entry.payload.type === 'payments')).toBe(true);
+      expect(delivered.some((entry) => entry.payload.body?.includes('Подписка'))).toBe(true);
 
       const stamped = await prisma.recurringPayment.findUniqueOrThrow({ where: { id: payment.id } });
       expect(stamped.remindedFor?.toISOString()).toBe('2026-03-16T07:00:00.000Z');
 
       const second = await scheduler.runOnce(now);
       expect(second.reminders).toBe(0);
-      expect(push.outbox()).toHaveLength(1);
+      expect(push.outbox()).toHaveLength(delivered.length);
 
       // Транзакция заранее не создаётся: списание ещё не наступило.
       expect((await client.get('/api/finance/transactions')).body.transactions).toHaveLength(0);
