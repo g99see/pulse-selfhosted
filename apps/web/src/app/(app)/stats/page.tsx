@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   MOOD_COLORS,
@@ -128,7 +129,16 @@ export default function StatsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold">{t('stats.title')}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-extrabold">{t('stats.title')}</h1>
+        <Link
+          href="/wrapped"
+          data-testid="stats-wrapped-link"
+          className="text-sm font-medium text-[var(--puls-primary-text)]"
+        >
+          {t('wrapped.title')}
+        </Link>
+      </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label={t('stats.period.label')}>
         {PERIODS.map((value) => (
