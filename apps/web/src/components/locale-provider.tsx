@@ -5,6 +5,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -49,6 +50,12 @@ export function LocaleProvider({
   }, []);
 
   const t = useCallback<TranslateFn>((key, params) => translate(key, locale, params), [locale]);
+
+  // Держим <html lang> в согласии с действующей локалью: вложенный провайдер
+  // кабинета может отличаться от локали корневого layout (язык профиля).
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 
