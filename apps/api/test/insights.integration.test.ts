@@ -10,13 +10,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { MailService } from '../src/auth/mail.service';
+import { SessionService } from '../src/auth/session.service';
 import { InsightsScheduler } from '../src/insights/weekly.scheduler';
 import { InsightsService } from '../src/insights/insights.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { TestClient } from './client';
 
-const PASSWORD = 'Secret12345';
-const DAY_MS = 24 * 60 * 60 * 1000;
 const MONTH = new Date().toISOString().slice(0, 7);
 
 interface CategoryDto {
@@ -41,6 +40,7 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
   let mail: MailService;
   let insights: InsightsService;
   let scheduler: InsightsScheduler;
+  let sessions: SessionService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -52,6 +52,7 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
     mail = app.get(MailService);
     insights = app.get(InsightsService);
     scheduler = app.get(InsightsScheduler);
+    sessions = app.get(SessionService);
   });
 
   afterAll(async () => {
@@ -79,15 +80,19 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
     mail.clearOutbox();
   });
 
+  /**
+   * Создаёт подтверждённого пользователя и сессию напрямую, минуя HTTP-поток
+   * регистрации: тесты инсайтов не должны зависеть от чужого модуля auth.
+   */
   async function signUp(email: string, nickname: string): Promise<TestClient> {
+    const user = await prisma.user.create({
+      data: { email, nickname, emailVerifiedAt: new Date(), onboardingCompletedAt: new Date() },
+    });
+    const { token } = await sessions.create(user.id, { userAgent: 'vitest' });
+
     const client = new TestClient(server);
+    client.cookies['puls_session'] = token;
     await client.csrf();
-    const registered = await client.post('/api/auth/register', { email, password: PASSWORD, nickname });
-    expect(registered.status).toBe(201);
-    const token = mail.lastVerificationTokenFor(email);
-    expect(token).toBeTruthy();
-    const verified = await client.post('/api/auth/verify-email', { token });
-    expect(verified.status).toBe(200);
     return client;
   }
 

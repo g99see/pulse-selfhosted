@@ -622,7 +622,7 @@ export interface InsightDto {
   createdAt: string;
 }
 
-export interface SupportResourceDto extends SupportResource {}
+export type SupportResourceDto = SupportResource;
 
 export interface InsightsFeedResponse {
   insights: InsightDto[];

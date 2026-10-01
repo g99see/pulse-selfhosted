@@ -47,6 +47,8 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'telegram_links', entity: 'telegramLinks', keyColumn: 'user_id', orderBy: '"linked_at"' },
   // Полученные достижения (ТЗ §4): код бейджа и дата — не секреты, выгружаем.
   { table: 'user_achievements', entity: 'userAchievements', keyColumn: 'user_id', orderBy: '"earned_at"' },
+  // Инсайты и оценки рекомендаций (ТЗ §3.5): тип, ключ текста и параметры — не секреты.
+  { table: 'insights', entity: 'insights', keyColumn: 'user_id', orderBy: '"created_at"' },
 ];
 
 /** Таблицы с user_id, которые намеренно не выгружаются (секреты и артефакты). */
