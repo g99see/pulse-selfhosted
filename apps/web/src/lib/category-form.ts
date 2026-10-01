@@ -92,8 +92,21 @@ export function isCategoryColor(color: string): boolean {
 }
 
 /** Символ иконки по имени; для неизвестной — нейтральный ярлык. */
+/**
+ * Иконки стандартных категорий (packages/shared DEFAULT_CATEGORIES), которых нет
+ * в палитре выбора: без них строки «Подписки», «Прочее», «Прочий доход» были пустыми.
+ */
+const DEFAULT_ONLY_GLYPHS: Readonly<Record<string, string>> = {
+  repeat: '🔁',
+  'circle-ellipsis': '💬',
+  plus: '➕',
+};
+
+/** Запасной символ с VS16: без него 🏷 на части систем не рисуется вовсе. */
+const FALLBACK_GLYPH = '🏷️';
+
 export function iconGlyph(name: string): string {
-  return CATEGORY_ICONS.find((icon) => icon.name === name)?.glyph ?? '🏷';
+  return CATEGORY_ICONS.find((icon) => icon.name === name)?.glyph ?? DEFAULT_ONLY_GLYPHS[name] ?? FALLBACK_GLYPH;
 }
 
 /**

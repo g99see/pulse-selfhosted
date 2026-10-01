@@ -251,6 +251,7 @@ function FinanceScreen() {
 
       <Segmented<FinanceTab>
         label={t('finance.tabs.label')}
+        fill
         value={tab}
         onChange={changeTab}
         options={[
@@ -266,7 +267,8 @@ function FinanceScreen() {
           <Card className="flex flex-col gap-4">
             <h2 className="font-heading text-lg font-bold">{t('finance.transactions')}</h2>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {/* Фильтры в одну строку и на телефоне: иначе они занимают пол-экрана до первой операции. */}
+            <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3 [&_select]:min-w-0 [&_select]:truncate [&_select]:px-3">
               <Select
                 id="filter-type"
                 label={t('finance.filter.type')}
@@ -330,7 +332,7 @@ function FinanceScreen() {
                                 : 'var(--puls-surface-2)',
                             }}
                           >
-                            {transaction.categoryIcon ? iconGlyph(transaction.categoryIcon) : '🏷'}
+                            {iconGlyph(transaction.categoryIcon ?? '')}
                           </span>
                           <span className="flex min-w-0 flex-col">
                             <span className="truncate font-medium" data-testid="transaction-category">
@@ -377,6 +379,18 @@ function FinanceScreen() {
                   </ul>
                 </section>
               ))}
+              {loading && transactions.length === 0 ? (
+                // Скелет строк на время загрузки: список не «выстреливает» с нуля до 20 строк.
+                <div aria-hidden="true" className="flex flex-col gap-1">
+                  {Array.from({ length: 6 }, (_, index) => (
+                    <div key={index} className="flex items-center gap-3 py-2">
+                      <span className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                      <span className="h-4 flex-1 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                      <span className="h-4 w-20 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {transactions.length === 0 && !loading ? (
                 <div data-testid="transactions-empty">
                   <EmptyState tone="finance" icon="wallet" title={t('finance.transactions.empty')} />
@@ -414,6 +428,15 @@ function FinanceScreen() {
                   </span>
                 </li>
               ))}
+              {loading && budgets.length === 0
+                ? Array.from({ length: 3 }, (_, index) => (
+                    <li key={`skeleton-${index}`} aria-hidden="true" className="flex flex-col gap-2">
+                      <span className="h-4 w-1/3 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                      <span className="h-2.5 w-full animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                      <span className="h-3 w-1/2 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                    </li>
+                  ))
+                : null}
               {budgets.length === 0 && !loading ? (
                 <li data-testid="budgets-empty">
                   <EmptyState tone="finance" icon="target" title={t('finance.budget.empty')} />
@@ -451,6 +474,7 @@ function FinanceScreen() {
               </form>
             </FormToggle>
           </Card>
+
         </>
       ) : null}
 

@@ -56,7 +56,11 @@ describe('набор иконок и палитра цветов', () => {
 
   it('iconGlyph отдаёт символ известной иконки и запасной для чужой', () => {
     expect(iconGlyph('utensils')).toBe(iconGlyph('utensils'));
-    expect(iconGlyph('unknown-icon')).toBe('🏷');
+    expect(iconGlyph('unknown-icon')).toBe('🏷️');
+    // иконки стандартных категорий, которых нет в палитре, тоже рисуются
+    for (const name of ['repeat', 'circle-ellipsis', 'plus']) {
+      expect(iconGlyph(name)).not.toBe('🏷️');
+    }
   });
 });
 

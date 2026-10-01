@@ -54,7 +54,16 @@ export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
   }
 
   if (items.length === 0) {
-    if (!showEmpty || !loaded) return null;
+    if (!showEmpty) return null;
+    // Заглушка той же высоты, что и пустое состояние: блок не сдвигает соседей при загрузке.
+    if (!loaded) {
+      return (
+        <div
+          aria-hidden="true"
+          className="h-[46px] animate-pulse rounded-[20px] bg-[var(--puls-surface)]/60"
+        />
+      );
+    }
     return (
       <div
         data-testid="habits-today-empty"

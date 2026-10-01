@@ -25,6 +25,7 @@ export function CheckInCard() {
   const { t } = useT();
   const [checkIns, setCheckIns] = useState<CheckInDto[]>([]);
   const [streak, setStreak] = useState<StreakDto | null>(null);
+  const [streakLoaded, setStreakLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -43,6 +44,8 @@ export function CheckInCard() {
       setStreak(await achievementsApi.streak());
     } catch {
       // Серия — дополнение к карточке: без неё чек-ин всё равно работает.
+    } finally {
+      setStreakLoaded(true);
     }
   }, []);
 
@@ -104,7 +107,10 @@ export function CheckInCard() {
           ) : null}
         </div>
 
-        {streak && streak.current > 0 ? (
+        {/* Пока стрик грузится, строка держит место — иначе карточка «прыгает» (CLS). */}
+        {!streakLoaded && streak === null ? (
+          <p aria-hidden="true" className="h-5 w-40 animate-pulse rounded-full bg-[var(--puls-surface)]/60" />
+        ) : streak && streak.current > 0 ? (
           <p
             data-testid="checkin-streak"
             className="text-sm font-medium text-[var(--puls-wellbeing-text)]"

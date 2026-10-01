@@ -273,17 +273,20 @@ export function Segmented<T extends string>({
   options,
   onChange,
   label,
+  fill = false,
 }: {
   value: T;
   options: Array<{ value: T; label: ReactNode; testId?: string }>;
   onChange: (value: T) => void;
   label: string;
+  /** На всю ширину: на телефоне сетка 2×2, с sm — одна строка поровну. Все вкладки видны без прокрутки. */
+  fill?: boolean;
 }) {
   return (
     <div
       role="group"
       aria-label={label}
-      className="inline-flex max-w-full gap-1 overflow-x-auto rounded-[var(--radius-chip)] bg-[var(--puls-surface)] p-1 shadow-sm"
+      className={`${fill ? 'grid w-full grid-cols-2 sm:flex' : 'inline-flex max-w-full overflow-x-auto'} gap-1 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] p-1 shadow-sm`}
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -294,7 +297,7 @@ export function Segmented<T extends string>({
             aria-pressed={active}
             data-testid={option.testId}
             onClick={() => onChange(option.value)}
-            className={`shrink-0 rounded-[var(--radius-chip)] px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ${
+            className={`${fill ? 'min-w-0 px-3 sm:flex-1 sm:px-4' : 'shrink-0 px-4'} rounded-[var(--radius-chip)] py-2 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ${
               active
                 ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
                 : 'text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)] hover:text-[var(--puls-ink)]'
