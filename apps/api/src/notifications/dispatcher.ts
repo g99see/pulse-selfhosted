@@ -12,8 +12,10 @@ import { TelegramService } from '../telegram/telegram.service';
 import type { DueDelivery } from './due';
 import {
   buildNotificationEmail,
+  buildPostActivityNotification,
   buildPushPayload,
   buildRecurringReminder,
+  type PostActivityInfo,
   type RecurringReminderInfo,
 } from './messages';
 import { PushService, type PushPayload } from './push.service';
@@ -109,6 +111,20 @@ export class NotificationDispatcher implements DeliveryDispatcher {
       data: { url: reminder.url },
     };
     return this.deliverPush(userId, payload);
+  }
+
+  /**
+   * Уведомление владельцу поста о реакции или комментарии (ТЗ §3.7). Уважает
+   * общий переключатель уведомлений пользователя; тип — reactions.
+   */
+  async notifyPostActivity(userId: string, info: PostActivityInfo): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationsEnabled: true },
+    });
+    if (!user?.notificationsEnabled) return false;
+
+    return this.deliverPush(userId, buildPostActivityNotification(info));
   }
 
   /** Отправляет payload по всем подпискам пользователя, удаляя просроченные. */

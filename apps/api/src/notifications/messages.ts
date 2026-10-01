@@ -94,6 +94,34 @@ export function buildPushPayload(
   }
 }
 
+/** Данные события на посте (ТЗ §3.7): кто и как отреагировал на запись. */
+export interface PostActivityInfo {
+  actorNickname: string;
+  kind: 'reaction' | 'comment';
+  /** Эмодзи-реакция (для kind = reaction). */
+  emoji?: string;
+  /** Короткий предпросмотр текста комментария (для kind = comment). */
+  preview?: string;
+}
+
+/**
+ * Уведомление владельцу поста о новой реакции или комментарии (ТЗ §3.7) —
+ * тип reactions, ссылка на ленту. Публикуется через NotificationDispatcher.
+ */
+export function buildPostActivityNotification(info: PostActivityInfo): PushPayload {
+  const title = info.kind === 'reaction' ? 'Новая реакция' : 'Новый комментарий';
+  const body =
+    info.kind === 'reaction'
+      ? `@${info.actorNickname} поставил ${info.emoji ?? '👍'} вашей записи.`
+      : `@${info.actorNickname}: ${info.preview ?? 'comment'}`;
+  return {
+    type: 'reactions',
+    title,
+    body,
+    data: { url: '/feed' },
+  };
+}
+
 export interface NotificationEmail {
   subject: string;
   text: string;

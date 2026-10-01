@@ -628,6 +628,7 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'support.INT.description': 'Международный справочник линий поддержки.',
 
     'app.nav.achievements': 'Достижения',
+    'app.nav.feed': 'Лента',
     'app.nav.moderation': 'Модерация',
 
     'report.button': 'Пожаловаться',
@@ -825,6 +826,28 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'profile.public.goals.empty': 'Целей пока нет',
     'profile.public.empty': 'Профиль пока пуст',
     'profile.public.notFound': 'Профиль не найден',
+
+    // Лента, подписки, реакции и комментарии (ТЗ §3.7).
+    'feed.title': 'Лента',
+    'feed.subtitle': 'Обновления людей, на которых вы подписаны.',
+    'feed.empty': 'Пока пусто. Подпишитесь на кого-нибудь — их достижения и цели появятся здесь.',
+    'feed.loadMore': 'Показать ещё',
+    'feed.error': 'Не удалось загрузить ленту.',
+    'feed.post.achievement': 'Новое достижение: {title}',
+    'feed.post.goal': 'Новая цель: {title}',
+    'feed.post.milestone': 'Цель «{title}» — {percent}%',
+    'feed.post.author': '@{nickname}',
+    'feed.reactions.label': 'Реакции',
+    'feed.comments.title': 'Комментарии',
+    'feed.comments.empty': 'Комментариев пока нет',
+    'feed.comments.placeholder': 'Написать комментарий…',
+    'feed.comments.submit': 'Отправить',
+    'feed.comments.delete': 'Удалить',
+    'feed.comments.error': 'Не удалось отправить комментарий.',
+    'follow.follow': 'Подписаться',
+    'follow.following': 'Вы подписаны',
+    'follow.followers': 'Подписчиков: {count}',
+    'follow.error': 'Не удалось изменить подписку.',
   },
 
   en: {
@@ -1447,6 +1470,7 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'support.INT.description': 'International directory of support lines.',
 
     'app.nav.achievements': 'Achievements',
+    'app.nav.feed': 'Feed',
     'app.nav.moderation': 'Moderation',
 
     'report.button': 'Report',
@@ -1643,6 +1667,28 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'profile.public.goals.empty': 'No goals yet',
     'profile.public.empty': 'The profile is empty for now',
     'profile.public.notFound': 'Profile not found',
+
+    // Feed, follows, reactions and comments (spec §3.7).
+    'feed.title': 'Feed',
+    'feed.subtitle': 'Updates from people you follow.',
+    'feed.empty': 'Nothing here yet. Follow someone — their achievements and goals will show up here.',
+    'feed.loadMore': 'Show more',
+    'feed.error': 'Could not load the feed.',
+    'feed.post.achievement': 'New achievement: {title}',
+    'feed.post.goal': 'New goal: {title}',
+    'feed.post.milestone': 'Goal “{title}” — {percent}%',
+    'feed.post.author': '@{nickname}',
+    'feed.reactions.label': 'Reactions',
+    'feed.comments.title': 'Comments',
+    'feed.comments.empty': 'No comments yet',
+    'feed.comments.placeholder': 'Write a comment…',
+    'feed.comments.submit': 'Send',
+    'feed.comments.delete': 'Delete',
+    'feed.comments.error': 'Could not send the comment.',
+    'follow.follow': 'Follow',
+    'follow.following': 'Following',
+    'follow.followers': 'Followers: {count}',
+    'follow.error': 'Could not change the follow state.',
   },
 };
 

@@ -19,6 +19,7 @@ import {
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
+import { SocialPostsService } from '../social/social-posts.service';
 
 type GoalWithDeposits = Prisma.GoalGetPayload<{ include: { deposits: true } }>;
 
@@ -80,7 +81,10 @@ function toDepositDto(deposit: Prisma.GoalDepositGetPayload<object>): GoalDeposi
 /** Цели накоплений (ТЗ §3.2, сценарий 2): CRUD, пополнения и вехи прогресса. */
 @Injectable()
 export class GoalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly posts: SocialPostsService,
+  ) {}
 
   async list(userId: string): Promise<GoalDto[]> {
     const goals = await this.prisma.goal.findMany({
@@ -129,7 +133,15 @@ export class GoalsService {
       },
       include: { deposits: true },
     });
-    return toGoalDto(goal);
+    const dto = toGoalDto(goal);
+    // Пост в ленту о новой цели (ТЗ §3.7): приватность берём у самой цели.
+    await this.posts.create({
+      userId,
+      type: 'goal',
+      visibility: goal.visibility as GoalVisibility,
+      payload: { goalId: goal.id, title: goal.title, image: goal.image, percent: dto.percent },
+    });
+    return dto;
   }
 
   async update(userId: string, id: string, input: GoalUpdateInput): Promise<GoalDto> {
@@ -198,6 +210,21 @@ export class GoalsService {
       percent: dto.percent,
       reached: crossedMilestones(previousPercent, dto.percent),
     };
+
+    // Пост-веха в ленту (ТЗ §3.7): только когда пополнение пересекло 25/50/75/100%.
+    if (milestone.reached.length > 0) {
+      await this.posts.create({
+        userId,
+        type: 'milestone',
+        visibility: updated.visibility as GoalVisibility,
+        payload: {
+          goalId: goal.id,
+          title: goal.title,
+          percent: dto.percent,
+          reached: milestone.reached,
+        },
+      });
+    }
 
     return { goal: dto, deposit: toDepositDto(deposit), milestone };
   }

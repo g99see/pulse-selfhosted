@@ -17,6 +17,7 @@ const NAV: Array<{ key: string; href: string | null }> = [
   { key: 'app.nav.stats', href: '/stats' },
   { key: 'app.nav.insights', href: '/insights' },
   { key: 'app.nav.achievements', href: '/achievements' },
+  { key: 'app.nav.feed', href: '/feed' },
   { key: 'app.nav.moderation', href: '/moderation' },
   { key: 'app.nav.profile', href: '/app/profile' },
   { key: 'app.nav.page', href: '/page-editor' },

@@ -17,6 +17,7 @@ import {
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
+import { SocialPostsService } from '../social/social-posts.service';
 
 /** Глубина выборки чек-инов для расчёта стриков — покрывает порог в 100 дней. */
 const STREAK_WINDOW_DAYS = 370;
@@ -32,7 +33,10 @@ const STREAK_WINDOW_DAYS = 370;
 export class AchievementsService implements OnModuleInit {
   private readonly logger = new Logger(AchievementsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly posts: SocialPostsService,
+  ) {}
 
   /** Каталог бейджей в БД (модель Achievement: код + условие). Идемпотентно. */
   async onModuleInit(): Promise<void> {
@@ -76,6 +80,8 @@ export class AchievementsService implements OnModuleInit {
 
     try {
       await this.prisma.userAchievement.create({ data: { userId, code } });
+      // Пост в ленту о полученном достижении (ТЗ §3.7): виден подписчикам.
+      await this.posts.create({ userId, type: 'achievement', payload: { code } });
       return true;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
