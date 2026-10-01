@@ -7,6 +7,7 @@
  * а смена состояния объявляется скринридеру через вежливый live-region.
  */
 import { useCallback, useEffect, useState } from 'react';
+import { Icon } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
 import { toggleQuietMode, useQuietMode } from '@/lib/use-quiet-mode';
 
@@ -33,7 +34,7 @@ export function QuietModeToggle({ className, testId = 'quiet-toggle' }: QuietMod
         'rounded-[var(--radius-button)] border px-3 py-2 text-sm font-medium transition-colors duration-150'
       }
     >
-      <span aria-hidden="true">{quiet ? '🙈' : '👁'}</span>{' '}
+      <Icon name={quiet ? 'eyeOff' : 'eye'} size={18} />{' '}
       <span className={quiet ? 'font-semibold text-[var(--puls-primary-text)]' : undefined}>
         {t('quiet.label')}
       </span>

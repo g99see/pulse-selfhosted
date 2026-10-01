@@ -31,38 +31,55 @@ export interface ThemePalette {
   warningText: string;
   /** Кольцо фокуса. */
   focus: string;
+  /** Вторая поверхность: поля ввода, вложенные блоки. */
+  surface2: string;
+  /** Мягкие заливки областей (фон плиток и бейджей с текстом *Text). */
+  primarySoft: string;
+  financeSoft: string;
+  wellbeingSoft: string;
+  warningSoft: string;
 }
 
 export const LIGHT_PALETTE: ThemePalette = {
-  bg: '#faf8f5',
+  bg: '#f6f2ec',
   surface: '#ffffff',
-  primary: '#5b5bd6',
-  finance: '#2ba889',
-  wellbeing: '#f2a25c',
-  warning: '#e5484d',
-  ink: '#1c1c24',
-  inkMuted: '#6e6e7a',
+  surface2: '#faf7f2',
+  primary: '#5d55c9',
+  finance: '#3fae84',
+  wellbeing: '#f19a57',
+  warning: '#e5544d',
+  ink: '#24212d',
+  inkMuted: '#66626f',
   onPrimary: '#ffffff',
-  primaryText: '#5b5bd6',
-  financeText: '#17705a',
-  wellbeingText: '#a85a12',
-  warningText: '#b3261e',
-  focus: '#5b5bd6',
+  primaryText: '#5048bd',
+  financeText: '#1c6a50',
+  wellbeingText: '#9c4f15',
+  warningText: '#b0302b',
+  focus: '#5d55c9',
+  primarySoft: '#ecebfa',
+  financeSoft: '#e2f3ea',
+  wellbeingSoft: '#fdecdc',
+  warningSoft: '#fce6e3',
 };
 
 export const DARK_PALETTE: ThemePalette = {
-  bg: '#14141a',
-  surface: '#1e1e26',
-  primary: '#8b8bf5',
-  finance: '#3dd6ae',
-  wellbeing: '#f7b87e',
-  warning: '#ff6369',
-  ink: '#ededf2',
-  inkMuted: '#9a9aa8',
-  onPrimary: '#14141a',
-  primaryText: '#8b8bf5',
-  financeText: '#3dd6ae',
-  wellbeingText: '#f7b87e',
-  warningText: '#ff6369',
-  focus: '#8b8bf5',
+  bg: '#15141b',
+  surface: '#1f1e27',
+  surface2: '#1a1922',
+  primary: '#a59ffa',
+  finance: '#5cc79c',
+  wellbeing: '#f3a86c',
+  warning: '#ff7b75',
+  ink: '#f0eef6',
+  inkMuted: '#a7a3b4',
+  onPrimary: '#15141b',
+  primaryText: '#b1acff',
+  financeText: '#74d5ae',
+  wellbeingText: '#f6bd8c',
+  warningText: '#ff918b',
+  focus: '#a59ffa',
+  primarySoft: '#2b2945',
+  financeSoft: '#1b3129',
+  wellbeingSoft: '#38291d',
+  warningSoft: '#3b2225',
 };

@@ -21,6 +21,13 @@ function textPairs(palette: ThemePalette): Array<[string, string, string]> {
     ['warningText/bg', palette.warningText, palette.bg],
     ['warningText/surface', palette.warningText, palette.surface],
     ['onPrimary/primary', palette.onPrimary, palette.primary],
+    ['ink/surface2', palette.ink, palette.surface2],
+    ['inkMuted/surface2', palette.inkMuted, palette.surface2],
+    ['primaryText/primarySoft', palette.primaryText, palette.primarySoft],
+    ['financeText/financeSoft', palette.financeText, palette.financeSoft],
+    ['wellbeingText/wellbeingSoft', palette.wellbeingText, palette.wellbeingSoft],
+    ['warningText/warningSoft', palette.warningText, palette.warningSoft],
+    ['ink/primarySoft', palette.ink, palette.primarySoft],
   ];
 }
 
@@ -101,6 +108,11 @@ describe('палитра совпадает с CSS-переменными', () =
     ['--puls-wellbeing-text', 'wellbeingText'],
     ['--puls-warning-text', 'warningText'],
     ['--puls-focus', 'focus'],
+    ['--puls-surface-2', 'surface2'],
+    ['--puls-primary-soft', 'primarySoft'],
+    ['--puls-finance-soft', 'financeSoft'],
+    ['--puls-wellbeing-soft', 'wellbeingSoft'],
+    ['--puls-warning-soft', 'warningSoft'],
   ];
 
   it('светлая тема в CSS и в TS совпадают', () => {
