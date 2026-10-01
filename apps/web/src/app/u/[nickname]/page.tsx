@@ -126,10 +126,19 @@ function CardBody({
   }
 }
 
+/** Тип карточки → ключ заголовка в i18n (имена типов и ключей различаются). */
+const CARD_TITLE_KEY: Record<ProfileCardDto['data']['kind'], string> = {
+  savings: 'profile.public.card.savings',
+  checkin_streak: 'profile.public.card.streak',
+  avg_mood: 'profile.public.card.mood',
+  achievements: 'profile.public.card.achievements',
+  goals: 'profile.public.card.goals',
+  html_page: 'profile.public.card.html',
+};
+
 function cardTitle(card: ProfileCardDto, locale: Awaited<ReturnType<typeof getRequestLocale>>): string {
   if (card.title) return card.title;
-  const key = `profile.public.card.${card.data.kind === 'html_page' ? 'html' : card.data.kind}`;
-  return t(key, locale);
+  return t(CARD_TITLE_KEY[card.data.kind], locale);
 }
 
 export default async function PublicProfilePage({
