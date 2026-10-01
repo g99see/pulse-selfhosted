@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 const ALLOWED = new Set([
   '0BSD',
   'MIT',
+  'MIT-0',
   'ISC',
   'Apache-2.0',
   'BSD-2-Clause',
@@ -94,7 +95,7 @@ if (violations.length > 0) {
   console.error(`\nНайдены несовместимые лицензии (${violations.length}):`);
   console.error(violations.join('\n'));
   console.error(
-    '\nДопустимы MIT, Apache-2.0, BSD, ISC, 0BSD, MPL-2.0, LGPL/GPL/AGPL, OFL, PostgreSQL License.',
+    '\nДопустимы MIT/MIT-0, Apache-2.0, BSD, ISC, 0BSD, MPL-2.0, LGPL/GPL/AGPL, OFL, PostgreSQL License.',
   );
   process.exit(1);
 }
