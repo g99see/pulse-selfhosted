@@ -329,7 +329,8 @@ export default function GoalsPage() {
           </form>
         </Card>
 
-        <section className="grid gap-4 xl:grid-cols-2" data-testid="goals-list">
+        {/* Две колонки только с 2xl: на 1280–1440 px карточка выходила ~310 px, названия обрезались до «Bea…». */}
+        <section className="grid gap-4 2xl:grid-cols-2" data-testid="goals-list">
           {goals.map((goal) => (
             <article
               key={goal.id}
@@ -494,7 +495,7 @@ export default function GoalsPage() {
 
           {goals.length === 0 && !loading ? (
             <div
-              className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm xl:col-span-2"
+              className="rounded-[var(--radius-card)] bg-[var(--puls-surface)] shadow-sm 2xl:col-span-2"
               data-testid="goals-empty"
             >
               <EmptyState icon="target" tone="finance" title={t('goals.empty')} />

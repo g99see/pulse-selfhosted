@@ -82,6 +82,17 @@ export default function CheckInPage() {
     void reload();
   }, [reload]);
 
+  /**
+   * Подпись тега на языке интерфейса. Хранятся канонические значения
+   * (CHECKIN_TAG_SUGGESTIONS, на них опираются рекомендации), переводится только
+   * отображение; свои теги пользователя показываются как есть.
+   */
+  function tagLabel(tag: string): string {
+    const key = `checkin.tag.${tag}`;
+    const label = t(key);
+    return label === key ? tag : label;
+  }
+
   function toggleTag(tag: string): void {
     setTags((previous) =>
       previous.includes(tag) ? previous.filter((item) => item !== tag) : [...previous, tag],
@@ -276,7 +287,7 @@ export default function CheckInPage() {
                       onClick={() => toggleTag(tag)}
                       className={TAG_CLASS}
                     >
-                      {tag}
+                      {tagLabel(tag)}
                     </button>
                   ))}
                 </div>
@@ -295,7 +306,7 @@ export default function CheckInPage() {
                         onClick={() => toggleTag(tag)}
                         className={TAG_CLASS}
                       >
-                        {tag}
+                        {tagLabel(tag)}
                       </button>
                     ))}
                   </div>

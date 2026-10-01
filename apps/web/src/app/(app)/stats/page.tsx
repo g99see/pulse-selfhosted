@@ -358,9 +358,11 @@ export default function StatsPage() {
               {[1, 2, 3, 4, 5, 6, 7].map((weekday) => (
                 <text
                   key={weekday}
-                  x={(weekday - 1) * 19 + 6}
+                  // Центр клетки шириной 16 — x + 8; при 9px трёхбуквенные «Mon»/«Wed»
+                  // не помещались в шаг 19 и налезали друг на друга, «Mon» обрезался.
+                  x={(weekday - 1) * 19 + 8}
                   y={10}
-                  fontSize={9}
+                  fontSize={7}
                   textAnchor="middle"
                   fill="var(--puls-ink-muted)"
                   aria-hidden="true"
