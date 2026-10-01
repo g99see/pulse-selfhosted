@@ -14,6 +14,7 @@ import {
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
+import { AchievementsService } from '../achievements/achievements.service';
 
 /** Допуск на расхождение часов клиента и сервера, мс. */
 const FUTURE_TOLERANCE_MS = 60_000;
@@ -59,7 +60,10 @@ export function toCheckInDto(checkIn: CheckIn): CheckInDto {
 /** Чек-ины самочувствия (ТЗ §3.3): ответ настроением, расширенный чек-ин, расписание. */
 @Injectable()
 export class CheckinsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly achievements: AchievementsService,
+  ) {}
 
   async create(userId: string, input: CheckInInput): Promise<CheckInDto> {
     const occurredAt = resolveOccurredAt(input.occurredAt, new Date());
@@ -80,6 +84,9 @@ export class CheckinsService {
         occurredAt,
       },
     });
+
+    // Ленивая проверка достижений сразу после записи (ТЗ §4): сбой не ломает чек-ин.
+    await this.achievements.evaluate(userId).catch(() => undefined);
 
     return toCheckInDto(created);
   }
