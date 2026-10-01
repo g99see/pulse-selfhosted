@@ -85,4 +85,22 @@ export class TestClient {
     this.absorb(response);
     return response;
   }
+
+  /** GET бинарного ответа (выгрузка CSV-архива): тело приходит Buffer. */
+  async getBinary(path: string): Promise<Response> {
+    const response = (await request(this.server)
+      .get(path)
+      .set('Cookie', this.header())
+      .set('X-Forwarded-For', this.ip)
+      .buffer(true)
+      .parse(binaryParser)) as Response;
+    this.absorb(response);
+    return response;
+  }
+}
+
+function binaryParser(response: Response, callback: (error: Error | null, body: Buffer) => void): void {
+  const chunks: Buffer[] = [];
+  response.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+  response.on('end', () => callback(null, Buffer.concat(chunks)));
 }

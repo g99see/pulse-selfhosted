@@ -22,6 +22,6 @@ import { SessionService } from './session.service';
     // CSRF проверяется глобально для всех мутирующих запросов (ТЗ §6).
     { provide: APP_GUARD, useClass: CsrfGuard },
   ],
-  exports: [AuthService, SessionService, MailService, PasswordService, SessionGuard],
+  exports: [AuthService, SessionService, MailService, PasswordService, SessionGuard, RateLimitService],
 })
 export class AuthModule {}
