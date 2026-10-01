@@ -1,48 +1,118 @@
+<div align="center">
+
 # Пульс
 
-> Веб-сервис, который в одном месте ведёт личные финансы, самочувствие и достижения,
-> а затем превращает эти данные в статистику и советы.
+**Self-hosted трекер личных финансов, самочувствия и достижений.**  
+Деньги, настроение, привычки и цели — в одной спокойной ленте. Ваши данные остаются на вашем сервере.
 
-Полностью **self-hosted** и **open-source** (AGPL-3.0-or-later): вы разворачиваете сервис
-на своём сервере одной командой Docker Compose и полностью контролируете данные.
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
+[![CI](https://github.com/g99see/pulse-selfhosted/actions/workflows/ci.yml/badge.svg)](https://github.com/g99see/pulse-selfhosted/actions/workflows/ci.yml)
+![self-hosted](https://img.shields.io/badge/self--hosted-yes-5b50c8.svg)
 
-Текущий статус: **Фаза 4 — AI-помощник, семейный режим, открытый API и документация**.
-Фазы 1–3 реализованы: финансы, самочувствие, статистика, уведомления, PWA, цели,
-импорт CSV, 2FA, вход через Google и Telegram, Telegram-бот, публичный профиль и
-соцсеть, HTML-страница с песочницей, модерация и шаринг. План — [`docs/PLAN.md`](docs/PLAN.md),
-статус блоков Фазы 4 — [`docs-site/phase4.md`](docs-site/phase4.md).
+<img src="docs/screenshots/landing.png" alt="Лендинг Пульса" width="720">
 
-Полная документация (установка, настройка, использование, AI, API, администрирование)
-публикуется из пакета [`docs-site/`](docs-site/) на VitePress.
+</div>
+
+## Скриншоты
+
+|                                  Сегодня                                  |                              Финансы                               |
+| :-----------------------------------------------------------------------: | :----------------------------------------------------------------: |
+|              <img src="docs/screenshots/dashboard.png" width="420">              |            <img src="docs/screenshots/finance.png" width="420">             |
+|                                Статистика                                 |                              Чек-ин                                |
+|               <img src="docs/screenshots/stats.png" width="420">               |            <img src="docs/screenshots/checkin.png" width="420">             |
+|                                   Цели                                    |                            Тёмная тема                             |
+|               <img src="docs/screenshots/goals.png" width="420">               |         <img src="docs/screenshots/dashboard-dark.png" width="420">         |
+
+<p align="center">
+  <img src="docs/screenshots/mobile-dashboard.png" alt="Мобильная версия: главная" width="240">
+  <img src="docs/screenshots/mobile-finance.png" alt="Мобильная версия: финансы" width="240">
+</p>
+
+## Возможности
+
+**Финансы**
+
+- Счета, транзакции, бюджеты, свои категории, быстрый ввод «обед 450»
+- Регулярные платежи, мультивалютность с курсами, импорт выписок CSV
+- Статистика по дням, неделям и месяцам, «Год в цифрах»
+
+**Самочувствие и привычки**
+
+- Чек-ин настроения за 5 секунд; расширенный — энергия, стресс, сон, дневник, теги
+- Голосовой чек-ин: аудио не покидает браузер, на сервер идёт только текст
+- Ежедневные и еженедельные привычки, серии, достижения
+- Корреляции между тратами и настроением, правила-инсайты, еженедельный разбор
+
+**Цели и достижения**
+
+- Цели накоплений с прогнозом, вехами и напоминаниями о взносах
+- Достижения и серии, челленджи с друзьями, капсула времени
+- Виджет публичной цели для встраивания через iframe
+
+**Сообщество**
+
+- Публичный профиль `/@nickname`, лента, подписки, реакции, комментарии
+- Своя HTML-страница в профиле — в изолированной песочнице на отдельном домене
+- Семейный режим: общие счета и цели, у каждого — приватный дневник
+- Модерация и роли
+
+**AI-помощник по своему ключу**
+
+- Вопросы о своих данных обычным языком
+- Anthropic, OpenAI, OpenRouter или локальная модель через Ollama — ключ ваш, он хранится зашифрованным
+
+**Приватность и безопасность**
+
+- Self-hosted, открытый код AGPL, без обязательных облачных сервисов
+- Cookie-сессии, CSRF, Argon2, 2FA (TOTP), вход через Google и Telegram
+- Секреты шифруются AES-256-GCM; режим «Тишина» скрывает суммы (Alt+Q)
+- Telegram-бот, web push и email-уведомления, PWA, открытый API и вебхуки (Home Assistant, n8n)
+
+Подробный список — в [документации](docs-site/index.md).
+
+## Установка одной командой
+
+Поддерживаются Debian 12/13 и Ubuntu 22.04/24.04 (работает и в Proxmox LXC с `nesting=1,keyctl=1`).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash
+```
+
+Установщик:
+
+- ставит Docker, если его нет;
+- клонирует проект в `/opt/puls`;
+- генерирует секреты в `/opt/puls/.env` (права 600);
+- собирает и запускает сервисы;
+- создаёт первого администратора и сохраняет доступы в `/root/puls-credentials.txt` (права 600).
+
+С параметрами (скачайте `install.sh` и запустите локально):
+
+```bash
+# Публичный сервер: HTTPS через Let's Encrypt
+sudo bash install.sh --domain example.com --sandbox-domain usercontent.example.com --email admin@example.com
+
+# Домашняя сеть: обычный HTTP, песочница на порту 8080
+sudo bash install.sh --http --host 192.168.1.50
+```
+
+**Обновление:** `sudo /opt/puls/scripts/upgrade.sh` (бэкап → сборка → запуск).  
+**Бэкап и восстановление:** `scripts/backup.sh` и `scripts/restore.sh`, подробности — в [`docs/PHASE1-OPS.md`](docs/PHASE1-OPS.md).  
+**Ручная установка** через Docker Compose — [`docs-site/guide/installation.md`](docs-site/guide/installation.md), все переменные — [`docs-site/guide/configuration.md`](docs-site/guide/configuration.md).
 
 ## Стек
 
-| Слой            | Технологии                                              |
-| --------------- | ------------------------------------------------------- |
-| Монорепо        | pnpm workspaces, TypeScript 5.9                         |
-| Фронтенд        | Next.js 15 (App Router, standalone), React 19, Tailwind |
-| Бэкенд          | NestJS 12, Prisma 6, PostgreSQL 16                      |
-| Кеш и очереди   | Valkey 8 (+ BullMQ в Фазе 1)                            |
-| Общие схемы     | `@puls/shared` (Zod)                                    |
-| Тесты           | Vitest (unit + smoke), Playwright (e2e)                 |
-| Поставка        | Docker Compose, Caddy (авто-HTTPS), GitHub Actions      |
+| Слой          | Технологии                                              |
+| ------------- | ------------------------------------------------------- |
+| Монорепо      | pnpm workspaces, TypeScript 5.9                         |
+| Фронтенд      | Next.js 15 (App Router, standalone), React 19, Tailwind |
+| Бэкенд        | NestJS 12, Prisma 6, PostgreSQL 16                      |
+| Кеш и очереди | Valkey 8, BullMQ                                        |
+| Общие схемы   | `@puls/shared` (Zod)                                    |
+| Тесты         | Vitest (unit + smoke), Playwright (e2e)                 |
+| Поставка      | Docker Compose, Caddy (авто-HTTPS), GitHub Actions      |
 
-## Структура репозитория
-
-```
-apps/
-  api/        NestJS + Prisma, эндпоинт /health, миграции
-  web/        Next.js 15, Tailwind, Playwright
-packages/
-  shared/     Zod-схемы, шкала настроения, форматирование денег
-docker-compose.yml       postgres, valkey, api, web, caddy, backup + healthchecks
-docker-compose.dev.yml   dev-оверрайд: порты 5432 и 6379 на хост
-Caddyfile                маршрутизация + песочница пользовательского HTML
-docs-site/               документация на VitePress (пакет @puls/docs)
-scripts/                 backup.sh, restore.sh, upgrade.sh — эксплуатация (ТЗ §10)
-```
-
-## Быстрый старт (разработка)
+## Разработка
 
 Требования: Node.js ≥ 20, pnpm 11, Docker с Compose.
 
@@ -52,127 +122,80 @@ cp .env.example .env          # заполните пароли
 pnpm docker:dev:up            # postgres:16 + valkey:8 с портами на хост
 pnpm db:migrate               # prisma migrate dev
 pnpm build && pnpm test       # сборка всех пакетов и unit-тесты
-pnpm dev                      # запускает api и web в watch-режиме
+pnpm dev                      # api и web в watch-режиме
 ```
 
-Полезные адреса в dev: API `http://localhost:3001/health`, web `http://localhost:3000`.
+В dev: API `http://localhost:3001/health`, web `http://localhost:3000`.
 
-## Проверки
+Проверки:
 
 ```bash
-pnpm lint            # ESLint (flat config) по всем пакетам
-pnpm typecheck       # tsc --noEmit по всем пакетам
+pnpm lint            # ESLint
+pnpm typecheck       # tsc --noEmit
 pnpm test            # Vitest: unit-тесты (без БД)
-pnpm test:smoke      # Vitest: smoke-тест API против живого PostgreSQL
-pnpm e2e             # Playwright: один smoke-сценарий лендинга
+pnpm test:smoke      # Vitest: smoke API против живого PostgreSQL
+pnpm e2e             # Playwright
 pnpm format:check    # Prettier
 pnpm license:check   # совместимость лицензий зависимостей
-pnpm --filter @puls/docs build   # сборка документации (VitePress)
-pnpm --filter @puls/docs dev     # локальный просмотр документации
+pnpm --filter @puls/docs dev     # документация (VitePress) локально
 ```
 
-## Установка за 15 минут
-
-Требования: Docker с Compose (и git). Node/pnpm для установки не нужны —
-всё собирается в контейнерах.
-
-Пошаговое руководство (домены и `SANDBOX_DOMAIN`, DNS, HTTPS, мастер первого
-запуска) — [`docs-site/guide/installation.md`](docs-site/guide/installation.md);
-описание всех переменных — [`docs-site/guide/configuration.md`](docs-site/guide/configuration.md).
+Демо-данные (пользователь `demo`, ~90 дней транзакций и чек-инов, цели, привычки):
 
 ```bash
-# 1. Код
-git clone <ваш-форк> puls && cd puls
-
-# 2. Настройки: задайте POSTGRES_PASSWORD, DOMAIN и ACME_EMAIL
-cp .env.example .env
-
-# 3. Запуск: postgres, valkey, api, web, caddy, backup (порядок и healthchecks — сами)
-docker compose up -d
-
-# 4. Мастер первого запуска: откройте сайт и создайте администратора
-#    http://localhost  (или https://$DOMAIN)  →  редирект на /setup
+scripts/dev-run.sh start        # api и web без Docker
+node scripts/demo/seed.mjs      # нужен DATABASE_URL (в окружении, .env или ~/.config/puls/env)
 ```
 
-Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN`; миграции Prisma
-применяет контейнер `api` при старте. Первый пользователь создаётся мастером
-`/setup` и получает роль `admin`; после этого мастер закрыт навсегда.
+Сценарий демонстрации на 10 минут — [`docs/PRESENTATION.md`](docs/PRESENTATION.md). Автозапуск без Docker через systemd — [`deploy/systemd/`](deploy/systemd/).
 
-Проверить, что бэкап-сервис работает: `docker compose ps backup` (healthy) и
-`ls backups/` — первый архив появится сразу после старта.
+## Структура
 
-## Обновление
-
-```bash
-scripts/upgrade.sh     # бэкап → pull/build образов → up -d
+```
+apps/
+  api/        NestJS + Prisma, миграции
+  web/        Next.js 15, Tailwind, Playwright
+packages/
+  shared/     Zod-схемы, шкала настроения, форматирование денег
+docker-compose.yml       postgres, valkey, api, web, caddy, backup
+docker-compose.dev.yml   dev-оверрайд: порты postgres и valkey на хост
+Caddyfile                маршрутизация + песочница пользовательского HTML
+docs-site/               документация (VitePress)
+docs/                    план, описания фаз, редизайн «soft wellbeing»
+scripts/                 install, upgrade, backup, restore, demo
+deploy/systemd/          пользовательские systemd-юниты
 ```
 
-Перед обновлением скрипт снимает резервную копию, затем перезапускает сервисы;
-миграции Prisma применяются контейнером `api` при старте.
+## Документация
 
-## Бэкап и восстановление (ТЗ §6, §10)
+- Пользовательская и админская документация — [`docs-site/`](docs-site/index.md) (VitePress)
+- План и статус — [`docs/PLAN.md`](docs/PLAN.md); фазы 1–5 реализованы, описания — `docs/PHASE*.md`
+- Редизайн «soft wellbeing» — [`docs/REDESIGN.md`](docs/REDESIGN.md)
 
-Сервис `backup` (образ `postgres:16-alpine`) раз в `BACKUP_INTERVAL_HOURS` (24)
-снимает дамп PostgreSQL в custom-формате вместе с метаданными (версия миграции,
-версия PostgreSQL) в `./backups/backup-<UTC>.tar.gz` и хранит `BACKUP_KEEP` (7)
-последних архивов. Healthcheck сервиса следит за свежестью последнего бэкапа.
+## Участие
 
-```bash
-# Резервная копия вручную (на хосте — дамп через `docker compose exec postgres`)
-scripts/backup.sh
-
-# Восстановление одной командой (сверяет версию схемы с архивом)
-scripts/restore.sh backups/backup-20261001T120000Z.tar.gz
-
-# Если БД ушла вперёд — восстановление остановится; повторите с --force
-scripts/restore.sh backups/backup-....tar.gz --force
-
-# После восстановления накатить миграции текущего образа
-scripts/restore.sh backups/backup-....tar.gz --migrate
-```
-
-Переменные: `BACKUP_DIR`, `BACKUP_KEEP`, `BACKUP_INTERVAL_HOURS`, `PGDATABASE`,
-`PGHOST/PGPORT/PGUSER/PGPASSWORD`. Подробности — [`docs/PHASE1-OPS.md`](docs/PHASE1-OPS.md).
-
-## Развёртывание за деталями
-
-Caddy сам получит сертификаты Let's Encrypt для `$DOMAIN` и поддомена песочницы
-`$SANDBOX_DOMAIN`. Миграции применяются контейнером `api` при старте.
-
-## Демо
-
-Быстрый запуск демо-стенда с готовыми данными:
-
-```bash
-# 1. Поднять api (:3001) и web (:3000) без Docker:
-scripts/dev-run.sh start
-
-# 2. Загрузить демо-данные (идемпотентно): демо-пользователь demo, ~90 дней
-#    транзакций и чек-инов, цели, привычки, семья, профиль, челлендж.
-. ~/.config/hermes/puls-test.env && node scripts/demo/seed.mjs
-```
-
-Скрипт seed создаёт демо-пользователя `demo@puls.local` (ник `demo`) и второго
-пользователя `friend` для подписки и семьи. Пароли он записывает в
-`~/.config/puls/demo-credentials` (права 600) — в репозиторий они не попадают.
-
-Автозапуск после перезагрузки — systemd **user**-юниты в [`deploy/systemd/`](deploy/systemd/)
-(инструкция — в `deploy/systemd/README.md`):
-
-```bash
-cp deploy/systemd/puls-*.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now puls-api.service puls-web.service
-sudo loginctl enable-linger "$USER"   # старт без входа в систему
-```
-
-Пошаговый сценарий демонстрации на 10 минут по экранам — [`docs/PRESENTATION.md`](docs/PRESENTATION.md).
+Баги и идеи — через [Issues](https://github.com/g99see/pulse-selfhosted/issues), код — через pull request.
+Правила — [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+Об уязвимостях сообщайте приватно — [`SECURITY.md`](SECURITY.md).
 
 ## Лицензия
 
-Код распространяется по **AGPL-3.0-or-later**. Если вы запускаете изменённую версию как
-публичный сервис, вы обязаны открыть свои изменения. Пользовательский контент
-(HTML-страницы, тексты) лицензией кода не покрывается и принадлежит авторам.
+**AGPL-3.0-or-later** — см. [`LICENSE`](LICENSE). Если вы запускаете изменённую версию как публичный сервис,
+вы обязаны открыть свои изменения. Пользовательский контент (HTML-страницы, тексты) лицензией кода не покрывается.
 
-Участие в проекте — [`CONTRIBUTING.md`](CONTRIBUTING.md); сообщения об уязвимостях —
-[`SECURITY.md`](SECURITY.md).
+## In English
+
+**Puls** ("Pulse") is a self-hosted personal finance, wellbeing and achievements tracker: budgets and
+transactions, 5-second mood check-ins, habits, savings goals, streaks, a small social layer, and an optional
+AI assistant that uses your own API key (Anthropic, OpenAI, OpenRouter or local Ollama). Stack: Next.js 15,
+NestJS, Prisma, PostgreSQL, Valkey, Docker Compose, Caddy. The UI is in Russian and English.
+
+Install on Debian 12/13 or Ubuntu 22.04/24.04:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash
+```
+
+Options: `--domain`, `--sandbox-domain`, `--email` for HTTPS, or `--http --host <ip>` for LAN. Update with
+`sudo /opt/puls/scripts/upgrade.sh`. Manual setup: [`docs-site/guide/installation.md`](docs-site/guide/installation.md).
+Licensed under AGPL-3.0-or-later. Contributions: [`CONTRIBUTING.md`](CONTRIBUTING.md); security: [`SECURITY.md`](SECURITY.md).
