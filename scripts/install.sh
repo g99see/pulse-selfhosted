@@ -24,7 +24,8 @@ INSTALL_DIR='/opt/puls'
 REPO="$REPO_DEFAULT"
 BRANCH='master'
 ADMIN_EMAIL=''
-ADMIN_NICK='admin'
+# 'admin' зарезервирован схемой nicknameSchema (RESERVED_NICKNAMES) — API отклонит его.
+ADMIN_NICK='owner'
 NON_INTERACTIVE=0
 NO_ADMIN=0
 DRY_RUN=0
@@ -69,7 +70,7 @@ usage() {
   --repo URL             git-репозиторий (по умолчанию GitHub g99see/pulse-selfhosted)
   --branch NAME          ветка (по умолчанию master)
   --admin-email E        почта первого администратора
-  --admin-nickname N     ник администратора (по умолчанию admin)
+  --admin-nickname N     ник администратора (по умолчанию owner; admin зарезервирован)
   --no-admin             не создавать администратора (пройдёте мастер в браузере)
   --smtp-url URL         SMTP для писем (smtp://user:pass@host:587); без него письма
                          подтверждения не уходят, регистрация переводится в «invite»
@@ -111,7 +112,14 @@ done
 
 case "$REGISTRATION" in ''|open|invite|closed) ;; *) die "--registration: open | invite | closed" ;; esac
 [[ "$SANDBOX_HTTP_PORT_OPT" =~ ^[0-9]+$ ]] || die '--sandbox-port должен быть числом'
-[[ "$ADMIN_NICK" =~ ^[A-Za-z0-9_.-]+$ ]] || die '--admin-nickname: допустимы латиница, цифры, _ . -'
+# Те же правила, что у API (packages/shared/src/auth.ts): 3–32 символа, латиница,
+# цифры, дефис, подчёркивание; служебные имена зарезервированы.
+ADMIN_NICK=$(printf '%s' "$ADMIN_NICK" | tr '[:upper:]' '[:lower:]')
+[[ "$ADMIN_NICK" =~ ^[a-z0-9_-]{3,32}$ ]] || die '--admin-nickname: 3–32 символа, латиница, цифры, - и _'
+case "$ADMIN_NICK" in
+  admin|api|app|assets|favicon|health|help|login|logout|me|onboarding|register|robots|sessions|settings|signin|signup|static|support|user|users|verify-email|www)
+    die "--admin-nickname: «$ADMIN_NICK» зарезервирован, выберите другой" ;;
+esac
 if [ "$HTTP_MODE" = 1 ] && [ -n "$DOMAIN" ]; then die 'Нельзя одновременно --http и --domain'; fi
 
 # ---------- интерактив ----------
