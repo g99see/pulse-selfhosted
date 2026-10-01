@@ -89,7 +89,7 @@ test('режим Тишина прячет суммы и переключает�
   await expect(page.getByTestId('today-spent')).toContainText(MASK);
 
   // На экране финансов суммы тоже скрыты.
-  await page.goto('/finance');
+  await page.goto('/finance?tab=accounts');
   await expect(page.getByTestId('finance-accounts')).toContainText(MASK);
 
   // Горячая клавиша Alt+Q выключает режим — суммы возвращаются.

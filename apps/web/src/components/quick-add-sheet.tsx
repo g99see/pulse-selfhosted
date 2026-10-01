@@ -12,6 +12,8 @@ import {
 import { useT } from '@/components/locale-provider';
 import { formatMoneyLocale } from '@/lib/format';
 import { financeApi, notifyFinanceChanged } from '@/lib/finance-client';
+import { Icon } from '@/components/icons';
+import { Segmented } from '@/components/ui';
 
 /**
  * Шторка быстрого добавления (ТЗ §3.2, §8 пункт 4): строка «обед 450» или
@@ -132,19 +134,30 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         data-testid="quick-add-sheet"
         onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => void submit(event)}
-        className="flex w-full max-w-md flex-col gap-4 rounded-t-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-lg sm:rounded-[var(--radius-card)]"
+        className="puls-sheet-in flex max-h-[92vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-[28px] bg-[var(--puls-surface)] p-5 pb-8 shadow-lg sm:rounded-[28px] sm:pb-6"
       >
+        <div className="mx-auto h-1.5 w-10 rounded-full bg-[var(--puls-line-strong)] sm:hidden" aria-hidden="true" />
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">{t('finance.quick.title')}</h2>
+          <h2 className="font-heading text-xl font-bold">{t('finance.quick.title')}</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label={t('finance.close')}
-            className="rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--puls-ink-muted)]"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--puls-surface-2)] text-[var(--puls-ink-muted)]"
           >
-            ✕
+            <Icon name="close" size={18} />
           </button>
         </div>
+
+        <Segmented<'expense' | 'income'>
+          label={t('finance.filter.type')}
+          value={effectiveType === 'income' ? 'income' : 'expense'}
+          onChange={setType}
+          options={[
+            { value: 'expense', label: t('finance.type.expense') },
+            { value: 'income', label: t('finance.type.income') },
+          ]}
+        />
 
         <label htmlFor="quick-text" className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">{t('finance.quick.amount')}</span>
@@ -155,12 +168,12 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             onChange={(event) => setText(event.target.value)}
             placeholder={t('finance.quick.example')}
             autoComplete="off"
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
+            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15"
           />
         </label>
 
         {text.trim() && parsed ? (
-          <p className="text-sm text-[var(--puls-ink-muted)]" data-testid="quick-add-preview">
+          <p className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]" data-testid="quick-add-preview">
             {t('finance.quick.parsed', { amount: formatMoneyLocale(parsed.amount, locale) })}
             {guessedCategory ? ` · ${guessedCategory.name}` : ''}
           </p>
@@ -172,8 +185,9 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
               data-testid="quick-add-amount"
               inputMode="decimal"
               value={amount}
+              placeholder="0"
               onChange={(event) => setAmount(event.target.value)}
-              className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-2 focus:ring-[var(--puls-primary)]/30"
+              className="h-16 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 font-heading text-3xl font-extrabold [font-variant-numeric:tabular-nums] outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15"
             />
           </label>
         )}
@@ -193,7 +207,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                   className="rounded-[var(--radius-chip)] border px-3 py-1.5 text-sm"
                   style={{
                     borderColor: category.color,
-                    backgroundColor: isActive ? `${category.color}22` : 'transparent',
+                    backgroundColor: isActive ? `${category.color}33` : 'transparent',
                   }}
                 >
                   {category.name}
@@ -202,24 +216,6 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             })}
           </div>
         </fieldset>
-
-        <div className="flex gap-2" role="group" aria-label={t('finance.filter.type')}>
-          {(['expense', 'income'] as const).map((kind) => (
-            <button
-              key={kind}
-              type="button"
-              onClick={() => setType(kind)}
-              aria-pressed={effectiveType === kind}
-              className="flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-3 py-2 text-sm"
-              style={{
-                backgroundColor: effectiveType === kind ? 'var(--puls-primary)' : 'transparent',
-                color: effectiveType === kind ? '#fff' : 'inherit',
-              }}
-            >
-              {t(`finance.type.${kind}`)}
-            </button>
-          ))}
-        </div>
 
         {accounts.length > 1 ? (
           <div className="flex flex-col gap-3">
@@ -275,12 +271,12 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         </label>
 
         {error ? (
-          <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
+          <p role="alert" className="rounded-[var(--radius-button)] bg-[var(--puls-warning-soft)] px-4 py-3 text-sm text-[var(--puls-warning-text)]">
             {error}
           </p>
         ) : null}
         {saved ? (
-          <p role="status" className="text-sm text-[var(--puls-finance-text)]">
+          <p role="status" className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]">
             {t('finance.quick.saved')}
           </p>
         ) : null}
@@ -289,7 +285,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
           type="submit"
           data-testid="quick-add-submit"
           disabled={busy}
-          className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+          className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] disabled:opacity-50"
         >
           {t('finance.quick.submit')}
         </button>

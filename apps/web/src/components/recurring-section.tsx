@@ -13,6 +13,7 @@ import type {
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
+import { FormToggle } from '@/components/finance-form-toggle';
 import { recurringApi } from '@/lib/recurring-client';
 import { useQuietMode } from '@/lib/use-quiet-mode';
 
@@ -137,10 +138,10 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
 
   return (
     <section
-      className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm"
+      className="flex flex-col gap-4 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm sm:p-6"
       data-testid="recurring-section"
     >
-      <h2 className="text-lg font-bold">{t('finance.recurring.title')}</h2>
+      <h2 className="font-heading text-lg font-bold">{t('finance.recurring.title')}</h2>
       <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.hint')}</p>
 
       {error ? (
@@ -151,7 +152,7 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
 
       <ul className={`flex flex-col divide-y divide-[var(--puls-ink-muted)]/15 ${loading ? 'min-h-11' : ''}`} data-testid="recurring-list">
         {payments.map((payment) => (
-          <li key={payment.id} className="flex items-center justify-between gap-3 py-2" data-testid="recurring-item">
+          <li key={payment.id} className="flex items-center justify-between gap-3 py-3" data-testid="recurring-item">
             <span className="flex flex-col">
               <span className="font-medium" data-testid="recurring-name">
                 {payment.name}
@@ -204,6 +205,7 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
         ) : null}
       </ul>
 
+      <FormToggle label={t('finance.recurring.new')} testId="recurring-form-toggle">
       <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void submit(event)}>
         <label htmlFor="recurring-name" className="flex flex-1 flex-col gap-1">
           <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.recurring.name')}</span>
@@ -321,11 +323,12 @@ export function RecurringSection({ accounts, categories, currency, onChanged }: 
           type="submit"
           disabled={busy}
           data-testid="recurring-submit"
-          className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+          className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] disabled:opacity-50"
         >
           {t('finance.recurring.add')}
         </button>
       </form>
+      </FormToggle>
 
       <h3 className="text-sm font-semibold">{t('finance.recurring.upcoming')}</h3>
       <ul className={`flex flex-col gap-1 text-sm ${loading ? 'min-h-5' : ''}`} data-testid="recurring-upcoming">

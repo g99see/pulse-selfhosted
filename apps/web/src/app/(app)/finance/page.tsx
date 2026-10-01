@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   monthKey,
   type AccountType,
@@ -13,13 +14,21 @@ import {
   type TransactionKind,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { MASKED_AMOUNT } from '@/components/money';
+import { Money, MASKED_AMOUNT } from '@/components/money';
 import { CategoryManager } from '@/components/category-manager';
 import { RecurringSection } from '@/components/recurring-section';
+import { Icon } from '@/components/icons';
+import { FormToggle } from '@/components/finance-form-toggle';
+import { Alert, Card, EmptyState, Field, GhostButton, IconBubble, PrimaryButton, ProgressBar, Segmented, Select, toneClasses, type Tone } from '@/components/ui';
 import { CURRENCY_OPTIONS } from '@/lib/currency-form';
+import { iconGlyph } from '@/lib/category-form';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { financeApi, FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 import { useQuietMode } from '@/lib/use-quiet-mode';
+
+type FinanceTab = 'ops' | 'accounts' | 'categories' | 'recurring';
+const TABS: FinanceTab[] = ['ops', 'accounts', 'categories', 'recurring'];
+const PAGE_SIZE = 20;
 
 type AccountTypeOption = { value: AccountType; key: string };
 const ACCOUNT_TYPES: AccountTypeOption[] = [
@@ -28,28 +37,35 @@ const ACCOUNT_TYPES: AccountTypeOption[] = [
   { value: 'savings', key: 'finance.account.savings' },
 ];
 
-const LEVEL_COLOR: Record<BudgetDto['level'], string> = {
-  ok: 'var(--puls-finance)',
-  warning: 'var(--puls-accent)',
-  exceeded: 'var(--puls-warning)',
-};
+const ACCOUNT_TONE: Record<AccountType, Tone> = { card: 'primary', cash: 'wellbeing', savings: 'finance' };
 
-/** Цвет текста уровня бюджета: контрастные токены (WCAG AA), заливка полосы — LEVEL_COLOR. */
-const LEVEL_TEXT_COLOR: Record<BudgetDto['level'], string> = {
-  ok: 'var(--puls-finance-text)',
-  warning: 'var(--puls-ink)',
-  exceeded: 'var(--puls-warning-text)',
-};
+/** Тон полосы бюджета по заполнению: до 80% — деньги, 80–100% — самочувствие, выше — предупреждение. */
+function budgetTone(budget: BudgetDto): 'finance' | 'wellbeing' | 'warning' {
+  if (budget.percent > 100) return 'warning';
+  if (budget.percent >= 80) return 'wellbeing';
+  return 'finance';
+}
 
-/** Экран «Финансы» (ТЗ §8 пункт 5): счета, транзакции с фильтрами, бюджеты. */
-export default function FinancePage() {
+function dayKey(date: string): string {
+  return date.slice(0, 10);
+}
+
+/** Экран «Финансы» (ТЗ §8 пункт 5): вкладки операций, счетов, категорий и регулярных платежей. */
+function FinanceScreen() {
   const { t, locale } = useT();
   const quiet = useQuietMode();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab');
+
+  const [tab, setTab] = useState<FinanceTab>(
+    TABS.includes(initialTab as FinanceTab) ? (initialTab as FinanceTab) : 'ops',
+  );
 
   const [overview, setOverview] = useState<FinanceOverviewResponse | null>(null);
   const [transactions, setTransactions] = useState<TransactionDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const [filterType, setFilterType] = useState<'all' | TransactionKind>('all');
   const [filterCategory, setFilterCategory] = useState('');
@@ -65,6 +81,13 @@ export default function FinancePage() {
   const [busy, setBusy] = useState(false);
 
   const month = useMemo(() => monthKey(new Date()), []);
+
+  function changeTab(next: FinanceTab): void {
+    setTab(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', next);
+    window.history.replaceState(null, '', url);
+  }
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -92,6 +115,10 @@ export default function FinancePage() {
   }, [reload]);
 
   useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [filterType, filterCategory, filterAccount]);
+
+  useEffect(() => {
     function onChanged(): void {
       void reload();
     }
@@ -102,13 +129,44 @@ export default function FinancePage() {
   const accounts = overview?.accounts ?? [];
   const categories = overview?.categories ?? [];
   const budgets = overview?.budgets ?? [];
-  const currency = overview?.currency ?? 'RUB';
-  // Режим «Тишина» (ТЗ §4): все суммы на экране прячутся одной маской.
-  const money = (value: number, currencyCode: Currency = currency as Currency): string =>
+  const currency = (overview?.currency ?? 'RUB') as Currency;
+  // Режим «Тишина» (ТЗ §4): суммы внутри составных строк прячутся одной маской.
+  const money = (value: number, currencyCode: Currency = currency): string =>
     quiet ? MASKED_AMOUNT : formatMoneyLocale(value, locale, currencyCode);
   const expenseCategories = categories.filter((category) => category.kind === 'expense');
-  // Валюта нового счёта: по умолчанию — основная валюта пользователя.
   const selectedAccountCurrency = accountCurrency || currency;
+
+  // Новые сверху: по дате, при равенстве — по времени создания.
+  const sorted = useMemo(
+    () =>
+      [...transactions].sort(
+        (a, b) =>
+          dayKey(b.date).localeCompare(dayKey(a.date)) || b.createdAt.localeCompare(a.createdAt),
+      ),
+    [transactions],
+  );
+  const shown = sorted.slice(0, visible);
+  const groups = useMemo(() => {
+    const map = new Map<string, TransactionDto[]>();
+    for (const item of shown) {
+      const key = dayKey(item.date);
+      map.set(key, [...(map.get(key) ?? []), item]);
+    }
+    return [...map.entries()];
+  }, [shown]);
+
+  function dayTitle(key: string): string {
+    const now = new Date();
+    const today = formatKey(now);
+    const yesterday = formatKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
+    if (key === today) return t('finance.tx.today');
+    if (key === yesterday) return t('finance.tx.yesterday');
+    return formatDate(`${key}T12:00:00`, locale, { day: 'numeric', month: 'long' });
+  }
+
+  function formatKey(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
 
   async function addAccount(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -152,7 +210,7 @@ export default function FinancePage() {
   function amountClass(type: TransactionKind): string {
     if (type === 'income') return 'text-[var(--puls-finance-text)]';
     if (type === 'transfer') return 'text-[var(--puls-ink-muted)]';
-    return 'text-[var(--puls-warning-text)]';
+    return 'text-[var(--puls-ink)]';
   }
 
   function amountPrefix(type: TransactionKind): string {
@@ -163,325 +221,341 @@ export default function FinancePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-extrabold">{t('finance.title')}</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-heading text-3xl font-extrabold">{t('finance.title')}</h1>
+          <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.total')}</p>
+          <p className="min-h-10 font-heading text-4xl font-extrabold text-[var(--puls-finance-text)] [font-variant-numeric:tabular-nums]">
+            {overview ? <Money value={overview.totalBalance} currency={currency} testId="finance-total" /> : null}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Link
             href="/finance/import"
             data-testid="import-link"
-            className="text-sm text-[var(--puls-primary-text)]"
+            className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
           >
             {t('finance.import.open')}
           </Link>
-        </div>
-        {overview ? (
-          <p className="text-sm text-[var(--puls-ink-muted)]">
-            {t('finance.total')}{' '}
-            <span className="font-semibold text-[var(--puls-ink)] [font-variant-numeric:tabular-nums]">
-              {money(overview.totalBalance)}
-            </span>
-          </p>
-        ) : (
-          // Резервируем строку до загрузки данных, чтобы шапка не сдвигала макет (CLS).
-          <p className="text-sm text-[var(--puls-ink-muted)]">
-            {t('finance.total')}{' '}
-            <span className="font-semibold text-[var(--puls-ink)] [font-variant-numeric:tabular-nums]" />
-          </p>
-        )}
-      </div>
-
-      {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {error}
-        </p>
-      ) : null}
-
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <h2 className="text-lg font-bold">{t('finance.accounts')}</h2>
-        <ul className="flex min-h-24 flex-col gap-2" data-testid="finance-accounts">
-          {accounts.map((account) => (
-            <li
-              key={account.id}
-              className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--puls-line)] px-4 py-2"
-            >
-              <span className="flex flex-col">
-                <span className="font-medium">{account.name}</span>
-                <span className="text-xs text-[var(--puls-ink-muted)]">
-                  {t(`finance.account.${account.type}`)}
-                </span>
-              </span>
-              <span className="font-semibold [font-variant-numeric:tabular-nums]">
-                {money(account.balance, account.currency as Currency)}
-              </span>
-            </li>
-          ))}
-          {accounts.length === 0 && !loading ? (
-            <li className="text-sm text-[var(--puls-ink-muted)]">{t('finance.account.add')}</li>
-          ) : null}
-        </ul>
-
-        <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void addAccount(event)}>
-          <label htmlFor="account-name" className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.account.name')}</span>
-            <input
-              id="account-name"
-              data-testid="account-name"
-              value={accountName}
-              onChange={(event) => setAccountName(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <label htmlFor="account-type" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.account.type')}</span>
-            <select
-              id="account-type"
-              value={accountType}
-              onChange={(event) => setAccountType(event.target.value as AccountType)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              {ACCOUNT_TYPES.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.key)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label htmlFor="account-balance" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.account.balance')}</span>
-            <input
-              id="account-balance"
-              inputMode="decimal"
-              value={accountBalance}
-              onChange={(event) => setAccountBalance(event.target.value)}
-              className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <label htmlFor="account-currency" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.account.currency')}</span>
-            <select
-              id="account-currency"
-              data-testid="account-currency"
-              value={selectedAccountCurrency}
-              onChange={(event) => setAccountCurrency(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              {CURRENCY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.value}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            disabled={busy}
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+          <Link
+            href="/finance/rates"
+            data-testid="rates-link"
+            className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)]"
           >
-            {t('finance.account.add')}
-          </button>
-        </form>
-      </section>
-
-      <CategoryManager categories={categories} loading={loading} onChanged={() => void reload()} />
-
-      <RecurringSection accounts={accounts} categories={categories} currency={currency} onChanged={() => void reload()} />
-
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-lg font-bold">{t('finance.transactions')}</h2>
-          <Link href="/finance/rates" className="text-sm text-[var(--puls-primary)]" data-testid="rates-link">
             {t('finance.rates.link')}
           </Link>
         </div>
+      </div>
 
-        <div className="flex flex-wrap gap-2">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.filter.type')}</span>
-            <select
-              data-testid="filter-type"
-              value={filterType}
-              onChange={(event) => setFilterType(event.target.value as 'all' | TransactionKind)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              <option value="all">{t('finance.filter.all')}</option>
-              <option value="expense">{t('finance.type.expense')}</option>
-              <option value="income">{t('finance.type.income')}</option>
-              <option value="transfer">{t('finance.type.transfer')}</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.filter.category')}</span>
-            <select
-              data-testid="filter-category"
-              value={filterCategory}
-              onChange={(event) => setFilterCategory(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              <option value="">{t('finance.filter.all')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.filter.account')}</span>
-            <select
-              value={filterAccount}
-              onChange={(event) => setFilterAccount(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              <option value="">{t('finance.filter.all')}</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      {error ? <Alert>{error}</Alert> : null}
 
-        <ul className="flex min-h-48 flex-col divide-y divide-[var(--puls-ink-muted)]/15" data-testid="finance-transactions">
-          {transactions.map((transaction) => (
-            <li key={transaction.id} className="flex items-center justify-between gap-3 py-2">
-              <span className="flex items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: transaction.categoryColor ?? 'var(--puls-ink-muted)' }}
-                />
-                <span className="flex flex-col">
-                  <span className="font-medium" data-testid="transaction-category">
-                    {transaction.categoryName ?? t('finance.noCategory')}
-                  </span>
-                  <span className="text-xs text-[var(--puls-ink-muted)]">
-                    {transaction.comment ? `${transaction.comment} · ` : ''}
-                    {transaction.accountName} · {formatDate(transaction.date, locale, { day: '2-digit', month: 'short' })}
-                  </span>
-                </span>
-              </span>
-              <span className="flex items-center gap-3">
-                <span className="flex flex-col items-end">
-                  <span
-                    className={`font-semibold [font-variant-numeric:tabular-nums] ${amountClass(transaction.type)}`}
-                    data-testid="transaction-amount"
-                  >
-                    {amountPrefix(transaction.type)}
-                    {money(transaction.amount, transaction.currency as Currency)}
-                  </span>
-                  {transaction.currency !== transaction.baseCurrency ? (
-                    <span
-                      className="text-xs text-[var(--puls-ink-muted)] [font-variant-numeric:tabular-nums]"
-                      data-testid="transaction-base"
-                    >
-                      {t('finance.tx.equivalent', {
-                        amount: money(transaction.amountBase, transaction.baseCurrency as Currency),
-                        currency: transaction.baseCurrency,
-                      })}
-                    </span>
-                  ) : null}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void removeTransaction(transaction.id)}
-                  aria-label={t('finance.cancel')}
-                  className="text-xs text-[var(--puls-ink-muted)]"
-                >
-                  ✕
-                </button>
-              </span>
-            </li>
-          ))}
-          {transactions.length === 0 && !loading ? (
-            <li className="py-3 text-sm text-[var(--puls-ink-muted)]" data-testid="transactions-empty">
-              {t('finance.transactions.empty')}
-            </li>
-          ) : null}
-        </ul>
-      </section>
+      <Segmented<FinanceTab>
+        label={t('finance.tabs.label')}
+        value={tab}
+        onChange={changeTab}
+        options={[
+          { value: 'ops', label: t('finance.tab.ops'), testId: 'finance-tab-ops' },
+          { value: 'accounts', label: t('finance.tab.accounts'), testId: 'finance-tab-accounts' },
+          { value: 'categories', label: t('finance.tab.categories'), testId: 'finance-tab-categories' },
+          { value: 'recurring', label: t('finance.tab.recurring'), testId: 'finance-tab-recurring' },
+        ]}
+      />
 
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <h2 className="text-lg font-bold">{t('finance.budgets')}</h2>
+      {tab === 'ops' ? (
+        <>
+          <Card className="flex flex-col gap-4">
+            <h2 className="font-heading text-lg font-bold">{t('finance.transactions')}</h2>
 
-        <ul className="flex min-h-24 flex-col gap-3" data-testid="finance-budgets">
-          {budgets.map((budget) => (
-            <li key={budget.id} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{budget.categoryName}</span>
-                <span className="text-[var(--puls-ink-muted)]">
-                  {t('finance.budget.spent', {
-                    spent: money(budget.spent),
-                    limit: money(budget.limit),
-                  })}
-                </span>
-              </div>
-              <div
-                className="h-2 w-full overflow-hidden rounded-[var(--radius-chip)] bg-[var(--puls-line)]"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={Math.max(budget.limit, budget.spent)}
-                aria-valuenow={budget.spent}
-                aria-label={budget.categoryName}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Select
+                id="filter-type"
+                label={t('finance.filter.type')}
+                data-testid="filter-type"
+                value={filterType}
+                onChange={(event) => setFilterType(event.target.value as 'all' | TransactionKind)}
               >
-                <div
-                  className="h-full rounded-[var(--radius-chip)]"
-                  style={{
-                    width: `${Math.min(budget.percent, 100)}%`,
-                    backgroundColor: LEVEL_COLOR[budget.level],
-                  }}
-                />
-              </div>
-              <span className="text-xs" style={{ color: LEVEL_TEXT_COLOR[budget.level] }}>
-                {t(`finance.budget.level.${budget.level}`)}
-              </span>
-            </li>
-          ))}
-          {budgets.length === 0 && !loading ? (
-            <li className="text-sm text-[var(--puls-ink-muted)]" data-testid="budgets-empty">
-              {t('finance.budget.empty')}
-            </li>
-          ) : null}
-        </ul>
+                <option value="all">{t('finance.filter.all')}</option>
+                <option value="expense">{t('finance.type.expense')}</option>
+                <option value="income">{t('finance.type.income')}</option>
+                <option value="transfer">{t('finance.type.transfer')}</option>
+              </Select>
+              <Select
+                id="filter-category"
+                label={t('finance.filter.category')}
+                data-testid="filter-category"
+                value={filterCategory}
+                onChange={(event) => setFilterCategory(event.target.value)}
+              >
+                <option value="">{t('finance.filter.all')}</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                id="filter-account"
+                label={t('finance.filter.account')}
+                value={filterAccount}
+                onChange={(event) => setFilterAccount(event.target.value)}
+              >
+                <option value="">{t('finance.filter.all')}</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
 
-        <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void addBudget(event)}>
-          <label htmlFor="budget-category" className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.filter.category')}</span>
-            <select
-              id="budget-category"
-              data-testid="budget-category"
-              value={budgetCategory}
-              onChange={(event) => setBudgetCategory(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            >
-              <option value="">{t('finance.filter.all')}</option>
-              {expenseCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
+            <div className="flex min-h-48 flex-col gap-4" data-testid="finance-transactions">
+              {groups.map(([key, items]) => (
+                <section key={key} className="flex flex-col gap-1">
+                  <h3 className="text-xs font-semibold tracking-wide text-[var(--puls-ink-muted)] uppercase">
+                    {dayTitle(key)}
+                  </h3>
+                  <ul className="flex flex-col">
+                    {items.map((transaction) => (
+                      <li
+                        key={transaction.id}
+                        className="flex items-center justify-between gap-3 border-b border-[var(--puls-line)] py-2.5 last:border-b-0"
+                      >
+                        <span className="flex min-w-0 items-center gap-3">
+                          <span
+                            aria-hidden="true"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg"
+                            style={{
+                              backgroundColor: transaction.categoryColor
+                                ? `${transaction.categoryColor}22`
+                                : 'var(--puls-surface-2)',
+                            }}
+                          >
+                            {transaction.categoryIcon ? iconGlyph(transaction.categoryIcon) : '🏷'}
+                          </span>
+                          <span className="flex min-w-0 flex-col">
+                            <span className="truncate font-medium" data-testid="transaction-category">
+                              {transaction.categoryName ?? t('finance.noCategory')}
+                            </span>
+                            <span className="truncate text-xs text-[var(--puls-ink-muted)]">
+                              {transaction.comment ? `${transaction.comment} · ` : ''}
+                              {transaction.accountName}
+                            </span>
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span className="flex flex-col items-end">
+                            <span
+                              className={`font-semibold [font-variant-numeric:tabular-nums] ${amountClass(transaction.type)}`}
+                              data-testid="transaction-amount"
+                            >
+                              {amountPrefix(transaction.type)}
+                              <Money value={transaction.amount} currency={transaction.currency as Currency} />
+                            </span>
+                            {transaction.currency !== transaction.baseCurrency ? (
+                              <span
+                                className="text-xs text-[var(--puls-ink-muted)] [font-variant-numeric:tabular-nums]"
+                                data-testid="transaction-base"
+                              >
+                                {t('finance.tx.equivalent', {
+                                  amount: money(transaction.amountBase, transaction.baseCurrency as Currency),
+                                  currency: transaction.baseCurrency,
+                                })}
+                              </span>
+                            ) : null}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => void removeTransaction(transaction.id)}
+                            aria-label={t('finance.cancel')}
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
+                          >
+                            <Icon name="close" size={14} />
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </select>
-          </label>
-          <label htmlFor="budget-limit" className="flex flex-col gap-1">
-            <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.budget.limit')}</span>
-            <input
-              id="budget-limit"
-              data-testid="budget-limit"
-              inputMode="decimal"
-              value={budgetLimit}
-              onChange={(event) => setBudgetLimit(event.target.value)}
-              className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={busy}
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+              {transactions.length === 0 && !loading ? (
+                <div data-testid="transactions-empty">
+                  <EmptyState tone="finance" icon="wallet" title={t('finance.transactions.empty')} />
+                </div>
+              ) : null}
+              {sorted.length > visible ? (
+                <GhostButton
+                  type="button"
+                  data-testid="transactions-more"
+                  onClick={() => setVisible((value) => value + PAGE_SIZE)}
+                  className="self-center"
+                >
+                  {t('finance.tx.more')}
+                </GhostButton>
+              ) : null}
+            </div>
+          </Card>
+
+          <Card className="flex flex-col gap-4">
+            <h2 className="font-heading text-lg font-bold">{t('finance.budgets')}</h2>
+
+            <ul className="flex min-h-24 flex-col gap-4" data-testid="finance-budgets">
+              {budgets.map((budget) => (
+                <li key={budget.id} className="flex flex-col gap-1">
+                  <ProgressBar
+                    value={budget.spent}
+                    max={Math.max(budget.limit, 1)}
+                    label={budget.categoryName}
+                    tone={budgetTone(budget)}
+                  />
+                  <span className="text-xs text-[var(--puls-ink-muted)]">
+                    {t('finance.budget.spent', { spent: money(budget.spent), limit: money(budget.limit) })}
+                    {' · '}
+                    {t(`finance.budget.level.${budget.level}`)}
+                  </span>
+                </li>
+              ))}
+              {budgets.length === 0 && !loading ? (
+                <li data-testid="budgets-empty">
+                  <EmptyState tone="finance" icon="target" title={t('finance.budget.empty')} />
+                </li>
+              ) : null}
+            </ul>
+
+            <FormToggle label={t('finance.budget.new')} testId="budget-form-toggle">
+              <form className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem_auto] sm:items-end" onSubmit={(event) => void addBudget(event)}>
+                <Select
+                  id="budget-category"
+                  label={t('finance.filter.category')}
+                  data-testid="budget-category"
+                  value={budgetCategory}
+                  onChange={(event) => setBudgetCategory(event.target.value)}
+                >
+                  <option value="">{t('finance.filter.all')}</option>
+                  {expenseCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+                <Field
+                  id="budget-limit"
+                  label={t('finance.budget.limit')}
+                  data-testid="budget-limit"
+                  inputMode="decimal"
+                  value={budgetLimit}
+                  onChange={(event) => setBudgetLimit(event.target.value)}
+                />
+                <PrimaryButton type="submit" disabled={busy}>
+                  {t('finance.budget.add')}
+                </PrimaryButton>
+              </form>
+            </FormToggle>
+          </Card>
+        </>
+      ) : null}
+
+      {tab === 'accounts' ? (
+        <Card className="flex flex-col gap-4">
+          <h2 className="font-heading text-lg font-bold">{t('finance.accounts')}</h2>
+          <ul
+            className="grid min-h-24 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            data-testid="finance-accounts"
           >
-            {t('finance.budget.add')}
-          </button>
-        </form>
-      </section>
+            {accounts.map((account) => (
+              <li
+                key={account.id}
+                className={`flex flex-col gap-3 rounded-[20px] p-4 ${toneClasses(ACCOUNT_TONE[account.type])}`}
+              >
+                <span className="flex items-center gap-2">
+                  <IconBubble name="wallet" tone={ACCOUNT_TONE[account.type]} size={36} />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate font-semibold">{account.name}</span>
+                    <span className="text-xs opacity-80">{t(`finance.account.${account.type}`)}</span>
+                  </span>
+                </span>
+                <Money
+                  value={account.balance}
+                  currency={account.currency as Currency}
+                  className="font-heading text-2xl font-extrabold text-[var(--puls-ink)] [font-variant-numeric:tabular-nums]"
+                />
+              </li>
+            ))}
+            {accounts.length === 0 && !loading ? (
+              <li className="sm:col-span-2 lg:col-span-3">
+                <EmptyState tone="finance" icon="wallet" title={t('finance.account.add')} />
+              </li>
+            ) : null}
+          </ul>
+
+          <FormToggle label={t('finance.account.new')} testId="account-form-toggle">
+            <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={(event) => void addAccount(event)}>
+              <Field
+                id="account-name"
+                label={t('finance.account.name')}
+                data-testid="account-name"
+                value={accountName}
+                onChange={(event) => setAccountName(event.target.value)}
+              />
+              <Select
+                id="account-type"
+                label={t('finance.account.type')}
+                value={accountType}
+                onChange={(event) => setAccountType(event.target.value as AccountType)}
+              >
+                {ACCOUNT_TYPES.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {t(option.key)}
+                  </option>
+                ))}
+              </Select>
+              <Field
+                id="account-balance"
+                label={t('finance.account.balance')}
+                inputMode="decimal"
+                value={accountBalance}
+                onChange={(event) => setAccountBalance(event.target.value)}
+              />
+              <Select
+                id="account-currency"
+                label={t('finance.account.currency')}
+                data-testid="account-currency"
+                value={selectedAccountCurrency}
+                onChange={(event) => setAccountCurrency(event.target.value)}
+              >
+                {CURRENCY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.value}
+                  </option>
+                ))}
+              </Select>
+              <PrimaryButton type="submit" disabled={busy} className="sm:col-span-2 sm:justify-self-start">
+                {t('finance.account.add')}
+              </PrimaryButton>
+            </form>
+          </FormToggle>
+        </Card>
+      ) : null}
+
+      {tab === 'categories' ? (
+        <CategoryManager categories={categories} loading={loading} onChanged={() => void reload()} />
+      ) : null}
+
+      {tab === 'recurring' ? (
+        <RecurringSection
+          accounts={accounts}
+          categories={categories}
+          currency={currency}
+          onChanged={() => void reload()}
+        />
+      ) : null}
     </div>
+  );
+}
+
+export default function FinancePage() {
+  return (
+    <Suspense fallback={<div className="min-h-96" />}>
+      <FinanceScreen />
+    </Suspense>
   );
 }

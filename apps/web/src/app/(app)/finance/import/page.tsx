@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { AccountDto, ImportColumnMapping, ImportColumn } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { Alert, Card, IconBubble, PrimaryButton } from '@/components/ui';
 import { formatNumber } from '@/lib/format';
 import { financeApi, notifyFinanceChanged } from '@/lib/finance-client';
 import {
@@ -149,21 +150,27 @@ export default function ImportPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="text-3xl font-extrabold">{t('finance.import.title')}</h1>
-        <Link href="/finance" className="text-sm text-[var(--puls-primary-text)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <IconBubble name="inbox" tone="finance" size={48} />
+          <h1 className="font-heading text-3xl font-extrabold">{t('finance.import.title')}</h1>
+        </div>
+        <Link
+          href="/finance"
+          className="inline-flex h-10 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+        >
           {t('common.back')}
         </Link>
       </div>
       <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.import.subtitle')}</p>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]" data-testid="import-error">
-          {error}
-        </p>
+        <div data-testid="import-error">
+          <Alert>{error}</Alert>
+        </div>
       ) : null}
 
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
+      <Card className="flex flex-col gap-3">
         <label htmlFor="import-file" className="flex flex-col gap-1">
           <span className="text-sm font-medium">{t('finance.import.file')}</span>
           <input
@@ -173,7 +180,7 @@ export default function ImportPage() {
             type="file"
             accept=".csv,text/csv"
             onChange={(event) => void onFileChange(event)}
-            className="text-sm"
+            className="rounded-[20px] border-2 border-dashed border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-5 text-sm"
           />
         </label>
 
@@ -193,12 +200,12 @@ export default function ImportPage() {
           />
           {t('finance.import.header')}
         </label>
-      </section>
+      </Card>
 
       {preview ? (
         <>
-          <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-            <h2 className="text-lg font-bold">{t('finance.import.mapping')}</h2>
+          <Card className="flex flex-col gap-3">
+            <h2 className="font-heading text-lg font-bold">{t('finance.import.mapping')}</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {MAPPING_FIELDS.map((field) => (
                 <label key={field.column} className="flex flex-col gap-1">
@@ -227,10 +234,10 @@ export default function ImportPage() {
                 errors: preview.summary.errors,
               })}
             </p>
-          </section>
+          </Card>
 
-          <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-            <h2 className="text-lg font-bold">{t('finance.import.preview')}</h2>
+          <Card className="flex flex-col gap-3">
+            <h2 className="font-heading text-lg font-bold">{t('finance.import.preview')}</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm" data-testid="import-preview-table">
                 <thead className="text-xs text-[var(--puls-ink-muted)]">
@@ -266,9 +273,9 @@ export default function ImportPage() {
                 {t('finance.import.showing', { shown: PREVIEW_LIMIT, total: preview.rows.length })}
               </p>
             ) : null}
-          </section>
+          </Card>
 
-          <section className="flex flex-wrap items-end gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
+          <Card className="flex flex-wrap items-end gap-3">
             <label htmlFor="import-account" className="flex flex-1 flex-col gap-1">
               <span className="text-sm font-medium">{t('finance.import.account')}</span>
               <select
@@ -285,28 +292,27 @@ export default function ImportPage() {
                 ))}
               </select>
             </label>
-            <button
+            <PrimaryButton
               type="button"
               data-testid="import-confirm"
               disabled={busy || preview.summary.valid === 0}
               onClick={() => void onCommit()}
-              className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
             >
               {busy ? t('finance.import.committing') : t('finance.import.confirm')}
-            </button>
-          </section>
+            </PrimaryButton>
+          </Card>
         </>
       ) : null}
 
       {result ? (
-        <p className="text-sm text-[var(--puls-finance-text)]" data-testid="import-result" role="status">
+        <div data-testid="import-result" role="status" className="rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 py-3 text-sm text-[var(--puls-finance-text)]">
           {t('finance.import.result', {
             imported: result.imported,
             duplicates: result.duplicates,
             invalid: result.invalid,
             balance: formatNumber(result.balance, locale, { maximumFractionDigits: 2 }),
           })}
-        </p>
+        </div>
       ) : null}
     </div>
   );

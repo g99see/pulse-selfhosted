@@ -71,6 +71,7 @@ test('лента, оценка и применение предложения', 
 
   // Бюджет на «Еду» меньше траты — правило превышения бюджета срабатывает.
   await page.goto('/finance');
+  await page.getByTestId('budget-form-toggle').click();
   await page.getByTestId('budget-category').selectOption({ label: 'Еда' });
   await page.getByTestId('budget-limit').fill('100');
   await page.getByRole('button', { name: 'Добавить бюджет' }).click();

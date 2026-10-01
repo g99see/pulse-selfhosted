@@ -57,8 +57,9 @@ test('курс USD→RUB создаётся на экране «Курсы ва�
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
   // Счёт в долларах: форма счёта даёт выбрать валюту (ТЗ §3.2).
-  await page.goto('/finance');
+  await page.goto('/finance?tab=accounts');
   await expect(page.getByRole('heading', { name: 'Финансы' })).toBeVisible();
+  await page.getByTestId('account-form-toggle').click();
   await page.getByTestId('account-name').fill('Долларовый');
   await page.getByTestId('account-currency').selectOption('USD');
   await page.getByRole('button', { name: 'Добавить счёт' }).click();

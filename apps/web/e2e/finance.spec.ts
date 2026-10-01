@@ -76,5 +76,6 @@ test('быстрый ввод «обед 450» → транзакция в ка�
   await expect(row.getByTestId('transaction-category')).toHaveText('Еда');
   await expect(row.getByTestId('transaction-amount')).toContainText('450');
 
+  await page.getByTestId('finance-tab-accounts').click();
   await expect(page.getByTestId('finance-accounts')).toContainText('Основной счёт');
 });

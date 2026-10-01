@@ -66,10 +66,11 @@ test('своя категория: создание, фильтр, быстры�
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
   // Экран финансов: секция «Мои категории».
-  await page.goto('/finance');
+  await page.goto('/finance?tab=categories');
   await expect(page.getByRole('heading', { name: 'Мои категории' })).toBeVisible();
 
-  // Создание: название, тип «Расход», иконка и цвет из наборов.
+  // Создание: название, тип «Расход», иконка и цвет из наборов (форма свёрнута).
+  await page.getByTestId('category-form-toggle').click();
   await page.getByTestId('category-name').fill(categoryName);
   await page.getByRole('radio', { name: 'Спорт', exact: true }).check({ force: true });
   await page.getByRole('radio', { name: 'Зелёный', exact: true }).check({ force: true });
@@ -77,8 +78,10 @@ test('своя категория: создание, фильтр, быстры�
 
   await expect(page.getByTestId('finance-categories')).toContainText(categoryName);
 
-  // Категория доступна в фильтре транзакций.
+  // Категория доступна в фильтре транзакций (вкладка «Операции»).
+  await page.getByTestId('finance-tab-ops').click();
   await expect(page.getByTestId('filter-category')).toContainText(categoryName);
+  await page.getByTestId('finance-tab-categories').click();
 
   // И в быстром вводе.
   await page.getByTestId('quick-add-open').first().click();
@@ -109,5 +112,6 @@ test('своя категория: создание, фильтр, быстры�
   await page.getByTestId('category-delete-confirm').click();
 
   await expect(page.getByTestId('finance-categories')).not.toContainText(renamed);
+  await page.getByTestId('finance-tab-ops').click();
   await expect(page.getByTestId('filter-category')).not.toContainText(renamed);
 });

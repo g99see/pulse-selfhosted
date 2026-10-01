@@ -5,6 +5,8 @@ import { useState } from 'react';
 import type { CategoryDto, CategoryKind } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { financeApi } from '@/lib/finance-client';
+import { FormToggle } from '@/components/finance-form-toggle';
+import { Card, PrimaryButton } from '@/components/ui';
 import {
   CATEGORY_COLORS,
   CATEGORY_ICONS,
@@ -251,9 +253,9 @@ export function CategoryManager({
   const deleting = own.find((category) => category.id === deleteId) ?? null;
 
   return (
-    <section className="flex flex-col gap-4 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
+    <Card className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-bold">{t('finance.categories.title')}</h2>
+        <h2 className="font-heading text-lg font-bold">{t('finance.categories.title')}</h2>
         <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.categories.hint')}</p>
       </div>
 
@@ -268,7 +270,7 @@ export function CategoryManager({
           <li
             key={category.id}
             data-testid="category-item"
-            className="flex flex-col gap-3 rounded-[var(--radius-button)] border border-[var(--puls-line)] px-4 py-3"
+            className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] px-4 py-3"
           >
             {editId === category.id ? (
               <form className="flex flex-col gap-4" onSubmit={(event) => void saveEdit(event)}>
@@ -385,22 +387,19 @@ export function CategoryManager({
         </div>
       ) : null}
 
-      <form className="flex flex-col gap-4 border-t border-[var(--puls-line)] pt-4" onSubmit={(event) => void create(event)}>
-        <CategoryFormFields
-          values={createForm}
-          errors={createErrors}
-          idPrefix="category"
-          onChange={(patch) => setCreateForm((previous) => ({ ...previous, ...patch }))}
-        />
-        <button
-          type="submit"
-          data-testid="category-create-submit"
-          disabled={busy}
-          className="h-10 self-start rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
-        >
-          {t('finance.categories.add')}
-        </button>
-      </form>
+      <FormToggle label={t('finance.categories.new')} testId="category-form-toggle">
+        <form className="flex flex-col gap-4" onSubmit={(event) => void create(event)}>
+          <CategoryFormFields
+            values={createForm}
+            errors={createErrors}
+            idPrefix="category"
+            onChange={(patch) => setCreateForm((previous) => ({ ...previous, ...patch }))}
+          />
+          <PrimaryButton type="submit" data-testid="category-create-submit" disabled={busy} className="self-start">
+            {t('finance.categories.add')}
+          </PrimaryButton>
+        </form>
+      </FormToggle>
 
       <div className="flex flex-col gap-2 border-t border-[var(--puls-line)] pt-4">
         <h3 className="text-sm font-semibold">{t('finance.categories.system')}</h3>
@@ -421,6 +420,6 @@ export function CategoryManager({
           ))}
         </ul>
       </div>
-    </section>
+    </Card>
   );
 }

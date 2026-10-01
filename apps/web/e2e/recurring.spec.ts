@@ -59,9 +59,10 @@ test('регулярный платёж: создание, пауза и уда�
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
   // Секция регулярных платежей на экране финансов.
-  await page.goto('/finance');
+  await page.goto('/finance?tab=recurring');
   await expect(page.getByTestId('recurring-section')).toBeVisible();
 
+  await page.getByTestId('recurring-form-toggle').click();
   await page.getByTestId('recurring-name-input').fill('Аренда');
   await page.getByTestId('recurring-amount-input').fill('30000');
   await page.getByTestId('recurring-day').fill('1');

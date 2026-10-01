@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import type { ExchangeRateDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { Icon } from '@/components/icons';
+import { Alert, Card, EmptyState, Field, IconBubble, PrimaryButton, Select } from '@/components/ui';
 import { CURRENCY_OPTIONS, parseRateValue, validateRateForm } from '@/lib/currency-form';
 import { formatDate, formatNumber } from '@/lib/format';
 import { financeApi } from '@/lib/finance-client';
@@ -72,30 +74,32 @@ export default function RatesPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="text-3xl font-extrabold">{t('finance.rates.title')}</h1>
-        <Link href="/finance" className="text-sm text-[var(--puls-primary)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <IconBubble name="chart" tone="finance" size={48} />
+          <h1 className="font-heading text-3xl font-extrabold">{t('finance.rates.title')}</h1>
+        </div>
+        <Link
+          href="/finance"
+          className="inline-flex h-10 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+        >
           {t('finance.title')}
         </Link>
       </div>
 
       <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.rates.hint')}</p>
 
-      {error ? (
-        <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
-          {error}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
       {saved ? (
-        <p role="status" className="text-sm text-[var(--puls-finance-text)]" data-testid="rate-saved">
-          {t('finance.rates.saved')}
-        </p>
+        <div data-testid="rate-saved">
+          <Alert tone="success">{t('finance.rates.saved')}</Alert>
+        </div>
       ) : null}
 
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
-        <ul className="flex flex-col divide-y divide-[var(--puls-ink-muted)]/15" data-testid="finance-rates">
+      <Card>
+        <ul className="flex flex-col divide-y divide-[var(--puls-line)]" data-testid="finance-rates">
           {rates.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-3 py-2">
+            <li key={item.id} className="flex items-center justify-between gap-3 py-3">
               <span className="flex flex-col">
                 <span className="font-medium" data-testid="rate-pair">
                   {item.base} → {item.quote}
@@ -113,88 +117,70 @@ export default function RatesPage() {
                   type="button"
                   onClick={() => void remove(item.id)}
                   aria-label={t('finance.rates.delete')}
-                  className="text-xs text-[var(--puls-ink-muted)]"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
                 >
-                  ✕
+                  <Icon name="close" size={14} />
                 </button>
               </span>
             </li>
           ))}
           {rates.length === 0 ? (
-            <li className="py-3 text-sm text-[var(--puls-ink-muted)]" data-testid="rates-empty">
-              {t('finance.rates.empty')}
+            <li data-testid="rates-empty">
+              <EmptyState tone="finance" icon="chart" title={t('finance.rates.empty')} />
             </li>
           ) : null}
         </ul>
-      </section>
+      </Card>
 
-      <form
-        className="flex flex-wrap items-end gap-2"
-        onSubmit={(event) => void submit(event)}
-      >
-        <label htmlFor="rate-date" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.rates.date')}</span>
-          <input
+      <Card>
+        <form className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:items-end" onSubmit={(event) => void submit(event)}>
+          <Field
             id="rate-date"
             type="date"
+            label={t('finance.rates.date')}
             data-testid="rate-date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           />
-        </label>
-        <label htmlFor="rate-base" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.rates.base')}</span>
-          <select
+          <Select
             id="rate-base"
+            label={t('finance.rates.base')}
             data-testid="rate-base"
             value={base}
             onChange={(event) => setBase(event.target.value)}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {CURRENCY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.value}
               </option>
             ))}
-          </select>
-        </label>
-        <label htmlFor="rate-quote" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.rates.quote')}</span>
-          <select
+          </Select>
+          <Select
             id="rate-quote"
+            label={t('finance.rates.quote')}
             data-testid="rate-quote"
             value={quote}
             onChange={(event) => setQuote(event.target.value)}
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           >
             {CURRENCY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.value}
               </option>
             ))}
-          </select>
-        </label>
-        <label htmlFor="rate-value" className="flex flex-col gap-1">
-          <span className="text-xs text-[var(--puls-ink-muted)]">{t('finance.rates.rate')}</span>
-          <input
+          </Select>
+          <Field
             id="rate-value"
+            label={t('finance.rates.rate')}
             data-testid="rate-input"
             inputMode="decimal"
             value={rate}
             onChange={(event) => setRate(event.target.value)}
-            className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           />
-        </label>
-        <button
-          type="submit"
-          data-testid="rate-submit"
-          disabled={busy || parseRateValue(rate) === null}
-          className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
-        >
-          {t('finance.rates.add')}
-        </button>
-      </form>
+          <PrimaryButton type="submit" data-testid="rate-submit" disabled={busy || parseRateValue(rate) === null}>
+            {t('finance.rates.add')}
+          </PrimaryButton>
+        </form>
+      </Card>
     </div>
   );
 }
