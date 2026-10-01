@@ -15,6 +15,8 @@ const NAV: Array<{ key: string; href: string | null }> = [
   { key: 'app.nav.finance', href: '/finance' },
   { key: 'app.nav.add', href: null },
   { key: 'app.nav.stats', href: '/stats' },
+  { key: 'app.nav.insights', href: '/insights' },
+  { key: 'app.nav.achievements', href: '/achievements' },
   { key: 'app.nav.profile', href: '/app/profile' },
 ];
 
