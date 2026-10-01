@@ -214,6 +214,11 @@ export interface AuthResponse {
 export interface MeResponse {
   user: PublicUser;
   onboardingCompleted: boolean;
+  /**
+   * true — аккаунт создан через Telegram и технический email стоит заменить
+   * своим (ТЗ §3.1, §7). UI показывает мягкую подсказку.
+   */
+  needsEmail?: boolean;
 }
 
 export interface OnboardingResponse {
