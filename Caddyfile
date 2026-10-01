@@ -1,0 +1,43 @@
+# Caddy: автоматический HTTPS (ТЗ §10) и раздача пользовательского HTML
+# с отдельного поддомена песочницы (ТЗ §3.8).
+{
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# Служебный эндпоинт для healthcheck-ов.
+	handle /health {
+		reverse_proxy api:3001
+	}
+
+	# REST API «Пульса».
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	# SSR-фронтенд и публичные профили.
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# Песочница пользовательского HTML: отдельный домен, никакого доступа
+# к cookie основного сайта, запрет форм и автоперенаправлений.
+{$SANDBOX_DOMAIN:usercontent.localhost} {
+	root * /srv/usercontent
+	file_server
+	header {
+		Content-Security-Policy "default-src 'none'; img-src * data:; style-src 'unsafe-inline'; font-src *; frame-ancestors {$DOMAIN:localhost}; form-action 'none'; base-uri 'none'"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+	}
+}
