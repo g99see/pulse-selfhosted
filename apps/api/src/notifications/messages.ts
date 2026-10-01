@@ -122,6 +122,25 @@ export function buildPostActivityNotification(info: PostActivityInfo): PushPaylo
   };
 }
 
+export interface CapsuleOpenedInfo {
+  /** Заголовок открывшейся капсулы. */
+  title: string;
+}
+
+/**
+ * Уведомление «капсула открылась» (ТЗ §4, P2): письмо себе дождалось срока.
+ * Публикуется через NotificationDispatcher; тип вне расписания, поэтому несёт
+ * собственный url на экран капсул.
+ */
+export function buildCapsuleOpenedNotification(info: CapsuleOpenedInfo): PushPayload {
+  return {
+    type: 'capsule',
+    title: 'Капсула времени открылась',
+    body: `Письмо «${info.title}» дождалось срока — загляните в него.`,
+    data: { url: '/capsules' },
+  };
+}
+
 export interface NotificationEmail {
   subject: string;
   text: string;

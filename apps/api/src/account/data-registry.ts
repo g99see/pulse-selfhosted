@@ -102,6 +102,15 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     keyColumn: 'user_id',
     orderBy: '"date"',
   },
+  // Капсулы времени (ТЗ §4, P2): тело письма — секрет (расшифровывается только
+  // владельцу через API после открытия), поэтому в выгрузке только метаданные.
+  {
+    table: 'time_capsules',
+    entity: 'timeCapsules',
+    keyColumn: 'user_id',
+    secretColumns: ['body_encrypted'],
+    orderBy: '"created_at"',
+  },
   // Журнал доставок вебхуков (ТЗ §4): событие, статус и ошибка — данные пользователя.
   {
     table: 'webhook_deliveries',

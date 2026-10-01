@@ -11,10 +11,12 @@ import { moodKeyboard } from '../telegram/commands';
 import { TelegramService } from '../telegram/telegram.service';
 import type { DueDelivery } from './due';
 import {
+  buildCapsuleOpenedNotification,
   buildNotificationEmail,
   buildPostActivityNotification,
   buildPushPayload,
   buildRecurringReminder,
+  type CapsuleOpenedInfo,
   type PostActivityInfo,
   type RecurringReminderInfo,
 } from './messages';
@@ -125,6 +127,20 @@ export class NotificationDispatcher implements DeliveryDispatcher {
     if (!user?.notificationsEnabled) return false;
 
     return this.deliverPush(userId, buildPostActivityNotification(info));
+  }
+
+  /**
+   * Уведомление владельцу об открытии капсулы времени (ТЗ §4, P2). Уважает
+   * общий переключатель уведомлений; ссылка ведёт на экран капсул.
+   */
+  async notifyCapsuleOpened(userId: string, info: CapsuleOpenedInfo): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationsEnabled: true },
+    });
+    if (!user?.notificationsEnabled) return false;
+
+    return this.deliverPush(userId, buildCapsuleOpenedNotification(info));
   }
 
   /** Отправляет payload по всем подпискам пользователя, удаляя просроченные. */
