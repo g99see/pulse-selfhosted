@@ -35,9 +35,7 @@ describe('pickSandboxOrigin', () => {
     );
   });
   it('LAN по http получает LAN-песочницу', () => {
-    expect(pickSandboxOrigin([TS, LAN], { protocol: 'http:', hostname: '192.168.1.50' })).toBe(
-      LAN,
-    );
+    expect(pickSandboxOrigin([TS, LAN], { protocol: 'http:', hostname: '192.168.1.50' })).toBe(LAN);
   });
   it('хост важнее: два http-origin', () => {
     const other = 'http://10.0.0.5:8080';
