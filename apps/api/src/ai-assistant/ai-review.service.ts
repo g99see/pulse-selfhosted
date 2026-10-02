@@ -113,9 +113,12 @@ export class AiReviewService {
     const payloadText = renderReviewPayload(data);
     const content = `Данные за период:\n${payloadText}\n\nСделай разбор: три наблюдения и одно предложение.`;
 
-    const run = await this.chat.runCompletion(userId, `${AI_SYSTEM_PROMPT}${REVIEW_INSTRUCTION}`, [
-      { role: 'user', content },
-    ]);
+    const run = await this.chat.runCompletion(
+      userId,
+      `${AI_SYSTEM_PROMPT}${REVIEW_INSTRUCTION}`,
+      [{ role: 'user', content }],
+      `review-${userId}-${input.period}`,
+    );
     return { review: run.text, proposals: run.proposals, usage: run.usage };
   }
 

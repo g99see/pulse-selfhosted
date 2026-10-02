@@ -15,7 +15,12 @@ import {
 import { httpError } from '../common/http-error';
 import { AI_HTTP, type AiHttpClient } from './ai-http';
 import { AiKeyService } from './ai-key.service';
-import { AI_DEFAULT_BASE_URL, AI_DEFAULT_MODEL, createAiAdapter } from './ai-providers';
+import {
+  AI_DEFAULT_BASE_URL,
+  AI_DEFAULT_MODEL,
+  createAiAdapter,
+  listAiModels,
+} from './ai-providers';
 import {
   AiProviderError,
   type AiCompletionRequest,
@@ -60,6 +65,19 @@ export class AiProviderService {
       throw httpError(409, 'ai_not_configured', 'AI-помощник не настроен: подключите ключ');
     }
     return this.ping(resolved.provider, resolved.settings);
+  }
+
+  /** Id моделей по сохранённому ключу текущего пользователя (сам ключ наружу не уходит). */
+  async listModels(userId: string): Promise<string[]> {
+    const resolved = await this.keys.resolve(userId);
+    if (!resolved.provider || !resolved.settings) {
+      throw httpError(409, 'ai_not_configured', 'AI-помощник не настроен: подключите ключ');
+    }
+    try {
+      return await listAiModels(resolved.provider, resolved.settings, this.http);
+    } catch (error) {
+      throw toHttpError(error);
+    }
   }
 
   /** Проверка настроек из админки до сохранения (новый ключ может быть не сохранён). */

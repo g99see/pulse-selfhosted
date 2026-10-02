@@ -54,6 +54,12 @@ export class AiController {
     await this.keys.clearUserKey(req.user!.id);
   }
 
+  /** Список моделей провайдера по сохранённому ключу (только id). */
+  @Get('models')
+  async models(@Req() req: AuthenticatedRequest) {
+    return { models: await this.provider.listModels(req.user!.id) };
+  }
+
   /** Проверка подключения текущим ключом (личным или общим). */
   @Post('key/test')
   test(@Req() req: AuthenticatedRequest) {

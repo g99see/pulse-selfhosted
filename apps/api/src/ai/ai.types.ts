@@ -41,6 +41,8 @@ export interface AiCompletionRequest {
   messages: AiMessage[];
   tools?: AiTool[];
   maxTokens?: number;
+  /** Стабильный id диалога (нужен OpenCode Go/Zen: заголовок x-opencode-session). */
+  sessionId?: string;
 }
 
 /** Результат завершения с учётом токенов (для AiUsage). */
