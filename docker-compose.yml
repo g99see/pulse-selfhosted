@@ -64,7 +64,7 @@ services:
       TELEGRAM_MODE: ${TELEGRAM_MODE:-polling}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
       RATES_PROVIDER: ${RATES_PROVIDER:-}
-      APP_VERSION: ${APP_VERSION:-0.1.0}
+      APP_VERSION: ${APP_VERSION:-0.2.0}
       # HTML-страница профиля (ТЗ §3.8): публичный домен песочницы нужен API,
       # чтобы строить ссылку для iframe и CSP frame-ancestors основного домена.
       DOMAIN: ${DOMAIN:-localhost}
@@ -157,7 +157,7 @@ services:
       BACKUP_DIR: /backups
       BACKUP_KEEP: ${BACKUP_KEEP:-7}
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
-      APP_VERSION: ${APP_VERSION:-0.1.0}
+      APP_VERSION: ${APP_VERSION:-0.2.0}
     volumes:
       - ./backups:/backups
       - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
