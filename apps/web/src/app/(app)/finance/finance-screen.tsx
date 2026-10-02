@@ -230,6 +230,17 @@ export function FinanceScreen({
     await reload();
   }
 
+  async function removeAllTransactions(): Promise<void> {
+    if (!window.confirm(t('finance.transactions.deleteAllConfirm'))) return;
+    setBusy(true);
+    try {
+      await financeApi.removeAllTransactions();
+      await reload();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function amountClass(type: TransactionKind): string {
     if (type === 'income') return 'text-[var(--puls-finance-text)]';
     if (type === 'transfer') return 'text-[var(--puls-ink-muted)]';
@@ -298,7 +309,18 @@ export function FinanceScreen({
       {tab === 'ops' ? (
         <>
           <Card className="flex flex-col gap-4">
-            <h2 className="font-heading text-lg font-bold">{t('finance.transactions')}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-heading text-lg font-bold">{t('finance.transactions')}</h2>
+              <button
+                type="button"
+                data-testid="transactions-delete-all"
+                onClick={() => void removeAllTransactions()}
+                disabled={busy}
+                className="inline-flex h-9 items-center rounded-[var(--radius-chip)] px-3 text-sm font-semibold text-[var(--puls-warning-text)] hover:bg-[var(--puls-surface-2)] disabled:opacity-50"
+              >
+                {t('finance.transactions.deleteAll')}
+              </button>
+            </div>
 
             {/* Фильтры в одну строку и на телефоне: иначе они занимают пол-экрана до первой операции. */}
             <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3 [&_select]:min-w-0 [&_select]:truncate [&_select]:px-3">

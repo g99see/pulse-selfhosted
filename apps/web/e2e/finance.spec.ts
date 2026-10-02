@@ -78,6 +78,12 @@ test('быстрый ввод «обед 450» → транзакция в ка�
   await expect(row.getByTestId('transaction-category')).toHaveText('Еда');
   await expect(row.getByTestId('transaction-amount')).toContainText('450');
 
+  // «Удалить все» с подтверждением очищает список операций.
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByTestId('transactions-delete-all').click();
+  await expect(page.getByTestId('transactions-empty')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('finance-transactions').getByRole('listitem')).toHaveCount(0);
+
   await page.getByTestId('finance-tab-accounts').click();
   await expect(page.getByTestId('finance-accounts')).toContainText('Основной счёт');
 });

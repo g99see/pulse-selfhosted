@@ -277,6 +277,50 @@ export class TransactionsService {
     return toTransactionDto(transaction, user.currency);
   }
 
+  /**
+   * Удаляет все операции пользователя (например, чтобы заново загрузить выписку).
+   * Балансы счетов возвращаются к значению без операций: баланс − влияние всех операций.
+   * Кеш дневной статистики очищается, остальное (счета, категории, бюджеты) не трогается.
+   */
+  async removeAll(userId: string): Promise<{ deleted: number }> {
+    return this.prisma.$transaction(async (db) => {
+      const transactions = await db.transaction.findMany({
+        where: { userId },
+        select: {
+          type: true,
+          amount: true,
+          toAmount: true,
+          accountId: true,
+          transferAccountId: true,
+        },
+      });
+      const effect = new Map<string, Prisma.Decimal>();
+      const add = (accountId: string, value: Prisma.Decimal): void => {
+        effect.set(accountId, (effect.get(accountId) ?? new Prisma.Decimal(0)).plus(value));
+      };
+      for (const transaction of transactions) {
+        if (transaction.type === 'income') add(transaction.accountId, transaction.amount);
+        else if (transaction.type === 'expense') {
+          add(transaction.accountId, transaction.amount.negated());
+        } else {
+          add(transaction.accountId, transaction.amount.negated());
+          if (transaction.transferAccountId) {
+            add(transaction.transferAccountId, transaction.toAmount ?? transaction.amount);
+          }
+        }
+      }
+      for (const [accountId, value] of effect) {
+        await db.account.updateMany({
+          where: { id: accountId, userId },
+          data: { balance: { decrement: value } },
+        });
+      }
+      const deleted = await db.transaction.deleteMany({ where: { userId } });
+      await db.dailyStat.deleteMany({ where: { userId } });
+      return { deleted: deleted.count };
+    });
+  }
+
   async remove(userId: string, id: string): Promise<void> {
     const transaction = await this.prisma.transaction.findFirst({ where: { id, userId } });
     if (!transaction) {

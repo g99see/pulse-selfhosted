@@ -107,24 +107,31 @@ export class StatsService {
     if (today >= from && today <= to) bucket(today);
 
     const days = [...buckets.keys()];
-    if (days.length === 0) return;
 
-    await this.prisma.$transaction(
-      days.map((day) => {
-        const values = buckets.get(day)!;
-        const data = {
-          spent: new Prisma.Decimal(roundMoney(values.spent)),
-          earned: new Prisma.Decimal(roundMoney(values.earned)),
-          avgMood: moodAverage(values.moods),
-          checkinsCount: values.moods.length,
-        };
-        return this.prisma.dailyStat.upsert({
-          where: { userId_date: { userId, date: dateOnly(day) } },
-          create: { userId, date: dateOnly(day), ...data },
-          update: data,
-        });
-      }),
-    );
+    // Экран статистики запрашивает отчёт и календарь параллельно, и их диапазоны
+    // пересекаются: без блокировки пачки upsert'ов взаимно блокировались (deadlock → 500).
+    // Блокировка на пользователя сериализует пересчёт; дни без данных удаляются из кеша,
+    // иначе после удаления операций там оставались старые суммы.
+    await this.prisma.$transaction(async (db) => {
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`daily_stats:${userId}`}))`;
+      await db.dailyStat.deleteMany({
+        where: { userId, date: { gte: dateOnly(from), lte: dateOnly(to) } },
+      });
+      if (days.length === 0) return;
+      await db.dailyStat.createMany({
+        data: days.map((day) => {
+          const values = buckets.get(day)!;
+          return {
+            userId,
+            date: dateOnly(day),
+            spent: new Prisma.Decimal(roundMoney(values.spent)),
+            earned: new Prisma.Decimal(roundMoney(values.earned)),
+            avgMood: moodAverage(values.moods),
+            checkinsCount: values.moods.length,
+          };
+        }),
+      });
+    });
   }
 
   /** Дашборд дня (ТЗ §3.4): траты, остаток бюджета, среднее настроение, чек-ины. */

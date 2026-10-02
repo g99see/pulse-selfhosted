@@ -167,6 +167,7 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
       date,
     });
     expect(response.status).toBe(201);
+    return response;
   }
 
   async function addIncome(client: TestClient, accountId: string, amount: number, date: string) {
@@ -434,6 +435,38 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
       expect(
         ((await client.get('/api/stats/day?date=2026-10-10')).body as StatsDayResponse).spent,
       ).toBe(350);
+    });
+
+    it('параллельные запросы экрана статистики не падают (раньше — deadlock и 500)', async () => {
+      const client = await signUp('parallel@example.com', 'paralleluser');
+      const account = await createAccount(client);
+      for (let day = 1; day <= 28; day += 1) {
+        await addExpense(client, account.id, 10 + day, `2026-09-${String(day).padStart(2, '0')}`);
+      }
+      // Как на экране «Статистика»: отчёт и календарь одновременно, с пересекающимися днями.
+      const responses = await Promise.all([
+        client.get('/api/stats/report?period=month&date=2026-10-05'),
+        client.get('/api/stats/mood-calendar?month=2026-10'),
+        client.get('/api/stats/mood-calendar?month=2026-09'),
+        client.get('/api/stats/report?period=year&date=2026-10-05'),
+        client.get('/api/stats/day?date=2026-09-15'),
+      ]);
+      expect(responses.map((response) => response.status)).toEqual([200, 200, 200, 200, 200]);
+      const year = responses[3]!.body as { spent: number };
+      expect(year.spent).toBe(28 * 10 + (28 * 29) / 2);
+    });
+
+    it('после удаления операции день в кеше обнуляется', async () => {
+      const client = await signUp('stale@example.com', 'staleuser');
+      const account = await createAccount(client);
+      const created = await addExpense(client, account.id, 400, '2026-10-11');
+      expect(
+        ((await client.get('/api/stats/day?date=2026-10-11')).body as StatsDayResponse).spent,
+      ).toBe(400);
+      const id = (created.body as { id: string }).id;
+      expect((await client.del(`/api/finance/transactions/${id}`)).status).toBe(204);
+      const report = await client.get('/api/stats/report?period=month&date=2026-10-11');
+      expect(report.body.spent).toBe(0);
     });
   });
 
