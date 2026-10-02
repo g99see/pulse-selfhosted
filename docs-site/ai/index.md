@@ -45,18 +45,47 @@
 
 ## Провайдеры
 
-Адаптеры за единым интерфейсом; поддерживаются:
+Адаптеры за единым интерфейсом. Все провайдеры, кроме Anthropic, работают через
+OpenAI-совместимый Chat Completions. Для пресетов достаточно вставить ключ: адрес и
+модель подставляются сами, а в «Дополнительно» их можно переопределить.
 
-| Провайдер | Базовый адрес по умолчанию | Модель по умолчанию |
-| --- | --- | --- |
-| `anthropic` | `https://api.anthropic.com` | `claude-3-5-haiku-latest` |
-| `openai` | `https://api.openai.com/v1` | `gpt-4o-mini` |
-| `openrouter` | `https://openrouter.ai/api/v1` | `openai/gpt-4o-mini` |
-| `openai_compatible` | задаётся вами (`baseUrl`) | `llama3.1` |
+| Провайдер | Где взять ключ | Адрес по умолчанию | Модель по умолчанию |
+| --- | --- | --- | --- |
+| `anthropic` | console.anthropic.com | `https://api.anthropic.com` | `claude-3-5-haiku-latest` |
+| `openai` | platform.openai.com/api-keys | `https://api.openai.com/v1` | `gpt-4o-mini` |
+| `openrouter` | openrouter.ai/keys | `https://openrouter.ai/api/v1` | `openai/gpt-4o-mini` |
+| `opencode_go` | opencode.ai/auth → Go → API key | `https://opencode.ai/zen/go/v1` | `deepseek-v4-flash` |
+| `opencode_zen` | opencode.ai/auth → Zen → API key | `https://opencode.ai/zen/v1` | `deepseek-v4-flash` |
+| `google` (Gemini) | aistudio.google.com/apikey | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-3.8-flash` |
+| `deepseek` | platform.deepseek.com | `https://api.deepseek.com/v1` | `deepseek-flash` |
+| `mistral` | console.mistral.ai | `https://api.mistral.ai/v1` | `mistral-small-latest` |
+| `groq` | console.groq.com/keys | `https://api.groq.com/openai/v1` | `openai/gpt-oss-20b` |
+| `xai` (Grok) | console.x.ai | `https://api.x.ai/v1` | `grok-4.7` |
+| `openai_compatible` | свой сервер | задаётся вами (`baseUrl`) | `llama3.1` |
+
+Модель по умолчанию всегда можно заменить в поле «Модель». Кнопка **«Загрузить
+модели»** (после сохранения ключа) запрашивает у провайдера список `GET /models` и
+подставляет id в подсказки поля.
+
+::: info OpenCode Go и Zen
+**OpenCode Go** — подписка с фиксированной ценой (около \$10/мес), рассчитанная на
+кодинг-агентов; расход в «Пульсе» для неё считается как \$0. **OpenCode Zen** —
+оплата по факту; цена зависит от модели, в счётчике используется консервативная
+оценка. Провайдер просит клиентов представляться своим `User-Agent` и передавать
+стабильный id сессии на диалог, а также предупреждает, что трафик отслеживается.
+Поэтому «Пульс» всегда шлёт `user-agent: puls-assistant/<версия>` и
+`x-opencode-session` (для чата — хэш пользователя и первой реплики диалога, для
+разбора — `review-<пользователь>-<период>`). Go проверен на реальном ключе с моделью
+`deepseek-v4-flash`; **Zen не проверялся** (тот же протокол, но модель по умолчанию —
+предположение). Некоторые модели-рассуждатели (например `glm-5.3-flash`) при малом
+лимите токенов отвечают пустым `content` и только `reasoning_content`: для чата
+берите обычные модели вроде `deepseek-v4-flash`.
+:::
 
 `openai_compatible` покрывает свой endpoint, прокси и локальные модели (Ollama,
 LM Studio). Поддерживается tool calling: у Anthropic — `tool_use`/`tool_result`,
-у OpenAI-совместимых — `tool_calls`/role `tool`.
+у OpenAI-совместимых — `tool_calls`/role `tool`. Цены в счётчике расхода — грубые
+публичные оценки за 1 млн токенов, не счёт.
 
 ## Хранение ключа
 
@@ -116,8 +145,8 @@ endpoint провайдера. Так контейнер дотягиваетс�
 1. Убедитесь, что в `.env` задан `APP_ENCRYPTION_KEY` — иначе зашифрованные ключи
    сохранить нельзя. Подробнее: [Настройка (.env)](/guide/configuration).
 2. Откройте настройки AI в кабинете (для общего ключа — в админке, `/admin/ai`).
-3. Выберите провайдера и адрес; для локальных моделей — OpenAI-совместимый endpoint
-   Ollama или LM Studio.
+3. Выберите провайдера (адрес подставится сам; для локальных моделей — OpenAI-совместимый endpoint
+   Ollama или LM Studio).
 4. Вставьте ключ и нажмите **«Проверить подключение»**.
 5. Сохраните. После этого пункт AI появится в интерфейсе.
 
@@ -133,6 +162,7 @@ endpoint провайдера. Так контейнер дотягиваетс�
 | Метод | Путь | Назначение |
 | --- | --- | --- |
 | GET | `/api/ai/status` | Статус: включён ли AI, провайдер, модель, расход за месяц |
+| GET | `/api/ai/models` | Id моделей по сохранённому ключу (сам ключ наружу не уходит) |
 | PUT | `/api/ai/key` | Сохранить личный ключ (провайдер, `baseUrl`, модель) |
 | DELETE | `/api/ai/key` | Удалить личный ключ (возврат к общему) |
 | POST | `/api/ai/key/test` | Проверить текущий ключ |

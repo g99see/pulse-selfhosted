@@ -61,7 +61,7 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 **AI assistant with your own key**
 
 - Ask about your own data in plain language
-- Anthropic, OpenAI, OpenRouter or a local model via Ollama; the key is yours and is stored encrypted
+- Anthropic, OpenAI, OpenRouter, OpenCode Go/Zen, Google Gemini, DeepSeek, Mistral, Groq, xAI or a local model via Ollama; the key is yours and is stored encrypted
 
 **Privacy and security**
 
