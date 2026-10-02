@@ -224,6 +224,17 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
           </div>
           <div className="flex items-center gap-2">
             <QuietModeToggle className="inline-flex h-10 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-surface-2)]" />
+            {/* Настройки всегда в шапке: на невысоких экранах пункт внизу бокового меню уходит за край. */}
+            <Link
+              href="/settings"
+              data-testid="header-settings"
+              aria-label={t('app.nav.settingsItem')}
+              aria-current={isNavActive('/settings', pathname) ? 'page' : undefined}
+              className="inline-flex h-10 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-surface-2)]"
+            >
+              <Icon name="settings" size={18} />
+              <span className="hidden sm:inline">{t('app.nav.settingsItem')}</span>
+            </Link>
             <button
               type="button"
               onClick={() => void logout()}
