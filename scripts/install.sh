@@ -349,8 +349,9 @@ else
   set_env SANDBOX_DOMAIN "$SANDBOX_DOMAIN_ENV"
   set_env ACME_EMAIL "$ACME_EMAIL"
   set_env PUBLIC_ORIGIN "$PUBLIC_ORIGIN"
-  set_env PUBLIC_API_URL "$PUBLIC_ORIGIN"
-  set_env NEXT_PUBLIC_API_URL "$PUBLIC_ORIGIN"
+  # "/" — браузер ходит в API на том же origin (работает по LAN и по Tailscale).
+  set_env PUBLIC_API_URL "/"
+  set_env NEXT_PUBLIC_API_URL "/"
   set_env CORS_ORIGIN "$PUBLIC_ORIGIN"
   set_env SANDBOX_ORIGIN "$SANDBOX_ORIGIN"
   set_env SANDBOX_HTTP_PORT "$SANDBOX_HTTP_PORT_OPT"
