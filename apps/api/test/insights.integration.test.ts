@@ -138,13 +138,15 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
   async function addCheckIn(
     email: string,
     day: string,
-    fields: { mood?: number; energy?: number; tags?: string[]; clampToNow?: boolean } = {},
+    fields: { mood?: number; energy?: number; tags?: string[]; fixedNoon?: boolean } = {},
   ): Promise<void> {
     const user = await userByEmail(email);
-    // Полдень UTC «сегодняшнего» дня в часовом поясе пользователя может оказаться в будущем
-    // (например, 01:00 по Москве = 22:00 UTC) — такие отметки лента не учитывает.
+    // Полдень UTC «сегодняшнего» дня может быть ещё в будущем (прогон до 12:00 UTC,
+    // или 01:00 по Москве = 22:00 UTC прошлых суток) — такие отметки лента не учитывает,
+    // и тесты падали в зависимости от времени запуска. Поэтому по умолчанию не позже «сейчас».
+    // fixedNoon — для тестов со своим «сейчас» (планировщик в будущем): ровно полдень дня.
     const noon = Date.parse(`${day}T12:00:00.000Z`);
-    const at = new Date(fields.clampToNow ? Math.min(noon, Date.now() - 60_000) : noon);
+    const at = new Date(fields.fixedNoon ? noon : Math.min(noon, Date.now() - 60_000));
     await prisma.checkIn.create({
       data: {
         userId: user.id,
@@ -282,7 +284,7 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
 
       const today = todayKeyInTimezone('Europe/Moscow');
       for (const day of daysEnding(today, 6))
-        await addCheckIn('care@example.com', day, { mood: 1, clampToNow: true });
+        await addCheckIn('care@example.com', day, { mood: 1 });
 
       const feed = (await client.get('/api/insights')).body as FeedBody;
       const concern = feed.insights.find((item) => item.type === 'wellbeing_concern');
@@ -382,7 +384,7 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       });
       expect(budget.status).toBe(200);
       for (const day of ['2026-10-02', '2026-10-03', '2026-10-04']) {
-        await addCheckIn('weekly@example.com', day, { energy: 1, mood: 3 });
+        await addCheckIn('weekly@example.com', day, { energy: 1, mood: 3, fixedNoon: true });
       }
 
       const first = await scheduler.runOnce(
