@@ -9,8 +9,12 @@ import {
   detectColumnMapping,
   detectDelimiter,
   detectHeaderRow,
+  convertToBase,
   guessCategoryName,
+  importOccurrenceKey,
   importRowKey,
+  roundRate,
+  type Currency,
   parseCsv,
   summarizeImportRows,
   type Delimiter,
@@ -24,6 +28,7 @@ import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
+import { ExchangeRatesService } from './rates.service';
 import { toDateOnly } from './transactions.service';
 
 interface ParsedImport {
@@ -55,6 +60,7 @@ export class ImportService {
     private readonly prisma: PrismaService,
     private readonly accounts: AccountsService,
     private readonly categories: CategoriesService,
+    private readonly rates: ExchangeRatesService,
   ) {}
 
   async preview(userId: string, input: ImportPreviewRequest) {
@@ -98,7 +104,11 @@ export class ImportService {
     }
 
     const prepared: PreparedRow[] = valid.map((row) => {
-      const key = importRowKey(row.date, row.amount, row.description);
+      // Одинаковые строки выписки — разные операции: номер повтора входит в хеш.
+      const key = importOccurrenceKey(
+        importRowKey(row.date, row.amount, row.description),
+        row.occurrence,
+      );
       const guessed = row.description ? guessCategoryName(row.description) : null;
       return {
         hash: createHash('sha256').update(`${account.id}|${key}`).digest('hex'),
@@ -118,6 +128,26 @@ export class ImportService {
     });
     const withinFileDuplicates = prepared.length - unique.length;
 
+    // Сумма в базовой валюте нужна статистике, бюджетам и AI: без неё траты считаются как 0.
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { currency: true },
+    });
+    const rateByDate = new Map<string, number>();
+    for (const date of new Set(unique.map((row) => row.date))) {
+      rateByDate.set(
+        date,
+        account.currency === user.currency
+          ? 1
+          : await this.rates.resolveRate(
+              userId,
+              account.currency as Currency,
+              user.currency as Currency,
+              date,
+            ),
+      );
+    }
+
     const outcome = await this.prisma.$transaction(async (db) => {
       const existing = await db.transaction.findMany({
         where: { userId, importHash: { in: unique.map((row) => row.hash) } },
@@ -136,6 +166,10 @@ export class ImportService {
             type: row.type,
             amount: new Prisma.Decimal(row.amount),
             currency: account.currency,
+            rate: new Prisma.Decimal(roundRate(rateByDate.get(row.date) ?? 1)),
+            amountBase: new Prisma.Decimal(
+              convertToBase(row.amount, rateByDate.get(row.date) ?? 1),
+            ),
             date: toDateOnly(row.date),
             comment: row.description === '' ? null : row.description,
             importHash: row.hash,
@@ -196,20 +230,21 @@ export class ImportService {
     return { delimiter, hasHeader, headers, mapping, rows };
   }
 
-  /** Ключи существующих транзакций пользователя (дата|сумма|описание) для пометки дублей. */
-  private async existingKeys(userId: string): Promise<Set<string>> {
+  /** Сколько у пользователя операций с каждым ключом (дата|сумма|описание) — для пометки дублей. */
+  private async existingKeys(userId: string): Promise<Map<string, number>> {
     const transactions = await this.prisma.transaction.findMany({
       where: { userId },
       select: { date: true, amount: true, comment: true },
     });
-    return new Set(
-      transactions.map((transaction) =>
-        importRowKey(
-          transaction.date.toISOString().slice(0, 10),
-          Number(transaction.amount),
-          transaction.comment ?? '',
-        ),
-      ),
-    );
+    const counts = new Map<string, number>();
+    for (const transaction of transactions) {
+      const key = importRowKey(
+        transaction.date.toISOString().slice(0, 10),
+        Number(transaction.amount),
+        transaction.comment ?? '',
+      );
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
   }
 }

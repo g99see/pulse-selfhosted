@@ -35,6 +35,7 @@ interface PreviewRow {
   description: string;
   categoryName: string | null;
   duplicate: boolean;
+  occurrence: number;
   error: string | null;
 }
 
@@ -187,6 +188,50 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
       const transactions = await client.get('/api/finance/transactions');
       expect(transactions.body.transactions).toHaveLength(2);
       expect((await client.get('/api/finance/accounts')).body.accounts[0].balance).toBe(89550);
+    });
+
+    it('одинаковые строки выписки — разные операции; повторный импорт их не дублирует', async () => {
+      const client = await signUp('same-rows@example.com', 'samerows');
+      const account = await createAccount(client, 0);
+      // Две поездки по 24 за день — реальный случай из выписки, не дубль.
+      const csv = [
+        'Date,Time,Title,Amount,Balance',
+        '16.09.2026,08.10,Rejsekort,"-24,00","76,00"',
+        '16.09.2026,17.45,Rejsekort,"-24,00","52,00"',
+        '17.09.2026,09.00,Salary,"100,00","152,00"',
+      ].join('\n');
+
+      const preview = await client.post('/api/finance/import/preview', { csv });
+      expect(preview.body.summary).toMatchObject({ total: 3, valid: 3, duplicates: 0 });
+
+      const first = await client.post('/api/finance/import/commit', { csv, accountId: account.id });
+      expect(first.body).toMatchObject({ imported: 3, duplicates: 0 });
+      expect(first.body.balance).toBe(52);
+
+      const again = await client.post('/api/finance/import/preview', { csv });
+      expect(again.body.summary.duplicates).toBe(3);
+      const second = await client.post('/api/finance/import/commit', {
+        csv,
+        accountId: account.id,
+      });
+      expect(second.body).toMatchObject({ imported: 0, duplicates: 3 });
+      expect(second.body.balance).toBe(52);
+    });
+
+    it('заполняет сумму в базовой валюте — статистика видит импортированные траты', async () => {
+      const client = await signUp('base@example.com', 'baseuser');
+      const account = await createAccount(client, 10000);
+      await client.post('/api/finance/import/commit', { csv: CSV, accountId: account.id });
+
+      const rows = await prisma.transaction.findMany({
+        where: { accountId: account.id },
+        select: { amount: true, amountBase: true, rate: true },
+      });
+      expect(rows).toHaveLength(2);
+      for (const row of rows) {
+        expect(Number(row.amountBase)).toBe(Number(row.amount));
+        expect(Number(row.rate)).toBe(1);
+      }
     });
 
     it('поддерживает отдельные колонки дебет/кредит', async () => {
