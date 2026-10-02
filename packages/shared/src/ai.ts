@@ -9,11 +9,26 @@ import { z } from 'zod';
 import { GoalVisibilitySchema } from './goals';
 import { NotificationTypeSchema } from './notifications';
 
-export const AI_PROVIDERS = ['anthropic', 'openai', 'openrouter', 'openai_compatible'] as const;
+export const AI_PROVIDERS = [
+  'anthropic',
+  'openai',
+  'openrouter',
+  'opencode_go',
+  'opencode_zen',
+  'google',
+  'deepseek',
+  'mistral',
+  'groq',
+  'xai',
+  'openai_compatible',
+] as const;
 export const AiProviderSchema = z.enum(AI_PROVIDERS);
 export type AiProvider = z.infer<typeof AiProviderSchema>;
 
-/** Для openai_compatible (Ollama, LM Studio) ключ может быть пустым, baseUrl обязателен. */
+/**
+ * Для openai_compatible (Ollama, LM Studio) ключ может быть пустым, baseUrl обязателен.
+ * Для остальных провайдеров (пресеты) baseUrl необязателен — переопределяет адрес по умолчанию.
+ */
 export const AiKeySetSchema = z
   .object({
     provider: AiProviderSchema,
@@ -168,11 +183,50 @@ export interface AiUsageAdminResponse {
   rows: AiUsageRowDto[];
 }
 
+/** Базовые адреса по умолчанию; для openai_compatible задаётся пользователем (UI показывает как подсказку). */
+export const AI_DEFAULT_BASE_URL: Record<AiProvider, string> = {
+  anthropic: 'https://api.anthropic.com',
+  openai: 'https://api.openai.com/v1',
+  openrouter: 'https://openrouter.ai/api/v1',
+  opencode_go: 'https://opencode.ai/zen/go/v1',
+  opencode_zen: 'https://opencode.ai/zen/v1',
+  google: 'https://generativelanguage.googleapis.com/v1beta/openai',
+  deepseek: 'https://api.deepseek.com/v1',
+  mistral: 'https://api.mistral.ai/v1',
+  groq: 'https://api.groq.com/openai/v1',
+  xai: 'https://api.x.ai/v1',
+  openai_compatible: '',
+};
+
+/** Модели по умолчанию, если в настройках не задана своя. */
+export const AI_DEFAULT_MODEL: Record<AiProvider, string> = {
+  anthropic: 'claude-3-5-haiku-latest',
+  openai: 'gpt-4o-mini',
+  openrouter: 'openai/gpt-4o-mini',
+  opencode_go: 'deepseek-v4-flash',
+  opencode_zen: 'deepseek-v4-flash',
+  google: 'gemini-3.8-flash',
+  deepseek: 'deepseek-flash',
+  mistral: 'mistral-small-latest',
+  groq: 'openai/gpt-oss-20b',
+  xai: 'grok-4.7',
+  openai_compatible: 'llama3.1',
+};
+
 /** Примерная цена за 1 млн токенов (USD) для учёта расхода; локальные — 0. */
 export const AI_PRICE_PER_MTOK: Record<AiProvider, { in: number; out: number }> = {
   anthropic: { in: 3, out: 15 },
   openai: { in: 2.5, out: 10 },
   openrouter: { in: 3, out: 12 },
+  // OpenCode Go — фиксированная подписка: расход не считаем.
+  opencode_go: { in: 0, out: 0 },
+  // OpenCode Zen — оплата по факту, цена зависит от модели: консервативная оценка.
+  opencode_zen: { in: 3, out: 12 },
+  google: { in: 0.3, out: 2.5 },
+  deepseek: { in: 0.3, out: 1.2 },
+  mistral: { in: 0.2, out: 0.6 },
+  groq: { in: 0.15, out: 0.6 },
+  xai: { in: 2, out: 6 },
   openai_compatible: { in: 0, out: 0 },
 };
 

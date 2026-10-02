@@ -8,7 +8,7 @@
  * «Код/Предпросмотр». Есть готовые шаблоны, загрузка .html, сохранение,
  * история последних 10 версий с откатом и предупреждения автопроверки из API.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   HTML_TEMPLATES,
@@ -19,7 +19,8 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Alert, EmptyState, IconBubble, PrimaryButton } from '@/components/ui';
-import { HtmlFileError, htmlPageApi, readHtmlFile, sandboxPageUrl } from '@/lib/html-page-client';
+import { HtmlFileError, htmlPageApi, readHtmlFile } from '@/lib/html-page-client';
+import { useSandboxPageUrl } from '@/lib/use-sandbox-page-url';
 
 function previewPlaceholder(text: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:system-ui;color:#475569;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head><body>${text}</body></html>`;
@@ -164,9 +165,8 @@ export default function PageEditorPage() {
   }
 
   const reasons: HtmlCheckReason[] = page?.checkReasons ?? [];
-  const publicUrl = useMemo(
-    () => (page?.nickname ? sandboxPageUrl(page.sandboxUrl || `/sandbox/${page.nickname}`) : null),
-    [page],
+  const publicUrl = useSandboxPageUrl(
+    page?.nickname ? page.sandboxUrl || `/sandbox/${page.nickname}` : null,
   );
 
   return (

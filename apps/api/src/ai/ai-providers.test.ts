@@ -3,8 +3,8 @@
 // для Anthropic и OpenAI-совместимых. Сеть подменена фейком — реальных вызовов нет.
 import { describe, expect, it } from 'vitest';
 import { AiProviderError, type AiCompletionRequest, type AiProviderSettings } from './ai.types';
-import type { AiHttpClient, AiHttpRequest, AiHttpResponse } from './ai-http';
-import { createAiAdapter } from './ai-providers';
+import type { AiHttpClient, AiHttpGetRequest, AiHttpRequest, AiHttpResponse } from './ai-http';
+import { createAiAdapter, listAiModels } from './ai-providers';
 
 interface Recorded {
   request: AiHttpRequest;
@@ -13,9 +13,21 @@ interface Recorded {
 function fakeHttp(response: Partial<AiHttpResponse> & { body?: unknown; throwError?: Error }): {
   http: AiHttpClient;
   recorded: Recorded[];
+  gets: AiHttpGetRequest[];
 } {
   const recorded: Recorded[] = [];
+  const gets: AiHttpGetRequest[] = [];
   const http: AiHttpClient = {
+    async get(request) {
+      gets.push(request);
+      const body = response.body ?? {};
+      return {
+        status: response.status ?? 200,
+        ok: response.ok ?? true,
+        json: async () => body,
+        text: async () => JSON.stringify(body),
+      };
+    },
     async post(request) {
       recorded.push({ request });
       if (response.throwError) throw response.throwError;
@@ -28,7 +40,7 @@ function fakeHttp(response: Partial<AiHttpResponse> & { body?: unknown; throwErr
       };
     },
   };
-  return { http, recorded };
+  return { http, recorded, gets };
 }
 
 function anthropicSettings(overrides: Partial<AiProviderSettings> = {}): AiProviderSettings {
@@ -262,5 +274,104 @@ describe('Классификация ошибок провайдера', () => {
     expect(error).toBeInstanceOf(AiProviderError);
     expect(error!.kind).toBe('unreachable');
     expect(error!.message).not.toContain('1.2.3.4');
+  });
+});
+
+describe('Пресеты провайдеров (OpenAI-совместимые)', () => {
+  const okBody = {
+    choices: [{ message: { content: 'ok' } }],
+    usage: { prompt_tokens: 5, completion_tokens: 2 },
+  };
+  const settingsOf = (provider: AiProviderSettings['provider']): AiProviderSettings => ({
+    provider,
+    apiKey: 'test-key-12345',
+    baseUrl: null,
+    model: '',
+  });
+
+  it('opencode_go: адрес, bearer, user-agent и x-opencode-session, модель по умолчанию', async () => {
+    const { http, recorded } = fakeHttp({ body: okBody });
+    const adapter = createAiAdapter('opencode_go', http);
+    const result = await adapter.complete(settingsOf('opencode_go'), {
+      ...simpleRequest,
+      sessionId: 'chat-abc',
+    });
+    const { request } = recorded[0];
+    expect(request.url).toBe('https://opencode.ai/zen/go/v1/chat/completions');
+    expect(request.headers.authorization).toBe('Bearer test-key-12345');
+    expect(request.headers['user-agent']).toMatch(/^puls-assistant\//);
+    expect(request.headers['x-opencode-session']).toBe('chat-abc');
+    expect((request.body as Record<string, unknown>).model).toBe('deepseek-v4-flash');
+    expect(result).toMatchObject({ text: 'ok', tokensIn: 5, tokensOut: 2 });
+  });
+
+  it('opencode_zen без sessionId подставляет случайный uuid', async () => {
+    const { http, recorded } = fakeHttp({ body: okBody });
+    await createAiAdapter('opencode_zen', http).complete(settingsOf('opencode_zen'), simpleRequest);
+    expect(recorded[0].request.url).toBe('https://opencode.ai/zen/v1/chat/completions');
+    expect(recorded[0].request.headers['x-opencode-session']).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('другие провайдеры не получают заголовков OpenCode', async () => {
+    const { http, recorded } = fakeHttp({ body: okBody });
+    await createAiAdapter('openai', http).complete(settingsOf('openai'), simpleRequest);
+    expect(recorded[0].request.headers['x-opencode-session']).toBeUndefined();
+    expect(recorded[0].request.headers['user-agent']).toBeUndefined();
+  });
+
+  it.each([
+    ['google', 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'],
+    ['deepseek', 'https://api.deepseek.com/v1/chat/completions'],
+    ['mistral', 'https://api.mistral.ai/v1/chat/completions'],
+    ['groq', 'https://api.groq.com/openai/v1/chat/completions'],
+    ['xai', 'https://api.x.ai/v1/chat/completions'],
+  ] as const)('%s: адрес %s и модель по умолчанию', async (provider, url) => {
+    const { http, recorded } = fakeHttp({ body: okBody });
+    await createAiAdapter(provider, http).complete(settingsOf(provider), simpleRequest);
+    expect(recorded[0].request.url).toBe(url);
+    expect((recorded[0].request.body as Record<string, unknown>).model).toBeTruthy();
+  });
+
+  it('свой baseUrl переопределяет адрес пресета', async () => {
+    const { http, recorded } = fakeHttp({ body: okBody });
+    await createAiAdapter('deepseek', http).complete(
+      { ...settingsOf('deepseek'), baseUrl: 'https://proxy.example/v1/', model: 'm1' },
+      simpleRequest,
+    );
+    expect(recorded[0].request.url).toBe('https://proxy.example/v1/chat/completions');
+    expect((recorded[0].request.body as Record<string, unknown>).model).toBe('m1');
+  });
+
+  it('content=null (только reasoning) не роняет адаптер', async () => {
+    const { http } = fakeHttp({
+      body: {
+        choices: [{ finish_reason: 'length', message: { content: null, reasoning_content: 'hm' } }],
+        usage: { prompt_tokens: 3, completion_tokens: 8 },
+      },
+    });
+    const result = await createAiAdapter('opencode_go', http).complete(
+      settingsOf('opencode_go'),
+      simpleRequest,
+    );
+    expect(result.text).toBe('');
+    expect(result.toolCalls).toEqual([]);
+    expect(result.tokensOut).toBe(8);
+  });
+
+  it('listAiModels: GET /models с авторизацией, только id без дублей', async () => {
+    const { http, gets } = fakeHttp({
+      body: { data: [{ id: 'b' }, { id: 'a' }, { id: 'a' }, { nope: 1 }] },
+    });
+    const ids = await listAiModels('opencode_go', settingsOf('opencode_go'), http);
+    expect(ids).toEqual(['a', 'b']);
+    expect(gets[0].url).toBe('https://opencode.ai/zen/go/v1/models');
+    expect(gets[0].headers.authorization).toBe('Bearer test-key-12345');
+  });
+
+  it('listAiModels: ошибка провайдера классифицируется', async () => {
+    const { http } = fakeHttp({ status: 401, ok: false });
+    await expect(listAiModels('google', settingsOf('google'), http)).rejects.toMatchObject({
+      kind: 'invalid_key',
+    });
   });
 });

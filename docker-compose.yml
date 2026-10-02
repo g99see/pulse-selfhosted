@@ -45,6 +45,8 @@ services:
       API_PORT: '3001'
       DATABASE_URL: postgresql://${POSTGRES_USER:-puls}:${POSTGRES_PASSWORD:-puls}@postgres:5432/${POSTGRES_DB:-puls}?schema=public
       REDIS_URL: redis://valkey:6379
+      # Доп. origin-ы (например https://puls.x.ts.net через Tailscale), через пробел.
+      EXTRA_ORIGINS: ${EXTRA_ORIGINS:-}
       CORS_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
       WEB_APP_URL: ${PUBLIC_ORIGIN:-http://localhost}
       SMTP_URL: ${SMTP_URL:-}
@@ -57,6 +59,10 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      # polling по умолчанию: вебхуку нужен публичный HTTPS-адрес, которого у
+      # домашнего сервера нет. Для вебхука: TELEGRAM_MODE=webhook + секрет.
+      TELEGRAM_MODE: ${TELEGRAM_MODE:-polling}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
       RATES_PROVIDER: ${RATES_PROVIDER:-}
       APP_VERSION: ${APP_VERSION:-0.1.0}
       # HTML-страница профиля (ТЗ §3.8): публичный домен песочницы нужен API,
@@ -104,8 +110,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
+        # '/' — тот же origin, что и сайт (работает по любому адресу установки).
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost}
         NEXT_PUBLIC_SANDBOX_URL: ${SANDBOX_ORIGIN:-}
+        # Основной + дополнительные origin-ы песочницы; браузер выбирает по протоколу/хосту.
+        NEXT_PUBLIC_SANDBOX_URLS: ${SANDBOX_ORIGIN:-} ${EXTRA_SANDBOX_ORIGINS:-}
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -176,12 +185,16 @@ services:
       - '${CADDY_BIND:-0.0.0.0}:${HTTPS_PORT:-443}:${HTTPS_PORT:-443}'
       # Песочница в режиме http (Caddyfile.http); в режиме https порт никто не слушает.
       - '${CADDY_BIND:-0.0.0.0}:${SANDBOX_HTTP_PORT:-8080}:8080'
+      # Для Tailscale Serve (Caddyfile.http): только loopback, наружу не торчат.
+      - '127.0.0.1:${TS_HTTP_PORT:-8081}:8081'
+      - '127.0.0.1:${TS_SANDBOX_PORT:-8082}:8082'
     environment:
       DOMAIN: ${DOMAIN:-localhost}
       SANDBOX_DOMAIN: ${SANDBOX_DOMAIN:-usercontent.localhost}
       ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
       # Публичный origin основного сайта — CSP frame-ancestors песочницы.
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
+      EXTRA_ORIGINS: ${EXTRA_ORIGINS:-}
       # Caddy должен знать внешний порт HTTPS, иначе редирект с 80 ведёт на занятый 443.
       HTTPS_PORT: ${HTTPS_PORT:-443}
     volumes:

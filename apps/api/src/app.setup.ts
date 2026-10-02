@@ -3,6 +3,8 @@ import type { INestApplication } from '@nestjs/common';
 import { RequestMethod } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import { isCookieSecureAuto, requestIsHttps } from './common/cookie-secure';
 
 /**
  * Общая настройка приложения для main.ts и тестов: префикс /api (кроме /health),
@@ -25,10 +27,28 @@ export function configureApp(app: INestApplication): void {
 
   app.use(cookieParser());
 
-  const origins = (process.env.CORS_ORIGIN ?? 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+  // COOKIE_SECURE=auto: Secure решается по каждому запросу (LAN по http и
+  // Tailscale по https одновременно). res.clearCookie вызывает res.cookie.
+  if (isCookieSecureAuto()) {
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      const secure = requestIsHttps(req.headers);
+      const original = res.cookie.bind(res) as (
+        name: string,
+        value: unknown,
+        options?: object,
+      ) => Response;
+      res.cookie = ((name: string, value: unknown, options: object = {}) =>
+        original(name, value, { ...options, secure })) as Response['cookie'];
+      next();
+    });
+  }
+
+  const origins = [
+    ...(process.env.CORS_ORIGIN ?? 'http://localhost:3000').split(','),
+    ...(process.env.EXTRA_ORIGINS ?? '').split(/\s+/),
+  ]
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter((origin, i, all) => origin !== '' && all.indexOf(origin) === i);
   // Content-Disposition нужен web, чтобы сохранить файл выгрузки под исходным
   // именем (ТЗ §3.1): браузер не отдаёт этот заголовок JS без expose.
   app.enableCors({ origin: origins, credentials: true, exposedHeaders: ['Content-Disposition'] });

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Адаптеры AI-провайдеров (ТЗ §3.9): Anthropic (Claude), OpenAI, OpenRouter и
- * любой OpenAI-совместимый адрес (Ollama, LM Studio). Один интерфейс
+ * Адаптеры AI-провайдеров (ТЗ §3.9): Anthropic (Claude) и OpenAI-совместимые
+ * (OpenAI, OpenRouter, OpenCode Go/Zen, Gemini, DeepSeek, Mistral, Groq, xAI,
+ * свой адрес — Ollama, LM Studio). Один интерфейс
  * `AiProviderAdapter.complete` для всех; сеть — через `AiHttpClient`.
  *
  * Ключ сюда приходит уже расшифрованным и наружу не отдаётся.
  */
-import type { AiProvider } from '@puls/shared';
+import { randomUUID } from 'node:crypto';
+import { AI_DEFAULT_BASE_URL, AI_DEFAULT_MODEL, type AiProvider } from '@puls/shared';
 import type { AiHttpClient } from './ai-http';
 import {
   AiProviderError,
@@ -17,21 +19,7 @@ import {
   type AiToolCall,
 } from './ai.types';
 
-/** Базовые адреса по умолчанию; для openai_compatible задаётся пользователем. */
-export const AI_DEFAULT_BASE_URL: Record<AiProvider, string> = {
-  anthropic: 'https://api.anthropic.com',
-  openai: 'https://api.openai.com/v1',
-  openrouter: 'https://openrouter.ai/api/v1',
-  openai_compatible: '',
-};
-
-/** Модели по умолчанию, если в настройках не задана своя. */
-export const AI_DEFAULT_MODEL: Record<AiProvider, string> = {
-  anthropic: 'claude-3-5-haiku-latest',
-  openai: 'gpt-4o-mini',
-  openrouter: 'openai/gpt-4o-mini',
-  openai_compatible: 'llama3.1',
-};
+export { AI_DEFAULT_BASE_URL, AI_DEFAULT_MODEL };
 
 export interface AiProviderAdapter {
   readonly provider: AiProvider;
@@ -68,6 +56,24 @@ function baseUrl(settings: AiProviderSettings): string {
   );
   if (!url) throw new AiProviderError('unreachable');
   return url;
+}
+
+/** Версия клиента для User-Agent (OpenCode просит представляться своим именем). */
+const CLIENT_VERSION = process.env.APP_VERSION?.trim() || '0.1';
+
+/** Провайдеры, требующие идентификации клиента и id сессии. */
+const OPENCODE_PROVIDERS: ReadonlySet<AiProvider> = new Set<AiProvider>([
+  'opencode_go',
+  'opencode_zen',
+]);
+
+/** Дополнительные заголовки конкретных провайдеров. */
+export function extraHeaders(provider: AiProvider, sessionId?: string): Record<string, string> {
+  if (!OPENCODE_PROVIDERS.has(provider)) return {};
+  return {
+    'user-agent': `puls-assistant/${CLIENT_VERSION}`,
+    'x-opencode-session': sessionId || randomUUID(),
+  };
 }
 
 /** Ответ провайдера — объект (не массив). */
@@ -162,7 +168,7 @@ class AnthropicAdapter implements AiProviderAdapter {
   }
 }
 
-/** OpenAI Chat Completions: openai, openrouter и любые совместимые адреса. */
+/** OpenAI Chat Completions: все провайдеры, кроме Anthropic (пресеты и любые совместимые адреса). */
 class OpenAiAdapter implements AiProviderAdapter {
   constructor(
     readonly provider: AiProvider,
@@ -208,7 +214,7 @@ class OpenAiAdapter implements AiProviderAdapter {
       }));
     }
 
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = extraHeaders(this.provider, request.sessionId);
     if (settings.apiKey) headers.authorization = `Bearer ${settings.apiKey}`;
     const payload = asRecord(
       await requestJson(this.http, `${baseUrl(settings)}/chat/completions`, headers, body),
@@ -257,6 +263,40 @@ async function requestJson(
   } catch {
     throw new AiProviderError('unknown');
   }
+}
+
+/** Список id моделей провайдера (`GET {baseUrl}/models`); ключ наружу не уходит. */
+export async function listAiModels(
+  provider: AiProvider,
+  settings: AiProviderSettings,
+  http: AiHttpClient,
+): Promise<string[]> {
+  const headers: Record<string, string> =
+    provider === 'anthropic'
+      ? { 'x-api-key': settings.apiKey, 'anthropic-version': '2023-06-01' }
+      : { ...extraHeaders(provider) };
+  if (provider !== 'anthropic' && settings.apiKey)
+    headers.authorization = `Bearer ${settings.apiKey}`;
+  const suffix = provider === 'anthropic' ? '/v1/models' : '/models';
+  let response;
+  try {
+    response = await http.get({ url: `${baseUrl(settings)}${suffix}`, headers, timeoutMs: 15_000 });
+  } catch {
+    throw new AiProviderError('unreachable');
+  }
+  if (!response.ok) throw new AiProviderError(kindFromStatus(response.status));
+  let payload: Record<string, unknown>;
+  try {
+    payload = asRecord(await response.json());
+  } catch {
+    throw new AiProviderError('unknown');
+  }
+  const data = Array.isArray(payload.data) ? payload.data : [];
+  const ids = data
+    .map((item) => asRecord(item).id)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0)
+    .map((id) => id.replace(/^models\//, ''));
+  return [...new Set(ids)].sort().slice(0, 500);
 }
 
 /** Фабрика адаптера по провайдеру. */

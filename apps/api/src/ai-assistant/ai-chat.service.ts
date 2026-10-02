@@ -7,6 +7,7 @@
  * делается финальный ответ без инструментов. При тревожных сигналах в ответ
  * добавляется блок поддержки (переиспользуется shared/insights).
  */
+import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import {
   AI_SYSTEM_PROMPT,
@@ -29,6 +30,15 @@ import { AI_TOOLS, AiToolsService, type AiToolExecution } from './ai-tools.servi
 /** Предел итераций цикла инструментов (ТЗ §3.9: «до ~5 итераций»). */
 const MAX_ITERATIONS = 5;
 const MAX_TOKENS = 1024;
+
+/**
+ * Стабильный id диалога: хэш пользователя и первой реплики пользователя.
+ * Клиент хранит историю сам, поэтому первая реплика одинакова весь диалог.
+ */
+export function chatSessionId(userId: string, messages: AiMessage[]): string {
+  const first = messages.find((message) => message.role === 'user')?.content ?? '';
+  return `chat-${createHash('sha256').update(`${userId}\n${first}`).digest('hex').slice(0, 32)}`;
+}
 
 export interface AiCompletionRun {
   text: string;
@@ -67,6 +77,7 @@ export class AiChatService {
     userId: string,
     system: string,
     messages: AiMessage[],
+    sessionId: string = chatSessionId(userId, messages),
   ): Promise<AiCompletionRun> {
     const proposals: AiProposalDto[] = [];
     let result: AiCompletionResult | null = null;
@@ -77,6 +88,7 @@ export class AiChatService {
         messages,
         tools: AI_TOOLS,
         maxTokens: MAX_TOKENS,
+        sessionId,
       });
       if (!result.toolCalls || result.toolCalls.length === 0) {
         return this.finalize(userId, result.text, proposals);
@@ -100,7 +112,12 @@ export class AiChatService {
     }
 
     // Лимит итераций исчерпан — просим финальный ответ уже без инструментов.
-    const final = await this.provider.complete(userId, { system, messages, maxTokens: MAX_TOKENS });
+    const final = await this.provider.complete(userId, {
+      system,
+      messages,
+      maxTokens: MAX_TOKENS,
+      sessionId,
+    });
     return this.finalize(userId, final.text, proposals);
   }
 

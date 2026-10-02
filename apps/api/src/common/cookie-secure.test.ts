@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { cookieSecure } from './cookie-secure';
+import { cookieSecure, isCookieSecureAuto, requestIsHttps } from './cookie-secure';
 
 const env = (v: Record<string, string>) => v as NodeJS.ProcessEnv;
 
@@ -36,5 +36,22 @@ describe('cookieSecure', () => {
 
   it('мусор в COOKIE_SECURE игнорируется', () => {
     expect(cookieSecure(env({ COOKIE_SECURE: 'maybe', NODE_ENV: 'production' }))).toBe(true);
+  });
+
+  it('auto: распознаётся и не ломает вывод по схеме', () => {
+    expect(isCookieSecureAuto(env({ COOKIE_SECURE: 'AUTO' }))).toBe(true);
+    expect(isCookieSecureAuto(env({ COOKIE_SECURE: 'true' }))).toBe(false);
+    expect(isCookieSecureAuto(env({}))).toBe(false);
+    expect(cookieSecure(env({ COOKIE_SECURE: 'auto', PUBLIC_ORIGIN: 'http://10.0.0.5' }))).toBe(
+      false,
+    );
+  });
+
+  it('requestIsHttps читает X-Forwarded-Proto', () => {
+    expect(requestIsHttps({ 'x-forwarded-proto': 'https' })).toBe(true);
+    expect(requestIsHttps({ 'x-forwarded-proto': 'HTTPS, http' })).toBe(true);
+    expect(requestIsHttps({ 'x-forwarded-proto': ['https'] })).toBe(true);
+    expect(requestIsHttps({ 'x-forwarded-proto': 'http' })).toBe(false);
+    expect(requestIsHttps({})).toBe(false);
   });
 });

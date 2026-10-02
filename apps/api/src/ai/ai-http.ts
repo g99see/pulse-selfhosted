@@ -25,8 +25,15 @@ export interface AiHttpResponse {
   text(): Promise<string>;
 }
 
+export interface AiHttpGetRequest {
+  url: string;
+  headers: Record<string, string>;
+  timeoutMs?: number;
+}
+
 export interface AiHttpClient {
   post(request: AiHttpRequest): Promise<AiHttpResponse>;
+  get(request: AiHttpGetRequest): Promise<AiHttpResponse>;
 }
 
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -35,14 +42,34 @@ const DEFAULT_TIMEOUT_MS = 60_000;
 export class FetchAiHttpClient implements AiHttpClient {
   private readonly logger = new Logger(FetchAiHttpClient.name);
 
+  async get(request: AiHttpGetRequest): Promise<AiHttpResponse> {
+    return this.send(request.url, 'GET', request.headers, undefined, request.timeoutMs);
+  }
+
   async post(request: AiHttpRequest): Promise<AiHttpResponse> {
+    return this.send(
+      request.url,
+      'POST',
+      { 'content-type': 'application/json', ...request.headers },
+      JSON.stringify(request.body),
+      request.timeoutMs,
+    );
+  }
+
+  private async send(
+    url: string,
+    method: 'GET' | 'POST',
+    headers: Record<string, string>,
+    body: string | undefined,
+    timeoutMs: number | undefined,
+  ): Promise<AiHttpResponse> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), request.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs ?? DEFAULT_TIMEOUT_MS);
     try {
-      const response = await fetch(request.url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', ...request.headers },
-        body: JSON.stringify(request.body),
+      const response = await fetch(url, {
+        method,
+        headers,
+        body,
         signal: controller.signal,
       });
       return {
@@ -52,7 +79,7 @@ export class FetchAiHttpClient implements AiHttpClient {
         text: () => response.text(),
       };
     } catch (error) {
-      this.logger.warn(`Ошибка сети AI-провайдера ${request.url}: ${String(error)}`);
+      this.logger.warn(`Ошибка сети AI-провайдера ${url}: ${String(error)}`);
       throw error;
     } finally {
       clearTimeout(timeout);

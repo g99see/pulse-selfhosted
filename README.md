@@ -61,7 +61,7 @@
 **AI-помощник по своему ключу**
 
 - Вопросы о своих данных обычным языком
-- Anthropic, OpenAI, OpenRouter или локальная модель через Ollama — ключ ваш, он хранится зашифрованным
+- Anthropic, OpenAI, OpenRouter, OpenCode Go/Zen, Google Gemini, DeepSeek, Mistral, Groq, xAI или локальная модель через Ollama — ключ ваш, он хранится зашифрованным
 
 **Приватность и безопасность**
 

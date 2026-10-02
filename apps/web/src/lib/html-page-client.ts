@@ -6,20 +6,32 @@
  */
 import type { HtmlPageResponse, HtmlPageSaveValues, HtmlPageVersionsResponse } from '@puls/shared';
 import { API_BASE_URL } from './api';
+import { buildSandboxPageUrl, parseSandboxOrigins, pickSandboxOrigin } from './sandbox-origin';
 import { authFetch, csrfHeader, ensureCsrf, parseAuthError, AuthApiError } from './auth-client';
 
 /**
- * Базовый адрес пользовательского домена (ТЗ §3.8): страница отдаётся с
- * отдельного домена в iframe с sandbox="allow-scripts". Пусто — используем
- * путь, как есть (same-origin dev без песочницы).
+ * Origin-ы пользовательского домена (ТЗ §3.8): страница отдаётся с отдельного
+ * домена в iframe с sandbox="allow-scripts". NEXT_PUBLIC_SANDBOX_URLS — список
+ * через пробел (основной + дополнительные), иначе NEXT_PUBLIC_SANDBOX_URL.
+ * Пусто — используем путь, как есть (same-origin dev без песочницы).
  */
-export const SANDBOX_BASE_URL = (process.env.NEXT_PUBLIC_SANDBOX_URL ?? '').replace(/\/+$/, '');
+export const SANDBOX_ORIGINS = parseSandboxOrigins(
+  process.env.NEXT_PUBLIC_SANDBOX_URLS || process.env.NEXT_PUBLIC_SANDBOX_URL,
+);
 
-/** Публичный адрес страницы: абсолютный из API или собранный из базы песочницы. */
+/** Первый (основной) origin — значение для SSR и первого рендера. */
+export const SANDBOX_BASE_URL = SANDBOX_ORIGINS[0] ?? '';
+
+/**
+ * Публичный адрес страницы. В браузере при нескольких origin выбирается
+ * совпадающий со страницей по протоколу и хосту; на сервере — основной.
+ */
 export function sandboxPageUrl(sandboxUrl: string): string {
-  if (/^https?:\/\//i.test(sandboxUrl)) return sandboxUrl;
-  const path = sandboxUrl.startsWith('/') ? sandboxUrl : `/sandbox/${sandboxUrl}`;
-  return `${SANDBOX_BASE_URL}${path}`;
+  const origin =
+    SANDBOX_ORIGINS.length > 1 && typeof window !== 'undefined'
+      ? pickSandboxOrigin(SANDBOX_ORIGINS, window.location)
+      : SANDBOX_BASE_URL;
+  return buildSandboxPageUrl(sandboxUrl, origin);
 }
 
 /** Ошибка загрузки файла на клиенте (до похода на сервер). */
