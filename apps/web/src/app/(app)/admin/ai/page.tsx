@@ -8,6 +8,8 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
+  AI_DEFAULT_BASE_URL,
+  AI_DEFAULT_MODEL,
   AI_PROVIDERS,
   type AiInstanceSettingsInput,
   type AiProvider,
@@ -150,6 +152,11 @@ export default function AdminAiPage() {
             </option>
           ))}
         </Select>
+        {provider !== EMPTY_PROVIDER ? (
+          <p className="-mt-2 text-xs text-[var(--puls-ink-muted)]">
+            {t(`ai.key.providerHint.${provider}`)}
+          </p>
+        ) : null}
 
         <Field
           id="ai-admin-key"
@@ -165,8 +172,13 @@ export default function AdminAiPage() {
           id="ai-admin-base-url"
           type="url"
           inputMode="url"
-          label={t('ai.admin.baseUrl')}
-          hint={t('ai.key.baseUrlHint')}
+          label={provider === 'openai_compatible' ? t('ai.admin.baseUrl') : t('ai.key.advanced')}
+          hint={
+            provider === 'openai_compatible'
+              ? t('ai.key.baseUrlHint')
+              : t('ai.key.baseUrlPresetHint')
+          }
+          placeholder={provider === EMPTY_PROVIDER ? '' : AI_DEFAULT_BASE_URL[provider]}
           value={baseUrl}
           onChange={(event) => setBaseUrl(event.target.value)}
         />
@@ -175,6 +187,7 @@ export default function AdminAiPage() {
           id="ai-admin-model"
           label={t('ai.admin.model')}
           hint={t('ai.key.modelHint')}
+          placeholder={provider === EMPTY_PROVIDER ? '' : AI_DEFAULT_MODEL[provider]}
           value={model}
           onChange={(event) => setModel(event.target.value)}
         />

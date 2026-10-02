@@ -76,6 +76,9 @@ export const aiApi = {
   /** Удаляет личный ключ (204). */
   removeKey: () => authFetch<void>('/api/ai/key', { method: 'DELETE' }),
 
+  /** Id моделей по сохранённому ключу (для подсказок в поле «Модель»). */
+  models: () => authFetch<{ models: string[] }>('/api/ai/models'),
+
   /** Проверяет подключение текущего ключа (личного или общего). */
   testKey: () => authFetch<AiTestResponse>('/api/ai/key/test', { method: 'POST' }),
 

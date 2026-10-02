@@ -9,7 +9,14 @@
  * лимит).
  */
 import { useCallback, useEffect, useState } from 'react';
-import { AI_PROVIDERS, type AiKeySetValues, type AiProvider, type AiStatusDto } from '@puls/shared';
+import {
+  AI_DEFAULT_BASE_URL,
+  AI_DEFAULT_MODEL,
+  AI_PROVIDERS,
+  type AiKeySetValues,
+  type AiProvider,
+  type AiStatusDto,
+} from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Alert, Card, Field, GhostButton, PrimaryButton, Select } from '@/components/ui';
 import { aiApi, aiErrorKey, aiTestErrorKey, formatAiCost, formatAiTokens } from '@/lib/ai-client';
@@ -24,6 +31,7 @@ export function AiKeySection() {
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [model, setModel] = useState('');
+  const [models, setModels] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +67,9 @@ export function AiKeySection() {
       if (provider === 'openai_compatible') {
         payload.apiKey = apiKey.trim();
         payload.baseUrl = baseUrl.trim();
+      } else if (baseUrl.trim() && baseUrl.trim() !== AI_DEFAULT_BASE_URL[provider]) {
+        // Для пресетов свой адрес — только если он отличается от адреса по умолчанию.
+        payload.baseUrl = baseUrl.trim();
       }
       if (model.trim()) payload.model = model.trim();
 
@@ -86,6 +97,21 @@ export function AiKeySection() {
       );
     } catch (thrown) {
       setError(thrown instanceof AuthApiError ? t(aiErrorKey(thrown.code)) : t('ai.key.error'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function loadModels(): Promise<void> {
+    setBusy(true);
+    setNotice(null);
+    setError(null);
+    try {
+      const response = await aiApi.models();
+      setModels(response.models);
+      setNotice(t('ai.key.modelsLoaded', { count: String(response.models.length) }));
+    } catch {
+      setError(t('ai.key.modelsFail'));
     } finally {
       setBusy(false);
     }
@@ -136,6 +162,7 @@ export function AiKeySection() {
             value={provider}
             onChange={(event) => {
               setProvider(event.target.value as AiProvider);
+              setModels([]);
               setNotice(null);
             }}
           >
@@ -145,6 +172,12 @@ export function AiKeySection() {
               </option>
             ))}
           </Select>
+          <p
+            className="-mt-2 text-xs text-[var(--puls-ink-muted)]"
+            data-testid="ai-key-provider-hint"
+          >
+            {t(`ai.key.providerHint.${provider}`)}
+          </p>
 
           <Field
             id="ai-key-api-key"
@@ -161,25 +194,35 @@ export function AiKeySection() {
             <p className="-mt-2 text-xs text-[var(--puls-ink-muted)]">{t('ai.key.keepHint')}</p>
           ) : null}
 
-          {provider === 'openai_compatible' ? (
-            <Field
-              id="ai-key-base-url"
-              type="url"
-              inputMode="url"
-              label={t('ai.key.baseUrl')}
-              hint={t('ai.key.baseUrlHint')}
-              value={baseUrl}
-              onChange={(event) => setBaseUrl(event.target.value)}
-            />
-          ) : null}
+          <Field
+            id="ai-key-base-url"
+            type="url"
+            inputMode="url"
+            label={provider === 'openai_compatible' ? t('ai.key.baseUrl') : t('ai.key.advanced')}
+            hint={
+              provider === 'openai_compatible'
+                ? t('ai.key.baseUrlHint')
+                : t('ai.key.baseUrlPresetHint')
+            }
+            placeholder={AI_DEFAULT_BASE_URL[provider]}
+            value={baseUrl}
+            onChange={(event) => setBaseUrl(event.target.value)}
+          />
 
           <Field
             id="ai-key-model"
             label={t('ai.key.model')}
             hint={t('ai.key.modelHint')}
+            placeholder={AI_DEFAULT_MODEL[provider]}
+            list="ai-key-models"
             value={model}
             onChange={(event) => setModel(event.target.value)}
           />
+          <datalist id="ai-key-models">
+            {models.map((id) => (
+              <option key={id} value={id} />
+            ))}
+          </datalist>
 
           <div className="flex flex-wrap gap-3">
             <PrimaryButton
@@ -198,6 +241,16 @@ export function AiKeySection() {
             >
               {t('ai.key.test')}
             </GhostButton>
+            {status.last4 ? (
+              <GhostButton
+                type="button"
+                data-testid="ai-key-models"
+                disabled={busy}
+                onClick={() => void loadModels()}
+              >
+                {t('ai.key.loadModels')}
+              </GhostButton>
+            ) : null}
             {status.last4 ? (
               <GhostButton
                 type="button"
