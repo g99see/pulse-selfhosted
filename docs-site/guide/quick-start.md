@@ -231,6 +231,106 @@ sudo /opt/puls/scripts/users.sh add kid@example.com kid --password "СвойПа
    cd /opt/puls && sudo docker compose up -d api
    ```
 
+## Push-уведомления и HTTPS через Tailscale
+
+Push-уведомления на телефон работают **только по HTTPS**. Адрес вида `http://192.168.1.50`
+для них не подходит. Самый простой способ получить HTTPS дома, без домена и открытых портов, —
+Tailscale. Обычный адрес по домашней сети при этом продолжает работать: сайт будет открываться
+сразу двумя способами.
+
+1. Поставьте Tailscale на сервер и войдите в аккаунт:
+
+   ```bash
+   curl -fsSL https://tailscale.com/install.sh | sh
+   sudo tailscale up
+   ```
+
+   Команда напечатает ссылку. Откройте её в браузере и подтвердите вход.
+
+2. В админке Tailscale (login.tailscale.com → страница **DNS**) включите **MagicDNS** и
+   **HTTPS Certificates**. Там же видно имя вашей сети, вида `tailXXXX.ts.net`.
+
+3. Дайте серверу имя `puls` (или любое другое) и включите проксирование на Пульс:
+
+   ```bash
+   sudo tailscale set --hostname=puls
+   sudo tailscale serve --bg --https=443 http://127.0.0.1:8081
+   sudo tailscale serve --bg --https=8443 http://127.0.0.1:8082
+   ```
+
+   Первый адрес — сам сайт, второй — «песочница» для HTML-страниц профиля.
+
+4. Откройте файл настроек `sudo nano /opt/puls/.env` и впишите (подставьте своё имя вместо
+   `puls.tailXXXX.ts.net`):
+
+   ```text
+   PUBLIC_API_URL=/
+   COOKIE_SECURE=auto
+   EXTRA_ORIGINS=https://puls.tailXXXX.ts.net
+   EXTRA_SANDBOX_ORIGINS=https://puls.tailXXXX.ts.net:8443
+   ```
+
+   Сохранить: `Ctrl + O`, Enter, выйти: `Ctrl + X`.
+
+5. Примените (сервис пересоберётся):
+
+   ```bash
+   sudo /opt/puls/scripts/upgrade.sh
+   ```
+
+6. На телефоне поставьте приложение **Tailscale**, войдите в тот же аккаунт и включите его.
+   Откройте `https://puls.tailXXXX.ts.net`.
+
+   - **iPhone:** сначала нажмите «Поделиться» → **«На экран «Домой»»** и запускайте Пульс с
+     иконки. Apple разрешает push только для установленных приложений (нужен iOS 16.4 или новее).
+   - **Android:** откройте сайт в Chrome и согласитесь на установку.
+
+7. В приложении откройте **Настройки** и включите уведомления.
+
+Дома по-прежнему можно открывать `http://192.168.1.50` — вход работает и там, и там.
+
+::: tip Сервер в контейнере Proxmox (LXC)
+Tailscale нужно устройство `/dev/net/tun`. На хосте Proxmox добавьте в файл
+`/etc/pve/lxc/<id>.conf` две строки и перезапустите контейнер:
+
+```text
+lxc.cgroup2.devices.allow: c 10:200 rwm
+lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
+```
+
+:::
+
+## Уведомления в Telegram
+
+Бот пишет вам напоминания, а в чате можно записать чек-ин или трату. Ему не нужен ни домен,
+ни HTTPS: по умолчанию сервер сам спрашивает у Telegram, есть ли новые сообщения.
+
+1. В Telegram найдите **@BotFather** и отправьте ему `/newbot`.
+2. Придумайте имя бота, затем логин — он обязательно заканчивается на `bot`, например
+   `my_puls_bot`.
+3. BotFather пришлёт **токен** — длинную строку. Скопируйте её.
+4. Откройте `sudo nano /opt/puls/.env` и впишите (имя бота — без `@`):
+
+   ```text
+   TELEGRAM_BOT_TOKEN=123456:ABC-токен-от-BotFather
+   TELEGRAM_BOT_USERNAME=my_puls_bot
+   ```
+
+5. Перезапустите API:
+
+   ```bash
+   cd /opt/puls && sudo docker compose up -d api
+   ```
+
+6. На сайте откройте **Настройки → Telegram** и нажмите **«Привязать Telegram»**. Появится
+   одноразовый код (он действует 10 минут) и подсказка «Отправьте боту в Telegram: `/start` и
+   код».
+7. Откройте своего бота в Telegram и отправьте ему сообщение вида `/start 123456` с этим кодом.
+   Бот ответит, а на сайте появится «Чат привязан». Отвязать можно кнопкой **«Отвязать»**.
+
+Если на сайте написано «Telegram-бот не настроен на сервере» — проверьте токен в `.env` и
+повторите шаг 5.
+
 ## Обновление
 
 Когда выходит новая версия:
