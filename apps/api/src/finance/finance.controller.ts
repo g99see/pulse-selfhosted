@@ -182,6 +182,19 @@ export class FinanceController {
     return this.transactions.quick(req.user!.id, body.text, body.accountId);
   }
 
+  /** Удалить все операции; тело `{ confirm: "DELETE" }` — защита от случайного вызова. */
+  @Post('transactions/delete-all')
+  @HttpCode(HttpStatus.OK)
+  async removeAllTransactions(
+    @Body() body: { confirm?: unknown },
+    @Req() req: AuthenticatedRequest,
+  ): Promise<{ deleted: number }> {
+    if (body?.confirm !== 'DELETE') {
+      throw httpError(400, 'confirmation_required', 'Нужно подтверждение удаления');
+    }
+    return this.transactions.removeAll(req.user!.id);
+  }
+
   @Delete('transactions/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeTransaction(

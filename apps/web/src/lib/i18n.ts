@@ -160,6 +160,9 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.account.balance': 'Остаток',
     'finance.transactions': 'Транзакции',
     'finance.transactions.empty': 'Пока нет транзакций — добавьте первую через «+».',
+    'finance.transactions.deleteAll': 'Удалить все',
+    'finance.transactions.deleteAllConfirm':
+      'Удалить все операции? Балансы счетов вернутся к значению без операций. Счета, категории и бюджеты останутся. Отменить нельзя.',
     'finance.filter.type': 'Тип',
     'finance.filter.category': 'Категория',
     'finance.filter.account': 'Счёт',
@@ -1515,6 +1518,9 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.account.balance': 'Balance',
     'finance.transactions': 'Transactions',
     'finance.transactions.empty': 'No transactions yet — add the first one with “+”.',
+    'finance.transactions.deleteAll': 'Delete all',
+    'finance.transactions.deleteAllConfirm':
+      'Delete all transactions? Account balances return to their value without them. Accounts, categories and budgets stay. This cannot be undone.',
     'finance.filter.type': 'Type',
     'finance.filter.category': 'Category',
     'finance.filter.account': 'Account',

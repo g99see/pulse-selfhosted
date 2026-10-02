@@ -103,6 +103,12 @@ export const financeApi = {
   removeTransaction: (id: string) =>
     authFetch<void>(`/api/finance/transactions/${id}`, { method: 'DELETE' }),
 
+  removeAllTransactions: () =>
+    authFetch<{ deleted: number }>('/api/finance/transactions/delete-all', {
+      method: 'POST',
+      body: JSON.stringify({ confirm: 'DELETE' }),
+    }),
+
   transfer: (input: TransferCreateInput) =>
     authFetch<TransactionDto>('/api/finance/transfers', {
       method: 'POST',

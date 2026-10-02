@@ -380,6 +380,61 @@ describe('Finance API (интеграция с PostgreSQL)', () => {
     });
   });
 
+  describe('Удаление всех операций', () => {
+    it('удаляет только свои операции и возвращает балансы к начальным', async () => {
+      const client = await signUp('wipe@example.com', 'wipeuser');
+      const other = await signUp('wipe-other@example.com', 'wipeother');
+      const card = await createAccount(client, 'Карта', 'card', 1000);
+      const cash = await createAccount(client, 'Наличные', 'cash', 50);
+      const otherCard = await createAccount(other, 'Карта', 'card', 10);
+
+      await client.post('/api/finance/transactions', {
+        accountId: card.id,
+        type: 'expense',
+        amount: 300,
+      });
+      await client.post('/api/finance/transactions', {
+        accountId: card.id,
+        type: 'income',
+        amount: 500,
+      });
+      await client.post('/api/finance/transfers', {
+        fromAccountId: card.id,
+        toAccountId: cash.id,
+        amount: 200,
+      });
+      await other.post('/api/finance/transactions', {
+        accountId: otherCard.id,
+        type: 'income',
+        amount: 5,
+      });
+      await client.get('/api/stats/report?period=month');
+
+      // Без подтверждения — отказ.
+      const refused = await client.post('/api/finance/transactions/delete-all', {});
+      expect(refused.status).toBe(400);
+
+      const response = await client.post('/api/finance/transactions/delete-all', {
+        confirm: 'DELETE',
+      });
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ deleted: 3 });
+
+      expect((await client.get('/api/finance/transactions')).body.transactions).toHaveLength(0);
+      const accounts = (await client.get('/api/finance/accounts')).body.accounts as AccountDto[];
+      expect(accounts.find((account) => account.id === card.id)?.balance).toBe(1000);
+      expect(accounts.find((account) => account.id === cash.id)?.balance).toBe(50);
+      const report = await client.get('/api/stats/report?period=month');
+      expect(report.body).toMatchObject({ spent: 0, earned: 0 });
+
+      // Чужие данные не тронуты.
+      expect((await other.get('/api/finance/transactions')).body.transactions).toHaveLength(1);
+      const otherAccounts = (await other.get('/api/finance/accounts')).body
+        .accounts as AccountDto[];
+      expect(otherAccounts[0]?.balance).toBe(15);
+    });
+  });
+
   describe('Бюджеты (ТЗ §3.2)', () => {
     it('считает потраченное и уровни ok/warning/exceeded', async () => {
       const client = await signUp('budget@example.com', 'budgetuser');
