@@ -23,7 +23,12 @@ import { aiApi, aiErrorKey, aiTestErrorKey, formatAiCost, formatAiTokens } from 
 import { AuthApiError } from '@/lib/auth-client';
 
 /** Секция настроек личного ключа AI (ТЗ §3.9). */
-export function AiKeySection() {
+export function AiKeySection({
+  onStatusChange,
+}: {
+  /** Вызывается после сохранения/удаления ключа — страница AI переключается на чат. */
+  onStatusChange?: (status: AiStatusDto) => void;
+} = {}) {
   const { t, locale } = useT();
 
   const [status, setStatus] = useState<AiStatusDto | null>(null);
@@ -75,6 +80,7 @@ export function AiKeySection() {
 
       const response = await aiApi.setKey(payload);
       setStatus(response.status);
+      onStatusChange?.(response.status);
       setApiKey('');
       setNotice(t('ai.key.saved'));
     } catch (thrown) {

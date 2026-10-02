@@ -93,7 +93,7 @@ async function stubStatus(page: import('@playwright/test').Page, enabled: boolea
   );
 }
 
-test('без ключа пункт навигации скрыт, а экран предлагает подключить ключ', async ({
+test('без ключа пункт «AI» виден, а экран предлагает подключить ключ прямо на месте', async ({
   page,
   request,
 }) => {
@@ -101,11 +101,13 @@ test('без ключа пункт навигации скрыт, а экран 
 
   await stubStatus(page, false);
   await page.reload();
-  await expect(page.getByTestId('nav-ai')).toHaveCount(0);
+  await expect(page.getByTestId('nav-ai').filter({ visible: true })).toHaveCount(1);
 
   await page.goto('/ai');
   await expect(page.getByTestId('ai-disabled')).toBeVisible();
   await expect(page.getByTestId('ai-disabled-settings')).toHaveAttribute('href', '/settings');
+  // Форма ключа — на той же странице.
+  await expect(page.getByTestId('ai-disabled').getByLabel(/Провайдер|Provider/)).toBeVisible();
 });
 
 test('с ключом чат отвечает, а предложение применяется по кнопке', async ({ page, request }) => {

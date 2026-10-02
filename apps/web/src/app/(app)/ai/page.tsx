@@ -22,6 +22,7 @@ import {
   PrimaryButton,
   Select,
 } from '@/components/ui';
+import { AiKeySection } from '@/components/ai-key-section';
 import { aiApi, aiErrorKey, formatAiCost, formatAiTokens } from '@/lib/ai-client';
 import { AuthApiError } from '@/lib/auth-client';
 
@@ -167,13 +168,20 @@ export default function AiPage() {
               <Link
                 href="/settings"
                 data-testid="ai-disabled-settings"
-                className="inline-flex h-12 items-center rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)]"
+                className="inline-flex h-11 items-center rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-5 text-sm font-semibold"
               >
                 {t('ai.disabled.goSettings')}
               </Link>
             }
           />
         </Card>
+        {/* Подключение прямо здесь: после сохранения ключа страница переключается на чат. */}
+        <AiKeySection
+          onStatusChange={(next) => {
+            setEnabled(next.enabled);
+            setUsage(next.usage);
+          }}
+        />
       </div>
     );
   }
