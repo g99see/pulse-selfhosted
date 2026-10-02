@@ -7,7 +7,7 @@ import {
   pickSandboxOrigin,
 } from '../src/lib/sandbox-origin';
 
-const LAN = 'http://192.168.1.187:8080';
+const LAN = 'http://192.168.1.50:8080';
 const TS = 'https://puls.x.ts.net:8443';
 
 describe('normalizeApiBase', () => {
@@ -35,13 +35,13 @@ describe('pickSandboxOrigin', () => {
     );
   });
   it('LAN по http получает LAN-песочницу', () => {
-    expect(pickSandboxOrigin([TS, LAN], { protocol: 'http:', hostname: '192.168.1.187' })).toBe(
+    expect(pickSandboxOrigin([TS, LAN], { protocol: 'http:', hostname: '192.168.1.50' })).toBe(
       LAN,
     );
   });
   it('хост важнее: два http-origin', () => {
     const other = 'http://10.0.0.5:8080';
-    expect(pickSandboxOrigin([other, LAN], { protocol: 'http:', hostname: '192.168.1.187' })).toBe(
+    expect(pickSandboxOrigin([other, LAN], { protocol: 'http:', hostname: '192.168.1.50' })).toBe(
       LAN,
     );
   });
@@ -54,7 +54,7 @@ describe('pickSandboxOrigin', () => {
 
 describe('buildSandboxPageUrl', () => {
   it('у абсолютного адреса остаётся путь', () => {
-    expect(buildSandboxPageUrl('http://192.168.1.187:8080/sandbox/anna?v=2', TS)).toBe(
+    expect(buildSandboxPageUrl('http://192.168.1.50:8080/sandbox/anna?v=2', TS)).toBe(
       `${TS}/sandbox/anna?v=2`,
     );
   });
