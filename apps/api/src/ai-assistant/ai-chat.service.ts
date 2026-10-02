@@ -10,7 +10,7 @@
 import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import {
-  AI_SYSTEM_PROMPT,
+  aiSystemPromptFor,
   supportResourcesFor,
   todayKeyInTimezone,
   wellbeingConcernCandidates,
@@ -62,7 +62,11 @@ export class AiChatService {
       role: message.role,
       content: message.content,
     }));
-    const run = await this.runCompletion(userId, AI_SYSTEM_PROMPT, [
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { currency: true },
+    });
+    const run = await this.runCompletion(userId, aiSystemPromptFor(user.currency), [
       ...history,
       { role: 'user', content: input.message },
     ]);
