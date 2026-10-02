@@ -11,6 +11,7 @@ import {
   detectColumnMapping,
   detectDelimiter,
   detectHeaderRow,
+  importOccurrenceKey,
   importRowKey,
   parseCsv,
   parseImportAmount,
@@ -257,7 +258,7 @@ describe('buildImportPreview', () => {
     expect(preview[1]).toMatchObject({ type: 'income', amount: 80000 });
   });
 
-  it('помечает дубли внутри файла и против существующих', () => {
+  it('одинаковые строки в одном файле — разные операции, не дубли', () => {
     const preview = buildImportPreview(
       [
         ['Дата', 'Сумма', 'Описание'],
@@ -271,9 +272,27 @@ describe('buildImportPreview', () => {
         existingKeys: new Set([importRowKey('2026-10-02', 200, 'Такси')]),
       },
     );
-    expect(preview[0].duplicate).toBe(false);
-    expect(preview[1].duplicate).toBe(true);
-    expect(preview[2].duplicate).toBe(true);
+    expect(preview[0]).toMatchObject({ duplicate: false, occurrence: 0 });
+    expect(preview[1]).toMatchObject({ duplicate: false, occurrence: 1 });
+    expect(preview[2]).toMatchObject({ duplicate: true, occurrence: 0 });
+  });
+
+  it('против существующих учитывает их количество', () => {
+    const key = importRowKey('2026-10-01', 24, 'Rejsekort');
+    const rows = [
+      ['Дата', 'Сумма', 'Описание'],
+      ['01.10.2026', '-24,00', 'Rejsekort'],
+      ['01.10.2026', '-24,00', 'Rejsekort'],
+      ['01.10.2026', '-24,00', 'Rejsekort'],
+    ];
+    const preview = buildImportPreview(rows, {
+      mapping: { date: 0, amount: 1, description: 2 },
+      hasHeader: true,
+      existingKeys: new Map([[key, 2]]),
+    });
+    expect(preview.map((row) => row.duplicate)).toEqual([true, true, false]);
+    expect(importOccurrenceKey(key, 0)).toBe(key);
+    expect(importOccurrenceKey(key, 2)).toBe(`${key}#2`);
   });
 });
 

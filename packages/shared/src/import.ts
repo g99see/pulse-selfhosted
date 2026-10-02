@@ -32,6 +32,12 @@ export interface ImportPreviewRow {
   description: string;
   categoryName: string | null;
   duplicate: boolean;
+  /**
+   * Какая по счёту это одинаковая строка в файле (0 — первая). Одинаковые строки
+   * в одной выписке — разные операции (две поездки по 24 kr за день), поэтому
+   * они не дубли друг друга; номер входит в ключ идемпотентности импорта.
+   */
+  occurrence: number;
   error: 'invalid_date' | 'invalid_amount' | null;
 }
 
@@ -390,11 +396,32 @@ export function importRowKey(date: string, amount: number, description: string):
   return `${date}|${amount.toFixed(2)}|${normalized}`;
 }
 
+/**
+ * Ключ идемпотентности с номером повтора: первая строка — как раньше (совместимо
+ * с уже импортированными), повторы получают суффикс `#1`, `#2`…
+ */
+export function importOccurrenceKey(key: string, occurrence: number): string {
+  return occurrence === 0 ? key : `${key}#${occurrence}`;
+}
+
 export interface BuildImportPreviewOptions {
   mapping: ImportColumnMapping;
   hasHeader?: boolean;
-  /** Ключи уже существующих транзакций (дата|сумма|описание). */
-  existingKeys?: ReadonlySet<string>;
+  /**
+   * Уже существующие транзакции: ключ (дата|сумма|описание) → сколько их.
+   * Строка файла — дубль, только если таких операций уже не меньше, чем её номер повтора.
+   * Set означает «по одной на ключ».
+   */
+  existingKeys?: ReadonlySet<string> | ReadonlyMap<string, number>;
+}
+
+function existingCount(
+  existing: ReadonlySet<string> | ReadonlyMap<string, number> | undefined,
+  key: string,
+): number {
+  if (!existing) return 0;
+  if (existing instanceof Map) return existing.get(key) ?? 0;
+  return existing.has(key) ? 1 : 0;
 }
 
 function cell(row: string[], index: number | undefined): string {
@@ -409,7 +436,7 @@ export function buildImportPreview(
 ): ImportPreviewRow[] {
   const { mapping, hasHeader = false, existingKeys } = options;
   const preview: ImportPreviewRow[] = [];
-  const seen = new Set<string>();
+  const seen = new Map<string, number>();
 
   const start = hasHeader ? 1 : 0;
   for (let index = start; index < rows.length; index += 1) {
@@ -448,10 +475,12 @@ export function buildImportPreview(
       dateValue === null ? 'invalid_date' : amount === null ? 'invalid_amount' : null;
 
     let duplicate = false;
+    let occurrence = 0;
     if (error === null && dateValue !== null && amount !== null) {
       const key = importRowKey(dateValue, amount, description);
-      duplicate = seen.has(key) || Boolean(existingKeys?.has(key));
-      seen.add(key);
+      occurrence = seen.get(key) ?? 0;
+      seen.set(key, occurrence + 1);
+      duplicate = occurrence < existingCount(existingKeys, key);
     }
 
     preview.push({
@@ -462,6 +491,7 @@ export function buildImportPreview(
       description,
       categoryName: description ? guessCategoryName(description) : null,
       duplicate,
+      occurrence,
       error,
     });
   }
