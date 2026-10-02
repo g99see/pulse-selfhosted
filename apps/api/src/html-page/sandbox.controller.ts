@@ -9,12 +9,23 @@ import { HtmlPageService } from './html-page.service';
  * без форм на сторонние адреса, без base и без авторедиректов. frame-ancestors
  * разрешает встраивание только основным домен.
  */
-export function sandboxCsp(mainDomain: string, publicOrigin = process.env.PUBLIC_ORIGIN): string {
+export function sandboxCsp(
+  mainDomain: string,
+  publicOrigin = process.env.PUBLIC_ORIGIN,
+  extraOrigins = process.env.EXTRA_ORIGINS,
+): string {
   const host = mainDomain.trim() || 'localhost';
   const anchoredToHttp = host.startsWith('localhost') || host.startsWith('127.');
   // PUBLIC_ORIGIN (точный origin основного сайта) приоритетнее: так работает http://IP.
   const exact = publicOrigin?.trim().replace(/\/+$/, '');
   const origin = exact || `${anchoredToHttp ? 'http' : 'https'}://${host}`;
+  const ancestors = [
+    ...new Set(
+      [origin, ...(extraOrigins ?? '').split(/\s+/)]
+        .map((o) => o.trim().replace(/\/+$/, ''))
+        .filter(Boolean),
+    ),
+  ];
   return [
     "default-src 'none'",
     "script-src 'unsafe-inline'",
@@ -22,7 +33,7 @@ export function sandboxCsp(mainDomain: string, publicOrigin = process.env.PUBLIC
     'img-src https: data:',
     "form-action 'none'",
     "base-uri 'none'",
-    `frame-ancestors ${origin}`,
+    `frame-ancestors ${ancestors.join(' ')}`,
   ].join('; ');
 }
 

@@ -18,6 +18,15 @@ describe('sandboxCsp', () => {
     expect(csp).toContain('frame-ancestors http://192.168.1.50:8081');
     expect(csp).not.toContain('https://');
   });
+  it('EXTRA_ORIGINS добавляются в frame-ancestors без дублей', () => {
+    const csp = sandboxCsp(
+      'x',
+      'http://192.168.1.50',
+      'https://puls.x.ts.net http://192.168.1.50/ https://puls.x.ts.net',
+    );
+    expect(csp).toContain('frame-ancestors http://192.168.1.50 https://puls.x.ts.net');
+    expect(csp.match(/puls\.x\.ts\.net/g)).toHaveLength(1);
+  });
 });
 
 describe('HtmlPageService.sandboxUrl', () => {
