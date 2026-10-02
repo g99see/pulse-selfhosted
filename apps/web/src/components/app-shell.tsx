@@ -9,7 +9,6 @@ import { Icon, Logo, type IconName } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
 import { QuickAddSheet } from '@/components/quick-add-sheet';
 import { QuietModeHotkey, QuietModeToggle } from '@/components/quiet-mode-toggle';
-import { aiApi } from '@/lib/ai-client';
 import { authApi } from '@/lib/auth-client';
 import { isLocale, localeFromCookieString } from '@/lib/locale';
 
@@ -93,20 +92,10 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const [busy, setBusy] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  // AI-функции видны только при подключённом ключе (ТЗ §3.9): лёгкий запрос
-  // статуса при загрузке кабинета; при ошибке считаем AI выключенным.
-  const [aiEnabled, setAiEnabled] = useState(false);
 
   useEffect(() => {
     const hour = new Date().getHours();
     setGreeting(hour < 5 ? 'night' : hour < 12 ? 'morning' : hour < 18 ? 'day' : 'evening');
-  }, []);
-
-  useEffect(() => {
-    void aiApi
-      .status()
-      .then((response) => setAiEnabled(response.status.enabled))
-      .catch(() => setAiEnabled(false));
   }, []);
 
   // Если язык ещё не выбран в браузере, берём его из профиля пользователя (ТЗ §6).
@@ -138,11 +127,10 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
     }
   }
 
-  // Ссылку на модерацию видят только модератор и администратор (ТЗ §2, §3.8);
-  // AI — только при подключённом ключе (ТЗ §3.9), админку AI — только админ.
+  // Ссылку на модерацию видят только модератор и администратор (ТЗ §2, §3.8),
+  // админку AI — только админ. Раздел «AI» виден всегда: без ключа там форма подключения.
   function visible(item: NavItem): boolean {
     if (item.key === 'app.nav.moderation') return canModerate(user.role);
-    if (item.key === 'app.nav.ai') return aiEnabled;
     if (item.key === 'app.nav.adminAi') return user.role === 'admin';
     return true;
   }

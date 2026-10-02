@@ -1213,8 +1213,9 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'ai.title': 'AI-помощник',
     'ai.subtitle': 'Спросите о своих данных обычным языком — помощник ответит по существу.',
     'ai.disabled.title': 'AI-помощник не подключён',
-    'ai.disabled.hint': 'Добавьте API-ключ в настройках, и AI-функции появятся здесь.',
-    'ai.disabled.goSettings': 'Перейти в настройки',
+    'ai.disabled.hint':
+      'Выберите провайдера и вставьте API-ключ ниже — чат, предложения и разбор недели появятся сразу. Ключ хранится зашифрованным на вашем сервере.',
+    'ai.disabled.goSettings': 'Все настройки',
 
     'ai.chat.title': 'Чат-помощник',
     'ai.chat.hint': 'Помощник видит только ваши данные и только на чтение.',
@@ -2570,8 +2571,9 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'ai.title': 'AI assistant',
     'ai.subtitle': 'Ask about your own data in plain language and get a concise answer.',
     'ai.disabled.title': 'AI assistant is not connected',
-    'ai.disabled.hint': 'Add an API key in settings and the AI features will appear here.',
-    'ai.disabled.goSettings': 'Go to settings',
+    'ai.disabled.hint':
+      'Pick a provider and paste an API key below — chat, suggestions and the weekly review appear right away. The key is stored encrypted on your server.',
+    'ai.disabled.goSettings': 'All settings',
 
     'ai.chat.title': 'Chat assistant',
     'ai.chat.hint': 'The assistant sees only your data, and read-only.',
