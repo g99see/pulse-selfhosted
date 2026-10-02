@@ -173,7 +173,9 @@ describe('AI assistant API (интеграция с PostgreSQL)', () => {
 
     // Первый вызов — с системным промптом и инструментами.
     expect(provider.calls).toHaveLength(2);
-    expect(provider.calls[0]!.request.system).toBe(AI_SYSTEM_PROMPT);
+    expect(provider.calls[0]!.request.system).toContain(AI_SYSTEM_PROMPT);
+    // Валюта пользователя в промпте — иначе модель додумывает чужую (₽ при счёте в кронах).
+    expect(provider.calls[0]!.request.system).toMatch(/базовой валюте пользователя [A-Z]{3}/);
     expect(provider.calls[0]!.request.tools?.length).toBeGreaterThan(0);
     // Второй вызов содержит результат вызова инструмента для этой же сессии.
     const toolMessage = provider.calls[1]!.request.messages.find(
