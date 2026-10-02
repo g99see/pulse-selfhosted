@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+'use client';
+
 /**
  * Публичная вкладка HTML-страницы профиля (ТЗ §3.8). Страница живёт на
  * отдельном домене песочницы и встраивается в iframe со строгим sandbox:
@@ -6,7 +8,7 @@
  * считает фрейм чужим, поэтому cookie и данные основного сайта недоступны.
  * `referrerPolicy="no-referrer"` не отдаёт наружу адрес профиля.
  */
-import { sandboxPageUrl } from '@/lib/html-page-client';
+import { useSandboxPageUrl } from '@/lib/use-sandbox-page-url';
 import { t } from '@/lib/i18n';
 
 export interface PublicHtmlPageProps {
@@ -19,7 +21,9 @@ export interface PublicHtmlPageProps {
 
 /** Встроенный просмотр пользовательской HTML-страницы в изолированном iframe. */
 export function PublicHtmlPage({ nickname, sandboxUrl, className }: PublicHtmlPageProps) {
-  const source = sandboxPageUrl(sandboxUrl ?? `/sandbox/${nickname}`);
+  const source = useSandboxPageUrl(sandboxUrl ?? `/sandbox/${nickname}`);
+  // Несколько origin: адрес выбирается в браузере, до этого iframe не рисуем.
+  if (source === null) return <div className={className} data-testid="public-html-page" />;
 
   return (
     <div className={className} data-testid="public-html-page">
