@@ -179,6 +179,9 @@ export interface PeriodTotals {
   spent: number;
   earned: number;
   avgMood: number | null;
+  avgEnergy: number | null;
+  avgStress: number | null;
+  avgSleep: number | null;
   checkins: number;
 }
 
@@ -352,6 +355,10 @@ export interface StatsDayResponse {
   budgetLimit: number;
   budgetRemaining: number;
   avgMood: number | null;
+  /** Средние по чек-инам, где поле заполнено; null — данных нет (ТЗ v2 §4). */
+  avgEnergy: number | null;
+  avgStress: number | null;
+  avgSleep: number | null;
   checkins: number;
 }
 
@@ -360,6 +367,9 @@ export interface StatsSeriesPoint {
   spent: number;
   earned: number;
   mood: number | null;
+  energy: number | null;
+  stress: number | null;
+  sleep: number | null;
 }
 
 export interface StatsReportResponse {
@@ -374,6 +384,9 @@ export interface StatsReportResponse {
   earned: number;
   net: number;
   avgMood: number | null;
+  avgEnergy: number | null;
+  avgStress: number | null;
+  avgSleep: number | null;
   checkins: number;
   byCategory: CategorySpend[];
   series: StatsSeriesPoint[];

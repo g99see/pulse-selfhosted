@@ -68,6 +68,7 @@ model User {
   exchangeRates               ExchangeRate[]
   telegramLink                TelegramLink?
   telegramLinkCodes           TelegramLinkCode[]
+  checkInDrafts               CheckInDraft[]
   discordLink                 DiscordLink?
   discordLinkCodes            DiscordLinkCode[]
   notificationChannelSettings NotificationChannelSetting[]
@@ -215,6 +216,25 @@ model CheckIn {
   @@map("check_ins")
 }
 
+/// Черновик многошагового чек-ина из мессенджера (ТЗ v2 §4): один активный на
+/// пользователя и канал, живёт 30 минут. Логика шагов — packages/shared/checkin-dialog.
+model CheckInDraft {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Канал диалога: telegram, discord…
+  channel   String
+  step      String
+  data      Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@unique([userId, channel])
+  @@index([expiresAt])
+  @@map("check_in_drafts")
+}
+
 /// Категория транзакции (ТЗ §7): userId = null — системная, иначе своя.
 model Category {
   id        String   @id @default(cuid())
@@ -318,6 +338,10 @@ model DailyStat {
   spent         Decimal  @default(0) @db.Decimal(14, 2)
   earned        Decimal  @default(0) @db.Decimal(14, 2)
   avgMood       Float?   @map("avg_mood")
+  /// Средние по чек-инам, где поле заполнено; null — данных нет (ТЗ v2 §4).
+  avgEnergy     Float?   @map("avg_energy")
+  avgStress     Float?   @map("avg_stress")
+  avgSleep      Float?   @map("avg_sleep")
   checkinsCount Int      @default(0) @map("checkins_count")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

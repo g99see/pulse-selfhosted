@@ -4,6 +4,8 @@
  */
 export * from './mood';
 export * from './checkin';
+export * from './checkin-parser';
+export * from './checkin-dialog';
 export * from './voice-tags';
 export * from './money';
 export * from './currency';

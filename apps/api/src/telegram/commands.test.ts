@@ -4,6 +4,27 @@
 import { describe, expect, it } from 'vitest';
 import { moodKeyboard, parseCallback, parseCommand, undoKeyboard } from './commands';
 
+describe('команды чек-ина (ТЗ v2 §4)', () => {
+  it('/checkin без аргументов — диалог, с аргументами — быстрая форма', () => {
+    expect(parseCommand('/checkin')).toEqual({ kind: 'checkin' });
+    expect(parseCommand('/checkin 4 энергия 3 #спорт')).toEqual({
+      kind: 'checkin-line',
+      text: '4 энергия 3 #спорт',
+    });
+  });
+
+  it('/mood N', () => {
+    expect(parseCommand('/mood 4')).toEqual({ kind: 'mood', mood: 4 });
+    expect(parseCommand('/mood@PulsBot 2')).toEqual({ kind: 'mood', mood: 2 });
+    expect(parseCommand('/mood')).toEqual({ kind: 'mood', mood: null });
+    expect(parseCommand('/mood 9')).toEqual({ kind: 'mood', mood: null });
+  });
+
+  it('callback диалога', () => {
+    expect(parseCallback('ci:energy:3')).toEqual({ kind: 'checkin', action: 'ci:energy:3' });
+  });
+});
+
 describe('parseCommand', () => {
   it('разбирает /start с кодом привязки и без него', () => {
     expect(parseCommand('/start')).toEqual({ kind: 'start', code: null });
@@ -60,11 +81,11 @@ describe('клавиатуры', () => {
     const rows = moodKeyboard();
     const buttons = rows.flat();
     expect(buttons.map((button) => button.callbackData)).toEqual([
-      'mood:1',
-      'mood:2',
-      'mood:3',
-      'mood:4',
-      'mood:5',
+      'ci:mood:1',
+      'ci:mood:2',
+      'ci:mood:3',
+      'ci:mood:4',
+      'ci:mood:5',
     ]);
     expect(buttons.every((button) => button.text.length > 0)).toBe(true);
   });

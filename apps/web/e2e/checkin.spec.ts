@@ -80,9 +80,12 @@ test('чек-ин отвечается за пару кликов с главн�
   // Расширенный чек-ин: настроение, итог дня и сохранение.
   await page.getByTestId('mood-5').click();
   await page.getByTestId('checkin-day-summary').fill('Успел на тренировку');
+  await page.getByTestId('checkin-sleep').fill('7.5');
   await page.getByTestId('checkin-save').click();
   await expect(page.getByTestId('checkin-saved')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId('checkin-history')).toContainText('Успел на тренировку');
+  // История показывает полную запись, а не только настроение (ТЗ v2 §4).
+  await expect(page.getByTestId('checkin-history')).toContainText('7.5');
 
   // Расписание: по умолчанию 3 раза в день, меняется на 5.
   await expect(page.getByTestId('checkin-times-per-day')).toHaveValue('3');
