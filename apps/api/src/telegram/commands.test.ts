@@ -2,7 +2,7 @@
 // Unit-тесты чистой логики Telegram-бота (ТЗ §3.6, §4): разбор команд, разбор
 // callback-кнопок и сборка inline-клавиатур. Без сети и без Telegram API.
 import { describe, expect, it } from 'vitest';
-import { moodKeyboard, parseCallback, parseCommand, undoKeyboard } from './commands';
+import { BOT_COMMANDS, moodKeyboard, parseCallback, parseCommand, undoKeyboard } from './commands';
 
 describe('команды чек-ина (ТЗ v2 §4)', () => {
   it('/checkin без аргументов — диалог, с аргументами — быстрая форма', () => {
@@ -93,5 +93,35 @@ describe('клавиатуры', () => {
   it('кнопка «Отменить» несёт id транзакции', () => {
     const rows = undoKeyboard('tx_42');
     expect(rows[0][0]).toEqual({ text: 'Отменить', callbackData: 'undo:tx_42' });
+  });
+});
+
+describe('/spent (ТЗ v2 §7)', () => {
+  it('«сумма описание» и «описание сумма» → строка для быстрого ввода', () => {
+    expect(parseCommand('/spent 12 кофе')).toEqual({ kind: 'spent', text: 'кофе 12' });
+    expect(parseCommand('/spent кофе 12')).toEqual({ kind: 'spent', text: 'кофе 12' });
+    expect(parseCommand('/spent 12,5 такси домой')).toEqual({
+      kind: 'spent',
+      text: 'такси домой 12.5',
+    });
+    expect(parseCommand('/spent@PulsBot 300 обед')).toEqual({ kind: 'spent', text: 'обед 300' });
+  });
+
+  it('знак в аргументе игнорируется — это всегда расход', () => {
+    expect(parseCommand('/spent +50 обед')).toEqual({ kind: 'spent', text: 'обед 50' });
+    expect(parseCommand('/spent обед +50')).toEqual({ kind: 'spent', text: 'обед 50' });
+  });
+
+  it('без суммы или без описания — text null', () => {
+    expect(parseCommand('/spent')).toEqual({ kind: 'spent', text: null });
+    expect(parseCommand('/spent кофе')).toEqual({ kind: 'spent', text: null });
+    expect(parseCommand('/spent 12')).toEqual({ kind: 'spent', text: null });
+  });
+
+  it('меню команд содержит spent, mood, today', () => {
+    expect(BOT_COMMANDS.map((item) => item.command)).toEqual(
+      expect.arrayContaining(['spent', 'mood', 'today']),
+    );
+    expect(BOT_COMMANDS.every((item) => item.description.length <= 256)).toBe(true);
   });
 });

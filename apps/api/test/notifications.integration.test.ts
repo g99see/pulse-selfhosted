@@ -40,6 +40,7 @@ const fakeTelegram: TelegramApi = {
     sentTelegram.push(message);
   },
   async answerCallbackQuery() {},
+  async setCommands() {},
   async getUpdates() {
     return [];
   },

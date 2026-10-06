@@ -22,6 +22,8 @@ export type TelegramCommand =
   /** `/mood 4`; mood null — аргумент не распознан. */
   | { kind: 'mood'; mood: number | null }
   | { kind: 'today' }
+  /** `/spent 12 кофе`; text — «кофе 12» для быстрого разбора, null — не распознано. */
+  | { kind: 'spent'; text: string | null }
   | { kind: 'help' }
   | { kind: 'unlink' }
   | { kind: 'quick'; text: string }
@@ -42,6 +44,31 @@ export interface InlineButton {
 
 /** Символы одноразового кода привязки: латиница, цифры, дефис и подчёркивание. */
 export const LINK_CODE_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
+
+/**
+ * Аргументы `/spent`: «12 кофе», «12.5 такси» или «кофе 12» → «кофе 12».
+ * Это всегда расход: знак +/− в аргументе игнорируется.
+ */
+export function parseSpentArgs(args: string): string | null {
+  const text = args.trim();
+  const leading = /^[+-]?\s*(\d{1,9}(?:[.,]\d{1,2})?)\s+(.+)$/u.exec(text);
+  const candidate = leading
+    ? `${leading[2]!.trim()} ${leading[1]}`
+    : text.replace(/\s*[+-](?=\s*\d)/u, ' ');
+  const parsed = parseQuickTransaction(candidate, 'expense');
+  if (!parsed) return null;
+  return `${parsed.title} ${parsed.amount}`;
+}
+
+/** Список команд для меню бота (setMyCommands). */
+export const BOT_COMMANDS: { command: string; description: string }[] = [
+  { command: 'checkin', description: 'Чек-ин: настроение, энергия, сон' },
+  { command: 'mood', description: 'Быстро записать настроение: /mood 4' },
+  { command: 'spent', description: 'Записать трату: /spent 12 кофе' },
+  { command: 'today', description: 'Траты и настроение за сегодня' },
+  { command: 'help', description: 'Справка по командам' },
+  { command: 'unlink', description: 'Отвязать чат' },
+];
 
 /** Разбирает текст сообщения в команду бота. */
 export function parseCommand(raw: string): TelegramCommand {
@@ -69,6 +96,8 @@ export function parseCommand(raw: string): TelegramCommand {
         return { kind: 'mood', mood: parseMoodArg(rest.join(' ')) };
       case 'today':
         return { kind: 'today' };
+      case 'spent':
+        return { kind: 'spent', text: parseSpentArgs(rest.join(' ')) };
       case 'help':
         return { kind: 'help' };
       case 'unlink':

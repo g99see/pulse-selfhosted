@@ -41,6 +41,7 @@ const fakeApi: TelegramApi = {
   async answerCallbackQuery(id: string, text?: string): Promise<void> {
     answered.push({ id, text });
   },
+  async setCommands(): Promise<void> {},
   async getUpdates(): Promise<unknown[]> {
     return [];
   },

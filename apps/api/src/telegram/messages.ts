@@ -144,6 +144,7 @@ export function helpText(): string {
     '/checkin — пошаговый чек-ин кнопками (энергия, стресс, сон, теги, заметка — по желанию)',
     '/checkin 4 энергия 3 стресс 2 сон 7.5 #спорт заметка — всё одной строкой',
     '/mood 4 — только настроение, одной командой',
+    '/spent 12 кофе — записать трату (категория подберётся сама)',
     '/today — траты и среднее настроение за сегодня',
     '«кофе 250» или «зарплата +80000» — записать транзакцию одной строкой',
     '/unlink — отвязать чат',
@@ -158,6 +159,29 @@ export function transactionSavedText(transaction: TransactionDto): string {
   return `Записал! ${kind}: ${money(transaction.amount, transaction.currency)}${category} — «${
     transaction.comment ?? ''
   }»`;
+}
+
+/** Ответ на /spent: трата, категория и остаток бюджета категории (если он есть). */
+export function spentSavedText(
+  transaction: TransactionDto,
+  budget: { limit: number; spent: number; categoryName: string } | null,
+): string {
+  const lines = [transactionSavedText(transaction)];
+  if (!transaction.categoryName) lines.push('Категория не определена — можно поменять на сайте.');
+  if (budget) {
+    const left = budget.limit - budget.spent;
+    lines.push(
+      left >= 0
+        ? `Бюджет «${budget.categoryName}»: осталось ${money(left, transaction.currency)} из ${money(budget.limit, transaction.currency)}`
+        : `Бюджет «${budget.categoryName}» превышен на ${money(-left, transaction.currency)}`,
+    );
+  }
+  return lines.join('\n');
+}
+
+/** /spent без суммы. */
+export function spentUsageText(): string {
+  return 'Укажите сумму и описание: /spent 12 кофе';
 }
 
 export function transactionCancelledText(transaction: TransactionSummary): string {
