@@ -95,11 +95,13 @@ export function CheckInCard() {
   const last = checkIns[0];
 
   return (
-    <Card className="relative overflow-hidden !bg-[var(--puls-wellbeing-soft)]">
+    <Card className="relative overflow-hidden !bg-[var(--puls-wellbeing-soft)] !p-4 sm:!p-6">
       {celebrate ? <Confetti /> : null}
       <div className="flex flex-col gap-4" data-testid="checkin-card">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="font-heading text-xl font-bold">{t('checkin.card.question')}</h2>
+          <h2 className="font-heading text-xl font-bold text-[var(--puls-ink)]">
+            {t('checkin.card.question')}
+          </h2>
           {checkIns.length > 0 ? (
             <span className="text-xs text-[var(--puls-wellbeing-text)]">
               {t('checkin.card.today', { count: checkIns.length })}
@@ -152,7 +154,7 @@ export function CheckInCard() {
         <Link
           href="/checkin"
           data-testid="checkin-open"
-          className="self-start rounded-[var(--radius-button)] bg-[var(--puls-surface)] px-4 py-2 text-sm font-semibold text-[var(--puls-primary-text)]"
+          className="inline-flex min-h-11 items-center self-start rounded-[var(--radius-button)] bg-[var(--puls-surface)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('checkin.card.open')}
         </Link>

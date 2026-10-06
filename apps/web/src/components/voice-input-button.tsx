@@ -116,9 +116,9 @@ export function VoiceInputButton({
         type="button"
         data-testid={testId}
         aria-pressed={listening}
-        aria-label={label}
+        aria-label={`${listening ? t('checkin.voice.stop') : t('checkin.voice.start')}: ${label}`}
         onClick={() => (listening ? recognitionRef.current?.stop() : start())}
-        className="rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3.5 py-1.5 text-xs font-semibold text-[var(--puls-primary-text)]"
+        className="inline-flex min-h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
       >
         {listening ? t('checkin.voice.stop') : t('checkin.voice.start')}
       </button>

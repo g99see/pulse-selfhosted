@@ -97,7 +97,7 @@ export default function AdminAiPage() {
   if (allowed === null) {
     return (
       <div className="flex flex-col gap-4" data-testid="ai-admin-page">
-        <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('ai.admin.title')}</h1>
         <p className="text-sm text-[var(--puls-ink-muted)]">{t('ai.admin.loading')}</p>
       </div>
     );
@@ -106,7 +106,7 @@ export default function AdminAiPage() {
   if (!allowed) {
     return (
       <div className="flex flex-col gap-4" data-testid="ai-admin-page">
-        <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('ai.admin.title')}</h1>
         <Card>
           <div data-testid="ai-admin-forbidden">
             <Alert>{t('ai.admin.forbidden')}</Alert>
@@ -121,7 +121,7 @@ export default function AdminAiPage() {
       <div className="flex items-center gap-3">
         <IconBubble name="bot" tone="primary" size={48} />
         <div>
-          <h1 className="text-3xl font-extrabold">{t('ai.admin.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('ai.admin.title')}</h1>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('ai.admin.subtitle')}</p>
         </div>
       </div>

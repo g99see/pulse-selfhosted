@@ -293,7 +293,7 @@ export default function FamilyPage() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
         <IconBubble name="users" tone="wellbeing" size={48} />
-        <h1 className="text-3xl font-extrabold">{t('family.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('family.title')}</h1>
       </div>
 
       {error ? <Alert>{error}</Alert> : null}
@@ -313,14 +313,14 @@ export default function FamilyPage() {
                 data-testid="family-name"
                 value={newName}
                 onChange={(event) => setNewName(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
             <button
               type="submit"
               data-testid="family-create"
               disabled={busy}
-              className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+              className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
             >
               {t('family.createSubmit')}
             </button>
@@ -337,14 +337,14 @@ export default function FamilyPage() {
                 data-testid="family-join-code"
                 value={joinCode}
                 onChange={(event) => setJoinCode(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
             <button
               type="submit"
               data-testid="family-join"
               disabled={busy}
-              className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+              className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
             >
               {t('family.joinSubmit')}
             </button>
@@ -375,7 +375,7 @@ export default function FamilyPage() {
                   <span className="flex items-center gap-3 text-sm">
                     <span
                       aria-hidden="true"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--puls-wellbeing-soft)] font-heading text-sm font-extrabold text-[var(--puls-wellbeing-text)]"
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--puls-wellbeing-soft)] font-heading text-sm font-extrabold text-[var(--puls-wellbeing-text)]"
                     >
                       {member.nickname.slice(0, 2).toUpperCase()}
                     </span>
@@ -405,7 +405,7 @@ export default function FamilyPage() {
                   data-testid="family-invite-create"
                   onClick={() => void makeInvite()}
                   disabled={busy}
-                  className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+                  className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
                 >
                   {t('family.inviteSubmit')}
                 </button>
@@ -474,7 +474,7 @@ export default function FamilyPage() {
                   data-testid="family-account-name"
                   value={accountName}
                   onChange={(event) => setAccountName(event.target.value)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="family-account-type" className="flex flex-col gap-1">
@@ -486,7 +486,7 @@ export default function FamilyPage() {
                   data-testid="family-account-type"
                   value={accountType}
                   onChange={(event) => setAccountType(event.target.value as FamilyAccountType)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 >
                   {FAMILY_ACCOUNT_TYPES.map((type) => (
                     <option key={type} value={type}>
@@ -505,14 +505,14 @@ export default function FamilyPage() {
                   inputMode="decimal"
                   value={accountBalance}
                   onChange={(event) => setAccountBalance(event.target.value)}
-                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 w-32 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <button
                 type="submit"
                 data-testid="family-account-create"
                 disabled={busy}
-                className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+                className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
               >
                 {t('family.account.create')}
               </button>
@@ -522,7 +522,7 @@ export default function FamilyPage() {
               <article
                 key={account.id}
                 data-testid="family-account"
-                className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
+                className="flex flex-col gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="flex flex-col">
@@ -559,7 +559,7 @@ export default function FamilyPage() {
                         setTxAccount(account.id);
                         setTxKind(event.target.value as FamilyTransactionKind);
                       }}
-                      className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                      className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     >
                       <option value="income">{t('family.tx.income')}</option>
                       <option value="expense">{t('family.tx.expense')}</option>
@@ -579,7 +579,7 @@ export default function FamilyPage() {
                         setTxAccount(account.id);
                         setTxAmount(event.target.value);
                       }}
-                      className="h-10 w-28 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                      className="h-11 w-28 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     />
                   </label>
                   <label
@@ -598,14 +598,14 @@ export default function FamilyPage() {
                         setTxAccount(account.id);
                         setTxNote(event.target.value);
                       }}
-                      className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                      className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                     />
                   </label>
                   <button
                     type="submit"
                     data-testid="family-tx-submit"
                     disabled={busy}
-                    className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                    className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
                   >
                     {t('family.tx.submit')}
                   </button>
@@ -656,7 +656,7 @@ export default function FamilyPage() {
                   data-testid="family-goal-title"
                   value={goalTitle}
                   onChange={(event) => setGoalTitle(event.target.value)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="family-goal-target" className="flex flex-col gap-1">
@@ -669,7 +669,7 @@ export default function FamilyPage() {
                   inputMode="decimal"
                   value={goalTarget}
                   onChange={(event) => setGoalTarget(event.target.value)}
-                  className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 w-32 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <label htmlFor="family-goal-deadline" className="flex flex-col gap-1">
@@ -682,14 +682,14 @@ export default function FamilyPage() {
                   type="date"
                   value={goalDeadline}
                   onChange={(event) => setGoalDeadline(event.target.value)}
-                  className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </label>
               <button
                 type="submit"
                 data-testid="family-goal-create"
                 disabled={busy}
-                className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+                className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
               >
                 {t('family.goal.create')}
               </button>
@@ -700,7 +700,7 @@ export default function FamilyPage() {
                 <article
                   key={goal.id}
                   data-testid="family-goal"
-                  className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
+                  className="flex flex-col gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4"
                 >
                   <div className="flex items-center gap-4">
                     <ProgressRing
@@ -763,14 +763,14 @@ export default function FamilyPage() {
                           setDepositGoal(goal.id);
                           setDepositAmount(event.target.value);
                         }}
-                        className="h-10 w-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                        className="h-11 w-32 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                       />
                     </label>
                     <button
                       type="submit"
                       data-testid="family-goal-deposit-submit"
                       disabled={busy || depositGoal !== goal.id}
-                      className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+                      className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
                     >
                       {t('family.goal.depositSubmit')}
                     </button>

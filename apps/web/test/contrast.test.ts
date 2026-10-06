@@ -28,6 +28,10 @@ function textPairs(palette: ThemePalette): Array<[string, string, string]> {
     ['wellbeingText/wellbeingSoft', palette.wellbeingText, palette.wellbeingSoft],
     ['warningText/warningSoft', palette.warningText, palette.warningSoft],
     ['ink/primarySoft', palette.ink, palette.primarySoft],
+    ['inkMuted/primarySoft', palette.inkMuted, palette.primarySoft],
+    ['inkMuted/financeSoft', palette.inkMuted, palette.financeSoft],
+    ['inkMuted/wellbeingSoft', palette.inkMuted, palette.wellbeingSoft],
+    ['inkMuted/warningSoft', palette.inkMuted, palette.warningSoft],
   ];
 }
 
@@ -70,6 +74,14 @@ describe('расчёт контраста (ТЗ §6, WCAG 2.1 AA)', () => {
     expect(contrastRatio(DARK_PALETTE.focus, DARK_PALETTE.bg)).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(DARK_PALETTE.focus, DARK_PALETTE.surface)).toBeGreaterThanOrEqual(3);
   });
+
+  it('держит 3:1 для границ полей ввода (lineStrong) в обеих темах', () => {
+    for (const palette of [LIGHT_PALETTE, DARK_PALETTE]) {
+      for (const background of [palette.bg, palette.surface, palette.surface2]) {
+        expect(contrastRatio(palette.lineStrong, background)).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
 });
 
 describe('палитра совпадает с CSS-переменными', () => {
@@ -110,6 +122,7 @@ describe('палитра совпадает с CSS-переменными', () =
     ['--puls-finance-soft', 'financeSoft'],
     ['--puls-wellbeing-soft', 'wellbeingSoft'],
     ['--puls-warning-soft', 'warningSoft'],
+    ['--puls-line-strong', 'lineStrong'],
   ];
 
   it('светлая тема в CSS и в TS совпадают', () => {

@@ -23,7 +23,7 @@ export function toneClasses(tone: Tone): string {
   return TONE_SOFT[tone];
 }
 
-/** Карточка: скругление 24px, мягкая тень (ТЗ §8, docs/REDESIGN.md). */
+/** Карточка: срезанный нижний левый угол, плоская «наклейка»-тень (docs/REDESIGN-V2.md). */
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
@@ -35,7 +35,7 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 }
 
 const INPUT_CLASS =
-  'h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15';
+  'h-12 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/20';
 
 /** Поле формы с подписью, подсказкой и ошибкой (доступность: aria-describedby). */
 export function Field({
@@ -106,7 +106,7 @@ export function PrimaryButton({
   return (
     <button
       {...props}
-      className={`h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] transition-[transform,opacity] duration-150 hover:opacity-95 active:translate-y-px disabled:opacity-50 disabled:shadow-none ${className}`}
+      className={`puls-key h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] hover:opacity-95 disabled:opacity-50 ${className}`}
     >
       {children}
     </button>
@@ -121,7 +121,7 @@ export function GhostButton({
   return (
     <button
       {...props}
-      className={`h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface)] px-6 font-semibold transition-colors duration-150 hover:bg-[var(--puls-surface-2)] disabled:opacity-50 ${className}`}
+      className={`h-12 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface)] px-6 font-semibold transition-colors duration-150 hover:bg-[var(--puls-primary-soft)] disabled:opacity-50 ${className}`}
     >
       {children}
     </button>
@@ -168,7 +168,7 @@ export function ProgressBar({
         <span>{percent}%</span>
       </div>
       <div
-        className="h-2.5 w-full overflow-hidden rounded-[var(--radius-chip)] bg-[var(--puls-line)]"
+        className="h-3 w-full overflow-hidden rounded-[var(--radius-chip)] border-[1.5px] border-[var(--puls-line-strong)]/40 bg-[var(--puls-surface-2)]"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={max}
@@ -207,7 +207,7 @@ export function IconBubble({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-[14px] ${TONE_SOFT[tone]}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[12px_12px_12px_4px] ${TONE_SOFT[tone]}`}
       style={{ width: size, height: size }}
     >
       <Icon name={name} size={Math.round(size * 0.5)} />
@@ -234,13 +234,13 @@ export function StatTile({
   return (
     <div
       data-testid={testId}
-      className={`flex flex-col gap-1 rounded-[20px] p-4 ${TONE_SOFT[tone]}`}
+      className={`flex flex-col gap-1 rounded-[var(--radius-tile)] border-[1.5px] border-current/15 p-4 ${TONE_SOFT[tone]}`}
     >
       <div className="flex items-center gap-1.5 text-xs font-semibold">
         {icon ? <Icon name={icon} size={15} /> : null}
         <span>{label}</span>
       </div>
-      <div className="font-heading text-2xl font-extrabold text-[var(--puls-ink)]">{value}</div>
+      <div className="font-numeral text-xl text-[var(--puls-ink)] sm:text-2xl">{value}</div>
       {hint ? <div className="text-xs text-[var(--puls-ink-muted)]">{hint}</div> : null}
     </div>
   );
@@ -305,7 +305,7 @@ export function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={`${fill ? 'grid w-full grid-cols-2 sm:flex' : 'inline-flex max-w-full overflow-x-auto'} gap-1 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] p-1 shadow-sm`}
+      className={`${fill ? 'grid w-full grid-cols-2 sm:flex' : 'inline-flex max-w-full overflow-x-auto'} gap-1 rounded-[var(--radius-chip)] border-[1.5px] border-[var(--puls-line)] bg-[var(--puls-surface)] p-1`}
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -316,16 +316,67 @@ export function Segmented<T extends string>({
             aria-pressed={active}
             data-testid={option.testId}
             onClick={() => onChange(option.value)}
-            className={`${fill ? 'min-w-0 px-3 sm:flex-1 sm:px-4' : 'shrink-0 px-4'} rounded-[var(--radius-chip)] py-2 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ${
+            className={`${fill ? 'min-w-0 px-3 sm:flex-1 sm:px-4' : 'shrink-0 px-4'} min-h-11 rounded-[var(--radius-chip)] py-2 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ${
               active
                 ? 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
-                : 'text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)] hover:text-[var(--puls-ink)]'
+                : 'text-[var(--puls-ink-muted)] hover:bg-[var(--puls-primary-soft)] hover:text-[var(--puls-ink)]'
             }`}
           >
             {option.label}
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * «Монитор»: тёмная панель с главным числом дня и линией пульса (docs/REDESIGN-V2.md).
+ * Единственный по-настоящему яркий блок экрана: глаз сразу находит «сколько сегодня потрачено».
+ */
+export function MonitorTile({
+  label,
+  value,
+  hint,
+  testId,
+  children,
+}: {
+  label: ReactNode;
+  value: ReactNode;
+  hint?: ReactNode;
+  testId?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      className="relative col-span-full flex flex-col gap-1 overflow-hidden rounded-[var(--radius-card)] bg-[var(--puls-primary)] p-5 text-[var(--puls-on-primary)]"
+    >
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        viewBox="0 0 300 60"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-x-0 bottom-2 h-14 w-full opacity-30"
+      >
+        <path
+          className="puls-trace"
+          style={{ ['--puls-trace-len' as string]: 520 }}
+          d="M0 34h70l14-22 18 44 16-32 12 10h50l12-18 16 36 14-20h78"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+      <div className="relative text-sm font-semibold">{label}</div>
+      <div className="font-numeral relative text-[length:var(--puls-fs-numeral)] leading-tight">
+        {value}
+      </div>
+      {hint ? <div className="relative text-sm">{hint}</div> : null}
+      {children ? <div className="relative mt-2">{children}</div> : null}
     </div>
   );
 }

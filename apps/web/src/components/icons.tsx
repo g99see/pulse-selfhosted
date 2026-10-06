@@ -73,13 +73,16 @@ export function Icon({
   );
 }
 
-/** Логотип: мягкий индиго-квадрат с линией пульса. */
+/** Логотип: бирюзовая плитка со срезанным нижним левым углом и линией пульса. */
 export function Logo({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <rect width="32" height="32" rx="10" fill="var(--puls-primary)" />
       <path
-        d="M6 16.5h5l2.5-6 5 12 2.5-6h5"
+        d="M10 0h12a10 10 0 0 1 10 10v12a10 10 0 0 1-10 10H5a5 5 0 0 1-5-5V10A10 10 0 0 1 10 0Z"
+        fill="var(--puls-primary)"
+      />
+      <path
+        d="M5 16.5h5l2.5-6 5 12 2.5-6h5"
         fill="none"
         stroke="var(--puls-on-primary)"
         strokeWidth="2.4"

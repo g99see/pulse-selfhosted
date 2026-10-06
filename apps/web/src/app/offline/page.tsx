@@ -27,7 +27,7 @@ export default async function OfflinePage() {
           action={
             <Link
               href="/app"
-              className="inline-flex h-12 items-center rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] transition-opacity duration-150 hover:opacity-95"
+              className="inline-flex h-12 items-center rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] puls-key hover:opacity-95"
             >
               {t('offline.home', locale)}
             </Link>

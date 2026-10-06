@@ -31,7 +31,7 @@ const DAY_LABEL: Record<RecurrenceFrequency, string> = {
 };
 
 const inputClass =
-  'h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3';
+  'h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3';
 
 interface RecurringSectionProps {
   accounts: AccountDto[];
@@ -352,7 +352,7 @@ export function RecurringSection({
             type="submit"
             disabled={busy}
             data-testid="recurring-submit"
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] disabled:opacity-50"
+            className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] puls-key disabled:opacity-50"
           >
             {t('finance.recurring.add')}
           </button>

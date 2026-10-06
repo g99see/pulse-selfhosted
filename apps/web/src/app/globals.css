@@ -5,47 +5,65 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Семейства собираются из self-hosted сабсетов (см. app/layout.tsx). */
+  /* «Пульс-монитор» (docs/REDESIGN-V2.md): Onest — текст и заголовки, Unbounded — крупные числа и h1. */
   --font-sans:
-    var(--font-inter-cyrillic), var(--font-inter-latin), ui-sans-serif, system-ui, -apple-system,
+    var(--font-onest-cyrillic), var(--font-onest-latin), ui-sans-serif, system-ui, -apple-system,
     'Segoe UI', sans-serif;
   --font-heading:
-    var(--font-manrope-cyrillic), var(--font-manrope-latin), var(--font-inter-cyrillic),
-    var(--font-inter-latin), ui-sans-serif, system-ui, sans-serif;
-  /* «Мягкий wellbeing» (docs/REDESIGN.md): крупные скругления по всему интерфейсу. */
-  --radius-card: 24px;
-  --radius-button: 14px;
+    var(--font-onest-cyrillic), var(--font-onest-latin), ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    var(--font-unbounded-cyrillic), var(--font-unbounded-latin), var(--font-onest-cyrillic),
+    var(--font-onest-latin), ui-sans-serif, system-ui, sans-serif;
+  /* Фирменная форма: у каждого блока «срезан» левый нижний угол — как у ленты кардиографа. */
+  --radius-card: 24px 24px 24px 8px;
+  --radius-tile: 16px 16px 16px 6px;
+  --radius-sheet: 28px 28px 28px 8px;
+  --radius-button: 12px;
   --radius-chip: 999px;
 }
 
-/* Палитра «мягкий wellbeing»: пастельные области — деньги зелёные,
-   самочувствие персиковое, бренд — мягкий индиго (ТЗ §8, docs/REDESIGN.md). */
+/* Палитра «пульс-монитор»: деньги — лайм, самочувствие — янтарь, бренд — глубокий бирюзовый,
+   фон — холодная мятная бумага. Все текстовые пары проверяет test/contrast.test.ts. */
 :root {
-  --puls-bg: #f6f2ec;
-  --puls-surface: #ffffff;
-  --puls-surface-2: #faf7f2;
-  --puls-primary: #5d55c9;
-  --puls-finance: #3fae84;
-  --puls-wellbeing: #f19a57;
-  --puls-warning: #e5544d;
-  --puls-ink: #24212d;
-  --puls-ink-muted: #66626f;
+  --puls-bg: #e9f0ea;
+  --puls-surface: #fafdfb;
+  --puls-surface-2: #f0f6f1;
+  --puls-primary: #0d5c55;
+  --puls-finance: #6fae1f;
+  --puls-wellbeing: #f0a30a;
+  --puls-warning: #e0452d;
+  --puls-ink: #0f2620;
+  --puls-ink-muted: #485d54;
   /* Текстовые варианты: контраст ≥ 4.5:1 на фоне, поверхности и мягкой заливке (ТЗ §6, WCAG AA). */
-  --puls-on-primary: #ffffff;
-  --puls-primary-text: #5048bd;
-  --puls-finance-text: #1c6a50;
-  --puls-wellbeing-text: #9c4f15;
-  --puls-warning-text: #b0302b;
-  --puls-focus: #5d55c9;
+  --puls-on-primary: #f4fbf8;
+  --puls-primary-text: #0d5c55;
+  --puls-finance-text: #35650f;
+  --puls-wellbeing-text: #764c00;
+  --puls-warning-text: #b02a17;
+  --puls-focus: #0d5c55;
   /* Мягкие заливки областей: фон плиток, бейджей, активного пункта меню. */
-  --puls-primary-soft: #ecebfa;
-  --puls-finance-soft: #e2f3ea;
-  --puls-wellbeing-soft: #fdecdc;
-  --puls-warning-soft: #fce6e3;
-  --puls-line: #ebe5dc;
-  --puls-line-strong: #d9cfc1;
-  --puls-shadow: 0 1px 2px rgb(60 44 20 / 0.04), 0 8px 24px -12px rgb(60 44 20 / 0.12);
-  --puls-shadow-lift: 0 2px 4px rgb(60 44 20 / 0.05), 0 18px 40px -16px rgb(60 44 20 / 0.22);
+  --puls-primary-soft: #d3ebe5;
+  --puls-finance-soft: #e0f0c9;
+  --puls-wellbeing-soft: #fbe9b8;
+  --puls-warning-soft: #fde0d9;
+  --puls-line: #cbd9d0;
+  --puls-line-strong: #6a8278;
+  --puls-grid-dot: #c4d4ca;
+  --puls-key: #063c37;
+  --puls-shadow: 0 0 0 1.5px var(--puls-line), 3px 4px 0 var(--puls-line);
+  --puls-shadow-lift: 0 0 0 1.5px var(--puls-line-strong), 5px 6px 0 var(--puls-line);
+  /* Шкала отступов (шаг 4px) и размеры типографики. */
+  --puls-space-1: 0.25rem;
+  --puls-space-2: 0.5rem;
+  --puls-space-3: 0.75rem;
+  --puls-space-4: 1rem;
+  --puls-space-5: 1.25rem;
+  --puls-space-6: 1.5rem;
+  --puls-space-8: 2rem;
+  --puls-fs-display: clamp(2rem, 9vw, 3.25rem);
+  --puls-fs-title: clamp(1.5rem, 6vw, 2rem);
+  --puls-fs-numeral: clamp(1.75rem, 8vw, 2.75rem);
+  --puls-tap: 44px;
   /* Анимации 150–250 мс (ТЗ §8) и запас для скрытой skip-ссылки. */
   --puls-duration-fast: 150ms;
   --puls-duration-base: 200ms;
@@ -56,29 +74,31 @@
 }
 
 .dark {
-  --puls-bg: #15141b;
-  --puls-surface: #1f1e27;
-  --puls-surface-2: #1a1922;
-  --puls-primary: #a59ffa;
-  --puls-finance: #5cc79c;
-  --puls-wellbeing: #f3a86c;
-  --puls-warning: #ff7b75;
-  --puls-ink: #f0eef6;
-  --puls-ink-muted: #a7a3b4;
-  --puls-on-primary: #15141b;
-  --puls-primary-text: #b1acff;
-  --puls-finance-text: #74d5ae;
-  --puls-wellbeing-text: #f6bd8c;
-  --puls-warning-text: #ff918b;
-  --puls-focus: #a59ffa;
-  --puls-primary-soft: #2b2945;
-  --puls-finance-soft: #1b3129;
-  --puls-wellbeing-soft: #38291d;
-  --puls-warning-soft: #3b2225;
-  --puls-line: #2d2b37;
-  --puls-line-strong: #3f3c4c;
-  --puls-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
-  --puls-shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.1), 0 18px 40px -16px rgb(0 0 0 / 0.6);
+  --puls-bg: #091210;
+  --puls-surface: #101c19;
+  --puls-surface-2: #0d1714;
+  --puls-primary: #5fe3c9;
+  --puls-finance: #a6e05c;
+  --puls-wellbeing: #ffc23d;
+  --puls-warning: #ff7f69;
+  --puls-ink: #e8f3ee;
+  --puls-ink-muted: #9db3a9;
+  --puls-on-primary: #04211c;
+  --puls-primary-text: #6ee7d0;
+  --puls-finance-text: #b4e87a;
+  --puls-wellbeing-text: #ffcf6b;
+  --puls-warning-text: #ff9a85;
+  --puls-focus: #5fe3c9;
+  --puls-primary-soft: #12342e;
+  --puls-finance-soft: #1f3010;
+  --puls-wellbeing-soft: #33290a;
+  --puls-warning-soft: #3a1a14;
+  --puls-line: #1f332d;
+  --puls-line-strong: #6f897d;
+  --puls-grid-dot: #15251f;
+  --puls-key: #2a9c88;
+  --puls-shadow: 0 0 0 1.5px var(--puls-line), 3px 4px 0 rgb(0 0 0 / 0.45);
+  --puls-shadow-lift: 0 0 0 1.5px var(--puls-line-strong), 5px 6px 0 rgb(0 0 0 / 0.5);
   color-scheme: dark;
 }
 
@@ -97,17 +117,29 @@ h3 {
   letter-spacing: -0.015em;
 }
 
+/* h1 — единственное место с Unbounded среди заголовков: широкие буквы держат «голос» экрана. */
 h1 {
-  letter-spacing: -0.025em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
-/* Мягкие тени вместо стандартных Tailwind: тёплый оттенок в светлой теме,
-   тонкая обводка в тёмной (ТЗ §8). Применяется ко всем карточкам с shadow-sm. */
+/* Крупные числа (сумма трат, оценка) — шрифт Unbounded. */
+.font-numeral {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* «Наклейка»: плоская тень со смещением вместо размытой — общий почерк карточек и кнопок. */
 .shadow-sm {
   box-shadow: var(--puls-shadow);
 }
 
-/* Поля форм: базовый слой, утилиты на конкретном поле важнее. */
+/* Поля форм и минимальная зона нажатия 44px (ТЗ §6): утилиты h-* на поле важнее. */
 @layer base {
   :where(input, select, textarea) {
     transition:
@@ -117,19 +149,38 @@ h1 {
 
   :where(input, select, textarea)::placeholder {
     color: var(--puls-ink-muted);
-    opacity: 0.75;
+    opacity: 0.85;
   }
 
   :where(input[type='checkbox'], input[type='radio']) {
     accent-color: var(--puls-primary);
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  :where(
+    button,
+    select,
+    summary,
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='hidden'])
+  ) {
+    min-height: var(--puls-tap);
+  }
+
+  :where(a.puls-tap, button) {
+    min-width: var(--puls-tap);
+  }
+
+  button:not(:disabled),
+  summary {
+    cursor: pointer;
   }
 }
 
 /* Доступность (ТЗ §6): видимый фокус с клавиатуры, skip-link, уважение к настройкам ОС. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--puls-focus);
+  outline: 3px solid var(--puls-focus);
   outline-offset: 2px;
-  border-radius: var(--radius-button);
 }
 
 /* Ссылка «к основному содержимому»: видна только при фокусе с клавиатуры. */
@@ -150,13 +201,40 @@ h1 {
   top: 1rem;
 }
 
-/* Мягкий фон приложения: два размытых пастельных пятна за контентом. */
+/* Фон приложения: точечная сетка, как миллиметровка кардиографа. */
 .puls-backdrop {
-  background:
-    radial-gradient(60rem 30rem at 110% -10%, var(--puls-wellbeing-soft), transparent 60%),
-    radial-gradient(50rem 28rem at -20% 0%, var(--puls-finance-soft), transparent 60%),
-    var(--puls-bg);
+  background-color: var(--puls-bg);
+  background-image: radial-gradient(var(--puls-grid-dot) 1.2px, transparent 1.4px);
+  background-size: 22px 22px;
   background-attachment: fixed;
+}
+
+/* Линия пульса «рисуется» один раз при открытии главной — единственное самостоятельное движение. */
+@keyframes puls-trace {
+  from {
+    stroke-dashoffset: var(--puls-trace-len, 400);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.puls-trace {
+  stroke-dasharray: var(--puls-trace-len, 400);
+  animation: puls-trace 900ms ease-out 100ms both;
+}
+
+/* Отклик на нажатие настроения: короткий «удар». */
+@keyframes puls-beat {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1.06);
+  }
 }
 
 /* Появление листов и меню снизу (мобильный «Ещё», быстрый ввод). */
@@ -223,4 +301,21 @@ h1 {
   .puls-confetti {
     display: none;
   }
+}
+
+/* Кнопка-«клавиша»: плоская нижняя грань, при нажатии вдавливается (ответ на действие, не декор). */
+.puls-key {
+  box-shadow: 0 3px 0 var(--puls-key);
+  transition:
+    transform var(--puls-duration-fast) ease-out,
+    box-shadow var(--puls-duration-fast) ease-out;
+}
+
+.puls-key:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--puls-key);
+}
+
+.puls-beat {
+  animation: puls-beat var(--puls-duration-base) ease-out both;
 }

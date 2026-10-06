@@ -49,7 +49,7 @@ export default function RegisterPage() {
   return (
     <AuthShell brand={t('landing.brand')}>
       <header className="flex flex-col gap-2 text-center">
-        <h1 className="font-heading text-3xl font-extrabold">{t('auth.register.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('auth.register.title')}</h1>
         <p className="text-[var(--puls-ink-muted)]">{t('auth.register.subtitle')}</p>
       </header>
 
@@ -108,7 +108,7 @@ export default function RegisterPage() {
       </p>
       <Link
         href="/"
-        className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
+        className="flex min-h-11 items-center justify-center text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
       >
         ← {t('app.nav.home')}
       </Link>

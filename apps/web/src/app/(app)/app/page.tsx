@@ -28,7 +28,7 @@ export default function AppHomePage() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-extrabold">{t('app.today.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('app.today.title')}</h1>
         <p className="text-sm text-[var(--puls-ink-muted)] first-letter:uppercase">{dateLine}</p>
       </header>
 
@@ -41,7 +41,7 @@ export default function AppHomePage() {
             <p className="text-sm text-[var(--puls-ink-muted)]">{t('wrapped.banner.body')}</p>
             <Link
               href="/wrapped"
-              className="mt-2 inline-block text-sm font-semibold text-[var(--puls-primary-text)]"
+              className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-[var(--puls-primary-text)]"
             >
               {t('wrapped.banner.cta')}
             </Link>

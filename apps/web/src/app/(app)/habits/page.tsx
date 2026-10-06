@@ -167,7 +167,7 @@ export default function HabitsPage() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
         <IconBubble name="repeat" tone="wellbeing" size={44} />
-        <h1 className="text-3xl font-extrabold">{t('habits.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('habits.title')}</h1>
       </div>
 
       {error ? (
@@ -191,7 +191,7 @@ export default function HabitsPage() {
               data-testid="habit-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="habit-icon" className="flex flex-col gap-1">
@@ -201,7 +201,7 @@ export default function HabitsPage() {
               data-testid="habit-icon"
               value={icon}
               onChange={(event) => setIcon(event.target.value)}
-              className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {HABIT_ICON_PRESETS.map((preset) => (
                 <option key={preset} value={preset}>
@@ -217,7 +217,7 @@ export default function HabitsPage() {
               data-testid="habit-cadence"
               value={cadence}
               onChange={(event) => setCadence(event.target.value as 'daily' | 'weekly')}
-              className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               <option value="daily">{t('habits.cadence.daily')}</option>
               <option value="weekly">{t('habits.cadence.weekly')}</option>
@@ -234,7 +234,7 @@ export default function HabitsPage() {
                 inputMode="numeric"
                 value={perWeek}
                 onChange={(event) => setPerWeek(event.target.value)}
-                className="h-11 w-20 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                className="h-11 w-20 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
             </label>
           ) : null}

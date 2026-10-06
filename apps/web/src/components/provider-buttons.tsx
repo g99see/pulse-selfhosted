@@ -59,7 +59,7 @@ export function ProviderButtons() {
         <a
           href={googleLoginUrl()}
           data-testid="google-login"
-          className="flex h-12 items-center justify-center rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-6 font-semibold transition-opacity hover:opacity-80"
+          className="flex h-12 items-center justify-center rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] px-6 font-semibold transition-opacity hover:opacity-80"
         >
           {t('auth.providers.google')}
         </a>

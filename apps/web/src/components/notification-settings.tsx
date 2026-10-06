@@ -30,7 +30,7 @@ const TYPE_LABEL_KEYS: Record<NotificationType, string> = {
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const COUNTS = [1, 2, 3, 4, 5, 6];
 const SELECT_CLASS =
-  'h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3';
+  'h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3';
 
 function timeZones(): string[] {
   try {
@@ -262,7 +262,7 @@ function ChannelCard({
             </div>
 
             {code ? (
-              <div className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface-2)] p-4">
+              <div className="flex flex-col gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4">
                 <p className="text-sm font-medium">{t('notifications.channel.codeTitle')}</p>
                 <p
                   data-testid={`${channel}-code`}
