@@ -87,7 +87,6 @@ configure_env() {
   # SecretBox, не-secure cookie на http — то, что нужно локальному демо).
   export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-http://localhost:$API_PORT}"
   export API_INTERNAL_URL="${API_INTERNAL_URL:-http://localhost:$API_PORT}"
-  export NEXT_PUBLIC_SANDBOX_URL="${NEXT_PUBLIC_SANDBOX_URL:-http://localhost:$API_PORT}"
   export CORS_ORIGIN="${CORS_ORIGIN:-http://localhost:$WEB_PORT}"
 }
 
@@ -112,13 +111,8 @@ ensure_build() {
     need_api=1
   fi
 
-  # Web: сборка нужна, если нет .next, исходники новее или сменился
-  # встроенный адрес песочницы (NEXT_PUBLIC_* вшивается на этапе сборки).
-  local stamp_file="$REPO_ROOT/apps/web/.next/.puls-sandbox-url"
+  # Web: сборка нужна, если нет .next или исходники новее.
   [ -f "$REPO_ROOT/apps/web/.next/BUILD_ID" ] || need_web=1
-  if [ "$need_web" -eq 0 ]; then
-    [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$NEXT_PUBLIC_SANDBOX_URL" ] || need_web=1
-  fi
   if [ "$need_web" -eq 0 ] && [ -n "$(find "$REPO_ROOT/apps/web/src" "$REPO_ROOT/packages/shared/src" -newer "$REPO_ROOT/apps/web/.next/BUILD_ID" -print -quit 2>/dev/null)" ]; then
     need_web=1
   fi
@@ -128,22 +122,8 @@ ensure_build() {
     ( cd "$REPO_ROOT" && PATH="$(dirname "$NODE_BIN"):$PATH" pnpm --filter @puls/shared build && PATH="$(dirname "$NODE_BIN"):$PATH" pnpm --filter @puls/api build ) || return 1
   fi
   if [ "$need_web" -eq 1 ]; then
-    # NEXT_PUBLIC_* вшивается в сборку; Next надёжно подхватывает значение из
-    # apps/web/.env (локальный, git-ignored), поэтому гарантируем строку там.
-    local web_env="$REPO_ROOT/apps/web/.env"
-    touch "$web_env"
-    if grep -q '^NEXT_PUBLIC_SANDBOX_URL=' "$web_env"; then
-      if [ "$(grep '^NEXT_PUBLIC_SANDBOX_URL=' "$web_env" | head -1 | cut -d= -f2-)" != "$NEXT_PUBLIC_SANDBOX_URL" ]; then
-        grep -v '^NEXT_PUBLIC_SANDBOX_URL=' "$web_env" > "$web_env.tmp" && mv "$web_env.tmp" "$web_env"
-        printf 'NEXT_PUBLIC_SANDBOX_URL=%s\n' "$NEXT_PUBLIC_SANDBOX_URL" >> "$web_env"
-      fi
-    else
-      printf '\n# Адрес домена песочницы для локального показа (см. scripts/dev-run.sh).\nNEXT_PUBLIC_SANDBOX_URL=%s\n' "$NEXT_PUBLIC_SANDBOX_URL" >> "$web_env"
-    fi
-
     echo "→ Сборка web..."
-    ( cd "$REPO_ROOT" && PATH="$(dirname "$NODE_BIN"):$PATH" pnpm --filter @puls/shared build && PATH="$(dirname "$NODE_BIN"):$PATH" NEXT_PUBLIC_SANDBOX_URL="$NEXT_PUBLIC_SANDBOX_URL" pnpm --filter @puls/web build ) || return 1
-    echo "$NEXT_PUBLIC_SANDBOX_URL" > "$stamp_file"
+    ( cd "$REPO_ROOT" && PATH="$(dirname "$NODE_BIN"):$PATH" pnpm --filter @puls/shared build && PATH="$(dirname "$NODE_BIN"):$PATH" pnpm --filter @puls/web build ) || return 1
   fi
 }
 
