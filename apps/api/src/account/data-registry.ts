@@ -34,6 +34,13 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     keyColumn: 'user_id',
     orderBy: '"date", "created_at"',
   },
+  // Баланс счёта по данным банка (сверка): закрывающий остаток выписки или ручной ввод.
+  {
+    table: 'account_bank_balances',
+    entity: 'accountBankBalances',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
   { table: 'budgets', entity: 'budgets', keyColumn: 'user_id', orderBy: '"month"' },
   { table: 'goals', entity: 'goals', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'goal_deposits', entity: 'goalDeposits', keyColumn: 'user_id', orderBy: '"created_at"' },
