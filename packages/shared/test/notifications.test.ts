@@ -6,6 +6,7 @@ import {
   DEFAULT_QUIET_HOURS,
   isTypeEnabled,
   isWithinQuietHours,
+  nextAllowedTime,
   localParts,
   nextDeliveryTime,
   timesForCount,
@@ -193,12 +194,20 @@ describe('умное время', () => {
 });
 
 describe('правила по типам уведомлений', () => {
-  it('создаёт правило для каждого из пяти типов', () => {
+  it('создаёт правило для каждого типа', () => {
     const rules = defaultNotificationRules();
     expect(rules.map((rule) => rule.type).sort()).toEqual(
-      ['budget', 'checkins', 'payments', 'reactions', 'weekly_report'].sort(),
+      [
+        'budget',
+        'checkins',
+        'daily_summary',
+        'payments',
+        'reactions',
+        'reconciliation_mismatch',
+        'weekly_report',
+      ].sort(),
     );
-    expect(rules).toHaveLength(5);
+    expect(rules).toHaveLength(7);
   });
 
   it('позволяет включать и выключать каждый тип отдельно', () => {
@@ -276,5 +285,41 @@ describe('due-выбор для планировщика', () => {
     });
     expect(due).not.toContain('checkins');
     expect(due).toContain('payments');
+  });
+});
+
+describe('nextAllowedTime (отложенная отправка в тихие часы)', () => {
+  const quiet = { start: 22, end: 8 };
+
+  it('вне тихих часов возвращает тот же момент', () => {
+    const now = new Date('2026-10-01T12:00:00Z');
+    expect(nextAllowedTime(now, 'UTC', quiet)).toBe(now);
+  });
+
+  it('ночью переносит на конец тихих часов следующего утра', () => {
+    expect(iso(nextAllowedTime(new Date('2026-10-01T23:30:00Z'), 'UTC', quiet))).toBe(
+      '2026-10-02T08:00:00.000Z',
+    );
+  });
+
+  it('после полуночи переносит на то же утро', () => {
+    expect(iso(nextAllowedTime(new Date('2026-10-02T03:00:00Z'), 'UTC', quiet))).toBe(
+      '2026-10-02T08:00:00.000Z',
+    );
+  });
+
+  it('учитывает часовой пояс пользователя', () => {
+    // 23:30 UTC = 02:30 в Москве (UTC+3) → 08:00 МСК = 05:00 UTC.
+    expect(iso(nextAllowedTime(new Date('2026-10-01T23:30:00Z'), 'Europe/Moscow', quiet))).toBe(
+      '2026-10-02T05:00:00.000Z',
+    );
+  });
+
+  it('границы: 22:00 — уже тихие часы, 08:00 — уже нет', () => {
+    expect(iso(nextAllowedTime(new Date('2026-10-01T22:00:00Z'), 'UTC', quiet))).toBe(
+      '2026-10-02T08:00:00.000Z',
+    );
+    const open = new Date('2026-10-02T08:00:00Z');
+    expect(nextAllowedTime(open, 'UTC', quiet)).toBe(open);
   });
 });

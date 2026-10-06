@@ -10,6 +10,8 @@ export interface TelegramStatusResponse {
   enabled: boolean;
   mode: 'webhook' | 'polling';
   linked: boolean;
+  /** Бот заблокирован пользователем: доставка остановлена. */
+  blocked: boolean;
   chatUsername: string | null;
   linkedAt: string | null;
 }
