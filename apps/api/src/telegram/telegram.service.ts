@@ -10,10 +10,12 @@ import { CheckinDialogService, type DialogOutcome } from '../checkins/checkin-di
 import { CheckinsService } from '../checkins/checkins.service';
 import { RateLimitService } from '../auth/rate-limit.service';
 import { httpError } from '../common/http-error';
+import { BudgetsService } from '../finance/budgets.service';
 import { TransactionsService } from '../finance/transactions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatsService } from '../stats/stats.service';
 import {
+  BOT_COMMANDS,
   dialogKeyboard,
   parseCallback,
   parseCommand,
@@ -36,6 +38,8 @@ import {
   linkRequiredText,
   linkedText,
   noAccountText,
+  spentSavedText,
+  spentUsageText,
   startHintText,
   todayText,
   transactionCancelledText,
@@ -86,6 +90,7 @@ export class TelegramService implements OnModuleInit {
     private readonly dialog: CheckinDialogService,
     private readonly transactions: TransactionsService,
     private readonly stats: StatsService,
+    private readonly budgets: BudgetsService,
     private readonly rateLimit: RateLimitService,
     @Inject(TELEGRAM_API) private readonly api: TelegramApi,
   ) {}
@@ -100,6 +105,20 @@ export class TelegramService implements OnModuleInit {
       return;
     }
     this.logger.log(`Telegram-бот активен, режим: ${this.mode}`);
+    void this.registerCommands();
+  }
+
+  /** Меню команд бота (setMyCommands); сбой не критичен. */
+  async registerCommands(): Promise<boolean> {
+    try {
+      await this.api.setCommands(BOT_COMMANDS);
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `Не удалось зарегистрировать команды: ${error instanceof Error ? error.message : 'unknown'}`,
+      );
+      return false;
+    }
   }
 
   /* ----- Привязка чата ----- */
@@ -272,6 +291,14 @@ export class TelegramService implements OnModuleInit {
         await this.send(message.chatId, todayText(day));
         return;
       }
+      case 'spent': {
+        if (command.text === null) {
+          await this.send(message.chatId, spentUsageText());
+          return;
+        }
+        await this.handleQuick(link.userId, message.chatId, command.text, true);
+        return;
+      }
       case 'help':
         await this.send(message.chatId, helpText());
         return;
@@ -287,10 +314,18 @@ export class TelegramService implements OnModuleInit {
     }
   }
 
-  private async handleQuick(userId: string, chatId: string, text: string): Promise<void> {
+  private async handleQuick(
+    userId: string,
+    chatId: string,
+    text: string,
+    withBudget = false,
+  ): Promise<void> {
     try {
       const transaction = await this.transactions.quick(userId, text);
-      await this.send(chatId, transactionSavedText(transaction), undoKeyboard(transaction.id));
+      const reply = withBudget
+        ? spentSavedText(transaction, await this.budgetFor(userId, transaction))
+        : transactionSavedText(transaction);
+      await this.send(chatId, reply, undoKeyboard(transaction.id));
     } catch (error) {
       if (errorCode(error) === 'no_account') {
         await this.send(chatId, noAccountText());
@@ -298,6 +333,21 @@ export class TelegramService implements OnModuleInit {
       }
       await this.send(chatId, transactionFailedText());
     }
+  }
+
+  /** Бюджет категории операции на её месяц: лимит и потрачено (уже с этой операцией). */
+  private async budgetFor(
+    userId: string,
+    transaction: { type: string; categoryId: string | null; date: string },
+  ): Promise<{ limit: number; spent: number; categoryName: string } | null> {
+    if (transaction.type !== 'expense' || !transaction.categoryId) return null;
+    const month = transaction.date.slice(0, 7);
+    const budget = (await this.budgets.list(userId, month)).find(
+      (item) => item.categoryId === transaction.categoryId,
+    );
+    return budget
+      ? { limit: budget.limit, spent: budget.spent, categoryName: budget.categoryName }
+      : null;
   }
 
   private async handleCallback(callback: IncomingCallback): Promise<void> {

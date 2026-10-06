@@ -5,6 +5,7 @@
  * через authFetch — cookie-сессия + CSRF.
  */
 import type {
+  CorrelationsResponse,
   InsightDto,
   InsightFeedback,
   InsightsApplyResponse,
@@ -19,6 +20,8 @@ export const insightsApi = {
     authFetch<InsightsFeedResponse>(`/api/insights${limit ? `?limit=${limit}` : ''}`),
 
   latest: () => authFetch<{ insight: InsightDto | null }>('/api/insights/latest'),
+
+  correlations: () => authFetch<CorrelationsResponse>('/api/insights/correlations'),
 
   weekly: () => authFetch<WeeklyReportResponse | null>('/api/insights/weekly'),
 

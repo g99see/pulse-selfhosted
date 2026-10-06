@@ -38,3 +38,6 @@ export * from './family';
 export * from './capsules';
 export * from './challenges';
 export * from './wrapped';
+export * from './correlations';
+export * from './checkin-goal';
+export * from './day-summary';

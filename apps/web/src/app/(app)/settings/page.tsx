@@ -2,6 +2,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { DaySummarySection } from '@/components/day-summary-section';
 import { DataPrivacySection } from '@/components/data-privacy-section';
 import { AiKeySection } from '@/components/ai-key-section';
 import { ApiAccessSection } from '@/components/api-access-section';
@@ -24,6 +25,7 @@ export default function SettingsPage() {
 
       <SettingsGroup title={t('settings.group.privacy')}>
         <QuietModeSection />
+        <DaySummarySection />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.group.security')}>

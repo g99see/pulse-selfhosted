@@ -67,6 +67,12 @@ const GROUPS: NavGroup[] = [
       { key: 'app.nav.settingsItem', href: '/settings', icon: 'settings' },
       { key: 'app.nav.moderation', href: '/moderation', icon: 'shield' },
       { key: 'app.nav.adminAi', href: '/admin/ai', icon: 'bot', testId: 'nav-admin-ai' },
+      {
+        key: 'app.nav.adminMetrics',
+        href: '/admin/metrics',
+        icon: 'chart',
+        testId: 'nav-admin-metrics',
+      },
     ],
   },
 ];
@@ -131,7 +137,8 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   // админку AI — только админ. Раздел «AI» виден всегда: без ключа там форма подключения.
   function visible(item: NavItem): boolean {
     if (item.key === 'app.nav.moderation') return canModerate(user.role);
-    if (item.key === 'app.nav.adminAi') return user.role === 'admin';
+    if (item.key === 'app.nav.adminAi' || item.key === 'app.nav.adminMetrics')
+      return user.role === 'admin';
     return true;
   }
 

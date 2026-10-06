@@ -62,6 +62,15 @@ export default defineConfig({
       '/family/': [{ text: 'Семейный режим', items: [{ text: 'Обзор', link: '/family/' }] }],
       '/api/': [{ text: 'Открытый API', items: [{ text: 'Обзор', link: '/api/' }] }],
       '/admin/': [{ text: 'Администрирование', items: [{ text: 'Обзор', link: '/admin/' }] }],
+      '/ops/': [
+        {
+          text: 'Эксплуатация',
+          items: [
+            { text: 'Бэкапы и откат миграций', link: '/ops/backup' },
+            { text: 'Администрирование', link: '/admin/' },
+          ],
+        },
+      ],
       '/security/': [{ text: 'Безопасность', items: [{ text: 'Обзор', link: '/security/' }] }],
       '/dev/': [
         {

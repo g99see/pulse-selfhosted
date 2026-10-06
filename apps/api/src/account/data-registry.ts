@@ -209,6 +209,7 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
   // Журнал модерации (ТЗ §2, §3.8): внутренний аудит экземпляра, не данные автора.
   { table: 'moderation_actions', reason: 'внутренний журнал модерации экземпляра' },
+  { table: 'day_summary_links', reason: 'секрет: хеш токена приватной ссылки «Итог дня»' },
   // Токены открытого API (ТЗ §4): секрет — хеш токена.
   { table: 'api_tokens', reason: 'секрет: хеш личного токена доступа' },
   // Вебхуки (ТЗ §4): секрет — зашифрованный ключ подписи.

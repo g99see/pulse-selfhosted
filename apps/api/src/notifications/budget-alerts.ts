@@ -8,6 +8,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { budgetLevel, type BudgetLevel } from '@puls/shared';
 import { DomainEvents, type DomainEventMessage } from '../api-access/domain-events';
+import { InternalEvents, type InternalEventMap } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationDispatcher } from './dispatcher';
 
@@ -35,6 +36,14 @@ export class BudgetAlerts implements OnModuleInit, OnModuleDestroy {
     });
   };
 
+  private readonly importHandler = (payload: InternalEventMap['import.expenses']): void => {
+    void this.onImport(payload).catch((error: unknown) => {
+      this.logger.warn(
+        `Предупреждение бюджета после импорта не поставлено: ${error instanceof Error ? error.message : 'unknown'}`,
+      );
+    });
+  };
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly dispatcher: NotificationDispatcher,
@@ -42,10 +51,12 @@ export class BudgetAlerts implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     DomainEvents.on('transaction.created', this.handler);
+    InternalEvents.on('import.expenses', this.importHandler);
   }
 
   onModuleDestroy(): void {
     DomainEvents.off('transaction.created', this.handler);
+    InternalEvents.off('import.expenses', this.importHandler);
   }
 
   /** Обрабатывает операцию; публично для тестов. */
@@ -57,9 +68,34 @@ export class BudgetAlerts implements OnModuleInit, OnModuleDestroy {
     });
     if (!transaction?.categoryId) return false;
 
-    const month = transaction.date.toISOString().slice(0, 7);
+    return this.checkCategory(
+      message.userId,
+      transaction.categoryId,
+      transaction.date.toISOString().slice(0, 7),
+      Number(transaction.amountBase),
+    );
+  }
+
+  /** Импорт выписки: проверяет порог по каждой затронутой категории и месяцу. */
+  async onImport(payload: InternalEventMap['import.expenses']): Promise<number> {
+    let sent = 0;
+    for (const item of payload.additions) {
+      if (await this.checkCategory(payload.userId, item.categoryId, item.month, item.amountBase)) {
+        sent += 1;
+      }
+    }
+    return sent;
+  }
+
+  /** Бюджет категории пересёк порог из-за добавленной суммы amountBase? */
+  private async checkCategory(
+    userId: string,
+    categoryId: string,
+    month: string,
+    amountBase: number,
+  ): Promise<boolean> {
     const budget = await this.prisma.budget.findFirst({
-      where: { userId: message.userId, categoryId: transaction.categoryId, month },
+      where: { userId, categoryId, month },
       include: { category: true },
     });
     if (!budget) return false;
@@ -67,9 +103,9 @@ export class BudgetAlerts implements OnModuleInit, OnModuleDestroy {
     const [year, monthNumber] = month.split('-').map(Number) as [number, number];
     const sum = await this.prisma.transaction.aggregate({
       where: {
-        userId: message.userId,
+        userId,
         type: 'expense',
-        categoryId: transaction.categoryId,
+        categoryId,
         date: {
           gte: new Date(Date.UTC(year, monthNumber - 1, 1)),
           lt: new Date(Date.UTC(year, monthNumber, 1)),
@@ -80,13 +116,13 @@ export class BudgetAlerts implements OnModuleInit, OnModuleDestroy {
     const spent = Number(sum._sum.amountBase ?? 0);
     const limit = Number(budget.limit);
 
-    if (!crossedBudgetThreshold(limit, spent, Number(transaction.amountBase))) return false;
+    if (!crossedBudgetThreshold(limit, spent, amountBase)) return false;
 
     const user = await this.prisma.user.findUnique({
-      where: { id: message.userId },
+      where: { id: userId },
       select: { currency: true },
     });
-    return this.dispatcher.notifyBudgetAlert(message.userId, {
+    return this.dispatcher.notifyBudgetAlert(userId, {
       categoryName: budget.category.name,
       limit,
       spent,

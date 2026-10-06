@@ -13,6 +13,7 @@ import {
   type Mood,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { CheckinGoalCard } from '@/components/checkin-goal-card';
 import { HabitsToday } from '@/components/habits-today';
 import { MetricScale, MoodScale } from '@/components/mood-scale';
 import { VoiceInputButton } from '@/components/voice-input-button';
@@ -378,6 +379,10 @@ export default function CheckInPage() {
         </form>
 
         <aside className="flex flex-col gap-5">
+          <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
+            <CheckinGoalCard />
+          </section>
+
           <section
             className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm empty:hidden"
             data-testid="checkin-habits"

@@ -28,6 +28,7 @@ import {
   type ImportRowType,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
@@ -240,10 +241,42 @@ export class ImportService {
         data: { balance: { increment: delta } },
       });
 
-      await this.saveStatementBalance(db, userId, account.id, unique);
+      const statementId = await this.saveStatementBalance(db, userId, account.id, unique);
 
-      return { imported, balance: Number(updated.balance) };
+      // Расходы по категориям и месяцам — для предупреждений бюджета.
+      const additions = new Map<
+        string,
+        { categoryId: string; month: string; amountBase: number }
+      >();
+      for (const row of fresh) {
+        if (row.type !== 'expense' || !row.categoryId) continue;
+        const month = row.date.slice(0, 7);
+        const key = `${row.categoryId}:${month}`;
+        const entry = additions.get(key) ?? { categoryId: row.categoryId, month, amountBase: 0 };
+        entry.amountBase += convertToBase(row.amount, rateByDate.get(row.date) ?? 1);
+        additions.set(key, entry);
+      }
+
+      return {
+        imported,
+        balance: Number(updated.balance),
+        statementId,
+        additions: [...additions.values()],
+      };
     });
+
+    if (outcome.additions.length > 0) {
+      InternalEvents.emit('import.expenses', { userId, additions: outcome.additions });
+    }
+
+    // Сверка после импорта: подписчик уведомлений сам решит, есть ли расхождение.
+    if (outcome.statementId) {
+      InternalEvents.emit('statement.imported', {
+        userId,
+        accountId: account.id,
+        statementId: outcome.statementId,
+      });
+    }
 
     return {
       imported: outcome.imported,
@@ -263,7 +296,7 @@ export class ImportService {
     userId: string,
     accountId: string,
     rows: readonly PreparedRow[],
-  ): Promise<void> {
+  ): Promise<string | null> {
     const statementRows: StatementRow[] = rows.map((row) => ({
       externalId: row.externalId,
       date: row.date,
@@ -273,13 +306,13 @@ export class ImportService {
       description: row.description,
     }));
     if (statementRows.length === 0 || statementRows.some((row) => row.balanceCents === null)) {
-      return;
+      return null;
     }
     const analysis = analyzeStatement(statementRows);
-    if (analysis.closingCents === null) return;
+    if (analysis.closingCents === null) return null;
     const last = analysis.ordered[analysis.ordered.length - 1];
     const first = analysis.ordered[0];
-    await db.accountBankBalance.create({
+    const created = await db.accountBankBalance.create({
       data: {
         userId,
         accountId,
@@ -301,6 +334,7 @@ export class ImportService {
     if (stale.length > 0) {
       await db.accountBankBalance.deleteMany({ where: { id: { in: stale.map((row) => row.id) } } });
     }
+    return created.id;
   }
 
   /** ID банка всех импортированных операций пользователя. */

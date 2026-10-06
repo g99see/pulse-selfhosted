@@ -32,6 +32,7 @@ import { TransactionsService } from './transactions.service';
     TransactionsService,
     BudgetsService,
     ExchangeRatesService,
+    ReconciliationService,
   ],
 })
 export class FinanceModule {}

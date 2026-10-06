@@ -8,6 +8,7 @@ import type {
   InsightsFeedResponse,
   SupportResourceDto,
 } from '@puls/shared';
+import { CorrelationsCard } from '@/components/correlations-card';
 import { useT } from '@/components/locale-provider';
 import { categoryLabel } from '@/lib/category-label';
 import { MASKED_AMOUNT } from '@/components/money';
@@ -221,6 +222,8 @@ export default function InsightsPage() {
           ))}
         </ul>
       ) : null}
+
+      <CorrelationsCard />
 
       <SupportSection resources={support} />
 
