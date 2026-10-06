@@ -76,7 +76,6 @@ async function completeOnboarding(
       notificationsEnabled: true,
       quietHoursStart: 22,
       quietHoursEnd: 8,
-      profileVisibility: 'private',
       firstAccount: { name: 'Основной', type: 'card', balance: 0 },
     },
   });

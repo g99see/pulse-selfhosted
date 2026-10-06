@@ -8,23 +8,15 @@ import {
   type AccountDto,
   type Currency,
   type GoalDto,
-  type GoalVisibility,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
 import { Alert, Card, EmptyState, IconBubble } from '@/components/ui';
 import { ProgressRing } from '@/components/progress-ring';
-import { ShareButton } from '@/components/share-button';
 import { financeApi } from '@/lib/finance-client';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { goalsApi, notifyGoalsChanged } from '@/lib/goals-client';
 import { useQuietMode } from '@/lib/use-quiet-mode';
-
-const VISIBILITIES: Array<{ value: GoalVisibility; key: string }> = [
-  { value: 'private', key: 'auth.onboarding.visibilityPrivate' },
-  { value: 'subscribers', key: 'auth.onboarding.visibilitySubscribers' },
-  { value: 'public', key: 'auth.onboarding.visibilityPublic' },
-];
 
 function parseAmount(value: string): number {
   return Number(value.replace(',', '.'));
@@ -61,14 +53,10 @@ export default function GoalsPage() {
   const [deadline, setDeadline] = useState('');
   const [emoji, setEmoji] = useState<string>(GOAL_EMOJI_PRESETS[0]);
   const [imageUrl, setImageUrl] = useState('');
-  const [visibility, setVisibility] = useState<GoalVisibility>('private');
   const [accountId, setAccountId] = useState('');
 
   const [depositGoal, setDepositGoal] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState('');
-  const [embedGoal, setEmbedGoal] = useState<string | null>(null);
-  const [embedCopied, setEmbedCopied] = useState(false);
-  const [origin, setOrigin] = useState('');
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -87,11 +75,6 @@ export default function GoalsPage() {
   useEffect(() => {
     void reload();
   }, [reload]);
-
-  // Origin нужен для готового сниппета и ссылки на виджет — только в браузере.
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
 
   const money = useCallback(
     (amount: number, currency = 'RUB'): string =>
@@ -119,7 +102,6 @@ export default function GoalsPage() {
         targetAmount,
         deadline: deadline || undefined,
         image: imageUrl.trim() || emoji,
-        visibility,
         accountId: accountId || undefined,
       });
       setTitle('');
@@ -186,20 +168,6 @@ export default function GoalsPage() {
   }
 
   const savingsAccounts = accounts.filter((account) => account.type === 'savings');
-
-  /** Готовый iframe-сниппет для вставки в блог или портфолио (ТЗ §4, P3). */
-  function embedSnippet(goalId: string): string {
-    return `<iframe src="${origin}/widget/goal/${goalId}" width="360" height="150" style="border:0" loading="lazy" title="${t('goals.embed.iframeTitle')}"></iframe>`;
-  }
-
-  async function copyEmbed(snippet: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(snippet);
-      setEmbedCopied(true);
-    } catch {
-      // Буфер обмена может быть недоступен — код всё равно видно в поле.
-    }
-  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -280,24 +248,6 @@ export default function GoalsPage() {
                 placeholder="https://"
                 className="h-11 w-full rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               />
-            </label>
-            <label htmlFor="goal-visibility" className="flex flex-col gap-1">
-              <span className="text-xs text-[var(--puls-ink-muted)]">
-                {t('goals.form.visibility')}
-              </span>
-              <select
-                id="goal-visibility"
-                data-testid="goal-visibility"
-                value={visibility}
-                onChange={(event) => setVisibility(event.target.value as GoalVisibility)}
-                className="h-11 w-full rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-              >
-                {VISIBILITIES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.key)}
-                  </option>
-                ))}
-              </select>
             </label>
             <label htmlFor="goal-account" className="flex flex-col gap-1">
               <span className="text-xs text-[var(--puls-ink-muted)]">
@@ -391,71 +341,7 @@ export default function GoalsPage() {
                     {t('goals.milestone', { percent: milestone })}
                   </span>
                 ))}
-                <ShareButton
-                  type="goal_progress"
-                  id={goal.id}
-                  shareText={t('share.text.goal', { percent: goal.percent, title: goal.title })}
-                />
-                <button
-                  type="button"
-                  data-testid="goal-embed"
-                  onClick={() => {
-                    setEmbedCopied(false);
-                    setEmbedGoal(embedGoal === goal.id ? null : goal.id);
-                  }}
-                  className="rounded-[var(--radius-chip)] border-[1.5px] border-[var(--puls-line-strong)] px-3 py-1 text-xs font-medium hover:bg-[var(--puls-surface-2)]"
-                >
-                  {t('goals.embed.button')}
-                </button>
               </div>
-
-              {embedGoal === goal.id ? (
-                <div
-                  data-testid="goal-embed-panel"
-                  className="flex flex-col gap-2 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] p-3"
-                >
-                  {goal.visibility === 'public' ? (
-                    <>
-                      <p className="text-xs text-[var(--puls-ink-muted)]">
-                        {t('goals.embed.hint')}
-                      </p>
-                      <textarea
-                        readOnly
-                        data-testid="goal-embed-snippet"
-                        rows={2}
-                        value={embedSnippet(goal.id)}
-                        className="w-full rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-2 py-1 font-mono text-xs"
-                      />
-                      <div className="flex flex-wrap items-center gap-3">
-                        <button
-                          type="button"
-                          data-testid="goal-embed-copy"
-                          onClick={() => void copyEmbed(embedSnippet(goal.id))}
-                          className="text-xs font-semibold text-[var(--puls-primary-text)]"
-                        >
-                          {embedCopied ? t('goals.embed.copied') : t('goals.embed.copy')}
-                        </button>
-                        <a
-                          href={`${origin}/widget/goal/${goal.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          data-testid="goal-embed-link"
-                          className="text-xs font-medium text-[var(--puls-primary-text)]"
-                        >
-                          {t('goals.embed.link')}
-                        </a>
-                      </div>
-                    </>
-                  ) : (
-                    <p
-                      data-testid="goal-embed-private"
-                      className="text-xs text-[var(--puls-ink-muted)]"
-                    >
-                      {t('goals.embed.onlyPublic')}
-                    </p>
-                  )}
-                </div>
-              ) : null}
 
               <form
                 className="flex items-end gap-2"

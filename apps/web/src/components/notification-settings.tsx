@@ -24,7 +24,6 @@ const TYPE_LABEL_KEYS: Record<NotificationType, string> = {
   budget: 'notifications.type.budget',
   reconciliation_mismatch: 'notifications.type.reconciliation',
   weekly_report: 'notifications.type.weeklyReport',
-  reactions: 'notifications.type.reactions',
 };
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
