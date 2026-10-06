@@ -89,4 +89,3 @@
 
 - [Настройка (.env)](/guide/configuration) — `APP_ENCRYPTION_KEY`, `GOOGLE_*`, `TELEGRAM_*`, `OAUTH_STATE_TTL_SECONDS`.
 - [Безопасность](/security/) — модель угроз и изоляция.
-- [Профиль и лента](./profile-social).

@@ -83,15 +83,13 @@ curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scri
 
 ## Шаг 3Б. Установка с доменом и HTTPS
 
-**Сначала** настройте домен. У регистратора домена (где вы его купили) добавьте две записи типа **A**,
-обе указывают на IP вашего сервера:
+**Сначала** настройте домен. У регистратора домена (где вы его купили) добавьте запись типа **A**,
+она указывает на IP вашего сервера:
 
 | Имя | Тип | Значение |
 | --- | --- | --- |
 | `puls` (получится `puls.example.com`) | A | IP сервера |
-| `usercontent` (получится `usercontent.example.com`) | A | IP сервера |
 
-Второе имя нужно для безопасной выдачи пользовательских HTML-страниц, оно обязательно.
 Подождите 5–30 минут, пока записи разойдутся. Проверить можно командой `ping puls.example.com`:
 должен отвечать IP вашего сервера.
 
@@ -102,7 +100,7 @@ curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scri
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash -s -- \
-  --domain puls.example.com --sandbox-domain usercontent.example.com --email you@example.com
+  --domain puls.example.com --email you@example.com
 ```
 
 Почта нужна только для уведомлений о сертификате от Let's Encrypt. Сертификат HTTPS выпустится
@@ -131,7 +129,7 @@ curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scri
 
 ✅ Вы видите экран «Сегодня». Сервис работает.
 
-## Шаг 5. Создайте профили для семьи или друзей
+## Шаг 5. Создайте профили для близких
 
 Без настроенной почты (SMTP) люди **не смогут зарегистрироваться сами**: им не придёт письмо
 с подтверждением. Поэтому установщик включает режим «только по приглашению», и профили
@@ -172,10 +170,8 @@ sudo /opt/puls/scripts/users.sh add partner@example.com partner --admin
 sudo /opt/puls/scripts/users.sh add kid@example.com kid --password "СвойПароль123"
 ```
 
-::: tip Общий бюджет семьи
-Каждый профиль отдельный: свои счета, траты и дневник, другие их не видят. Для общего
-бюджета создайте семью в разделе **«Семья»** и пригласите туда созданные профили.
-Общими станут только те счета и цели, которые вы добавите в семью.
+::: tip Данные разделены
+Каждый профиль отдельный: свои счета, траты и дневник, другие пользователи их не видят.
 :::
 
 ## Шаг 6. Управление профилями
@@ -235,8 +231,7 @@ sudo /opt/puls/scripts/users.sh add kid@example.com kid --password "СвойПа
 
 Для уведомлений HTTPS **не нужен**: они приходят в Telegram и Discord, а не в браузер, и
 работают даже по адресу вида `http://192.168.1.50`. HTTPS пригодится, если вы хотите открывать
-Пульс с телефона вне дома или установить его как приложение (PWA) — установка требует защищённого
-адреса. Самый простой способ получить HTTPS дома, без домена и открытых портов, — Tailscale.
+Пульс с телефона вне дома по защищённому адресу. Самый простой способ получить HTTPS дома, без домена и открытых портов, — Tailscale.
 Обычный адрес по домашней сети при этом продолжает работать: сайт будет открываться сразу двумя
 способами.
 
@@ -257,10 +252,7 @@ sudo /opt/puls/scripts/users.sh add kid@example.com kid --password "СвойПа
    ```bash
    sudo tailscale set --hostname=puls
    sudo tailscale serve --bg --https=443 http://127.0.0.1:8081
-   sudo tailscale serve --bg --https=8443 http://127.0.0.1:8082
    ```
-
-   Первый адрес — сам сайт, второй — «песочница» для HTML-страниц профиля.
 
 4. Откройте файл настроек `sudo nano /opt/puls/.env` и впишите (подставьте своё имя вместо
    `puls.tailXXXX.ts.net`):
@@ -269,7 +261,6 @@ sudo /opt/puls/scripts/users.sh add kid@example.com kid --password "СвойПа
    PUBLIC_API_URL=/
    COOKIE_SECURE=auto
    EXTRA_ORIGINS=https://puls.tailXXXX.ts.net
-   EXTRA_SANDBOX_ORIGINS=https://puls.tailXXXX.ts.net:8443
    ```
 
    Сохранить: `Ctrl + O`, Enter, выйти: `Ctrl + X`.
@@ -282,10 +273,6 @@ sudo /opt/puls/scripts/users.sh add kid@example.com kid --password "СвойПа
 
 6. На телефоне поставьте приложение **Tailscale**, войдите в тот же аккаунт и включите его.
    Откройте `https://puls.tailXXXX.ts.net`.
-
-   - **iPhone:** нажмите «Поделиться» → **«На экран «Домой»»** — Пульс запустится с иконки как
-     приложение.
-   - **Android:** откройте сайт в Chrome и согласитесь на установку.
 
 Дома по-прежнему можно открывать `http://192.168.1.50` — вход работает и там, и там.
 

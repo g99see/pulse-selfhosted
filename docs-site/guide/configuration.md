@@ -53,8 +53,6 @@
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3001` (в compose собирается из `PUBLIC_API_URL`) | Адрес API для браузера. `/` или пусто — тот же origin, что и сайт (запросы на `/api/...`). Впекается на этапе сборки образа web |
 | `NEXT_PUBLIC_APP_NAME` | `Пульс` | Отображаемое имя приложения |
-| `NEXT_PUBLIC_SANDBOX_URL` | пусто (выводится из домена песочницы) | Базовый адрес домена песочницы для `iframe` пользовательского HTML |
-| `NEXT_PUBLIC_SANDBOX_URLS` | `SANDBOX_ORIGIN` + `EXTRA_SANDBOX_ORIGINS` (собирается в compose) | Все origin-ы песочницы через пробел; браузер выбирает тот, что совпадает со страницей по протоколу и хосту |
 | `API_INTERNAL_URL` | `http://api:3001` | Адрес API для серверных запросов Next (внутри docker-сети) |
 
 ## Caddy и домены
@@ -62,22 +60,17 @@
 | Переменная | По умолчанию | Назначение |
 | --- | --- | --- |
 | `DOMAIN` | `localhost` | Основной домен сервиса |
-| `SANDBOX_DOMAIN` | `usercontent.localhost` | Отдельный домен для пользовательского HTML (не поддомен с общими cookie) |
 | `ACME_EMAIL` | `admin@example.com` | Контакт для сертификатов Let's Encrypt |
 | `CADDY_BIND` | `0.0.0.0` | Адрес публикации Caddy на хосте. Задайте `127.0.0.1`, если 80/443 заняты другим сервисом |
 | `HTTP_PORT` | `80` | Внешний порт HTTP |
 | `HTTPS_PORT` | `443` | Внешний порт HTTPS (Caddy знает о нём и ведёт редирект корректно) |
-| `PUBLIC_ORIGIN` | `http://localhost` | Публичный origin основного сайта; отсюда берутся `CORS_ORIGIN`, `WEB_APP_URL` и CSP `frame-ancestors` песочницы |
+| `PUBLIC_ORIGIN` | `http://localhost` | Публичный origin основного сайта; отсюда берутся `CORS_ORIGIN` и `WEB_APP_URL` |
 | `PUBLIC_API_URL` | `http://localhost`; установщик пишет `/` | Адрес API для браузера — передаётся web как `NEXT_PUBLIC_API_URL`. `/` — тот же origin, что и сайт: одна установка работает по любому адресу (LAN и Tailscale). Пустое значение compose заменяет на умолчание, поэтому пишите `/` |
-| `CADDYFILE` | `Caddyfile` | Какой конфиг Caddy монтировать. `Caddyfile.http` — режим http в локальной сети без домена и сертификатов (сайт на :80, песочница на :8080) |
-| `SANDBOX_HTTP_PORT` | `8080` | Порт песочницы на хосте в режиме `Caddyfile.http` |
-| `SANDBOX_ORIGIN` | пусто (`https://SANDBOX_DOMAIN`) | Полный origin песочницы, например `http://192.168.1.50:8080`. Используется API для ссылок на страницы и передаётся web при сборке как `NEXT_PUBLIC_SANDBOX_URL` (после смены пересоберите web) |
-| `COOKIE_SECURE` | пусто | `true`/`false` — флаг Secure у cookie. `auto` — решается по каждому запросу: Secure ставится, если запрос пришёл с заголовком `X-Forwarded-Proto: https` (его выставляют только порты Caddy `:8081`/`:8082` для Tailscale; на `:80` Caddy перезаписывает его реальной схемой). Нужен, чтобы вход работал и по `http://IP`, и по `https://….ts.net`. Пусто: определяется по схеме `PUBLIC_ORIGIN` (https → true), иначе по `NODE_ENV=production`. По http Secure-cookie браузер отбрасывает — войти нельзя, поэтому в режиме http нужно `false` |
+| `CADDYFILE` | `Caddyfile` | Какой конфиг Caddy монтировать. `Caddyfile.http` — режим http в локальной сети без домена и сертификатов (сайт на :80) |
+| `COOKIE_SECURE` | пусто | `true`/`false` — флаг Secure у cookie. `auto` — решается по каждому запросу: Secure ставится, если запрос пришёл с заголовком `X-Forwarded-Proto: https` (его выставляют только порты Caddy `:8081` для Tailscale; на `:80` Caddy перезаписывает его реальной схемой). Нужен, чтобы вход работал и по `http://IP`, и по `https://….ts.net`. Пусто: определяется по схеме `PUBLIC_ORIGIN` (https → true), иначе по `NODE_ENV=production`. По http Secure-cookie браузер отбрасывает — войти нельзя, поэтому в режиме http нужно `false` |
 
-| `EXTRA_ORIGINS` | пусто | Дополнительные origin-ы сайта через пробел, например `https://puls.tailnet.ts.net`. Добавляются в CSP `frame-ancestors` песочницы (в API и в Caddy) и в CORS |
-| `EXTRA_SANDBOX_ORIGINS` | пусто | Дополнительные origin-ы песочницы через пробел, например `https://puls.tailnet.ts.net:8443`. Идут в `NEXT_PUBLIC_SANDBOX_URLS` (после смены пересоберите web) |
+| `EXTRA_ORIGINS` | пусто | Дополнительные origin-ы сайта через пробел, например `https://puls.tailnet.ts.net`. Добавляются в CORS |
 | `TS_HTTP_PORT` | `8081` | Порт Caddy на `127.0.0.1` (копия сайта с `X-Forwarded-Proto: https`) — сюда смотрит `tailscale serve --https=443` |
-| `TS_SANDBOX_PORT` | `8082` | Порт Caddy на `127.0.0.1` (копия песочницы с `X-Forwarded-Proto: https`) — сюда смотрит `tailscale serve --https=8443` |
 
 ::: warning Режим http
 `Caddyfile.http` не шифрует трафик: пароли и сессии идут открытым текстом. Используйте только
@@ -153,12 +146,6 @@ AI-ключей. Получите значение, например:
 | --- | --- | --- |
 | `RATES_PROVIDER` | пусто | `frankfurter` включает подтягивание курсов с публичного API (данные ЕЦБ). Пусто — работают только ручные курсы |
 | `RATES_API_URL` | `https://api.frankfurter.dev/v1` | Своё ECB-совместимое зеркало |
-
-## Антивирус для HTML-страниц
-
-| Переменная | По умолчанию | Назначение |
-| --- | --- | --- |
-| `CLAMAV_HOST` | пусто | `host:port` сервиса clamd, например `clamav:3310`. Пусто — проверка отключена (noop-заглушка с понятным логом) |
 
 ## Бэкапы
 
