@@ -14,6 +14,8 @@ import {
   roundMoney,
   todayKeyInTimezone,
   zonedDayBounds,
+  sumMoney,
+  toCents,
   type CategorySpend,
   type MoodCalendarResponse,
   type PeriodRange,
@@ -83,6 +85,7 @@ export class StatsService {
       }),
     ]);
 
+    // spent/earned — в копейках (целые): float-сложение копило бы хвосты.
     const buckets = new Map<string, { spent: number; earned: number; moods: number[] }>();
     const bucket = (day: string): { spent: number; earned: number; moods: number[] } => {
       const existing = buckets.get(day);
@@ -94,8 +97,8 @@ export class StatsService {
 
     for (const transaction of transactions) {
       const target = bucket(dayKeyOf(transaction.date));
-      if (transaction.type === 'income') target.earned += Number(transaction.amountBase);
-      else target.spent += Number(transaction.amountBase);
+      if (transaction.type === 'income') target.earned += toCents(Number(transaction.amountBase));
+      else target.spent += toCents(Number(transaction.amountBase));
     }
 
     for (const checkIn of checkIns) {
@@ -124,8 +127,8 @@ export class StatsService {
           return {
             userId,
             date: dateOnly(day),
-            spent: new Prisma.Decimal(roundMoney(values.spent)),
-            earned: new Prisma.Decimal(roundMoney(values.earned)),
+            spent: new Prisma.Decimal(values.spent).div(100),
+            earned: new Prisma.Decimal(values.earned).div(100),
             avgMood: moodAverage(values.moods),
             checkinsCount: values.moods.length,
           };
@@ -157,12 +160,8 @@ export class StatsService {
 
     const spent = Number(stat?.spent ?? 0);
     const earned = Number(stat?.earned ?? 0);
-    const budgetLimit = roundMoney(
-      budgets.reduce((total, budget) => total + Number(budget.limit), 0),
-    );
-    const monthSpent = roundMoney(
-      monthStats.reduce((total, entry) => total + Number(entry.spent), 0),
-    );
+    const budgetLimit = roundMoney(sumMoney(budgets.map((budget) => Number(budget.limit))));
+    const monthSpent = roundMoney(sumMoney(monthStats.map((entry) => Number(entry.spent))));
 
     return {
       day: dayKey,
@@ -279,8 +278,8 @@ export class StatsService {
     ]);
 
     return {
-      spent: roundMoney(stats.reduce((total, stat) => total + Number(stat.spent), 0)),
-      earned: roundMoney(stats.reduce((total, stat) => total + Number(stat.earned), 0)),
+      spent: sumMoney(stats.map((stat) => Number(stat.spent))),
+      earned: sumMoney(stats.map((stat) => Number(stat.earned))),
       checkins: moods.length,
       avgMood: moodAverage(moods.map((checkIn) => checkIn.mood)),
     };
