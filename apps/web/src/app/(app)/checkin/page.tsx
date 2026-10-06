@@ -477,8 +477,24 @@ export default function CheckInPage() {
                     {item.sleepHours !== null
                       ? ` · ${t('checkin.historySleep', { hours: item.sleepHours })}`
                       : ''}
+                    {item.water !== null
+                      ? ` · ${t('checkin.historyWater', { count: item.water })}`
+                      : ''}
+                    {item.steps !== null
+                      ? ` · ${t('checkin.historySteps', { count: item.steps })}`
+                      : ''}
                   </span>
                 </span>
+                {item.tags.length > 0 ? (
+                  <span
+                    className="flex flex-wrap gap-x-2 text-xs text-[var(--puls-wellbeing-text)]"
+                    data-testid="checkin-history-tags"
+                  >
+                    {item.tags.map((tag) => (
+                      <span key={tag}>#{tagLabel(tag)}</span>
+                    ))}
+                  </span>
+                ) : null}
                 {item.daySummary ? (
                   <span className="truncate text-sm" data-testid="checkin-history-summary">
                     {item.daySummary}

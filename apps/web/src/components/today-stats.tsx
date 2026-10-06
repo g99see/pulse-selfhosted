@@ -101,6 +101,32 @@ export function TodayStats() {
           />
         </div>
 
+        {day && (day.avgEnergy !== null || day.avgStress !== null || day.avgSleep !== null) ? (
+          <div className="grid grid-cols-3 gap-3" data-testid="today-wellbeing">
+            <StatTile
+              tone="wellbeing"
+              icon="heart"
+              label={t('stats.today.energy')}
+              testId="today-energy"
+              value={day.avgEnergy === null ? dash : day.avgEnergy}
+            />
+            <StatTile
+              tone="primary"
+              icon="heart"
+              label={t('stats.today.stress')}
+              testId="today-stress"
+              value={day.avgStress === null ? dash : day.avgStress}
+            />
+            <StatTile
+              tone="wellbeing"
+              icon="heart"
+              label={t('stats.today.sleep')}
+              testId="today-sleep"
+              value={day.avgSleep === null ? dash : day.avgSleep}
+            />
+          </div>
+        ) : null}
+
         <div className="flex min-h-[44px] flex-col gap-2">
           {day && day.budgetLimit > 0 ? (
             <ProgressBar

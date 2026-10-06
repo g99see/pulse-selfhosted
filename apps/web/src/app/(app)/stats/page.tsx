@@ -197,6 +197,30 @@ export default function StatsPage() {
                 tone="wellbeing"
                 icon="heart"
               />
+              {report.avgEnergy !== null ? (
+                <StatTile
+                  label={t('stats.total.energy')}
+                  value={<span data-testid="stats-energy">{number(report.avgEnergy)}</span>}
+                  tone="wellbeing"
+                  icon="heart"
+                />
+              ) : null}
+              {report.avgStress !== null ? (
+                <StatTile
+                  label={t('stats.total.stress')}
+                  value={<span data-testid="stats-stress">{number(report.avgStress)}</span>}
+                  tone="primary"
+                  icon="heart"
+                />
+              ) : null}
+              {report.avgSleep !== null ? (
+                <StatTile
+                  label={t('stats.total.sleep')}
+                  value={<span data-testid="stats-sleep">{number(report.avgSleep)}</span>}
+                  tone="wellbeing"
+                  icon="heart"
+                />
+              ) : null}
               <StatTile
                 label={t('stats.total.checkins')}
                 value={String(report.checkins)}
