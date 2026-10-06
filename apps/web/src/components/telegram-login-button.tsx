@@ -39,6 +39,8 @@ export function TelegramLoginButton({
   const holder = useRef<HTMLSpanElement>(null);
   const callback = useRef(onAuth);
   callback.current = onAuth;
+  const labelRef = useRef(label);
+  labelRef.current = label;
 
   useEffect(() => {
     window[CALLBACK_NAME] = (user) => callback.current(user);
@@ -61,8 +63,20 @@ export function TelegramLoginButton({
     script.setAttribute('data-onauth', `${CALLBACK_NAME}(user)`);
     container.appendChild(script);
 
-    return () => container.replaceChildren();
+    // Скрипт Telegram вставляет iframe без title — у фрейма должно быть имя для
+    // скринридеров (Lighthouse frame-title). Подписываем его, как только он появится.
+    const observer = new MutationObserver(() => {
+      const frame = container.querySelector('iframe');
+      if (frame && !frame.title) frame.title = labelRef.current;
+    });
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      container.replaceChildren();
+    };
   }, [botUsername]);
 
-  return <span ref={holder} data-testid="telegram-login" aria-label={label} />;
+  // role="group": aria-label на span без роли запрещён (aria-prohibited-attr).
+  return <span ref={holder} role="group" data-testid="telegram-login" aria-label={label} />;
 }

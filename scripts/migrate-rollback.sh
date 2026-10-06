@@ -113,23 +113,17 @@ else
   sh "$SCRIPT_DIR/backup.sh" || fail 'бэкап не удался — откат не выполнен'
 fi
 
-# 3. down.sql одной транзакцией: при ошибке БД остаётся как была.
+# 3. down.sql и пометка «откачена» — одной транзакцией: при ошибке БД остаётся как была.
+# Пометку ставим тем же SQL, что делает `prisma migrate resolve --rolled-back`
+# (rolled_back_at = now()): prisma CLI в контейнере api смотрит в свой DATABASE_URL,
+# а не в $PGDATABASE, и мог бы пометить не ту базу; к тому же resolve принимает
+# только упавшие миграции (P3012).
 log "применяю $MIGRATION/down.sql"
 {
   cat "$DOWN_SQL"
   printf '\n'
-  printf "UPDATE _prisma_migrations SET finished_at = NULL, logs = 'rolled back by scripts/migrate-rollback.sh' WHERE migration_name = '%s';\n" "$MIGRATION"
+  printf "UPDATE _prisma_migrations SET rolled_back_at = now(), logs = 'rolled back by scripts/migrate-rollback.sh' WHERE migration_name = '%s' AND rolled_back_at IS NULL;\n" "$MIGRATION"
 } | psql_db -v ON_ERROR_STOP=1 --single-transaction ||
   fail 'down.sql завершился с ошибкой — транзакция отменена, схема не изменена'
-
-# 4. Помечаем миграцию откаченной.
-log 'помечаю миграцию как откаченную (prisma migrate resolve --rolled-back)'
-if [ -x "$ROOT_DIR/apps/api/node_modules/.bin/prisma" ]; then
-  (cd "$ROOT_DIR/apps/api" && ./node_modules/.bin/prisma migrate resolve --rolled-back "$MIGRATION") ||
-    fail 'схема откачена, но prisma resolve не удался — выполните его вручную'
-else
-  compose run --rm --no-deps api ./node_modules/.bin/prisma migrate resolve --rolled-back "$MIGRATION" ||
-    fail 'схема откачена, но prisma resolve не удался — выполните его вручную'
-fi
 
 log "готово: $MIGRATION откачена. Следующий prisma migrate deploy накатит её заново."

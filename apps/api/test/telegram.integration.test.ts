@@ -345,7 +345,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       expect(
         (lastSent('1001')?.buttons?.flat() ?? []).map((button) => button.callbackData),
       ).toEqual(expect.arrayContaining(['ci:mood:1', 'ci:mood:5']));
-      expect(lastSent('1001')?.text).toContain('Шаг 1/6');
+      expect(lastSent('1001')?.text).toContain('Шаг 1/8');
       expect(await prisma.checkInDraft.count({ where: { userId } })).toBe(1);
 
       await webhookUpdate(cb(1001, 'ci:mood:4'));
@@ -354,10 +354,12 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       const sleepButtons = lastSent('1001')?.buttons?.[0]?.map((button) => button.text);
       expect(sleepButtons).toEqual(['4', '5', '6', '7', '8', '9+']);
       await webhookUpdate(text(1001, '7,5'));
+      await webhookUpdate(cb(1001, 'ci:water:6'));
+      await webhookUpdate(text(1001, '8400'));
       await webhookUpdate(cb(1001, 'ci:tag:1'));
       await webhookUpdate(text(1001, '#йога'));
       await webhookUpdate(cb(1001, 'ci:tags:done'));
-      expect(lastSent('1001')?.text).toContain('Шаг 6/6');
+      expect(lastSent('1001')?.text).toContain('Шаг 8/8');
       await webhookUpdate(text(1001, 'Хороший день'));
 
       const summary = lastSent('1001')?.text ?? '';
@@ -374,6 +376,8 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
         energy: 3,
         stress: 2,
         sleepHours: 7.5,
+        water: 6,
+        steps: 8400,
         tags: ['спорт', 'йога'],
         note: 'Хороший день',
       });
@@ -400,6 +404,8 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       await webhookUpdate(cb(1002, 'ci:energy:skip'));
       await webhookUpdate(cb(1002, 'ci:stress:skip'));
       await webhookUpdate(cb(1002, 'ci:sleep:skip'));
+      await webhookUpdate(cb(1002, 'ci:water:skip'));
+      await webhookUpdate(cb(1002, 'ci:steps:skip'));
       await webhookUpdate(cb(1002, 'ci:tags:done'));
       await webhookUpdate(cb(1002, 'ci:note:skip'));
 
@@ -418,7 +424,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     it('кнопка настроения из напоминания запускает диалог с готовым настроением', async () => {
       const { userId } = await signUpLinked('tg-remind@example.com', 'tgremindusr', '1003');
       await webhookUpdate(cb(1003, 'ci:mood:5'));
-      expect(lastSent('1003')?.text).toContain('Шаг 2/6');
+      expect(lastSent('1003')?.text).toContain('Шаг 2/8');
       const draft = await prisma.checkInDraft.findFirst({ where: { userId } });
       expect(draft).toMatchObject({ channel: 'telegram', step: 'energy' });
       expect(draft?.expiresAt.getTime()).toBeGreaterThan(Date.now() + 29 * 60_000);
@@ -426,7 +432,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
 
       // Старые кнопки (mood:N) тоже запускают диалог.
       await webhookUpdate(cb(1003, 'mood:3', 'cb-legacy'));
-      expect(lastSent('1003')?.text).toContain('Шаг 2/6');
+      expect(lastSent('1003')?.text).toContain('Шаг 2/8');
     });
 
     it('быстрая форма /checkin одной строкой и /mood 4', async () => {
