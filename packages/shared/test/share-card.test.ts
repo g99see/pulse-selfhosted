@@ -32,7 +32,7 @@ const streak: ShareCardData = {
 
 const achievement: ShareCardData = {
   type: 'achievement',
-  code: 'goal_half',
+  code: 'goal_progress',
   earnedAt: '2026-10-01T10:00:00.000Z',
 };
 
@@ -106,7 +106,7 @@ describe('renderShareCard', () => {
   it('карточка достижения содержит эмодзи и название бейджа', () => {
     const svg = renderShareCard(achievement, { format: 'story', locale: 'ru' });
     expect(svg).toContain('⛰️');
-    expect(svg).toContain('Половина пути');
+    expect(svg).toContain('Путь к цели');
     expect(svg).toContain('2026-10-01');
   });
 
@@ -144,15 +144,15 @@ describe('ShareCardQuerySchema', () => {
 
 describe('подписи достижений', () => {
   it('распознаёт коды и отдаёт название по локали', () => {
-    expect(isShareAchievementCode('goal_half')).toBe(true);
+    expect(isShareAchievementCode('goal_progress')).toBe(true);
     expect(isShareAchievementCode('nope')).toBe(false);
-    expect(shareAchievementTitle('goal_half', 'ru')).toBe('Половина пути');
-    expect(shareAchievementTitle('goal_half', 'en')).toBe('Halfway there');
+    expect(shareAchievementTitle('goal_progress', 'ru')).toBe('Путь к цели');
+    expect(shareAchievementTitle('goal_progress', 'en')).toBe('Road to the goal');
     expect(shareAchievementTitle('nope', 'ru')).toBe('nope');
   });
 
   it('эмодзи бейджа с запасным вариантом', () => {
-    expect(achievementEmoji('goal_complete')).toBe('🏆');
+    expect(achievementEmoji('goals_completed')).toBe('🏆');
     expect(achievementEmoji('unknown')).toBe('⭐');
   });
 });

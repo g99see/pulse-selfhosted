@@ -8,7 +8,12 @@
  */
 import { z } from 'zod';
 import { LocaleSchema, type Locale } from './auth';
-import { ACHIEVEMENT_CODES, type AchievementCode } from './achievements';
+import {
+  ACHIEVEMENT_CODES,
+  achievementByCode,
+  achievementTitle,
+  type AchievementCode,
+} from './achievement-catalog';
 import { formatMoney, type Currency } from './money';
 
 /* ----- Типы и форматы ----- */
@@ -161,27 +166,13 @@ const LABELS: Record<Locale, ShareCardLabels> = {
   },
 };
 
-/** Названия бейджей для карточки (ТЗ §4): без зависимости от i18n веба. */
-const ACHIEVEMENT_TITLES: Record<AchievementCode, Record<Locale, string>> = {
-  first_checkin: { ru: 'Первый шаг', en: 'First step' },
-  checkin_streak_7: { ru: 'Неделя в ритме', en: 'A week in rhythm' },
-  checkin_streak_30: { ru: 'Месяц привычки', en: 'A month of habit' },
-  checkin_streak_100: { ru: 'Сто дней', en: 'One hundred days' },
-  first_transaction: { ru: 'Первая запись', en: 'First entry' },
-  first_budget_closed: { ru: 'В рамках бюджета', en: 'Within budget' },
-  first_goal: { ru: 'Первый ориентир', en: 'First milestone' },
-  goal_half: { ru: 'Половина пути', en: 'Halfway there' },
-  goal_complete: { ru: 'Цель достигнута', en: 'Goal reached' },
-};
-
 /** Название бейджа для карточки по коду и локали (fallback — сам код). */
 export function shareAchievementTitle(code: string, locale: Locale = 'ru'): string {
-  const entry = ACHIEVEMENT_TITLES[code as AchievementCode];
-  return entry ? entry[locale] : code;
+  return achievementTitle(code, locale);
 }
 
 function isAchievementCode(value: string): value is AchievementCode {
-  return (ACHIEVEMENT_CODES as readonly string[]).includes(value);
+  return ACHIEVEMENT_CODES.includes(value);
 }
 
 export { isAchievementCode as isShareAchievementCode };
@@ -553,16 +544,5 @@ function buildMoodSection(data: ShareMoodCardData, context: SectionContext): Sec
 
 /** Эмодзи бейджа (ТЗ §8: иконки Lucide, эмодзи только там, где уместно). */
 export function achievementEmoji(code: string): string {
-  const map: Record<string, string> = {
-    first_checkin: '🌱',
-    checkin_streak_7: '🔥',
-    checkin_streak_30: '🏅',
-    checkin_streak_100: '💯',
-    first_transaction: '🧾',
-    first_budget_closed: '📊',
-    first_goal: '🎯',
-    goal_half: '⛰️',
-    goal_complete: '🏆',
-  };
-  return map[code] ?? '⭐';
+  return achievementByCode(code)?.icon ?? '⭐';
 }

@@ -22,6 +22,7 @@ export * from './telegram';
 export * from './recurring';
 export * from './account';
 export * from './two-factor';
+export * from './achievement-catalog';
 export * from './achievements';
 export * from './external-auth';
 export * from './goals';
