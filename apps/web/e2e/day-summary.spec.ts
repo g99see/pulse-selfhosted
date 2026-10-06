@@ -33,6 +33,12 @@ test('итог дня по ссылке: создать, открыть без �
   )?.[1];
   await page.goto(`/verify-email?token=${token}`);
   await expect(page).toHaveURL(/onboarding/, { timeout: 20_000 });
+  // Без завершённого онбординга кабинет (и настройки) перенаправляют обратно на него.
+  await page.getByTestId('onboarding-next').click();
+  await page.getByTestId('onboarding-next').click();
+  await page.getByTestId('onboarding-next').click();
+  await page.getByTestId('onboarding-finish').click();
+  await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
   await page.goto('/settings');
   await page.getByTestId('day-summary-create').click();
