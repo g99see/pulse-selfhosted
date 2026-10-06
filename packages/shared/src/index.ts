@@ -12,6 +12,7 @@ export * from './auth';
 export * from './setup';
 export * from './finance';
 export * from './import';
+export * from './reconcile';
 export * from './stats';
 export * from './insights';
 export * from './notifications';
