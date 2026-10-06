@@ -137,6 +137,6 @@ describe('dueDeliveriesForUser', () => {
 describe('значения по умолчанию синхронны с shared', () => {
   it('расписание по умолчанию совпадает с правилом по умолчанию', () => {
     expect(defaultNotificationRule('checkins').times).toEqual(['09:00', '15:00', '21:00']);
-    expect(defaultNotificationRules()).toHaveLength(7);
+    expect(defaultNotificationRules()).toHaveLength(6);
   });
 });
