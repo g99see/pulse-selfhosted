@@ -1,29 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
+import { NOTIFICATION_TYPES } from '@puls/shared';
 import {
-  CHECKIN_ACTIONS,
-  buildNotificationEmail,
-  buildPushPayload,
+  buildBudgetAlert,
+  buildDailySummary,
+  buildMessage,
+  buildReconciliationMismatch,
   checkinGreeting,
 } from './messages';
 
-describe('buildPushPayload', () => {
-  it('для чек-ина несёт кнопки настроения 1–5 и путь API (ТЗ §9)', () => {
-    const payload = buildPushPayload('checkins', {
+describe('buildMessage', () => {
+  it('чек-ин помечен kind=checkin (кнопки добавит Telegram)', () => {
+    const message = buildMessage('checkins', {
       now: new Date('2026-10-01T06:00:00Z'),
       timezone: 'Europe/Moscow', // 09:00 — утро
     });
-
-    expect(payload.checkinUrl).toBe('/api/checkins');
-    expect(payload.actions?.map((action) => action.action)).toEqual([
-      'mood-1',
-      'mood-2',
-      'mood-3',
-      'mood-4',
-      'mood-5',
-    ]);
-    expect(payload.actions).toHaveLength(CHECKIN_ACTIONS.length);
-    expect(payload.title).toContain('утро');
+    expect(message.kind).toBe('checkin');
+    expect(message.title).toContain('утро');
   });
 
   it('меняет приветствие по локальному времени', () => {
@@ -35,24 +28,74 @@ describe('buildPushPayload', () => {
     ).toContain('прошёл день');
   });
 
-  it('собирает payload для каждого из типов', () => {
-    for (const type of ['checkins', 'payments', 'budget', 'weekly_report', 'reactions'] as const) {
-      const payload = buildPushPayload(type, { now: new Date(), timezone: 'UTC' });
-      expect(payload.type).toBe(type);
-      expect(payload.title.length).toBeGreaterThan(0);
-      expect(payload.body.length).toBeGreaterThan(0);
+  it('собирает сообщение для каждого типа', () => {
+    for (const type of NOTIFICATION_TYPES) {
+      const message = buildMessage(type, { now: new Date(), timezone: 'UTC' });
+      expect(message.type).toBe(type);
+      expect(message.title.length).toBeGreaterThan(0);
+      expect(message.body.length).toBeGreaterThan(0);
     }
   });
 });
 
-describe('buildNotificationEmail', () => {
-  it('строит письмо-уведомление с темой и типом', () => {
-    const email = buildNotificationEmail('weekly_report', {
-      now: new Date('2026-10-01T09:00:00Z'),
-      timezone: 'UTC',
+describe('buildDailySummary', () => {
+  const day = {
+    day: '2026-10-01',
+    timezone: 'UTC',
+    currency: 'RUB',
+    spent: 1200,
+    earned: 5000,
+    net: 3800,
+    budgetLimit: 0,
+    budgetRemaining: 0,
+    avgMood: 4.5,
+    checkins: 2,
+  } as unknown as Parameters<typeof buildDailySummary>[0];
+
+  it('содержит траты, доходы, настроение и чек-ины', () => {
+    const message = buildDailySummary(day);
+    expect(message.type).toBe('daily_summary');
+    expect(message.body).toContain('Потрачено');
+    expect(message.body).toContain('Получено');
+    expect(message.body).toContain('4.5/5');
+    expect(message.body).toContain('Чек-инов: 2');
+  });
+
+  it('без чек-инов пишет «нет данных»', () => {
+    expect(buildDailySummary({ ...day, avgMood: null }).body).toContain('нет данных');
+  });
+});
+
+describe('buildBudgetAlert', () => {
+  it('до 80% предупреждения нет', () => {
+    expect(
+      buildBudgetAlert({ categoryName: 'Еда', limit: 1000, spent: 700, currency: 'RUB' }),
+    ).toBeNull();
+  });
+
+  it('80% — предупреждение, 100% — превышение', () => {
+    const warning = buildBudgetAlert({
+      categoryName: 'Еда',
+      limit: 1000,
+      spent: 850,
+      currency: 'RUB',
     });
-    expect(email.subject).toContain('Пульс');
-    expect(email.kind).toBe('notification:weekly_report');
-    expect(email.text.length).toBeGreaterThan(0);
+    expect(warning?.title).toContain('85%');
+    const exceeded = buildBudgetAlert({
+      categoryName: 'Еда',
+      limit: 1000,
+      spent: 1200,
+      currency: 'RUB',
+    });
+    expect(exceeded?.title).toContain('превышен');
+  });
+});
+
+describe('buildReconciliationMismatch', () => {
+  it('называет счёт и расхождение', () => {
+    const message = buildReconciliationMismatch({ accountName: 'Карта', difference: '120 ₽' });
+    expect(message.type).toBe('reconciliation_mismatch');
+    expect(message.body).toContain('Карта');
+    expect(message.body).toContain('120');
   });
 });

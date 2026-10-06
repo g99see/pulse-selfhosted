@@ -8,8 +8,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, type Insight } from '@prisma/client';
 import {
-  DEFAULT_CHANNELS,
-  DEFAULT_QUIET_HOURS,
   addDays,
   budgetExceededCandidates,
   budgetSuggestionCandidate,
@@ -36,7 +34,6 @@ import {
   type InsightsApplyResponse,
   type InsightsFeedResponse,
   type InsightsFeedbackResponse,
-  type NotificationChannel,
   type TypeFeedbackStat,
   type WeeklyReportResponse,
 } from '@puls/shared';
@@ -377,42 +374,10 @@ export class InsightsService {
   }
 
   private async notifyWeekly(
-    user: {
-      id: string;
-      email: string;
-      timezone: string;
-      notificationsEnabled: boolean;
-      notificationRules: {
-        type: string;
-        channel: string;
-        enabled: boolean;
-        quietHoursStart: number;
-        quietHoursEnd: number;
-      }[];
-    },
+    user: { id: string; timezone: string; notificationsEnabled: boolean },
     now: Date,
   ): Promise<void> {
     if (!user.notificationsEnabled) return;
-
-    const rule = user.notificationRules.find((item) => item.type === 'weekly_report');
-    // Без сохранённого правила тип включён по умолчанию (ТЗ §3.6).
-    if (rule && !rule.enabled) return;
-
-    const channel =
-      (rule?.channel as NotificationChannel | undefined) ?? DEFAULT_CHANNELS.weekly_report;
-
-    await this.dispatcher.dispatch(
-      {
-        userId: user.id,
-        type: 'weekly_report',
-        channel,
-        times: [],
-        quietHours: {
-          start: rule?.quietHoursStart ?? DEFAULT_QUIET_HOURS.start,
-          end: rule?.quietHoursEnd ?? DEFAULT_QUIET_HOURS.end,
-        },
-      },
-      { now, email: user.email, timezone: user.timezone },
-    );
+    await this.dispatcher.notifyWeeklyReport(user.id, now, user.timezone);
   }
 }

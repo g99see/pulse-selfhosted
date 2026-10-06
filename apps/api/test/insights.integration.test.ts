@@ -62,7 +62,8 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
   beforeEach(async () => {
     const statements = [
       'DELETE FROM "insights"',
-      'DELETE FROM "push_subscriptions"',
+      'DELETE FROM "notification_deliveries"',
+      'DELETE FROM "telegram_links"',
       'DELETE FROM "notification_rules"',
       'DELETE FROM "daily_stats"',
       'DELETE FROM "transactions"',
@@ -368,6 +369,7 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       const food = categories.find((category) => category.name === 'Еда')!;
       const transport = categories.find((category) => category.name === 'Транспорт')!;
       const user = await userByEmail('weekly@example.com');
+      await prisma.telegramLink.create({ data: { userId: user.id, chatId: 'weekly-chat' } });
       await prisma.user.update({
         where: { id: user.id },
         data: { onboardingCompletedAt: new Date() },
@@ -402,11 +404,11 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       expect(stored.some((row) => row.type === 'budget_suggestion')).toBe(true);
       expect(stored.every((row) => row.periodKey === '2026-W40')).toBe(true);
 
-      const notifications = mail
-        .outbox()
-        .filter((message) => message.kind === 'notification:weekly_report');
+      const notifications = await prisma.notificationDelivery.findMany({
+        where: { userId: user.id, type: 'weekly_report' },
+      });
       expect(notifications).toHaveLength(1);
-      expect(notifications[0].to).toBe('weekly@example.com');
+      expect(notifications[0]).toMatchObject({ channel: 'telegram', status: 'queued' });
 
       // Повторный тик в следующем окне — идемпотентно: без дублей и писем.
       const second = await scheduler.runOnce(
@@ -416,8 +418,10 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       expect(second).toHaveLength(0);
       expect(await prisma.insight.count({ where: { userId: user.id, source: 'weekly' } })).toBe(4);
       expect(
-        mail.outbox().filter((message) => message.kind === 'notification:weekly_report'),
-      ).toHaveLength(1);
+        await prisma.notificationDelivery.count({
+          where: { userId: user.id, type: 'weekly_report' },
+        }),
+      ).toBe(1);
     });
   });
 
