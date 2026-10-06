@@ -15,6 +15,7 @@ const V2 = [
   '20261006150000_statement_mismatch_notified',
   '20261006160000_checkin_goal',
   '20261006170000_day_summary_link',
+  '20261007100000_remove_social',
 ];
 
 describe('откат миграций (ТЗ v2 §8)', () => {

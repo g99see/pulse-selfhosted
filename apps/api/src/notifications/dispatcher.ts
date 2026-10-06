@@ -19,13 +19,11 @@ import {
   buildCapsuleOpenedNotification,
   buildDailySummary,
   buildMessage,
-  buildPostActivityNotification,
   buildReconciliationMismatch,
   buildRecurringReminder,
   type BudgetAlertInfo,
   type CapsuleOpenedInfo,
   type NotificationMessage,
-  type PostActivityInfo,
   type ReconciliationMismatchInfo,
   type RecurringReminderInfo,
 } from './messages';
@@ -126,11 +124,6 @@ export class NotificationDispatcher implements DeliveryDispatcher {
       url: reminder.url,
     });
     return queued > 0;
-  }
-
-  /** Реакция или комментарий к посту (ТЗ §3.7). */
-  async notifyPostActivity(userId: string, info: PostActivityInfo): Promise<boolean> {
-    return (await this.notify(userId, 'reactions', buildPostActivityNotification(info))) > 0;
   }
 
   /** Открылась капсула времени (ТЗ §4, P2): тип вне переключателей — идёт в любой активный канал. */

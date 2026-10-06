@@ -202,12 +202,11 @@ describe('правила по типам уведомлений', () => {
         'checkins',
         'daily_summary',
         'payments',
-        'reactions',
         'reconciliation_mismatch',
         'weekly_report',
       ].sort(),
     );
-    expect(rules).toHaveLength(7);
+    expect(rules).toHaveLength(6);
   });
 
   it('позволяет включать и выключать каждый тип отдельно', () => {

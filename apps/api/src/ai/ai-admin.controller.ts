@@ -4,8 +4,8 @@ import { AiInstanceSettingsSchema, type AiInstanceSettingsInput } from '@puls/sh
 import { SessionGuard } from '../auth/session.guard';
 import { httpError } from '../common/http-error';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
-import { Roles } from '../moderation/roles.decorator';
-import { RolesGuard } from '../moderation/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { AiKeyService, usageMonth } from './ai-key.service';
 import { AiProviderService } from './ai-provider.service';
 

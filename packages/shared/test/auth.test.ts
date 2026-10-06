@@ -116,7 +116,6 @@ describe('OnboardingSchema', () => {
     expect(parsed.notificationsEnabled).toBe(true);
     expect(parsed.quietHoursStart).toBe(22);
     expect(parsed.quietHoursEnd).toBe(8);
-    expect(parsed.profileVisibility).toBe('private');
     expect(parsed.firstAccount).toBeUndefined();
   });
 
@@ -129,12 +128,10 @@ describe('OnboardingSchema', () => {
       notificationsEnabled: false,
       quietHoursStart: 23,
       quietHoursEnd: 7,
-      profileVisibility: 'subscribers',
       firstAccount: { name: 'Карта', type: 'card', balance: 1500.5 },
     });
 
     expect(parsed.firstAccount).toMatchObject({ name: 'Карта', type: 'card', balance: 1500.5 });
-    expect(parsed.profileVisibility).toBe('subscribers');
   });
 
   it('requires at least one goal and a valid timezone', () => {

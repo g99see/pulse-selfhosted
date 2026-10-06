@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { CryptoModule } from '../crypto/crypto.module';
-import { RolesGuard } from '../moderation/roles.guard';
+import { RolesGuard } from '../auth/roles.guard';
 import { AI_HTTP, FetchAiHttpClient } from './ai-http';
 import { AiAdminController } from './ai-admin.controller';
 import { AiController } from './ai.controller';

@@ -18,35 +18,29 @@ import {
 } from '../src/goals';
 
 describe('GoalCreateSchema', () => {
-  it('принимает цель со сроком, картинкой и приватностью', () => {
+  it('принимает цель со сроком и картинкой', () => {
     const parsed = GoalCreateSchema.parse({
       title: 'Ноутбук',
       targetAmount: 120000,
       deadline: '2027-03-01',
       image: '💻',
-      visibility: 'private',
     });
     expect(parsed).toMatchObject({
       title: 'Ноутбук',
       targetAmount: 120000,
       savedAmount: 0,
-      visibility: 'private',
     });
   });
 
-  it('по умолчанию saved_amount = 0 и приватность «только мне»', () => {
+  it('по умолчанию saved_amount = 0', () => {
     const parsed = GoalCreateSchema.parse({ title: 'Отпуск', targetAmount: 80000 });
     expect(parsed.savedAmount).toBe(0);
-    expect(parsed.visibility).toBe('private');
     expect(parsed.deadline).toBeUndefined();
   });
 
-  it('отклоняет пустое имя, нулевую цель и неизвестную приватность', () => {
+  it('отклоняет пустое имя и нулевую цель', () => {
     expect(GoalCreateSchema.safeParse({ title: '', targetAmount: 100 }).success).toBe(false);
     expect(GoalCreateSchema.safeParse({ title: 'x', targetAmount: 0 }).success).toBe(false);
-    expect(
-      GoalCreateSchema.safeParse({ title: 'x', targetAmount: 100, visibility: 'friends' }).success,
-    ).toBe(false);
   });
 
   it('хранит картинку как эмодзи-пресет или URL без загрузки файлов', () => {

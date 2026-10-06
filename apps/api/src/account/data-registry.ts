@@ -113,27 +113,6 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   },
   // Инсайты и оценки рекомендаций (ТЗ §3.5): тип, ключ текста и параметры — не секреты.
   { table: 'insights', entity: 'insights', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // Публичный профиль (ТЗ §3.7): описание, аватар и обложка — не секреты, выгружаем.
-  { table: 'profiles', entity: 'profiles', keyColumn: 'user_id' },
-  // Карточки профиля (ТЗ §3.7): тип, приватность, режим и HTML — данные пользователя.
-  { table: 'profile_cards', entity: 'profileCards', keyColumn: 'user_id', orderBy: '"position"' },
-  // Жалобы, поданные пользователем (ТЗ §3.7): цель, причина и пояснение — его данные.
-  { table: 'reports', entity: 'reports', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // HTML-страница профиля (ТЗ §3.8): флаг публикации и текущая версия — данные пользователя.
-  { table: 'html_pages', entity: 'htmlPages', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // Версии HTML-страницы (ТЗ §3.8): код, заметка и результат проверки — его данные.
-  {
-    table: 'html_page_versions',
-    entity: 'htmlPageVersions',
-    keyColumn: 'user_id',
-    orderBy: '"created_at"',
-  },
-  // Посты ленты (ТЗ §3.7): тип, payload и приватность — не секреты, выгружаем.
-  { table: 'posts', entity: 'posts', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // Реакции пользователя (ТЗ §3.7): post_id и эмодзи — его действия, выгружаем.
-  { table: 'reactions', entity: 'reactions', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // Комментарии пользователя (ТЗ §3.7): тело — собственная запись, выгружаем.
-  { table: 'comments', entity: 'comments', keyColumn: 'user_id', orderBy: '"created_at"' },
   // Личный AI-ключ (ТЗ §3.9): сам ключ — секрет, выгружаем провайдера и last4.
   {
     table: 'user_ai_keys',
@@ -145,41 +124,6 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'ai_usage', entity: 'aiUsage', keyColumn: 'user_id', orderBy: '"month"' },
   // Предложения AI-помощника (ТЗ §3.9): тип, текст и параметры — данные пользователя.
   { table: 'ai_proposals', entity: 'aiProposals', keyColumn: 'user_id', orderBy: '"created_at"' },
-  // Участие в семье (ТЗ §4): семья, роль и дата вступления — данные пользователя.
-  {
-    table: 'family_members',
-    entity: 'familyMembers',
-    keyColumn: 'user_id',
-    orderBy: '"joined_at"',
-  },
-  // Операции по семейным счетам (ТЗ §4): вид, сумма и счёт — действия пользователя.
-  {
-    table: 'family_transactions',
-    entity: 'familyTransactions',
-    keyColumn: 'user_id',
-    orderBy: '"date", "created_at"',
-  },
-  // Взносы в общие цели семьи (ТЗ §4): сумма и дата — действия пользователя.
-  {
-    table: 'family_goal_deposits',
-    entity: 'familyGoalDeposits',
-    keyColumn: 'user_id',
-    orderBy: '"date", "created_at"',
-  },
-  // Участие в челленджах (ТЗ §4, P2): челлендж и дата вступления — данные пользователя.
-  {
-    table: 'challenge_participants',
-    entity: 'challengeParticipants',
-    keyColumn: 'user_id',
-    orderBy: '"joined_at"',
-  },
-  // Отметки «держусь» (ТЗ §4, P2): день и флаг — действия пользователя.
-  {
-    table: 'challenge_checks',
-    entity: 'challengeChecks',
-    keyColumn: 'user_id',
-    orderBy: '"date"',
-  },
   // Капсулы времени (ТЗ §4, P2): тело письма — секрет (расшифровывается только
   // владельцу через API после открытия), поэтому в выгрузке только метаданные.
   {
@@ -207,8 +151,6 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'check_in_drafts', reason: 'временный черновик диалога чек-ина (TTL 30 минут)' },
   { table: 'two_factor_backup_codes', reason: 'секрет: хеши одноразовых резервных кодов 2FA' },
   { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
-  // Журнал модерации (ТЗ §2, §3.8): внутренний аудит экземпляра, не данные автора.
-  { table: 'moderation_actions', reason: 'внутренний журнал модерации экземпляра' },
   { table: 'day_summary_links', reason: 'секрет: хеш токена приватной ссылки «Итог дня»' },
   // Токены открытого API (ТЗ §4): секрет — хеш токена.
   { table: 'api_tokens', reason: 'секрет: хеш личного токена доступа' },

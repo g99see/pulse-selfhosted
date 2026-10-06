@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { DiscordModule } from '../discord/discord.module';
 import { FinanceModule } from '../finance/finance.module';
-import { RolesGuard } from '../moderation/roles.guard';
+import { RolesGuard } from '../auth/roles.guard';
 import { StatsModule } from '../stats/stats.module';
 import { TelegramModule } from '../telegram/telegram.module';
 import { BudgetAlerts } from './budget-alerts';

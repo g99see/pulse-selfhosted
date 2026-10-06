@@ -113,7 +113,6 @@ export class AiProposalsService {
         title: parsed.data.title,
         targetAmount: parsed.data.targetAmount,
         savedAmount: parsed.data.savedAmount ?? 0,
-        visibility: parsed.data.visibility ?? 'private',
         ...(parsed.data.deadline ? { deadline: parsed.data.deadline } : {}),
       });
       return { kind, id: goal.id };

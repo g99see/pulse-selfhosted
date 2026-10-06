@@ -150,12 +150,9 @@ export const ResendVerificationSchema = z.object({
 });
 export type ResendVerificationInput = z.infer<typeof ResendVerificationSchema>;
 
-/** Шаги 2–4 онбординга (ТЗ §3.1): цели, расписание уведомлений, приватность. */
+/** Шаги 2–4 онбординга (ТЗ §3.1): цели, расписание уведомлений. */
 export const GoalKindSchema = z.enum(['money', 'health', 'habits']);
 export type GoalKind = z.infer<typeof GoalKindSchema>;
-
-export const ProfileVisibilitySchema = z.enum(['public', 'subscribers', 'private']);
-export type ProfileVisibility = z.infer<typeof ProfileVisibilitySchema>;
 
 export const AccountTypeSchema = z.enum(['card', 'cash', 'savings']);
 export type AccountType = z.infer<typeof AccountTypeSchema>;
@@ -174,12 +171,11 @@ export const OnboardingSchema = z.object({
   currency: currencySchema,
   // Шаг 2 — язык интерфейса.
   locale: LocaleSchema.default('ru'),
-  // Шаг 3 — цели, уведомления и приватность по умолчанию.
+  // Шаг 3 — цели и уведомления.
   goals: z.array(GoalKindSchema).min(1).max(3),
   notificationsEnabled: z.boolean().default(true),
   quietHoursStart: z.number().int().min(0).max(23).default(22),
   quietHoursEnd: z.number().int().min(0).max(23).default(8),
-  profileVisibility: ProfileVisibilitySchema.default('private'),
   // Шаг 4 — первый счёт (необязателен, можно настроить позже).
   firstAccount: FirstAccountSchema.optional(),
 });
@@ -199,7 +195,6 @@ export interface PublicUser {
   goals: string[];
   notificationsEnabled: boolean;
   quietHours: { start: number; end: number };
-  profileVisibility: string;
   emailVerified: boolean;
   onboardingStep: number;
   onboardingCompleted: boolean;

@@ -18,7 +18,6 @@ export const NOTIFICATION_TYPES = [
   'budget',
   'reconciliation_mismatch',
   'weekly_report',
-  'reactions',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export const NotificationTypeSchema = z.enum(NOTIFICATION_TYPES);

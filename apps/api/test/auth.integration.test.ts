@@ -345,7 +345,6 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         notificationsEnabled: false,
         quietHoursStart: 23,
         quietHoursEnd: 7,
-        profileVisibility: 'subscribers',
         firstAccount: { name: 'Карта', type: 'card', balance: 1500.5 },
       };
 
@@ -357,7 +356,6 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         currency: 'EUR',
         locale: 'en',
         goals: ['money', 'habits'],
-        profileVisibility: 'subscribers',
         onboardingCompleted: true,
       });
 

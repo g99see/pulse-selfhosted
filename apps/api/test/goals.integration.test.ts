@@ -23,7 +23,6 @@ interface GoalDto {
   percent: number;
   deadline: string | null;
   image: string | null;
-  visibility: string;
   accountId: string | null;
   currency: string;
   requiredMonthly: number | null;
@@ -115,14 +114,13 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
   }
 
   describe('CRUD целей (ТЗ §3.2)', () => {
-    it('создаёт цель с суммой, сроком, картинкой и приватностью', async () => {
+    it('создаёт цель с суммой, сроком, картинкой', async () => {
       const client = await signUp('goal@example.com', 'goaluser');
       const goal = await createGoal(client, {
         title: 'Ноутбук',
         targetAmount: 120000,
         deadline: '2027-03-01',
         image: '💻',
-        visibility: 'public',
       });
 
       expect(goal).toMatchObject({
@@ -132,7 +130,6 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
         remaining: 120000,
         percent: 0,
         image: '💻',
-        visibility: 'public',
         milestones: [],
       });
       expect(goal.currency).toBe('RUB');
@@ -157,19 +154,16 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
       const goal = await createGoal(client, {
         title: 'Отпуск',
         targetAmount: 80000,
-        visibility: 'private',
       });
 
       const updated = await client.put(`/api/goals/${goal.id}`, {
         title: 'Отпуск на море',
         targetAmount: 100000,
-        visibility: 'subscribers',
       });
       expect(updated.status).toBe(200);
       expect(updated.body).toMatchObject({
         title: 'Отпуск на море',
         targetAmount: 100000,
-        visibility: 'subscribers',
       });
 
       const fetched = await client.get(`/api/goals/${goal.id}`);
@@ -195,10 +189,6 @@ describe('Goals API (интеграция с PostgreSQL)', () => {
 
       expect((await client.post('/api/goals', { title: '', targetAmount: 100 })).status).toBe(400);
       expect((await client.post('/api/goals', { title: 'x', targetAmount: -5 })).status).toBe(400);
-      expect(
-        (await client.post('/api/goals', { title: 'x', targetAmount: 100, visibility: 'friends' }))
-          .status,
-      ).toBe(400);
     });
   });
 

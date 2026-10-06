@@ -17,7 +17,6 @@ import {
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
-import { SocialPostsService } from '../social/social-posts.service';
 import { DomainEvents } from '../api-access/domain-events';
 
 /** Глубина выборки чек-инов для расчёта стриков — покрывает порог в 100 дней. */
@@ -34,10 +33,7 @@ const STREAK_WINDOW_DAYS = 370;
 export class AchievementsService implements OnModuleInit {
   private readonly logger = new Logger(AchievementsService.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly posts: SocialPostsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /** Каталог бейджей в БД (модель Achievement: код + условие). Идемпотентно. */
   async onModuleInit(): Promise<void> {
@@ -83,8 +79,6 @@ export class AchievementsService implements OnModuleInit {
       await this.prisma.userAchievement.create({ data: { userId, code } });
       // Событие для вебхуков (ТЗ §4): сигнатуру award не меняет.
       DomainEvents.emit('achievement.earned', userId, { code });
-      // Пост в ленту о полученном достижении (ТЗ §3.7): виден подписчикам.
-      await this.posts.create({ userId, type: 'achievement', payload: { code } });
       return true;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
