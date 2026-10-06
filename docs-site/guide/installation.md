@@ -210,6 +210,6 @@ scripts/restore.sh backups/backup-<UTC>.tar.gz
 ## См. также
 
 - [Настройка (.env)](/guide/configuration) — все переменные окружения с примерами.
-- [Уведомления](/guide/usage/notifications) — web push, email и расписание.
+- [Уведомления](/guide/usage/notifications) — Telegram, Discord и расписание.
 - [Telegram-бот](/guide/usage/telegram) — привязка чата и команды.
 - [Администрирование](/admin/) — режим регистрации, модерация, бэкап и обновление.
