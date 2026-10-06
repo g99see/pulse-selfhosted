@@ -35,3 +35,10 @@ export function moodAverage(values: readonly number[]): number | null {
   const sum = valid.reduce((acc, value) => acc + value, 0);
   return Math.round((sum / valid.length) * 10) / 10;
 }
+
+/** Среднее по значениям, где поле заполнено (null/undefined пропускаются), до 0.1; null — данных нет. */
+export function optionalAverage(values: readonly (number | null | undefined)[]): number | null {
+  const valid = values.filter((value): value is number => typeof value === 'number');
+  if (valid.length === 0) return null;
+  return Math.round((valid.reduce((acc, value) => acc + value, 0) / valid.length) * 10) / 10;
+}
