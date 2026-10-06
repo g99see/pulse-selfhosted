@@ -150,6 +150,8 @@ scripts/backup.sh
 | `COMPOSE_PROJECT` | Отдельный compose-проект | — |
 | `PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE` | Доступ к БД | `PGDATABASE=puls` |
 
+Откат одной миграции схемы — [Бэкапы и откат миграций](/ops/backup).
+
 ## Восстановление одной командой
 
 ```bash
