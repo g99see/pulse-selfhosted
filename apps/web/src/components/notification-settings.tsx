@@ -133,15 +133,23 @@ function ChannelCard({
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
+  // Оптимистичные значения переключателей: состояние меняется сразу по клику,
+  // а не после ответа сервера; при ошибке откатывается.
+  const [pending, setPending] = useState<ChannelSettingsUpdateInput | null>(null);
+  const enabled = pending?.enabled ?? status.enabled;
+  const typeEnabled = (type: (typeof NOTIFICATION_TYPES)[number]): boolean =>
+    pending?.types?.[type] ?? status.types[type] ?? false;
 
   async function save(input: ChannelSettingsUpdateInput): Promise<void> {
     setBusy(true);
+    setPending(input);
     try {
       onChanged((await notificationsApi.updateChannel(channel, input)).channels);
       setError(false);
     } catch {
       setError(true);
     } finally {
+      setPending(null);
       setBusy(false);
     }
   }
@@ -282,7 +290,7 @@ function ChannelCard({
             type="checkbox"
             role="switch"
             data-testid={`${channel}-enabled`}
-            checked={status.enabled}
+            checked={enabled}
             disabled={busy}
             onChange={(event) => void save({ enabled: event.target.checked })}
           />
@@ -297,7 +305,7 @@ function ChannelCard({
                 type="checkbox"
                 role="switch"
                 data-testid={`${channel}-type-${type}`}
-                checked={status.types[type] ?? false}
+                checked={typeEnabled(type)}
                 disabled={busy}
                 onChange={(event) => void save({ types: { [type]: event.target.checked } })}
               />
