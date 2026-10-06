@@ -22,7 +22,7 @@ export function AuthShell({
       >
         <Link href="/" className="flex items-center gap-2.5 self-center" aria-label={brand}>
           <Logo size={36} />
-          <span className="font-heading text-xl font-extrabold">{brand}</span>
+          <span className="font-display text-lg">{brand}</span>
         </Link>
         {children}
       </div>

@@ -202,7 +202,7 @@ export default function ChallengesPage() {
     <div className="flex flex-col gap-5" data-testid="challenges-page">
       <div className="flex items-center gap-3">
         <IconBubble name="flag" tone="wellbeing" size={48} />
-        <h1 className="text-3xl font-extrabold">{t('challenges.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('challenges.title')}</h1>
       </div>
 
       {error ? <Alert>{error}</Alert> : null}
@@ -236,7 +236,7 @@ export default function ChallengesPage() {
               data-testid="challenge-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="challenge-kind" className="flex flex-col gap-1">
@@ -248,7 +248,7 @@ export default function ChallengesPage() {
               data-testid="challenge-kind"
               value={kind}
               onChange={(event) => setKind(event.target.value as ChallengeKind)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {CHALLENGE_KINDS.map((option) => (
                 <option key={option} value={option}>
@@ -267,7 +267,7 @@ export default function ChallengesPage() {
               inputMode="numeric"
               value={duration}
               onChange={(event) => setDuration(event.target.value)}
-              className="h-10 w-24 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 w-24 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             />
           </label>
           <label htmlFor="challenge-visibility" className="flex flex-col gap-1">
@@ -279,7 +279,7 @@ export default function ChallengesPage() {
               data-testid="challenge-visibility"
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as ChallengeVisibility)}
-              className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
             >
               {CHALLENGE_VISIBILITIES.map((option) => (
                 <option key={option} value={option}>
@@ -292,7 +292,7 @@ export default function ChallengesPage() {
             type="submit"
             data-testid="challenge-create"
             disabled={busy}
-            className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+            className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
           >
             {t('challenges.form.submit')}
           </button>
@@ -308,7 +308,7 @@ export default function ChallengesPage() {
             value={joinCode}
             onChange={(event) => setJoinCode(event.target.value)}
             placeholder="CH-…"
-            className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+            className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
           />
         </label>
         <button
@@ -316,7 +316,7 @@ export default function ChallengesPage() {
           data-testid="challenge-join"
           disabled={busy}
           onClick={() => void joinChallenge()}
-          className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
+          className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)] disabled:opacity-50"
         >
           {t('challenges.join.submit')}
         </button>
@@ -389,7 +389,7 @@ export default function ChallengesPage() {
                 data-testid="challenge-check"
                 disabled={busy || challenge.checkedToday}
                 onClick={() => void check(challenge, true)}
-                className="h-9 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+                className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
               >
                 {t('challenges.check.hold')}
               </button>
@@ -398,7 +398,7 @@ export default function ChallengesPage() {
                 data-testid="challenge-check-fail"
                 disabled={busy}
                 onClick={() => void check(challenge, false)}
-                className="h-9 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-4 text-sm font-medium disabled:opacity-50"
+                className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] px-4 text-sm font-medium disabled:opacity-50"
               >
                 {t('challenges.check.fail')}
               </button>
@@ -423,7 +423,7 @@ export default function ChallengesPage() {
                 type="button"
                 data-testid="challenge-leaderboard-open"
                 onClick={() => void loadLeaderboard(challenge)}
-                className="h-9 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-4 text-sm font-medium hover:bg-[var(--puls-primary-soft)]"
+                className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-4 text-sm font-medium hover:bg-[var(--puls-primary-soft)]"
               >
                 {t('challenges.leaderboard.open')}
               </button>
@@ -432,7 +432,7 @@ export default function ChallengesPage() {
                   type="button"
                   data-testid="challenge-invite-open"
                   onClick={() => void loadCandidates(challenge)}
-                  className="h-9 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-4 text-sm font-medium hover:bg-[var(--puls-primary-soft)]"
+                  className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-surface-2)] px-4 text-sm font-medium hover:bg-[var(--puls-primary-soft)]"
                 >
                   {t('challenges.invite.open')}
                 </button>
@@ -441,7 +441,7 @@ export default function ChallengesPage() {
 
             {boards[challenge.id] ? (
               <ul
-                className="flex flex-col gap-1 rounded-[20px] bg-[var(--puls-surface-2)] p-3"
+                className="flex flex-col gap-1 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-3"
                 data-testid="challenge-leaderboard"
               >
                 <li className="text-xs font-semibold uppercase text-[var(--puls-ink-muted)]">

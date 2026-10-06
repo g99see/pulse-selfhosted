@@ -365,7 +365,7 @@ export default function WrappedPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <IconBubble name="sparkle" tone="primary" size={44} />
-          <h1 className="text-3xl font-extrabold">{t('wrapped.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('wrapped.title')}</h1>
         </div>
         <Link
           href="/stats"
@@ -423,7 +423,7 @@ export default function WrappedPage() {
 
       {data && current ? (
         <div
-          className="flex min-h-80 flex-col gap-6 rounded-[32px] p-6 shadow-sm sm:p-8"
+          className="flex min-h-80 flex-col gap-6 rounded-[var(--radius-sheet)] p-6 shadow-sm sm:p-8"
           style={{ background: SLIDE_BG[current.key] ?? SLIDE_BG.cover }}
         >
           <div

@@ -21,7 +21,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       <legend className="text-sm font-medium text-[var(--puls-ink-muted)]">
         {t('settings.theme')}
       </legend>
-      <div className="flex gap-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-1">
+      <div className="flex gap-1 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] p-1">
         {THEME_MODES.map((item) => (
           <label
             key={item}

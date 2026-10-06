@@ -84,7 +84,7 @@ export function GoalsCard() {
           {featured.map((goal) => (
             <li
               key={goal.id}
-              className="flex items-center gap-3 rounded-[20px] bg-[var(--puls-finance-soft)] p-3"
+              className="flex items-center gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-finance-soft)] p-3"
             >
               <ProgressRing
                 percent={goal.percent}

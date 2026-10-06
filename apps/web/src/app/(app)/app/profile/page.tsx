@@ -15,7 +15,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold">{t('settings.title')}</h1>
+      <h1 className="text-2xl font-extrabold">{t('settings.title')}</h1>
 
       <ProfileEditor />
 

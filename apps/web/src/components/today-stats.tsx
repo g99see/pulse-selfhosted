@@ -4,9 +4,11 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import type { Currency, StatsDayResponse } from '@puls/shared';
+import { QUICK_ADD_EVENT } from '@/components/app-shell';
+import { Icon } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
 import { MASKED_AMOUNT } from '@/components/money';
-import { Card, ProgressBar, StatTile } from '@/components/ui';
+import { Card, MonitorTile, ProgressBar, StatTile } from '@/components/ui';
 import { FINANCE_CHANGED_EVENT } from '@/lib/finance-client';
 import { formatMoneyLocale } from '@/lib/format';
 import { statsApi } from '@/lib/stats-client';
@@ -57,18 +59,21 @@ export function TodayStats() {
           </Link>
         </div>
 
-        <div className="grid min-h-[88px] grid-cols-2 gap-3 md:grid-cols-4">
-          <StatTile
-            tone="warning"
-            icon="wallet"
+        <div className="grid min-h-[88px] grid-cols-2 gap-3 md:grid-cols-3">
+          <MonitorTile
             label={t('stats.today.spent')}
             testId="today-spent"
-            value={
-              <span className="[font-variant-numeric:tabular-nums]">
-                {day ? money(day.spent) : dash}
-              </span>
-            }
-          />
+            value={<span>{day ? money(day.spent) : dash}</span>}
+          >
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event(QUICK_ADD_EVENT))}
+              className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-button)] bg-[var(--puls-on-primary)] px-4 text-sm font-semibold text-[var(--puls-primary)]"
+            >
+              <Icon name="plus" size={18} strokeWidth={2.4} />
+              {t('app.nav.add')}
+            </button>
+          </MonitorTile>
           <StatTile
             tone="finance"
             icon="chart"

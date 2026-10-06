@@ -146,7 +146,7 @@ export default function AiPage() {
   if (enabled === null) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('ai.title')}</h1>
         <div className="min-h-40 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-6 text-sm text-[var(--puls-ink-muted)] shadow-sm">
           {t('common.loading')}
         </div>
@@ -157,7 +157,7 @@ export default function AiPage() {
   if (!enabled) {
     return (
       <div className="flex flex-col gap-4" data-testid="ai-disabled">
-        <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('ai.title')}</h1>
         <Card>
           <EmptyState
             icon="bot"
@@ -191,7 +191,7 @@ export default function AiPage() {
       <div className="flex items-center gap-3">
         <IconBubble name="bot" tone="primary" size={48} />
         <div>
-          <h1 className="text-3xl font-extrabold">{t('ai.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('ai.title')}</h1>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('ai.subtitle')}</p>
         </div>
       </div>
@@ -222,8 +222,8 @@ export default function AiPage() {
                 key={`${index}-${message.role}`}
                 className={
                   message.role === 'user'
-                    ? 'ml-auto max-w-[85%] rounded-[20px] rounded-br-md bg-[var(--puls-primary-soft)] px-4 py-2.5 text-sm text-[var(--puls-primary-text)]'
-                    : 'mr-auto max-w-[85%] rounded-[20px] rounded-bl-md bg-[var(--puls-surface-2)] px-4 py-2.5 text-sm'
+                    ? 'ml-auto max-w-[85%] rounded-[var(--radius-tile)] rounded-br-md bg-[var(--puls-primary-soft)] px-4 py-2.5 text-sm text-[var(--puls-primary-text)]'
+                    : 'mr-auto max-w-[85%] rounded-[var(--radius-tile)] rounded-bl-md bg-[var(--puls-surface-2)] px-4 py-2.5 text-sm'
                 }
               >
                 <span className="mb-0.5 block text-xs font-semibold opacity-75">
@@ -235,7 +235,7 @@ export default function AiPage() {
           )}
         </ul>
 
-        <div className="sticky bottom-20 -mx-2 flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-2 lg:bottom-4">
+        <div className="sticky bottom-20 -mx-2 flex flex-col gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface)] p-2 lg:bottom-4">
           <label htmlFor="ai-chat-input" className="text-sm font-medium">
             {t('ai.chat.placeholder')}
           </label>
@@ -247,7 +247,7 @@ export default function AiPage() {
             onChange={(event) => setInput(event.target.value)}
             rows={2}
             maxLength={2000}
-            className="w-full resize-y rounded-[var(--radius-card)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 text-sm outline-none focus:border-[var(--puls-primary)]"
+            className="w-full resize-y rounded-[var(--radius-card)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 text-sm outline-none focus:border-[var(--puls-primary)]"
           />
           <div>
             <PrimaryButton
@@ -274,7 +274,7 @@ export default function AiPage() {
               <li
                 key={proposal.id}
                 data-testid="ai-proposal"
-                className="flex flex-col justify-between gap-3 rounded-[20px] bg-[var(--puls-wellbeing-soft)] px-4 py-4 text-[var(--puls-ink)]"
+                className="flex flex-col justify-between gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-wellbeing-soft)] px-4 py-4 text-[var(--puls-ink)]"
               >
                 <span className="flex flex-col text-sm">
                   <span className="mb-1 text-xs font-semibold text-[var(--puls-wellbeing-text)]">
@@ -289,7 +289,7 @@ export default function AiPage() {
                 ) : (
                   <PrimaryButton
                     type="button"
-                    className="h-10 self-start"
+                    className="h-11 self-start"
                     data-testid="ai-proposal-apply"
                     disabled={proposalBusy === proposal.id}
                     onClick={() => void applyProposal(proposal.id)}
@@ -379,7 +379,7 @@ export default function AiPage() {
             </p>
             <pre
               data-testid="ai-review-payload"
-              className="max-h-72 overflow-auto whitespace-pre-wrap rounded-[20px] bg-[var(--puls-surface-2)] p-3 font-mono text-xs"
+              className="max-h-72 overflow-auto whitespace-pre-wrap rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-3 font-mono text-xs"
             >
               {preview.payloadText}
             </pre>
@@ -389,7 +389,7 @@ export default function AiPage() {
         {review ? (
           <div className="flex flex-col gap-2" data-testid="ai-review-result">
             <h3 className="text-sm font-semibold">{t('ai.review.result')}</h3>
-            <p className="whitespace-pre-wrap rounded-[20px] bg-[var(--puls-surface-2)] p-3 text-sm">
+            <p className="whitespace-pre-wrap rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-3 text-sm">
               {review}
             </p>
           </div>

@@ -49,7 +49,7 @@ export default function RegisterPage() {
   return (
     <AuthShell brand={t('landing.brand')}>
       <header className="flex flex-col gap-2 text-center">
-        <h1 className="font-heading text-3xl font-extrabold">{t('auth.register.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('auth.register.title')}</h1>
         <p className="text-[var(--puls-ink-muted)]">{t('auth.register.subtitle')}</p>
       </header>
 

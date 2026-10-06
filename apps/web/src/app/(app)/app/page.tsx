@@ -28,7 +28,7 @@ export default function AppHomePage() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-extrabold">{t('app.today.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('app.today.title')}</h1>
         <p className="text-sm text-[var(--puls-ink-muted)] first-letter:uppercase">{dateLine}</p>
       </header>
 

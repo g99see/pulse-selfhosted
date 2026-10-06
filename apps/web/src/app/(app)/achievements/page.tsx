@@ -77,7 +77,7 @@ export default function AchievementsPage() {
   if (!data) {
     return (
       <div className="flex flex-col gap-4" data-testid="achievements-page">
-        <h1 className="text-3xl font-extrabold">{t('achievements.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('achievements.title')}</h1>
         {error ? (
           <p role="alert" className="text-sm text-[var(--puls-warning-text)]">
             {error}
@@ -98,7 +98,7 @@ export default function AchievementsPage() {
       <div className="flex items-center gap-3">
         <IconBubble name="trophy" tone="wellbeing" size={44} />
         <div>
-          <h1 className="text-3xl font-extrabold">{t('achievements.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('achievements.title')}</h1>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('achievements.subtitle')}</p>
         </div>
       </div>

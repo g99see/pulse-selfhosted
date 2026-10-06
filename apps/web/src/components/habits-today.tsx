@@ -60,14 +60,14 @@ export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
       return (
         <div
           aria-hidden="true"
-          className="h-[46px] animate-pulse rounded-[20px] bg-[var(--puls-surface)]/60"
+          className="h-[46px] animate-pulse rounded-[var(--radius-tile)] bg-[var(--puls-surface)]/60"
         />
       );
     }
     return (
       <div
         data-testid="habits-today-empty"
-        className="flex flex-wrap items-center justify-between gap-2 rounded-[20px] bg-[var(--puls-surface)] px-4 py-3 text-sm"
+        className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface)] px-4 py-3 text-sm"
       >
         <span className="text-[var(--puls-ink-muted)]">{t('habits.empty')}</span>
         <Link href="/habits" className="font-semibold text-[var(--puls-primary-text)]">
@@ -79,7 +79,7 @@ export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
 
   return (
     <section
-      className="flex flex-col gap-2 rounded-[20px] bg-[var(--puls-surface)] p-4"
+      className="flex flex-col gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface)] p-4"
       data-testid="habits-today"
     >
       <h3 className="text-sm font-semibold">{t('habits.today.title')}</h3>

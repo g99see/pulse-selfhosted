@@ -53,7 +53,7 @@ export function FollowButton({
         disabled={busy}
         className={`rounded-[var(--radius-button)] px-4 py-2 text-sm font-semibold transition-colors duration-150 disabled:opacity-50 ${
           following
-            ? 'border border-[var(--puls-line-strong)] text-[var(--puls-primary-text)]'
+            ? 'border-[1.5px] border-[var(--puls-line-strong)] text-[var(--puls-primary-text)]'
             : 'bg-[var(--puls-primary)] text-[var(--puls-on-primary)]'
         }`}
       >

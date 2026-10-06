@@ -84,11 +84,11 @@ export default function ReconcilePage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <IconBubble name="inbox" tone="finance" size={48} />
-          <h1 className="font-heading text-3xl font-extrabold">{t('finance.reconcile.title')}</h1>
+          <h1 className="font-heading text-2xl font-extrabold">{t('finance.reconcile.title')}</h1>
         </div>
         <Link
           href="/finance"
-          className="inline-flex h-10 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+          className="inline-flex h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('common.back')}
         </Link>

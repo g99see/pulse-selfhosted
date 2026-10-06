@@ -20,7 +20,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-3xl font-extrabold">{t('settings.title')}</h1>
+      <h1 className="text-2xl font-extrabold">{t('settings.title')}</h1>
 
       <SettingsGroup title={t('settings.group.privacy')}>
         <QuietModeSection />

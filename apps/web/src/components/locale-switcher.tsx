@@ -31,7 +31,7 @@ export function LocaleSwitcher({
       <legend className="text-sm font-medium text-[var(--puls-ink-muted)]">
         {t('settings.language')}
       </legend>
-      <div className="flex gap-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] p-1">
+      <div className="flex gap-1 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] p-1">
         {LOCALES.map((item) => (
           <label
             key={item}
