@@ -176,6 +176,7 @@ export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] 
   { table: 'email_verification_tokens', reason: 'секрет: одноразовый токен подтверждения email' },
   { table: 'push_subscriptions', reason: 'секрет: endpoint и ключи шифрования web push' },
   { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового кода привязки Telegram' },
+  { table: 'check_in_drafts', reason: 'временный черновик диалога чек-ина (TTL 30 минут)' },
   { table: 'two_factor_backup_codes', reason: 'секрет: хеши одноразовых резервных кодов 2FA' },
   { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
   // Журнал модерации (ТЗ §2, §3.8): внутренний аудит экземпляра, не данные автора.

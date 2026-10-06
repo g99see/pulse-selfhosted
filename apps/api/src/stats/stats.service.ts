@@ -9,6 +9,7 @@ import {
   dayKeyInTimezone,
   daysInMonth,
   moodAverage,
+  optionalAverage,
   periodRangeFromDay,
   previousPeriodRange,
   roundMoney,
@@ -79,15 +80,30 @@ export class StatsService {
       }),
       this.prisma.checkIn.findMany({
         where: { userId, createdAt: { gte: start, lt: endExclusive } },
-        select: { mood: true, createdAt: true },
+        select: { mood: true, energy: true, stress: true, sleepHours: true, createdAt: true },
       }),
     ]);
 
-    const buckets = new Map<string, { spent: number; earned: number; moods: number[] }>();
-    const bucket = (day: string): { spent: number; earned: number; moods: number[] } => {
+    interface Bucket {
+      spent: number;
+      earned: number;
+      moods: number[];
+      energies: (number | null)[];
+      stresses: (number | null)[];
+      sleeps: (number | null)[];
+    }
+    const buckets = new Map<string, Bucket>();
+    const bucket = (day: string): Bucket => {
       const existing = buckets.get(day);
       if (existing) return existing;
-      const created = { spent: 0, earned: 0, moods: [] as number[] };
+      const created: Bucket = {
+        spent: 0,
+        earned: 0,
+        moods: [],
+        energies: [],
+        stresses: [],
+        sleeps: [],
+      };
       buckets.set(day, created);
       return created;
     };
@@ -99,7 +115,11 @@ export class StatsService {
     }
 
     for (const checkIn of checkIns) {
-      bucket(dayKeyInTimezone(checkIn.createdAt, timezone)).moods.push(checkIn.mood);
+      const target = bucket(dayKeyInTimezone(checkIn.createdAt, timezone));
+      target.moods.push(checkIn.mood);
+      target.energies.push(checkIn.energy);
+      target.stresses.push(checkIn.stress);
+      target.sleeps.push(checkIn.sleepHours);
     }
 
     // Сегодняшний день кешируем всегда — дашборд должен быть готов к пустому дню.
@@ -127,6 +147,9 @@ export class StatsService {
             spent: new Prisma.Decimal(roundMoney(values.spent)),
             earned: new Prisma.Decimal(roundMoney(values.earned)),
             avgMood: moodAverage(values.moods),
+            avgEnergy: optionalAverage(values.energies),
+            avgStress: optionalAverage(values.stresses),
+            avgSleep: optionalAverage(values.sleeps),
             checkinsCount: values.moods.length,
           };
         }),
@@ -174,6 +197,9 @@ export class StatsService {
       budgetLimit,
       budgetRemaining: budgetRemaining(budgetLimit, monthSpent),
       avgMood: stat?.avgMood ?? null,
+      avgEnergy: stat?.avgEnergy ?? null,
+      avgStress: stat?.avgStress ?? null,
+      avgSleep: stat?.avgSleep ?? null,
       checkins: stat?.checkinsCount ?? 0,
     };
   }
@@ -208,6 +234,9 @@ export class StatsService {
       earned: current.earned,
       net: roundMoney(current.earned - current.spent),
       avgMood: current.avgMood,
+      avgEnergy: current.avgEnergy,
+      avgStress: current.avgStress,
+      avgSleep: current.avgSleep,
       checkins: current.checkins,
       byCategory,
       series,
@@ -274,7 +303,7 @@ export class StatsService {
       }),
       this.prisma.checkIn.findMany({
         where: { userId, createdAt: { gte: start, lt: endExclusive } },
-        select: { mood: true },
+        select: { mood: true, energy: true, stress: true, sleepHours: true },
       }),
     ]);
 
@@ -283,6 +312,9 @@ export class StatsService {
       earned: roundMoney(stats.reduce((total, stat) => total + Number(stat.earned), 0)),
       checkins: moods.length,
       avgMood: moodAverage(moods.map((checkIn) => checkIn.mood)),
+      avgEnergy: optionalAverage(moods.map((checkIn) => checkIn.energy)),
+      avgStress: optionalAverage(moods.map((checkIn) => checkIn.stress)),
+      avgSleep: optionalAverage(moods.map((checkIn) => checkIn.sleepHours)),
     };
   }
 
@@ -328,7 +360,15 @@ export class StatsService {
   private async series(userId: string, range: PeriodRange): Promise<StatsSeriesPoint[]> {
     const stats = await this.prisma.dailyStat.findMany({
       where: { userId, date: { gte: dateOnly(range.from), lte: dateOnly(range.to) } },
-      select: { date: true, spent: true, earned: true, avgMood: true },
+      select: {
+        date: true,
+        spent: true,
+        earned: true,
+        avgMood: true,
+        avgEnergy: true,
+        avgStress: true,
+        avgSleep: true,
+      },
     });
     const byDay = new Map(stats.map((stat) => [dayKeyOf(stat.date), stat]));
 
@@ -339,6 +379,9 @@ export class StatsService {
         spent: Number(stat?.spent ?? 0),
         earned: Number(stat?.earned ?? 0),
         mood: stat?.avgMood ?? null,
+        energy: stat?.avgEnergy ?? null,
+        stress: stat?.avgStress ?? null,
+        sleep: stat?.avgSleep ?? null,
       };
     });
   }

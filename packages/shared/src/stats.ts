@@ -179,6 +179,9 @@ export interface PeriodTotals {
   spent: number;
   earned: number;
   avgMood: number | null;
+  avgEnergy: number | null;
+  avgStress: number | null;
+  avgSleep: number | null;
   checkins: number;
 }
 
