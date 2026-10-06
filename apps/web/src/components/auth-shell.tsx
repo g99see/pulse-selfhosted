@@ -20,7 +20,11 @@ export function AuthShell({
           align === 'center' ? 'justify-center' : ''
         }`}
       >
-        <Link href="/" className="flex items-center gap-2.5 self-center" aria-label={brand}>
+        <Link
+          href="/"
+          className="flex min-h-11 items-center gap-2.5 self-center"
+          aria-label={brand}
+        >
           <Logo size={36} />
           <span className="font-display text-lg">{brand}</span>
         </Link>

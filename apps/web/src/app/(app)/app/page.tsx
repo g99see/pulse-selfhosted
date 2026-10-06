@@ -41,7 +41,7 @@ export default function AppHomePage() {
             <p className="text-sm text-[var(--puls-ink-muted)]">{t('wrapped.banner.body')}</p>
             <Link
               href="/wrapped"
-              className="mt-2 inline-block text-sm font-semibold text-[var(--puls-primary-text)]"
+              className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-[var(--puls-primary-text)]"
             >
               {t('wrapped.banner.cta')}
             </Link>

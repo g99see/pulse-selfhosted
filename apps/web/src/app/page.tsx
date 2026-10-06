@@ -47,13 +47,13 @@ export default async function LandingPage() {
       <SetupGuard />
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-5 py-8 sm:px-8 sm:py-10">
         <nav className="flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex min-h-11 items-center gap-2.5">
             <Logo size={36} />
             <span className="font-display text-lg">{t('landing.brand', locale)}</span>
           </Link>
           <Link
             href="/login"
-            className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-4 py-2 text-sm font-semibold shadow-sm"
+            className="inline-flex min-h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-4 text-sm font-semibold shadow-sm"
           >
             {t('landing.cta.login', locale)}
           </Link>

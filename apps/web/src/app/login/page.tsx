@@ -152,7 +152,7 @@ export default function LoginPage() {
       </p>
       <Link
         href="/"
-        className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
+        className="flex min-h-11 items-center justify-center text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
       >
         ← {t('app.nav.home')}
       </Link>

@@ -222,7 +222,7 @@ export function ProfileEditor() {
           <a
             href={`/@${profile.nickname}`}
             data-testid="profile-open-public"
-            className="text-sm font-medium text-[var(--puls-primary-text)] underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--puls-primary-text)] underline"
           >
             {t('profile.openPublic')}
           </a>

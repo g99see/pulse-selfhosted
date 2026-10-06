@@ -54,7 +54,10 @@ export function TodayStats() {
       <Card className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-heading text-xl font-bold">{t('stats.title')}</h2>
-          <Link href="/stats" className="text-sm font-medium text-[var(--puls-primary-text)]">
+          <Link
+            href="/stats"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--puls-primary-text)]"
+          >
             {t('stats.today.more')}
           </Link>
         </div>

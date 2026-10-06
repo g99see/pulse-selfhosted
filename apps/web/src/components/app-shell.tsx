@@ -211,7 +211,11 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
       <div className="min-w-0 flex-1 pb-32 md:pb-0">
         <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 pt-6 pb-4 md:px-8">
           <div className="flex items-center gap-3">
-            <Link href="/app" className="md:hidden" aria-label={t('brand.name')}>
+            <Link
+              href="/app"
+              className="flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
+              aria-label={t('brand.name')}
+            >
               <Logo size={36} />
             </Link>
             <div>

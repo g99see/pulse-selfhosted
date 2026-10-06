@@ -70,7 +70,10 @@ export function HabitsToday({ showEmpty = false }: { showEmpty?: boolean }) {
         className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface)] px-4 py-3 text-sm"
       >
         <span className="text-[var(--puls-ink-muted)]">{t('habits.empty')}</span>
-        <Link href="/habits" className="font-semibold text-[var(--puls-primary-text)]">
+        <Link
+          href="/habits"
+          className="inline-flex min-h-11 items-center font-semibold text-[var(--puls-primary-text)]"
+        >
           {t('app.today.habitsCta')}
         </Link>
       </div>

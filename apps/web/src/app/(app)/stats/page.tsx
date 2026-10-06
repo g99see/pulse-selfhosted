@@ -133,7 +133,7 @@ export default function StatsPage() {
         <Link
           href="/wrapped"
           data-testid="stats-wrapped-link"
-          className="inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 py-2 text-sm font-semibold text-[var(--puls-primary-text)]"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('wrapped.title')}
         </Link>
