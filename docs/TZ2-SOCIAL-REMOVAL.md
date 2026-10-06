@@ -23,7 +23,7 @@
 
 ### API (NestJS)
 Модули целиком: `social`, `profile` (в т.ч. `public-profiles.controller`, `subscriptions`), `share`, `family`, `challenges`, `moderation`, `html-page` (в т.ч. `sandbox.controller`, `clamav`), контроллер и сервис публичного виджета цели в `widgets`.
-Маршруты: `/api/feed`, `/api/posts*`, `/api/users/*` (подписки), `/api/profile`, `/api/public/profiles/*`, `/api/reports`, `/api/moderation/*`, `/api/html-page*`, `/sandbox/:nickname` (вне префикса), `/api/share/*`, `/api/family*`, `/api/challenges*`, `/api/public/widgets/goal/:id`.
+Маршруты: `/api/follows/*` (подписки), `/api/feed`, `/api/posts/:id/reactions|comments`, `/api/comments/:id`, `/api/profile`, `/api/public/profiles/:nickname`, `/api/reports`, `/api/moderation/{reports,actions}`, `/api/html-page*` (версии, загрузка, откат), `/sandbox/:nickname` (вне префикса), `/api/share/card[.png]`, `/api/family*` (семья, приглашения, счета, цели), `/api/challenges*` (участие, рейтинг, приглашения), `/api/public/widgets/goal/:id`.
 Оставлен `widgets` (только «Итог дня»). `RolesGuard`/`@Roles` перенесены из `moderation/` в `auth/` — используются админкой AI и метриками.
 Фоновые задачи: отдельных планировщиков у соцсети не было. Уведомление `reactions` (реакции/комментарии под постом) удалено: тип убран из `NOTIFICATION_TYPES`, `buildPostActivityNotification`, `notifyPostActivity`.
 Связки: посты о целях/вехах/достижениях (`SocialPostsService` в `GoalsService` и `AchievementsService`) убраны; публикация цели (`Goal.visibility`), `User.profileVisibility` удалены; AI-инструмент создания цели больше не принимает `visibility`.
