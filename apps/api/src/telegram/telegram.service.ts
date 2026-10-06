@@ -6,6 +6,7 @@
  * без привязки получает только подсказку и ничего не пишет в БД.
  */
 import { HttpException, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { CheckinDialogService, type DialogOutcome } from '../checkins/checkin-dialog.service';
 import { CheckinsService } from '../checkins/checkins.service';
 import { RateLimitService } from '../auth/rate-limit.service';
 import { httpError } from '../common/http-error';
@@ -13,7 +14,7 @@ import { TransactionsService } from '../finance/transactions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatsService } from '../stats/stats.service';
 import {
-  moodKeyboard,
+  dialogKeyboard,
   parseCallback,
   parseCommand,
   undoKeyboard,
@@ -23,8 +24,12 @@ import { generateLinkCode, hashLinkCode, linkCodeMatches, LINK_CODE_TTL_MS } fro
 import {
   alreadyLinkedText,
   chatTakenText,
-  checkinQuestionText,
+  checkinLineErrorText,
   checkinSavedText,
+  checkinSummaryText,
+  dialogCancelledText,
+  dialogExpiredText,
+  dialogPromptText,
   helpText,
   invalidCodeText,
   linkRequiredText,
@@ -42,6 +47,9 @@ import {
 import { TELEGRAM_API, type TelegramApi } from './telegram-api';
 import type { IncomingCallback, IncomingMessage, IncomingUpdate } from './updates';
 import { normalizeUpdate } from './updates';
+
+/** Канал черновиков диалога чек-ина (Discord будет использовать свой). */
+export const CHECKIN_CHANNEL = 'telegram';
 
 /** Сколько кодов привязки можно запросить за окно (ТЗ §6: ограничение частоты). */
 export const LINK_CODE_LIMIT = 5;
@@ -72,6 +80,7 @@ export class TelegramService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly checkins: CheckinsService,
+    private readonly dialog: CheckinDialogService,
     private readonly transactions: TransactionsService,
     private readonly stats: StatsService,
     private readonly rateLimit: RateLimitService,
@@ -202,10 +211,44 @@ export class TelegramService implements OnModuleInit {
       return;
     }
 
+    // Идёт диалог чек-ина: обычный текст — ответ на текущий шаг (сон, теги, заметка).
+    if (
+      !message.text.trim().startsWith('/') &&
+      (await this.dialog.hasActive(link.userId, CHECKIN_CHANNEL))
+    ) {
+      const outcome = await this.dialog.handle(link.userId, CHECKIN_CHANNEL, {
+        type: 'text',
+        text: message.text,
+      });
+      await this.sendOutcome(message.chatId, outcome);
+      return;
+    }
+
     switch (command.kind) {
-      case 'checkin':
-        await this.send(message.chatId, checkinQuestionText(), moodKeyboard());
+      case 'checkin': {
+        const prompt = await this.dialog.start(link.userId, CHECKIN_CHANNEL);
+        await this.sendPrompt(message.chatId, prompt);
         return;
+      }
+      case 'checkin-line': {
+        const saved = await this.dialog.saveLine(link.userId, command.text);
+        await this.send(
+          message.chatId,
+          saved.ok
+            ? checkinSummaryText(saved.checkIn)
+            : checkinLineErrorText(saved.error, saved.field),
+        );
+        return;
+      }
+      case 'mood': {
+        if (command.mood === null) {
+          await this.send(message.chatId, checkinLineErrorText('mood'));
+          return;
+        }
+        const checkIn = await this.checkins.create(link.userId, { mood: command.mood, tags: [] });
+        await this.send(message.chatId, checkinSummaryText(checkIn));
+        return;
+      }
       case 'today': {
         const day = await this.stats.day(link.userId);
         await this.send(message.chatId, todayText(day));
@@ -248,11 +291,29 @@ export class TelegramService implements OnModuleInit {
 
     const parsed = parseCallback(callback.data);
 
+    // Кнопка настроения из напоминания (или старого сообщения) запускает диалог.
     if (parsed.kind === 'mood') {
-      await this.checkins.create(link.userId, { mood: parsed.mood, tags: [] });
-      const text = checkinSavedText(parsed.mood);
-      await this.answer(callback.callbackQueryId, text);
-      await this.send(callback.chatId, text);
+      await this.answer(callback.callbackQueryId, checkinSavedText(parsed.mood));
+      const prompt = await this.dialog.start(link.userId, CHECKIN_CHANNEL, { mood: parsed.mood });
+      await this.sendPrompt(callback.chatId, prompt);
+      return;
+    }
+
+    if (parsed.kind === 'checkin') {
+      await this.answer(callback.callbackQueryId);
+      let outcome = await this.dialog.handle(link.userId, CHECKIN_CHANNEL, {
+        type: 'action',
+        action: parsed.action,
+      });
+      // Черновика нет, но это выбор настроения (кнопки напоминания) — начинаем диалог.
+      const mood = /^ci:mood:([1-5])$/.exec(parsed.action);
+      if (outcome.kind === 'none' && mood) {
+        const prompt = await this.dialog.start(link.userId, CHECKIN_CHANNEL, {
+          mood: Number(mood[1]),
+        });
+        outcome = { kind: 'prompt', prompt };
+      }
+      await this.sendOutcome(callback.chatId, outcome);
       return;
     }
 
@@ -282,6 +343,32 @@ export class TelegramService implements OnModuleInit {
   }
 
   /* ----- Внутреннее ----- */
+
+  private async sendPrompt(
+    chatId: string,
+    prompt: import('@puls/shared').DialogPrompt,
+  ): Promise<void> {
+    await this.send(chatId, dialogPromptText(prompt), dialogKeyboard(prompt.rows));
+  }
+
+  /** Результат шага диалога → сообщение в чат. */
+  private async sendOutcome(chatId: string, outcome: DialogOutcome): Promise<void> {
+    switch (outcome.kind) {
+      case 'prompt':
+      case 'ignored':
+        await this.sendPrompt(chatId, outcome.prompt);
+        return;
+      case 'done':
+        await this.send(chatId, checkinSummaryText(outcome.checkIn));
+        return;
+      case 'cancelled':
+        await this.send(chatId, dialogCancelledText());
+        return;
+      case 'none':
+        await this.send(chatId, dialogExpiredText());
+        return;
+    }
+  }
 
   private async send(chatId: string, text: string, buttons?: InlineButton[][]): Promise<void> {
     // Ответ бота — best-effort: сбой Telegram не должен ломать вебхук (иначе

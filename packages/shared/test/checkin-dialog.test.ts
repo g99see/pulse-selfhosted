@@ -123,6 +123,15 @@ describe('диалог чек-ина', () => {
     expect(sleep.rows[0].map((button) => button.label)).toEqual(['4', '5', '6', '7', '8', '9+']);
   });
 
+  it('«Сохранить сейчас» записывает уже собранное, без настроения не работает', () => {
+    const state: CheckInDialogState = { step: 'sleep', data: { mood: 4, energy: 2, tags: [] } };
+    expect(act(state, 'ci:finish:1')).toMatchObject({
+      kind: 'done',
+      input: { mood: 4, energy: 2, tags: [] },
+    });
+    expect(act(startCheckinDialog({}), 'ci:finish:1').kind).toBe('ignored');
+  });
+
   it('summarizeCheckin показывает только заполненные поля', () => {
     expect(summarizeCheckin({ mood: 4, tags: [] }).map((line) => line.field)).toEqual(['mood']);
     const full = summarizeCheckin({

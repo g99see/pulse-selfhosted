@@ -87,12 +87,16 @@ export const CHECKIN_DIALOG_QUESTIONS: Record<CheckInDialogStep, string> = {
 
 export const CHECKIN_DIALOG_LABELS = {
   skip: 'Пропустить',
+  finish: 'Сохранить сейчас',
   done: 'Готово',
   cancel: 'Отмена',
   sleepMore: '9+',
 } as const;
 
-export function checkinAction(step: CheckInDialogStep | 'tag' | 'cancel', value: string): string {
+export function checkinAction(
+  step: CheckInDialogStep | 'tag' | 'cancel' | 'finish',
+  value: string,
+): string {
   return `${CHECKIN_ACTION_PREFIX}${step}:${value}`;
 }
 
@@ -144,7 +148,7 @@ export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
       };
     case 'energy':
     case 'stress':
-      return { ...base, rows: [scaleRow(step), skipRow(step)], acceptsText: true };
+      return { ...base, rows: [scaleRow(step), skipRow(step), finishRow()], acceptsText: true };
     case 'sleep':
       return {
         ...base,
@@ -154,6 +158,7 @@ export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
             action: checkinAction('sleep', String(hours)),
           })),
           skipRow('sleep'),
+          finishRow(),
         ],
         acceptsText: true,
       };
@@ -168,13 +173,18 @@ export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
         rows: [
           tagButtons,
           [{ label: CHECKIN_DIALOG_LABELS.done, action: checkinAction('tags', 'done') }],
+          finishRow(),
         ],
         acceptsText: true,
       };
     }
     case 'note':
-      return { ...base, rows: [skipRow('note')], acceptsText: true };
+      return { ...base, rows: [skipRow('note'), finishRow()], acceptsText: true };
   }
+}
+
+function finishRow(): DialogButton[] {
+  return [{ label: CHECKIN_DIALOG_LABELS.finish, action: checkinAction('finish', '1') }];
 }
 
 function cancelButton(): DialogButton {
@@ -247,6 +257,8 @@ function applyAction(state: CheckInDialogState, action: string): DialogResult {
   const [, kind, value = ''] = action.split(':');
 
   if (kind === 'cancel') return { kind: 'cancelled' };
+  // «Сохранить сейчас»: записать то, что успели ответить (настроение обязательно).
+  if (kind === 'finish') return state.data.mood === undefined ? ignored(state) : finish(state.data);
 
   // Нажатия на кнопки прошлых шагов (старое сообщение) не должны ломать диалог.
   if (kind === 'tag') {
@@ -271,7 +283,9 @@ function applyAction(state: CheckInDialogState, action: string): DialogResult {
     case 'energy':
     case 'stress': {
       const level = scaleValue(value);
-      return level === null ? ignored(state) : advance(state, { ...state.data, [state.step]: level });
+      return level === null
+        ? ignored(state)
+        : advance(state, { ...state.data, [state.step]: level });
     }
     case 'sleep': {
       const hours = sleepValue(value);
@@ -320,12 +334,16 @@ export interface CheckInSummaryLine {
 }
 
 /** Заполненные поля записи в порядке показа — канал сам подписывает их на своём языке. */
-export function summarizeCheckin(
-  input: Pick<
-    CheckInInput,
-    'mood' | 'energy' | 'stress' | 'sleepHours' | 'water' | 'steps' | 'tags' | 'note'
-  >,
-): CheckInSummaryLine[] {
+export function summarizeCheckin(input: {
+  mood: number;
+  energy?: number | null;
+  stress?: number | null;
+  sleepHours?: number | null;
+  water?: number | null;
+  steps?: number | null;
+  tags?: readonly string[];
+  note?: string | null;
+}): CheckInSummaryLine[] {
   const lines: CheckInSummaryLine[] = [
     { field: 'mood', value: `${MOOD_EMOJI[input.mood as Mood] ?? ''} ${input.mood}/5`.trim() },
   ];
