@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { InstallPrompt } from '@/components/install-prompt';
 import { useT } from '@/components/locale-provider';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { ProfileEditor } from '@/components/profile-editor';
@@ -9,7 +8,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, IconBubble } from '@/components/ui';
 import Link from 'next/link';
 
-/** Профиль и настройки: тема, язык и установка PWA (ТЗ §7, §8). */
+/** Профиль и настройки: тема, язык и данные. */
 export default function ProfileSettingsPage() {
   const { t } = useT();
 
@@ -26,10 +25,6 @@ export default function ProfileSettingsPage() {
         </h2>
         <ThemeToggle />
         <LocaleSwitcher />
-      </Card>
-
-      <Card>
-        <InstallPrompt />
       </Card>
 
       <Card className="flex items-center justify-between gap-3">

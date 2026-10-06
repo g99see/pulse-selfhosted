@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Собирает PNG-иконки PWA из SVG (ТЗ §7). Внешние сервисы не нужны:
+ * Собирает PNG-иконки и favicon из SVG. Внешние сервисы не нужны:
  * SVG лежит в public/icons, а растр делает локальный rsvg-convert (librsvg).
  * Результат коммитится, поэтому сборка приложения от скрипта не зависит.
  *
