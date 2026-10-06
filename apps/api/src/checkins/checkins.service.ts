@@ -3,6 +3,11 @@ import { Injectable } from '@nestjs/common';
 import type { CheckIn } from '@prisma/client';
 import {
   DEFAULT_CHECKIN_SCHEDULE,
+  checkinGoalProgress,
+  weekStartKey,
+  zonedDayBounds,
+  addDays,
+  type CheckinGoalDto,
   dayBoundsInTimeZone,
   isWithinBackdateWindow,
   type CheckInDto,
@@ -101,6 +106,30 @@ export class CheckinsService {
     });
 
     return toCheckInDto(created);
+  }
+
+  /** Цель «N чек-инов в неделю» и прогресс по текущей неделе (пн–вс, пояс пользователя). */
+  async goal(userId: string, now: Date = new Date()): Promise<CheckinGoalDto> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { timezone: true, checkinWeeklyGoal: true },
+    });
+    const weekStart = weekStartKey(dayBoundsInTimeZone(now, user.timezone).dayKey);
+    const count = await this.prisma.checkIn.count({
+      where: {
+        userId,
+        occurredAt: {
+          gte: zonedDayBounds(weekStart, user.timezone).start,
+          lt: zonedDayBounds(addDays(weekStart, 7), user.timezone).start,
+        },
+      },
+    });
+    return checkinGoalProgress(user.checkinWeeklyGoal, count, weekStart);
+  }
+
+  async setGoal(userId: string, perWeek: number | null): Promise<CheckinGoalDto> {
+    await this.prisma.user.update({ where: { id: userId }, data: { checkinWeeklyGoal: perWeek } });
+    return this.goal(userId);
   }
 
   async list(userId: string, filter: CheckInFilter): Promise<CheckInDto[]> {

@@ -10,6 +10,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
+import { runtimeStats } from '../observability/runtime-stats';
 import { PrismaService } from '../prisma/prisma.service';
 import { NOTIFICATION_CHANNELS } from '@puls/shared';
 import { NotificationDispatcher } from './dispatcher';
@@ -104,6 +105,7 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
       }
 
       this.lastRunAt = now;
+      runtimeStats.markSchedulerRun(now);
       if (dispatched.length > 0) {
         this.logger.log(`Отправлено уведомлений: ${dispatched.length}`);
       }

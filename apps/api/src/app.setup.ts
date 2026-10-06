@@ -4,6 +4,7 @@ import { RequestMethod } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
 import type { NextFunction, Request, Response } from 'express';
+import { ErrorLogFilter, requestIdMiddleware } from './observability/request-log';
 import { isCookieSecureAuto, requestIsHttps } from './common/cookie-secure';
 
 /**
@@ -24,6 +25,10 @@ export function configureApp(app: INestApplication): void {
 
   // За обратным прокси реальный IP клиента приходит в X-Forwarded-For.
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
+  // Идентификатор запроса и JSON-лог 5xx (ТЗ v2 §8).
+  app.use(requestIdMiddleware);
+  app.useGlobalFilters(new ErrorLogFilter(app.getHttpAdapter()));
 
   app.use(cookieParser());
 
