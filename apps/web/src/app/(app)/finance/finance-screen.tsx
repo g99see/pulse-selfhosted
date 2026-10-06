@@ -274,6 +274,13 @@ export function FinanceScreen({
             {t('finance.import.open')}
           </Link>
           <Link
+            href="/finance/reconcile"
+            data-testid="reconcile-link"
+            className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+          >
+            {t('finance.reconcile.link')}
+          </Link>
+          <Link
             href="/finance/rates"
             data-testid="rates-link"
             className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)]"

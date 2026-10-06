@@ -245,6 +245,41 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.import.error.parse': 'Не удалось разобрать файл.',
     'finance.import.error.commit': 'Не удалось импортировать выписку.',
     'finance.import.error.account': 'Выберите счёт для импорта.',
+    'finance.import.column.time': 'Время',
+    'finance.import.column.balance': 'Баланс (остаток)',
+    'finance.import.column.externalId': 'ID операции в банке',
+    'finance.reconcile.link': 'Сверка',
+    'finance.reconcile.title': 'Сверка со счётом банка',
+    'finance.reconcile.subtitle':
+      'Сравниваем баланс в Пульсе с балансом банка и показываем операции, из-за которых цифры не сходятся.',
+    'finance.reconcile.account': 'Счёт',
+    'finance.reconcile.pulse': 'Баланс по Пульсу',
+    'finance.reconcile.bank.statement': 'Баланс по банку (последняя выписка)',
+    'finance.reconcile.bank.manual': 'Баланс по банку (введён вручную)',
+    'finance.reconcile.noBank':
+      'Нет данных банка. Импортируйте выписку с колонкой «Баланс» или введите баланс карты вручную ниже.',
+    'finance.reconcile.match': 'Всё сходится: разница 0.',
+    'finance.reconcile.difference': 'Разница (Пульс − банк): {amount}',
+    'finance.reconcile.unexplained':
+      'Не объяснено найденными операциями: {amount} (например, начальный баланс счёта).',
+    'finance.reconcile.after':
+      'После даты банка в Пульсе есть операций: {count} на {amount} — в разницу они не входят.',
+    'finance.reconcile.items': 'Подозрительные операции',
+    'finance.reconcile.itemsEmpty': 'Расхождений нет.',
+    'finance.reconcile.kind.chain_break': 'Разрыв в остатках выписки',
+    'finance.reconcile.kind.missing_in_pulse': 'Есть в выписке, нет в Пульсе',
+    'finance.reconcile.kind.extra_in_pulse': 'Есть в Пульсе, нет в выписке',
+    'finance.reconcile.manual': 'ручной ввод',
+    'finance.reconcile.chain': 'Остаток по цепочке: {expected}, у банка: {actual}',
+    'finance.reconcile.manual.title': 'Ввести баланс карты вручную',
+    'finance.reconcile.manual.hint':
+      'Если выписки нет, укажите баланс из приложения банка и дату, на которую он показан.',
+    'finance.reconcile.manual.balance': 'Баланс по банку',
+    'finance.reconcile.manual.date': 'На дату',
+    'finance.reconcile.manual.save': 'Сохранить и сверить',
+    'finance.reconcile.error.load': 'Не удалось загрузить сверку.',
+    'finance.reconcile.error.save': 'Не удалось сохранить баланс.',
+    'finance.reconcile.error.balance': 'Введите баланс числом.',
 
     'finance.recurring.title': 'Регулярные платежи',
     'finance.recurring.hint':
@@ -1603,6 +1638,41 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.import.error.parse': 'Could not parse the file.',
     'finance.import.error.commit': 'Could not import the statement.',
     'finance.import.error.account': 'Pick an account to import into.',
+    'finance.import.column.time': 'Time',
+    'finance.import.column.balance': 'Balance',
+    'finance.import.column.externalId': 'Bank transaction ID',
+    'finance.reconcile.link': 'Reconciliation',
+    'finance.reconcile.title': 'Reconcile with the bank',
+    'finance.reconcile.subtitle':
+      'We compare the Pulse balance with the bank balance and list the operations that make them differ.',
+    'finance.reconcile.account': 'Account',
+    'finance.reconcile.pulse': 'Balance in Pulse',
+    'finance.reconcile.bank.statement': 'Bank balance (last statement)',
+    'finance.reconcile.bank.manual': 'Bank balance (entered manually)',
+    'finance.reconcile.noBank':
+      'No bank data yet. Import a statement with a Balance column or enter the card balance manually below.',
+    'finance.reconcile.match': 'Everything matches: difference 0.',
+    'finance.reconcile.difference': 'Difference (Pulse − bank): {amount}',
+    'finance.reconcile.unexplained':
+      'Not explained by the operations found: {amount} (for example, the account opening balance).',
+    'finance.reconcile.after':
+      'Pulse has {count} operations after the bank date, net {amount} — not part of the difference.',
+    'finance.reconcile.items': 'Suspicious operations',
+    'finance.reconcile.itemsEmpty': 'No discrepancies.',
+    'finance.reconcile.kind.chain_break': 'Gap in statement balances',
+    'finance.reconcile.kind.missing_in_pulse': 'In the statement, missing in Pulse',
+    'finance.reconcile.kind.extra_in_pulse': 'In Pulse, missing in the statement',
+    'finance.reconcile.manual': 'manual entry',
+    'finance.reconcile.chain': 'Balance by chain: {expected}, bank says: {actual}',
+    'finance.reconcile.manual.title': 'Enter the card balance manually',
+    'finance.reconcile.manual.hint':
+      'No statement? Enter the balance from your bank app and the date it was shown.',
+    'finance.reconcile.manual.balance': 'Bank balance',
+    'finance.reconcile.manual.date': 'As of date',
+    'finance.reconcile.manual.save': 'Save and reconcile',
+    'finance.reconcile.error.load': 'Could not load the reconciliation.',
+    'finance.reconcile.error.save': 'Could not save the balance.',
+    'finance.reconcile.error.balance': 'Enter the balance as a number.',
 
     'finance.recurring.title': 'Recurring payments',
     'finance.recurring.hint':
