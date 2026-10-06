@@ -33,7 +33,12 @@ describe('диалог чек-ина', () => {
     state = stateOf(act(state, 'ci:stress:2'));
     expect(state.step).toBe('sleep');
     state = stateOf(act(state, 'ci:sleep:7'));
+    expect(state.step).toBe('water');
+    state = stateOf(act(state, 'ci:water:6'));
+    expect(state.step).toBe('steps');
+    state = stateOf(say(state, '8 400'));
     expect(state.step).toBe('tags');
+    expect(state.data).toMatchObject({ water: 6, steps: 8400 });
     state = stateOf(act(state, 'ci:tag:1'));
     state = stateOf(say(state, '#йога, чтение'));
     expect(state.data.tags).toEqual(['спорт', 'йога', 'чтение']);
@@ -48,6 +53,8 @@ describe('диалог чек-ина', () => {
         energy: 3,
         stress: 2,
         sleepHours: 7,
+        water: 6,
+        steps: 8400,
         tags: ['спорт', 'йога', 'чтение'],
         note: 'Хороший вечер',
         slot: 'evening',
@@ -57,7 +64,7 @@ describe('диалог чек-ина', () => {
 
   it('все необязательные шаги пропускаются, остаётся только настроение', () => {
     let state = stateOf(act(startCheckinDialog({}), 'ci:mood:2'));
-    for (const step of ['energy', 'stress', 'sleep'] as const) {
+    for (const step of ['energy', 'stress', 'sleep', 'water', 'steps'] as const) {
       expect(state.step).toBe(step);
       state = stateOf(act(state, checkinAction(step, 'skip')));
     }
@@ -77,7 +84,26 @@ describe('диалог чек-ина', () => {
     expect(stateOf(say(base, '7,5')).data.sleepHours).toBe(7.5);
     expect(say(base, '30').kind).toBe('ignored');
     expect(say(base, 'много').kind).toBe('ignored');
-    expect(stateOf(say(base, '7.5')).step).toBe('tags');
+    expect(stateOf(say(base, '7.5')).step).toBe('water');
+  });
+
+  it('вода и шаги: кнопки, текст, «k», границы и пропуск', () => {
+    const water: CheckInDialogState = { step: 'water', data: { mood: 3, tags: [] } };
+    expect(stateOf(say(water, '5')).data.water).toBe(5);
+    expect(say(water, '2.5').kind).toBe('ignored');
+    expect(say(water, '99').kind).toBe('ignored');
+    expect(stateOf(act(water, 'ci:water:skip')).step).toBe('steps');
+    const steps: CheckInDialogState = { step: 'steps', data: { mood: 3, tags: [] } };
+    expect(stateOf(say(steps, '12k')).data.steps).toBe(12000);
+    expect(stateOf(act(steps, 'ci:steps:10000')).data.steps).toBe(10000);
+    expect(say(steps, '-5').kind).toBe('ignored');
+    expect(describeCheckinStep(steps).rows[0].map((button) => button.label)).toEqual([
+      '2k',
+      '5k',
+      '8k',
+      '10k',
+      '15k',
+    ]);
   });
 
   it('кнопка тега переключает отметку, выбранный тег помечается ✓', () => {
@@ -113,7 +139,7 @@ describe('диалог чек-ина', () => {
   it('prompt: номер шага, кнопки укладываются в лимит callback_data', () => {
     for (const step of CHECKIN_DIALOG_STEPS) {
       const prompt = describeCheckinStep({ step, data: { tags: [] } });
-      expect(prompt.total).toBe(6);
+      expect(prompt.total).toBe(8);
       for (const button of prompt.rows.flat()) {
         expect(isCheckinAction(button.action)).toBe(true);
         expect(Buffer.byteLength(button.action)).toBeLessThanOrEqual(64);

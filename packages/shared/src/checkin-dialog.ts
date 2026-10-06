@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Многошаговый чек-ин как канально-независимый конечный автомат (ТЗ v2 §4):
- * настроение → энергия → стресс → сон → теги → заметка. Логика чистая — без БД,
+ * настроение → энергия → стресс → сон → вода → шаги → теги → заметка. Логика чистая — без БД,
  * сети и форматирования под конкретный мессенджер. Канал (Telegram, Discord…)
  * лишь отрисовывает `prompt` кнопками и присылает события `action` / `text`;
  * состояние между сообщениями хранится в таблице CheckInDraft.
@@ -18,7 +18,16 @@ import {
 import { normalizeTag, parseMoodArg } from './checkin-parser';
 import { MOOD_EMOJI, type Mood } from './mood';
 
-export const CHECKIN_DIALOG_STEPS = ['mood', 'energy', 'stress', 'sleep', 'tags', 'note'] as const;
+export const CHECKIN_DIALOG_STEPS = [
+  'mood',
+  'energy',
+  'stress',
+  'sleep',
+  'water',
+  'steps',
+  'tags',
+  'note',
+] as const;
 export type CheckInDialogStep = (typeof CHECKIN_DIALOG_STEPS)[number];
 
 /** Сколько живёт черновик без ответов, минут. */
@@ -30,12 +39,20 @@ export const CHECKIN_ACTION_PREFIX = 'ci:';
 /** Кнопки сна: 9 означает «9 и больше». */
 export const SLEEP_BUTTON_HOURS = [4, 5, 6, 7, 8, 9] as const;
 
+/** Кнопки воды, стаканов. */
+export const WATER_BUTTON_GLASSES = [2, 4, 6, 8, 10] as const;
+
+/** Кнопки шагов. */
+export const STEPS_BUTTON_COUNTS = [2000, 5000, 8000, 10000, 15000] as const;
+
 /** Накопленные ответы (JSON в CheckInDraft.data). */
 export interface CheckInDraftData {
   mood?: number;
   energy?: number;
   stress?: number;
   sleepHours?: number;
+  water?: number;
+  steps?: number;
   tags: string[];
   note?: string;
   slot?: CheckInSlot;
@@ -81,6 +98,8 @@ export const CHECKIN_DIALOG_QUESTIONS: Record<CheckInDialogStep, string> = {
   energy: 'Сколько энергии? (1 — совсем нет, 5 — полно)',
   stress: 'Уровень стресса? (1 — спокойно, 5 — на пределе)',
   sleep: 'Сколько часов ты спал(а)? Выбери кнопку или напиши число, например 7.5',
+  water: 'Сколько стаканов воды выпито? Выбери или напиши число',
+  steps: 'Сколько шагов сегодня? Выбери или напиши число, например 6400',
   tags: 'Что повлияло на день? Отметь теги или напиши свои, затем «Готово»',
   note: 'Заметка к дню — напиши одним сообщением или пропусти',
 };
@@ -162,6 +181,32 @@ export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
         ],
         acceptsText: true,
       };
+    case 'water':
+      return {
+        ...base,
+        rows: [
+          WATER_BUTTON_GLASSES.map((glasses) => ({
+            label: String(glasses),
+            action: checkinAction('water', String(glasses)),
+          })),
+          skipRow('water'),
+          finishRow(),
+        ],
+        acceptsText: true,
+      };
+    case 'steps':
+      return {
+        ...base,
+        rows: [
+          STEPS_BUTTON_COUNTS.map((count) => ({
+            label: count >= 1000 ? `${count / 1000}k` : String(count),
+            action: checkinAction('steps', String(count)),
+          })),
+          skipRow('steps'),
+          finishRow(),
+        ],
+        acceptsText: true,
+      };
     case 'tags': {
       const selected = new Set(state.data.tags);
       const tagButtons = CHECKIN_TAG_SUGGESTIONS.map((tag, position) => ({
@@ -218,6 +263,8 @@ function finish(data: CheckInDraftData): DialogResult {
     energy: data.energy,
     stress: data.stress,
     sleepHours: data.sleepHours,
+    water: data.water,
+    steps: data.steps,
     tags: data.tags,
     note: data.note,
     slot: data.slot,
@@ -238,6 +285,16 @@ function sleepValue(raw: string): number | null {
   const value = Number(raw.trim().replace(',', '.'));
   return raw.trim() !== '' && Number.isFinite(value) && value >= 0 && value <= 24 ? value : null;
 }
+
+/** Целое неотрицательное число в пределах (вода — до 50 стаканов, шаги — до 200 000). */
+function countValue(raw: string, max: number): number | null {
+  const cleaned = raw.trim().replace(/[\s_]/g, '').replace(/k$/i, '000');
+  const value = Number(cleaned);
+  return cleaned !== '' && Number.isInteger(value) && value >= 0 && value <= max ? value : null;
+}
+
+const WATER_MAX = 50;
+const STEPS_MAX = 200_000;
 
 function withTag(data: CheckInDraftData, tag: string): CheckInDraftData {
   const tags = data.tags.includes(tag)
@@ -291,6 +348,14 @@ function applyAction(state: CheckInDialogState, action: string): DialogResult {
       const hours = sleepValue(value);
       return hours === null ? ignored(state) : advance(state, { ...state.data, sleepHours: hours });
     }
+    case 'water': {
+      const water = countValue(value, WATER_MAX);
+      return water === null ? ignored(state) : advance(state, { ...state.data, water });
+    }
+    case 'steps': {
+      const steps = countValue(value, STEPS_MAX);
+      return steps === null ? ignored(state) : advance(state, { ...state.data, steps });
+    }
     default:
       return ignored(state);
   }
@@ -311,6 +376,14 @@ function applyText(state: CheckInDialogState, text: string): DialogResult {
     case 'sleep': {
       const hours = sleepValue(text);
       return hours === null ? ignored(state) : advance(state, { ...state.data, sleepHours: hours });
+    }
+    case 'water': {
+      const water = countValue(text, WATER_MAX);
+      return water === null ? ignored(state) : advance(state, { ...state.data, water });
+    }
+    case 'steps': {
+      const steps = countValue(text, STEPS_MAX);
+      return steps === null ? ignored(state) : advance(state, { ...state.data, steps });
     }
     case 'tags': {
       // «готово» / «done» завершает шаг, всё остальное — свои теги через пробел, запятую, #.

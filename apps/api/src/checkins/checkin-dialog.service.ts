@@ -159,6 +159,8 @@ export class CheckinDialogService {
         energy: data.energy,
         stress: data.stress,
         sleepHours: data.sleepHours,
+        water: data.water,
+        steps: data.steps,
         tags: data.tags,
         note: data.note,
         slot: data.slot,
