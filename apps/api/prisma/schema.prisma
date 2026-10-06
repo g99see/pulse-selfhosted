@@ -52,6 +52,7 @@ model User {
   sessions                    Session[]
   verificationTokens          EmailVerificationToken[]
   accounts                    Account[]
+  bankBalances                AccountBankBalance[]
   checkIns                    CheckIn[]
   categories                  Category[]
   transactions                Transaction[]
@@ -181,14 +182,38 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  transactions      Transaction[]      @relation("TransactionAccount")
-  transfers         Transaction[]      @relation("TransferTarget")
+  transactions      Transaction[]        @relation("TransactionAccount")
+  transfers         Transaction[]        @relation("TransferTarget")
   goals             Goal[]
   goalDeposits      GoalDeposit[]
   recurringPayments RecurringPayment[]
+  bankBalances      AccountBankBalance[]
 
   @@index([userId])
   @@map("accounts")
+}
+
+/// Баланс счёта по данным банка (сверка): закрывающий баланс импортированной выписки
+/// либо введённый вручную остаток карты на дату.
+model AccountBankBalance {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId  String    @map("account_id")
+  account    Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// 'statement' — из выписки, 'manual' — введён вручную.
+  source     String
+  balance    Decimal   @db.Decimal(14, 2)
+  asOf       DateTime  @map("as_of") @db.Date
+  /// Только для выписки: период и строки (для поиска расхождений).
+  periodFrom DateTime? @map("period_from") @db.Date
+  periodTo   DateTime? @map("period_to") @db.Date
+  rows       Json?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([accountId, createdAt])
+  @@index([userId])
+  @@map("account_bank_balances")
 }
 
 model CheckIn {
@@ -280,10 +305,17 @@ model Transaction {
   comment           String?
   /// Хеш строки импорта банковской выписки (ТЗ §3.2): идемпотентность повторного импорта.
   importHash        String?   @map("import_hash")
+  /// Идентификатор операции в банке (колонка «Transaction ID»): при наличии — ключ идемпотентности импорта.
+  externalId        String?   @map("external_id")
+  /// Время операции по выписке «HH:MM» (колонка date хранит только день).
+  bankTime          String?   @map("bank_time")
+  /// Остаток на счёте по данным банка после этой операции (колонка «Balance»).
+  bankBalance       Decimal?  @map("bank_balance") @db.Decimal(14, 2)
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
   @@unique([userId, importHash])
+  @@index([accountId, externalId])
   @@index([userId, date])
   @@index([accountId])
   @@index([categoryId])

@@ -16,7 +16,17 @@ export const IMPORT_MAX_ROWS = 10_000;
 export const DELIMITERS = [',', ';', '\t'] as const;
 export type Delimiter = (typeof DELIMITERS)[number];
 
-export const IMPORT_COLUMNS = ['date', 'amount', 'description', 'type', 'debit', 'credit'] as const;
+export const IMPORT_COLUMNS = [
+  'date',
+  'time',
+  'amount',
+  'description',
+  'type',
+  'debit',
+  'credit',
+  'balance',
+  'externalId',
+] as const;
 export type ImportColumn = (typeof IMPORT_COLUMNS)[number];
 export type ImportColumnMapping = Partial<Record<ImportColumn, number>>;
 
@@ -32,6 +42,12 @@ export interface ImportPreviewRow {
   description: string;
   categoryName: string | null;
   duplicate: boolean;
+  /** Время операции «HH:MM» (колонка времени или время внутри даты), если есть. */
+  time: string | null;
+  /** Остаток на счёте по данным банка после этой операции (колонка «Баланс»). */
+  balance: number | null;
+  /** Идентификатор операции в банке (колонка «Transaction ID») — ключ идемпотентности. */
+  externalId: string | null;
   /**
    * Какая по счёту это одинаковая строка в файле (0 — первая). Одинаковые строки
    * в одной выписке — разные операции (две поездки по 24 kr за день), поэтому
@@ -73,10 +89,23 @@ const HEADER_WORDS = [
   'доход',
   'кредит',
   'credit',
+  'время',
+  'time',
+  'баланс',
+  'остаток',
+  'balance',
+  'transaction id',
+  'title',
 ];
 
 const COLUMN_KEYWORDS: ReadonlyArray<{ column: ImportColumn; words: readonly string[] }> = [
   { column: 'date', words: ['дата', 'date', 'проведен', 'operation date'] },
+  { column: 'time', words: ['время', 'time'] },
+  {
+    column: 'externalId',
+    words: ['transaction id', 'id транзакции', 'id операции', 'идентификатор', 'номер операции'],
+  },
+  { column: 'balance', words: ['баланс', 'остаток', 'balance'] },
   { column: 'debit', words: ['дебет', 'debit', 'расход', 'списание'] },
   { column: 'credit', words: ['кредит', 'credit', 'поступление', 'зачисление', 'приход', 'доход'] },
   { column: 'amount', words: ['сумма', 'amount', 'sum'] },
@@ -90,6 +119,7 @@ const COLUMN_KEYWORDS: ReadonlyArray<{ column: ImportColumn; words: readonly str
       'description',
       'details',
       'memo',
+      'title',
     ],
   },
   { column: 'type', words: ['тип', 'type', 'направление', 'вид операции'] },
@@ -265,6 +295,23 @@ export function parseImportDate(value: string): string | null {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+/** Время операции: «12.37», «12:37», «12:37:05» → «12:37». */
+export function parseImportTime(value: string): string | null {
+  const trimmed = normalizeCell(value);
+  const match = /^(\d{1,2})[.:](\d{2})(?:[.:]\d{2})?$/.exec(trimmed);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+/** Время, вложенное в ячейку даты: «2026-10-01 12:37», «01.10.2026T12:37:05». */
+function timeInsideDate(value: string): string | null {
+  const match = /[T\s](\d{1,2}[.:]\d{2}(?:[.:]\d{2})?)\s*$/.exec(normalizeCell(value));
+  return match ? parseImportTime(match[1]) : null;
+}
+
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -413,6 +460,8 @@ export interface BuildImportPreviewOptions {
    * Set означает «по одной на ключ».
    */
   existingKeys?: ReadonlySet<string> | ReadonlyMap<string, number>;
+  /** ID банка уже импортированных операций: строка с таким ID — дубль независимо от остальных полей. */
+  existingExternalIds?: ReadonlySet<string>;
 }
 
 function existingCount(
@@ -434,7 +483,7 @@ export function buildImportPreview(
   rows: string[][],
   options: BuildImportPreviewOptions,
 ): ImportPreviewRow[] {
-  const { mapping, hasHeader = false, existingKeys } = options;
+  const { mapping, hasHeader = false, existingKeys, existingExternalIds } = options;
   const preview: ImportPreviewRow[] = [];
   const seen = new Map<string, number>();
 
@@ -471,6 +520,12 @@ export function buildImportPreview(
     if (explicitType && amount !== null) type = explicitType;
 
     const description = cell(row, mapping.description).slice(0, 500);
+    const time =
+      (mapping.time !== undefined ? parseImportTime(cell(row, mapping.time)) : null) ??
+      (mapping.date !== undefined ? timeInsideDate(cell(row, mapping.date)) : null);
+    const balance =
+      mapping.balance !== undefined ? parseImportAmount(cell(row, mapping.balance)) : null;
+    const externalId = cell(row, mapping.externalId).slice(0, 200) || null;
     const error: ImportPreviewRow['error'] =
       dateValue === null ? 'invalid_date' : amount === null ? 'invalid_amount' : null;
 
@@ -482,6 +537,9 @@ export function buildImportPreview(
       seen.set(key, occurrence + 1);
       duplicate = occurrence < existingCount(existingKeys, key);
     }
+    if (error === null && externalId !== null && existingExternalIds?.has(externalId)) {
+      duplicate = true;
+    }
 
     preview.push({
       rowNumber: index + 1,
@@ -491,6 +549,9 @@ export function buildImportPreview(
       description,
       categoryName: description ? guessCategoryName(description) : null,
       duplicate,
+      time,
+      balance,
+      externalId,
       occurrence,
       error,
     });
@@ -516,6 +577,9 @@ export const ImportColumnMappingSchema = z.object({
   amount: z.number().int().min(0).optional(),
   description: z.number().int().min(0).optional(),
   type: z.number().int().min(0).optional(),
+  time: z.number().int().min(0).optional(),
+  balance: z.number().int().min(0).optional(),
+  externalId: z.number().int().min(0).optional(),
   debit: z.number().int().min(0).optional(),
   credit: z.number().int().min(0).optional(),
 });

@@ -41,6 +41,7 @@ export default defineConfig({
             { text: 'Чек-ины самочувствия', link: '/guide/usage/checkins' },
             { text: 'Цели', link: '/guide/usage/goals' },
             { text: 'Импорт и экспорт', link: '/guide/usage/import-export' },
+            { text: 'Сверка со счётом банка', link: '/guide/usage/reconciliation' },
             { text: 'Статистика и рекомендации', link: '/guide/usage/stats-insights' },
             { text: 'Уведомления', link: '/guide/usage/notifications' },
             { text: 'Telegram-бот', link: '/guide/usage/telegram' },

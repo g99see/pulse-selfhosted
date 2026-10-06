@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { percentChange } from './dates';
 import { monthSchema } from './finance';
+import { sumMoney } from './reconcile';
 
 /** Смещение часового пояса относительно UTC в миллисекундах для момента. */
 function timezoneOffsetMs(timezone: string, instant: Date): number {
@@ -110,24 +111,25 @@ export interface CategorySpend {
 
 /** Округление денег до копеек — убирает накопление ошибок плавающей точки. */
 export function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100;
+  // toPrecision(15) снимает хвост float (1.005 * 100 = 100.49999…), иначе половинки округляются вниз.
+  return Math.round(Number((value * 100).toPrecision(15))) / 100;
 }
 
 /** Сумма расходов за период. Переводы между счетами не расход (ТЗ §3.2). */
 export function sumSpent(transactions: readonly StatTransaction[]): number {
-  return roundMoney(
+  return sumMoney(
     transactions
       .filter((transaction) => transaction.type === 'expense')
-      .reduce((total, transaction) => total + transaction.amount, 0),
+      .map((transaction) => transaction.amount),
   );
 }
 
 /** Сумма доходов за период. */
 export function sumEarned(transactions: readonly StatTransaction[]): number {
-  return roundMoney(
+  return sumMoney(
     transactions
       .filter((transaction) => transaction.type === 'income')
-      .reduce((total, transaction) => total + transaction.amount, 0),
+      .map((transaction) => transaction.amount),
   );
 }
 
