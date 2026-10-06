@@ -59,7 +59,7 @@ describe('реестр выгрузки', () => {
       expect.arrayContaining([
         'sessions',
         'email_verification_tokens',
-        'push_subscriptions',
+        'discord_link_codes',
         'two_factor_backup_codes',
         'two_factor_challenges',
       ]),
@@ -81,7 +81,7 @@ describe('реестр выгрузки', () => {
   it('coveredUserTables перечисляет выгрузку и исключения', () => {
     const covered = coveredUserTables();
     expect(covered.has('accounts')).toBe(true);
-    expect(covered.has('push_subscriptions')).toBe(true);
+    expect(covered.has('discord_link_codes')).toBe(true);
     expect(covered.has('daily_stats')).toBe(true);
   });
 

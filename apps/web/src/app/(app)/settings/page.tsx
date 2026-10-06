@@ -2,12 +2,13 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { DaySummarySection } from '@/components/day-summary-section';
 import { DataPrivacySection } from '@/components/data-privacy-section';
 import { AiKeySection } from '@/components/ai-key-section';
 import { ApiAccessSection } from '@/components/api-access-section';
 import { LinkedAccountsSection } from '@/components/linked-accounts-section';
 import { QuietModeSection } from '@/components/quiet-mode-section';
-import { TelegramSection } from '@/components/telegram-section';
+import { NotificationSettings } from '@/components/notification-settings';
 import { TwoFactorSection } from '@/components/two-factor-section';
 import { useT } from '@/components/locale-provider';
 
@@ -20,10 +21,11 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-3xl font-extrabold">{t('settings.title')}</h1>
+      <h1 className="text-2xl font-extrabold">{t('settings.title')}</h1>
 
       <SettingsGroup title={t('settings.group.privacy')}>
         <QuietModeSection />
+        <DaySummarySection />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.group.security')}>
@@ -32,7 +34,10 @@ export default function SettingsPage() {
 
       <SettingsGroup title={t('settings.group.accounts')}>
         <LinkedAccountsSection />
-        <TelegramSection />
+      </SettingsGroup>
+
+      <SettingsGroup title={t('settings.group.notifications')}>
+        <NotificationSettings />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.group.data')}>

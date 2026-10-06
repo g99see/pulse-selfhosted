@@ -1,28 +1,33 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Тексты уведомлений (ТЗ §3.6, §5, §9). Чистые функции: по типу уведомления и
- * локальному времени собирают payload для push и письма. Для чек-инов push
- * несёт кнопки ответа 1–5, чтобы ответить прямо из уведомления.
+ * Тексты уведомлений (ТЗ §3.6, §5, v2 §5). Чистые функции: по типу уведомления
+ * и локальному времени собирают сообщение для мессенджера (Telegram/Discord).
+ * Для чек-инов в Telegram к сообщению добавляются кнопки 1–5 (kind = checkin).
  */
-import { localParts, type NotificationType } from '@puls/shared';
-import type { PushPayload } from './push.service';
+import {
+  budgetLevel,
+  formatMoney,
+  isCurrency,
+  localParts,
+  type NotificationType,
+  type StatsDayResponse,
+} from '@puls/shared';
+
+/** Сообщение в очереди доставки (хранится в outbox как payload). */
+export interface NotificationMessage {
+  type: string;
+  title: string;
+  body: string;
+  /** Путь на сайте, куда ведёт уведомление. */
+  url?: string;
+  /** checkin — Telegram добавит inline-кнопки настроения. */
+  kind?: 'checkin';
+}
 
 export interface NotificationBuildContext {
   now: Date;
   timezone: string;
 }
-
-/** Кнопки настроения 1–5 и путь API для ответа из уведомления (ТЗ §9). */
-export const CHECKIN_ACTIONS: { action: string; title: string }[] = [
-  { action: 'mood-1', title: '😞' },
-  { action: 'mood-2', title: '🙁' },
-  { action: 'mood-3', title: '😐' },
-  { action: 'mood-4', title: '🙂' },
-  { action: 'mood-5', title: '😄' },
-];
-
-/** Путь API чек-инов, куда service worker шлёт { mood } (ТЗ §3.3, §9). */
-export const CHECKIN_API_PATH = '/api/checkins';
 
 /** Приветствие чек-ина по локальному времени суток (ТЗ §5, сценарий 1). */
 export function checkinGreeting(context: NotificationBuildContext): {
@@ -46,11 +51,11 @@ export function checkinGreeting(context: NotificationBuildContext): {
   return { title: 'Как вы?', body: 'Можно отметить настроение, если не спится.' };
 }
 
-/** Payload push-уведомления по типу (ТЗ §3.6). */
-export function buildPushPayload(
+/** Сообщение по типу уведомления (ТЗ §3.6). */
+export function buildMessage(
   type: NotificationType,
   context: NotificationBuildContext,
-): PushPayload {
+): NotificationMessage {
   switch (type) {
     case 'checkins': {
       const greeting = checkinGreeting(context);
@@ -58,38 +63,51 @@ export function buildPushPayload(
         type,
         title: greeting.title,
         body: greeting.body,
-        checkinUrl: CHECKIN_API_PATH,
-        actions: CHECKIN_ACTIONS,
-        data: { url: '/app' },
+        kind: 'checkin',
+        url: '/app',
       };
     }
+    case 'daily_summary':
+      return {
+        type,
+        title: 'Итог дня',
+        body: 'Загляните в «Пульс»: траты, доходы и настроение за день.',
+        url: '/app',
+      };
+    case 'reconciliation_mismatch':
+      return {
+        type,
+        title: 'Баланс не сходится',
+        body: 'Остаток на счёте отличается от суммы операций. Проверьте счета.',
+        url: '/app/finance',
+      };
     case 'payments':
       return {
         type,
         title: 'Скоро платёж',
         body: 'Проверьте регулярные платежи на этой неделе.',
-        data: { url: '/app/finance' },
+        url: '/app/finance',
       };
     case 'budget':
       return {
         type,
         title: 'Бюджет под присмотром',
         body: 'Расходы приближаются к лимиту по категории.',
-        data: { url: '/app/finance' },
+        url: '/app/finance',
       };
     case 'weekly_report':
       return {
         type,
         title: 'Недельный отчёт готов',
         body: 'Ваши финансы и настроение за неделю собраны.',
-        data: { url: '/app' },
+        url: '/app',
       };
     case 'reactions':
       return {
         type,
         title: 'Новая реакция',
         body: 'Кто-то отреагировал на вашу запись.',
-        data: { url: '/app/profile' },
+        url: '/app/profile',
       };
   }
 }
@@ -108,7 +126,7 @@ export interface PostActivityInfo {
  * Уведомление владельцу поста о новой реакции или комментарии (ТЗ §3.7) —
  * тип reactions, ссылка на ленту. Публикуется через NotificationDispatcher.
  */
-export function buildPostActivityNotification(info: PostActivityInfo): PushPayload {
+export function buildPostActivityNotification(info: PostActivityInfo): NotificationMessage {
   const title = info.kind === 'reaction' ? 'Новая реакция' : 'Новый комментарий';
   const body =
     info.kind === 'reaction'
@@ -118,7 +136,7 @@ export function buildPostActivityNotification(info: PostActivityInfo): PushPaylo
     type: 'reactions',
     title,
     body,
-    data: { url: '/feed' },
+    url: '/feed',
   };
 }
 
@@ -132,20 +150,13 @@ export interface CapsuleOpenedInfo {
  * Публикуется через NotificationDispatcher; тип вне расписания, поэтому несёт
  * собственный url на экран капсул.
  */
-export function buildCapsuleOpenedNotification(info: CapsuleOpenedInfo): PushPayload {
+export function buildCapsuleOpenedNotification(info: CapsuleOpenedInfo): NotificationMessage {
   return {
     type: 'capsule',
     title: 'Капсула времени открылась',
     body: `Письмо «${info.title}» дождалось срока — загляните в него.`,
-    data: { url: '/capsules' },
+    url: '/capsules',
   };
-}
-
-export interface NotificationEmail {
-  subject: string;
-  text: string;
-  kind: string;
-  link?: string;
 }
 
 /** Данные напоминания о регулярном платеже (ТЗ §3.2). */
@@ -170,16 +181,63 @@ export function buildRecurringReminder(info: RecurringReminderInfo): {
   };
 }
 
-/** Письмо-уведомление по типу (ТЗ §3.6, канал email). */
-export function buildNotificationEmail(
-  type: NotificationType,
-  context: NotificationBuildContext,
-): NotificationEmail {
-  const push = buildPushPayload(type, context);
+/** Итог дня: траты, доходы, настроение и число чек-инов (v2 §5). */
+export function buildDailySummary(day: StatsDayResponse): NotificationMessage {
+  const currency = isCurrency(day.currency) ? day.currency : 'RUB';
+  const mood = day.avgMood === null ? 'нет данных' : `${day.avgMood.toFixed(1)}/5`;
   return {
-    subject: `Пульс: ${push.title}`,
-    text: `${push.title}\n\n${push.body}`,
-    kind: `notification:${type}`,
-    link: push.data?.url as string | undefined,
+    type: 'daily_summary',
+    title: `Итог дня, ${day.day}`,
+    body: [
+      `💸 Потрачено: ${formatMoney(day.spent, currency)}`,
+      `💰 Получено: ${formatMoney(day.earned, currency)}`,
+      `🙂 Настроение: ${mood}`,
+      `✅ Чек-инов: ${day.checkins}`,
+    ].join('\n'),
+    url: '/app',
+  };
+}
+
+export interface BudgetAlertInfo {
+  categoryName: string;
+  limit: number;
+  spent: number;
+  currency: string;
+}
+
+/** Предупреждение бюджета: 80% — «почти», 100% и выше — «превышен». */
+export function buildBudgetAlert(info: BudgetAlertInfo): NotificationMessage | null {
+  const status = budgetLevel(info.limit, info.spent);
+  if (status.level === 'ok') return null;
+  const currency = isCurrency(info.currency) ? info.currency : 'RUB';
+  const amounts = `${formatMoney(info.spent, currency)} из ${formatMoney(info.limit, currency)}`;
+  return status.level === 'exceeded'
+    ? {
+        type: 'budget',
+        title: `Бюджет «${info.categoryName}» превышен`,
+        body: `Потрачено ${amounts} (${status.percent}%).`,
+        url: '/app/finance',
+      }
+    : {
+        type: 'budget',
+        title: `Бюджет «${info.categoryName}»: ${status.percent}%`,
+        body: `Потрачено ${amounts}. Лимит близко.`,
+        url: '/app/finance',
+      };
+}
+
+export interface ReconciliationMismatchInfo {
+  accountName: string;
+  /** Уже отформатированная разница, например «−120 ₽». */
+  difference: string;
+}
+
+/** Расхождение баланса счёта и суммы операций (хук для сверки, v2 §5). */
+export function buildReconciliationMismatch(info: ReconciliationMismatchInfo): NotificationMessage {
+  return {
+    type: 'reconciliation_mismatch',
+    title: 'Баланс не сходится',
+    body: `Счёт «${info.accountName}»: расхождение ${info.difference}. Проверьте операции.`,
+    url: '/app/finance',
   };
 }

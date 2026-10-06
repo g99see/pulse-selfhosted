@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Планировщик уведомлений (ТЗ §3.6, §9). Тик раз в минуту выбирает
- * «созревшие» уведомления и отправляет их через диспетчер. В продакшене тик
+ * «созревшие» плановые уведомления и ставит их в outbox; отдельный воркер
+ * (каждые NOTIFICATIONS_WORKER_MS, по умолчанию 15 с) отправляет очередь. В продакшене тик
  * идёт через BullMQ (ioredis/Valkey); если Valkey недоступен или REDIS_URL не
  * задан, планировщик переходит на таймер в процессе — API продолжает работать.
  * В тестах автостарт выключен, тесты вызывают runOnce() напрямую.
@@ -9,12 +10,16 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
+import { runtimeStats } from '../observability/runtime-stats';
 import { PrismaService } from '../prisma/prisma.service';
+import { NOTIFICATION_CHANNELS } from '@puls/shared';
 import { NotificationDispatcher } from './dispatcher';
-import { dueDeliveriesForUser, type DueDelivery } from './due';
+import { dueDeliveriesForUser, toChannelConfig, type DueDelivery } from './due';
+import { OutboxService } from './outbox.service';
 
 export const NOTIFICATIONS_QUEUE = 'puls-notifications';
 export const DEFAULT_TICK_MS = 60_000;
+export const DEFAULT_WORKER_MS = 15_000;
 
 @Injectable()
 export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
@@ -28,13 +33,17 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
   private queue: Queue | null = null;
   private worker: Worker | null = null;
   private probe: Redis | null = null;
+  private readonly workerMs = Number(process.env.NOTIFICATIONS_WORKER_MS ?? DEFAULT_WORKER_MS);
   private timer: NodeJS.Timeout | null = null;
+  private workerTimer: NodeJS.Timeout | null = null;
+  private workerRunning = false;
   private lastRunAt: Date | null = null;
   private running = false;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly dispatcher: NotificationDispatcher,
+    private readonly outbox: OutboxService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -42,6 +51,7 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Планировщик уведомлений не стартует автоматически');
       return;
     }
+    this.startWorker();
     await this.start();
   }
 
@@ -60,27 +70,42 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
 
       const users = await this.prisma.user.findMany({
         where: { notificationsEnabled: true },
-        include: { notificationRules: true },
+        include: {
+          notificationRules: true,
+          notificationChannelSettings: true,
+          telegramLink: true,
+          discordLink: true,
+        },
       });
 
       const dispatched: DueDelivery[] = [];
       for (const user of users) {
-        const deliveries = dueDeliveriesForUser(user, {
-          from: windowFrom,
-          to,
-          timezone: user.timezone,
-        });
+        // Только каналы, куда можно доставить: привязан и не заблокирован.
+        const linked = {
+          telegram: user.telegramLink !== null && user.telegramLink.blockedAt === null,
+          discord: user.discordLink !== null && user.discordLink.blockedAt === null,
+        };
+        const channels = NOTIFICATION_CHANNELS.filter((channel) => linked[channel]).map((channel) =>
+          toChannelConfig(
+            channel,
+            user.notificationChannelSettings.find((item) => item.channel === channel),
+            user.notificationRules,
+          ),
+        );
+        const deliveries = dueDeliveriesForUser(
+          { id: user.id, timezone: user.timezone, channels },
+          { from: windowFrom, to },
+        );
         for (const delivery of deliveries) {
-          await this.dispatcher.dispatch(delivery, {
-            now,
-            email: user.email,
-            timezone: user.timezone,
-          });
+          const timezone =
+            channels.find((item) => item.channel === delivery.channel)?.timezone ?? user.timezone;
+          await this.dispatcher.dispatch(delivery, { now, timezone });
           dispatched.push(delivery);
         }
       }
 
       this.lastRunAt = now;
+      runtimeStats.markSchedulerRun(now);
       if (dispatched.length > 0) {
         this.logger.log(`Отправлено уведомлений: ${dispatched.length}`);
       }
@@ -88,6 +113,26 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
     } finally {
       this.running = false;
     }
+  }
+
+  /** Воркер outbox: раз в workerMs отправляет созревшие записи очереди. */
+  private startWorker(): void {
+    if (this.workerTimer) return;
+    this.workerTimer = setInterval(() => {
+      if (this.workerRunning) return;
+      this.workerRunning = true;
+      void this.outbox
+        .processQueue()
+        .catch((error: unknown) => {
+          this.logger.warn(
+            `Ошибка воркера уведомлений: ${error instanceof Error ? error.message : 'unknown'}`,
+          );
+        })
+        .finally(() => {
+          this.workerRunning = false;
+        });
+    }, this.workerMs);
+    this.workerTimer.unref?.();
   }
 
   private async start(): Promise<void> {
@@ -152,6 +197,10 @@ export class NotificationsScheduler implements OnModuleInit, OnModuleDestroy {
   }
 
   private async stop(): Promise<void> {
+    if (this.workerTimer) {
+      clearInterval(this.workerTimer);
+      this.workerTimer = null;
+    }
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;

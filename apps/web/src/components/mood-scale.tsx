@@ -23,8 +23,8 @@ export function MoodScale({
   // На узких экранах кружки сжимаются (aspect-square), чтобы пять лиц всегда помещались в строку.
   const dimension =
     size === 'lg'
-      ? 'aspect-square w-16 min-w-0 shrink text-2xl sm:text-3xl'
-      : 'aspect-square w-14 min-w-0 shrink text-2xl';
+      ? 'aspect-square w-[4.25rem] min-w-11 shrink text-2xl sm:text-3xl'
+      : 'aspect-square w-14 min-w-11 shrink text-2xl';
 
   return (
     <div
@@ -45,7 +45,7 @@ export function MoodScale({
             data-testid={`mood-${mood}`}
             disabled={disabled}
             onClick={() => onChange(mood)}
-            className={`flex ${dimension} items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--puls-wellbeing-text)] disabled:opacity-60`}
+            className={`flex ${dimension} items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--puls-wellbeing-text)] disabled:opacity-60`}
             style={{
               backgroundColor: `color-mix(in srgb, ${MOOD_COLORS[mood]} ${active ? 55 : 28}%, var(--puls-surface))`,
               boxShadow: active
@@ -92,7 +92,7 @@ export function MetricScale({
               aria-label={labels.option(level)}
               disabled={disabled}
               onClick={() => onChange(level)}
-              className={`h-10 flex-1 rounded-[var(--radius-chip)] text-sm font-semibold transition-colors duration-150 disabled:opacity-60 ${
+              className={`h-11 flex-1 rounded-[var(--radius-chip)] text-sm font-semibold transition-colors duration-150 disabled:opacity-60 ${
                 active
                   ? 'bg-[var(--puls-wellbeing-soft)] text-[var(--puls-wellbeing-text)] shadow-sm ring-2 ring-[var(--puls-wellbeing)]'
                   : 'text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface)]'

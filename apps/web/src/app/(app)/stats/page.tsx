@@ -129,11 +129,11 @@ export default function StatsPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-extrabold">{t('stats.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('stats.title')}</h1>
         <Link
           href="/wrapped"
           data-testid="stats-wrapped-link"
-          className="inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 py-2 text-sm font-semibold text-[var(--puls-primary-text)]"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('wrapped.title')}
         </Link>
@@ -197,6 +197,30 @@ export default function StatsPage() {
                 tone="wellbeing"
                 icon="heart"
               />
+              {report.avgEnergy !== null ? (
+                <StatTile
+                  label={t('stats.total.energy')}
+                  value={<span data-testid="stats-energy">{number(report.avgEnergy)}</span>}
+                  tone="wellbeing"
+                  icon="heart"
+                />
+              ) : null}
+              {report.avgStress !== null ? (
+                <StatTile
+                  label={t('stats.total.stress')}
+                  value={<span data-testid="stats-stress">{number(report.avgStress)}</span>}
+                  tone="primary"
+                  icon="heart"
+                />
+              ) : null}
+              {report.avgSleep !== null ? (
+                <StatTile
+                  label={t('stats.total.sleep')}
+                  value={<span data-testid="stats-sleep">{number(report.avgSleep)}</span>}
+                  tone="wellbeing"
+                  icon="heart"
+                />
+              ) : null}
               <StatTile
                 label={t('stats.total.checkins')}
                 value={String(report.checkins)}
@@ -391,7 +415,7 @@ export default function StatsPage() {
               className="flex flex-wrap items-center gap-2 text-xs text-[var(--puls-ink-muted)]"
               aria-hidden="true"
             >
-              <span className="inline-block h-3.5 w-3.5 rounded-[5px] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)]" />
+              <span className="inline-block h-3.5 w-3.5 rounded-[5px] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)]" />
               <span>{t('stats.heatmap.legend.empty')}</span>
               <span className="ml-3">{t('stats.heatmap.legend.worse')}</span>
               {([1, 2, 3, 4, 5] as const).map((level) => (

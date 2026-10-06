@@ -1,134 +1,134 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Правила уведомлений и web-push-подписки (ТЗ §3.6, §7). Всё привязано к
- * пользователю: чтение и запись идут только по его userId.
+ * Настройки уведомлений (ТЗ §3.6, v2 §5): состояние каналов Telegram/Discord
+ * (привязка, включение, расписание, тихие часы, часовой пояс, типы) и правила
+ * по типам. Всё привязано к пользователю.
  */
 import { Injectable } from '@nestjs/common';
 import {
-  DEFAULT_CHANNELS,
-  DEFAULT_QUIET_HOURS,
+  NOTIFICATION_CHANNELS,
   NOTIFICATION_TYPES,
-  defaultNotificationRule,
-  type NotificationRuleConfig,
-  type NotificationRuleInput,
+  type ChannelSettingsUpdateInput,
+  type NotificationChannel,
+  type NotificationChannelStatus,
   type NotificationType,
-  type PushSubscriptionInput,
 } from '@puls/shared';
+import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
-import { scheduleJson, scheduleTimes, toRuleConfig } from './due';
+import { scheduleJson, toChannelConfig, scheduleSummaryTime, scheduleTimes } from './due';
 
-export interface SubscriptionDto {
-  id: string;
-  endpoint: string;
-  userAgent: string | null;
-  createdAt: string;
+export interface RuleUpdate {
+  type: NotificationType;
+  enabled: boolean;
+  times?: string[];
+}
+
+function isValidTimezone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 @Injectable()
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /* ----- Правила ----- */
+  /** Статус всех каналов: настройки + привязка. */
+  async listChannels(userId: string): Promise<NotificationChannelStatus[]> {
+    const [rules, settings, telegram, discord] = await Promise.all([
+      this.prisma.notificationRule.findMany({ where: { userId } }),
+      this.prisma.notificationChannelSetting.findMany({ where: { userId } }),
+      this.prisma.telegramLink.findUnique({ where: { userId } }),
+      this.prisma.discordLink.findUnique({ where: { userId } }),
+    ]);
 
-  /** Эффективные правила: сохранённые значения поверх значений по умолчанию. */
-  async listRules(userId: string): Promise<NotificationRuleConfig[]> {
-    const stored = await this.prisma.notificationRule.findMany({ where: { userId } });
-
-    return NOTIFICATION_TYPES.map((type) => {
-      const row = stored.find((rule) => rule.type === type);
-      const config = row ? toRuleConfig(row) : null;
-      return config ?? defaultNotificationRule(type);
+    return NOTIFICATION_CHANNELS.map((channel) => {
+      const config = toChannelConfig(
+        channel,
+        settings.find((item) => item.channel === channel),
+        rules,
+      );
+      const link = channel === 'telegram' ? telegram : discord;
+      const configured =
+        channel === 'telegram'
+          ? (process.env.TELEGRAM_BOT_TOKEN ?? '').length > 0
+          : (process.env.DISCORD_BOT_TOKEN ?? '').length > 0;
+      return {
+        ...config,
+        configured,
+        linked: link !== null,
+        blocked: link?.blockedAt != null,
+        accountLabel: link?.username ?? null,
+      };
     });
   }
 
-  /** Включает/выключает типы, правит расписание и тихие часы (bulk-upsert). */
-  async updateRules(
+  /** Частичное обновление настроек канала и включения типов. */
+  async updateChannel(
     userId: string,
-    inputs: readonly NotificationRuleInput[],
-  ): Promise<NotificationRuleConfig[]> {
-    for (const input of inputs) {
-      const existing = await this.prisma.notificationRule.findFirst({
-        where: { userId, type: input.type },
+    channel: NotificationChannel,
+    input: ChannelSettingsUpdateInput,
+  ): Promise<NotificationChannelStatus[]> {
+    if (input.timezone && !isValidTimezone(input.timezone)) {
+      throw httpError(400, 'invalid_timezone', 'Неизвестный часовой пояс');
+    }
+
+    const existing = await this.prisma.notificationChannelSetting.findUnique({
+      where: { userId_channel: { userId, channel } },
+    });
+    const times = input.times ?? scheduleTimes(existing?.schedule);
+    const summaryTime = input.summaryTime ?? scheduleSummaryTime(existing?.schedule);
+
+    const data = {
+      enabled: input.enabled ?? existing?.enabled ?? true,
+      schedule: scheduleJson(times, summaryTime),
+      quietStart: input.quietHours?.start ?? existing?.quietStart ?? 22,
+      quietEnd: input.quietHours?.end ?? existing?.quietEnd ?? 8,
+      timezone: input.timezone === undefined ? (existing?.timezone ?? null) : input.timezone,
+    };
+    await this.prisma.notificationChannelSetting.upsert({
+      where: { userId_channel: { userId, channel } },
+      create: { userId, channel, ...data },
+      update: data,
+    });
+
+    for (const [type, enabled] of Object.entries(input.types ?? {})) {
+      if (!(NOTIFICATION_TYPES as readonly string[]).includes(type)) continue;
+      await this.prisma.notificationRule.upsert({
+        where: { userId_type_channel: { userId, type, channel } },
+        create: { userId, type, channel, enabled },
+        update: { enabled },
       });
+    }
 
-      const channel = input.channel ?? existing?.channel ?? DEFAULT_CHANNELS[input.type];
-      const times = input.times ?? scheduleTimes(existing?.schedule);
-      const quietHours = input.quietHours ?? {
-        start: existing?.quietHoursStart ?? DEFAULT_QUIET_HOURS.start,
-        end: existing?.quietHoursEnd ?? DEFAULT_QUIET_HOURS.end,
-      };
+    return this.listChannels(userId);
+  }
 
-      const data = {
-        channel,
-        enabled: input.enabled,
-        schedule: scheduleJson(times),
-        quietHoursStart: quietHours.start,
-        quietHoursEnd: quietHours.end,
-      };
+  /**
+   * Правило по типу для ИИ-помощника («напомни про бюджет»): включает или
+   * выключает тип в привязанных каналах (если привязок нет — в Telegram), а
+   * времена применяет к расписанию чек-инов канала.
+   */
+  async updateRules(userId: string, inputs: readonly RuleUpdate[]): Promise<void> {
+    const [telegram, discord] = await Promise.all([
+      this.prisma.telegramLink.findUnique({ where: { userId } }),
+      this.prisma.discordLink.findUnique({ where: { userId } }),
+    ]);
+    const targets: NotificationChannel[] = [];
+    if (telegram) targets.push('telegram');
+    if (discord) targets.push('discord');
+    if (targets.length === 0) targets.push('telegram');
 
-      if (existing) {
-        await this.prisma.notificationRule.update({ where: { id: existing.id }, data });
-      } else {
-        await this.prisma.notificationRule.create({
-          data: { userId, type: input.type as NotificationType, ...data },
+    for (const channel of targets) {
+      for (const input of inputs) {
+        await this.updateChannel(userId, channel, {
+          types: { [input.type]: input.enabled },
+          ...(input.type === 'checkins' && input.times ? { times: input.times } : {}),
         });
       }
     }
-
-    return this.listRules(userId);
   }
-
-  /* ----- Подписки ----- */
-
-  async listSubscriptions(userId: string): Promise<SubscriptionDto[]> {
-    const rows = await this.prisma.pushSubscription.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
-    });
-    return rows.map(toSubscriptionDto);
-  }
-
-  /** Сохраняет подписку; повторная подписка на тот же endpoint обновляет её. */
-  async saveSubscription(userId: string, input: PushSubscriptionInput): Promise<SubscriptionDto> {
-    const row = await this.prisma.pushSubscription.upsert({
-      where: { endpoint: input.endpoint },
-      create: {
-        userId,
-        endpoint: input.endpoint,
-        p256dh: input.keys.p256dh,
-        auth: input.keys.auth,
-        userAgent: input.userAgent ?? null,
-      },
-      update: {
-        userId,
-        p256dh: input.keys.p256dh,
-        auth: input.keys.auth,
-        userAgent: input.userAgent ?? null,
-      },
-    });
-    return toSubscriptionDto(row);
-  }
-
-  /** Удаляет подписку только владельца; false — если чужая или отсутствует. */
-  async deleteSubscription(userId: string, endpoint: string): Promise<boolean> {
-    const row = await this.prisma.pushSubscription.findUnique({ where: { endpoint } });
-    if (!row || row.userId !== userId) return false;
-
-    await this.prisma.pushSubscription.delete({ where: { endpoint } });
-    return true;
-  }
-}
-
-function toSubscriptionDto(row: {
-  id: string;
-  endpoint: string;
-  userAgent: string | null;
-  createdAt: Date;
-}): SubscriptionDto {
-  return {
-    id: row.id,
-    endpoint: row.endpoint,
-    userAgent: row.userAgent,
-    createdAt: row.createdAt.toISOString(),
-  };
 }

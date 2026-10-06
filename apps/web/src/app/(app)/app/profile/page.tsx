@@ -4,7 +4,6 @@
 import { InstallPrompt } from '@/components/install-prompt';
 import { useT } from '@/components/locale-provider';
 import { LocaleSwitcher } from '@/components/locale-switcher';
-import { NotificationSettings } from '@/components/notification-settings';
 import { ProfileEditor } from '@/components/profile-editor';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, IconBubble } from '@/components/ui';
@@ -16,7 +15,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold">{t('settings.title')}</h1>
+      <h1 className="text-2xl font-extrabold">{t('settings.title')}</h1>
 
       <ProfileEditor />
 
@@ -32,8 +31,6 @@ export default function ProfileSettingsPage() {
       <Card>
         <InstallPrompt />
       </Card>
-
-      <NotificationSettings />
 
       <Card className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-3 font-semibold">

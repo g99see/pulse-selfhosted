@@ -13,7 +13,10 @@ import {
   guessCategoryName,
   importOccurrenceKey,
   importRowKey,
+  analyzeStatement,
+  toCents,
   roundRate,
+  type StatementRow,
   type Currency,
   parseCsv,
   summarizeImportRows,
@@ -25,6 +28,7 @@ import {
   type ImportRowType,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
@@ -41,11 +45,21 @@ interface ParsedImport {
 
 interface PreparedRow {
   hash: string;
+  /** Хеш прежней схемы (по содержимому) — для строк с ID банка: файл мог быть импортирован до появления ID. */
+  legacyHash: string | null;
   date: string;
   amount: number;
   type: ImportRowType;
   description: string;
   categoryId: string | null;
+  externalId: string | null;
+  time: string | null;
+  balance: number | null;
+}
+
+/** Хеш ключа идемпотентности строки в рамках счёта. */
+function hashKey(accountId: string, key: string): string {
+  return createHash('sha256').update(`${accountId}|${key}`).digest('hex');
 }
 
 /**
@@ -65,11 +79,15 @@ export class ImportService {
 
   async preview(userId: string, input: ImportPreviewRequest) {
     const parsed = this.parse(input);
-    const existingKeys = await this.existingKeys(userId);
+    const [existingKeys, existingExternalIds] = await Promise.all([
+      this.existingKeys(userId),
+      this.existingExternalIds(userId),
+    ]);
     const rows = buildImportPreview(parsed.rows, {
       mapping: parsed.mapping,
       hasHeader: parsed.hasHeader,
       existingKeys,
+      existingExternalIds,
     });
 
     return {
@@ -105,18 +123,27 @@ export class ImportService {
 
     const prepared: PreparedRow[] = valid.map((row) => {
       // Одинаковые строки выписки — разные операции: номер повтора входит в хеш.
+      // Если банк прислал ID операции — он и есть ключ идемпотентности (переживает правки
+      // описания и перенос времени); иначе — хеш (дата, сумма, описание, номер повтора).
       const key = importOccurrenceKey(
         importRowKey(row.date, row.amount, row.description),
         row.occurrence,
       );
       const guessed = row.description ? guessCategoryName(row.description) : null;
       return {
-        hash: createHash('sha256').update(`${account.id}|${key}`).digest('hex'),
+        hash:
+          row.externalId !== null
+            ? hashKey(account.id, `ext:${row.externalId}`)
+            : hashKey(account.id, key),
+        legacyHash: row.externalId !== null ? hashKey(account.id, key) : null,
         date: row.date,
         amount: row.amount,
         type: row.type ?? 'expense',
         description: row.description,
         categoryId: guessed ? (categoryByName.get(guessed.toLowerCase()) ?? null) : null,
+        externalId: row.externalId,
+        time: row.time,
+        balance: row.balance,
       };
     });
 
@@ -150,11 +177,33 @@ export class ImportService {
 
     const outcome = await this.prisma.$transaction(async (db) => {
       const existing = await db.transaction.findMany({
-        where: { userId, importHash: { in: unique.map((row) => row.hash) } },
-        select: { importHash: true },
+        where: {
+          userId,
+          importHash: {
+            in: unique.flatMap((row) => (row.legacyHash ? [row.hash, row.legacyHash] : [row.hash])),
+          },
+        },
+        select: { id: true, importHash: true, externalId: true },
       });
       const existingHashes = new Set(existing.map((row) => row.importHash));
-      const fresh = unique.filter((row) => !existingHashes.has(row.hash));
+      const fresh = unique.filter(
+        (row) =>
+          !existingHashes.has(row.hash) && !(row.legacyHash && existingHashes.has(row.legacyHash)),
+      );
+      // Операции, импортированные раньше без ID банка, донаполняем ID, временем и остатком.
+      for (const row of unique) {
+        if (!row.legacyHash || !existingHashes.has(row.legacyHash)) continue;
+        const old = existing.find((item) => item.importHash === row.legacyHash);
+        if (!old || old.externalId !== null) continue;
+        await db.transaction.update({
+          where: { id: old.id },
+          data: {
+            externalId: row.externalId,
+            bankTime: row.time,
+            bankBalance: row.balance !== null ? new Prisma.Decimal(row.balance) : null,
+          },
+        });
+      }
 
       let imported = 0;
       if (fresh.length > 0) {
@@ -173,23 +222,61 @@ export class ImportService {
             date: toDateOnly(row.date),
             comment: row.description === '' ? null : row.description,
             importHash: row.hash,
+            externalId: row.externalId,
+            bankTime: row.time,
+            bankBalance: row.balance !== null ? new Prisma.Decimal(row.balance) : null,
           })),
           skipDuplicates: true,
         });
         imported = created.count;
       }
 
+      // Дельта баланса — в Decimal: суммы вида 0.1 + 0.2 не копят хвост float.
       const delta = fresh.reduce(
-        (sum, row) => sum + (row.type === 'income' ? row.amount : -row.amount),
-        0,
+        (sum, row) => sum.plus(row.type === 'income' ? row.amount : -row.amount),
+        new Prisma.Decimal(0),
       );
       const updated = await db.account.update({
         where: { id: account.id },
-        data: { balance: { increment: new Prisma.Decimal(delta) } },
+        data: { balance: { increment: delta } },
       });
 
-      return { imported, balance: Number(updated.balance) };
+      const statementId = await this.saveStatementBalance(db, userId, account.id, unique);
+
+      // Расходы по категориям и месяцам — для предупреждений бюджета.
+      const additions = new Map<
+        string,
+        { categoryId: string; month: string; amountBase: number }
+      >();
+      for (const row of fresh) {
+        if (row.type !== 'expense' || !row.categoryId) continue;
+        const month = row.date.slice(0, 7);
+        const key = `${row.categoryId}:${month}`;
+        const entry = additions.get(key) ?? { categoryId: row.categoryId, month, amountBase: 0 };
+        entry.amountBase += convertToBase(row.amount, rateByDate.get(row.date) ?? 1);
+        additions.set(key, entry);
+      }
+
+      return {
+        imported,
+        balance: Number(updated.balance),
+        statementId,
+        additions: [...additions.values()],
+      };
     });
+
+    if (outcome.additions.length > 0) {
+      InternalEvents.emit('import.expenses', { userId, additions: outcome.additions });
+    }
+
+    // Сверка после импорта: подписчик уведомлений сам решит, есть ли расхождение.
+    if (outcome.statementId) {
+      InternalEvents.emit('statement.imported', {
+        userId,
+        accountId: account.id,
+        statementId: outcome.statementId,
+      });
+    }
 
     return {
       imported: outcome.imported,
@@ -198,6 +285,65 @@ export class ImportService {
       total: preview.length,
       balance: outcome.balance,
     };
+  }
+
+  /**
+   * Запоминает баланс по банку из выписки (колонка «Баланс») — основа сверки.
+   * Хранится закрывающий остаток (по цепочке остатков) и строки выписки.
+   */
+  private async saveStatementBalance(
+    db: Prisma.TransactionClient,
+    userId: string,
+    accountId: string,
+    rows: readonly PreparedRow[],
+  ): Promise<string | null> {
+    const statementRows: StatementRow[] = rows.map((row) => ({
+      externalId: row.externalId,
+      date: row.date,
+      time: row.time,
+      amountCents: toCents(row.type === 'income' ? row.amount : -row.amount),
+      balanceCents: row.balance !== null ? toCents(row.balance) : null,
+      description: row.description,
+    }));
+    if (statementRows.length === 0 || statementRows.some((row) => row.balanceCents === null)) {
+      return null;
+    }
+    const analysis = analyzeStatement(statementRows);
+    if (analysis.closingCents === null) return null;
+    const last = analysis.ordered[analysis.ordered.length - 1];
+    const first = analysis.ordered[0];
+    const created = await db.accountBankBalance.create({
+      data: {
+        userId,
+        accountId,
+        source: 'statement',
+        balance: new Prisma.Decimal(analysis.closingCents).div(100),
+        asOf: toDateOnly(last.date),
+        periodFrom: toDateOnly(first.date),
+        periodTo: toDateOnly(last.date),
+        rows: analysis.ordered as unknown as Prisma.InputJsonValue,
+      },
+    });
+    // Хранить достаточно несколько последних выписок.
+    const stale = await db.accountBankBalance.findMany({
+      where: { accountId },
+      orderBy: { createdAt: 'desc' },
+      skip: 5,
+      select: { id: true },
+    });
+    if (stale.length > 0) {
+      await db.accountBankBalance.deleteMany({ where: { id: { in: stale.map((row) => row.id) } } });
+    }
+    return created.id;
+  }
+
+  /** ID банка всех импортированных операций пользователя. */
+  private async existingExternalIds(userId: string): Promise<Set<string>> {
+    const rows = await this.prisma.transaction.findMany({
+      where: { userId, externalId: { not: null } },
+      select: { externalId: true },
+    });
+    return new Set(rows.flatMap((row) => (row.externalId ? [row.externalId] : [])));
   }
 
   /** Разбирает запрос: лимиты, разделитель, заголовок и сопоставление колонок. */

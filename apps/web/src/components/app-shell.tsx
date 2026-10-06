@@ -67,9 +67,18 @@ const GROUPS: NavGroup[] = [
       { key: 'app.nav.settingsItem', href: '/settings', icon: 'settings' },
       { key: 'app.nav.moderation', href: '/moderation', icon: 'shield' },
       { key: 'app.nav.adminAi', href: '/admin/ai', icon: 'bot', testId: 'nav-admin-ai' },
+      {
+        key: 'app.nav.adminMetrics',
+        href: '/admin/metrics',
+        icon: 'chart',
+        testId: 'nav-admin-metrics',
+      },
     ],
   },
 ];
+
+/** Событие «открыть быстрый ввод»: его шлют кнопки на экранах, шторкой владеет каркас. */
+export const QUICK_ADD_EVENT = 'puls:quick-add';
 
 const TAB_HOME: NavItem = { key: 'app.nav.home', href: '/app', icon: 'home' };
 const TAB_FINANCE: NavItem = { key: 'app.nav.finance', href: '/finance', icon: 'wallet' };
@@ -104,6 +113,14 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
     if (isLocale(user.locale) && user.locale !== locale) setLocale(user.locale);
   }, [locale, setLocale, user.locale]);
 
+  useEffect(() => {
+    function onOpen(): void {
+      setAddOpen(true);
+    }
+    window.addEventListener(QUICK_ADD_EVENT, onOpen);
+    return () => window.removeEventListener(QUICK_ADD_EVENT, onOpen);
+  }, []);
+
   // Лист «Ещё» закрывается при переходе и по Escape.
   useEffect(() => {
     setMoreOpen(false);
@@ -131,7 +148,8 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   // админку AI — только админ. Раздел «AI» виден всегда: без ключа там форма подключения.
   function visible(item: NavItem): boolean {
     if (item.key === 'app.nav.moderation') return canModerate(user.role);
-    if (item.key === 'app.nav.adminAi') return user.role === 'admin';
+    if (item.key === 'app.nav.adminAi' || item.key === 'app.nav.adminMetrics')
+      return user.role === 'admin';
     return true;
   }
 
@@ -147,12 +165,12 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
         href={item.href}
         data-testid={item.testId}
         aria-current={active ? 'page' : undefined}
-        className={`flex items-center gap-3 rounded-[var(--radius-button)] px-3 font-medium transition-colors duration-150 ${
+        className={`flex min-h-11 items-center gap-3 rounded-[var(--radius-button)] border-l-4 px-3 font-medium transition-colors duration-150 ${
           compact ? 'py-3' : 'py-2'
         } ${
           active
-            ? 'bg-[var(--puls-primary-soft)] text-[var(--puls-primary-text)]'
-            : 'text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface)] hover:text-[var(--puls-ink)]'
+            ? 'border-[var(--puls-primary)] bg-[var(--puls-primary-soft)] font-semibold text-[var(--puls-primary-text)]'
+            : 'border-transparent text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface)] hover:text-[var(--puls-ink)]'
         }`}
       >
         <Icon name={item.icon} size={20} />
@@ -164,7 +182,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const groupList = (compact: boolean) =>
     groups.map((group) => (
       <div key={group.key} className="flex flex-col gap-0.5">
-        <p className="px-3 pt-3.5 pb-1 text-[11px] font-semibold tracking-wider text-[var(--puls-ink-muted)] uppercase">
+        <p className="px-3 pt-4 pb-1 text-xs font-semibold text-[var(--puls-ink-muted)]">
           {t(group.key)}
         </p>
         {group.items.map((item) => renderLink(item, compact))}
@@ -181,13 +199,13 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:overflow-y-auto md:px-4 md:py-5">
         <Link href="/app" className="mb-5 flex items-center gap-2.5 px-3">
           <Logo size={34} />
-          <span className="font-heading text-xl font-extrabold">{t('brand.name')}</span>
+          <span className="font-display text-lg">{t('brand.name')}</span>
         </Link>
         <button
           type="button"
           data-testid="quick-add-open"
           onClick={() => setAddOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 py-3 font-semibold text-[var(--puls-on-primary)] shadow-[0_10px_22px_-12px_var(--puls-primary)] transition-transform duration-150 active:translate-y-px"
+          className="flex items-center justify-center gap-2 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 py-3 font-semibold text-[var(--puls-on-primary)] puls-key"
         >
           <Icon name="plus" size={18} strokeWidth={2.4} />
           {t('app.nav.add')}
@@ -197,28 +215,32 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
         </nav>
       </aside>
 
-      <div className="min-w-0 flex-1 pb-28 md:pb-0">
+      <div className="min-w-0 flex-1 pb-32 md:pb-0">
         <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 pt-6 pb-4 md:px-8">
           <div className="flex items-center gap-3">
-            <Link href="/app" className="md:hidden" aria-label={t('brand.name')}>
+            <Link
+              href="/app"
+              className="flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
+              aria-label={t('brand.name')}
+            >
               <Logo size={36} />
             </Link>
             <div>
               <p className="text-sm text-[var(--puls-ink-muted)]">
                 {t(`app.greeting.${greeting}`)}
               </p>
-              <p className="font-heading text-lg font-extrabold">@{user.nickname}</p>
+              <p className="font-heading text-base font-bold">@{user.nickname}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <QuietModeToggle className="inline-flex h-10 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-surface-2)]" />
+            <QuietModeToggle className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-primary-soft)]" />
             {/* Настройки всегда в шапке: на невысоких экранах пункт внизу бокового меню уходит за край. */}
             <Link
               href="/settings"
               data-testid="header-settings"
               aria-label={t('app.nav.settingsItem')}
               aria-current={isNavActive('/settings', pathname) ? 'page' : undefined}
-              className="inline-flex h-10 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-surface-2)]"
+              className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-primary-soft)]"
             >
               <Icon name="settings" size={18} />
               <span className="hidden sm:inline">{t('app.nav.settingsItem')}</span>
@@ -228,7 +250,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
               onClick={() => void logout()}
               disabled={busy}
               aria-label={t('auth.logout')}
-              className="inline-flex h-10 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-surface-2)] disabled:opacity-50"
+              className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-primary-soft)] disabled:opacity-50"
             >
               <Icon name="logout" size={18} />
               <span className="hidden sm:inline">{t('auth.logout')}</span>
@@ -244,8 +266,8 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
       {/* Телефон: пять кнопок внизу, остальные разделы — в листе «Ещё». */}
       <nav
         aria-label={t('app.nav.primary')}
-        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 items-center rounded-[22px] bg-[var(--puls-surface)] px-1 py-1.5 shadow-[var(--puls-shadow-lift)] md:hidden"
-        style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 items-end border-t-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface)] px-1 pt-1.5 md:hidden"
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
       >
         <MobileTab
           item={TAB_HOME}
@@ -263,7 +285,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
             data-testid="quick-add-open"
             onClick={() => setAddOpen(true)}
             aria-label={t('app.nav.add')}
-            className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[var(--puls-primary)] text-[var(--puls-on-primary)] shadow-[0_10px_22px_-10px_var(--puls-primary)]"
+            className="puls-key -mt-5 flex h-14 w-14 items-center justify-center rounded-[16px_16px_16px_5px] bg-[var(--puls-primary)] text-[var(--puls-on-primary)]"
           >
             <Icon name="plus" size={24} strokeWidth={2.4} />
           </button>
@@ -278,7 +300,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
           onClick={() => setMoreOpen(true)}
           aria-expanded={moreOpen}
           aria-haspopup="dialog"
-          className={`flex flex-col items-center gap-0.5 rounded-[14px] py-1.5 text-[11px] font-semibold ${
+          className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[14px] py-1 text-xs font-semibold ${
             moreActive ? 'text-[var(--puls-primary-text)]' : 'text-[var(--puls-ink-muted)]'
           }`}
         >
@@ -299,7 +321,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
             role="dialog"
             aria-modal="true"
             aria-label={t('app.nav.moreTitle')}
-            className="puls-sheet-in absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[28px] bg-[var(--puls-bg)] px-4 pt-3 pb-8"
+            className="puls-sheet-in absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[28px] border-t-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-bg)] px-4 pt-3 pb-8"
           >
             <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-[var(--puls-line-strong)]" />
             <div className="flex items-center justify-between px-3">
@@ -308,7 +330,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
                 type="button"
                 onClick={() => setMoreOpen(false)}
                 aria-label={t('app.nav.close')}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--puls-surface)]"
+                className="flex h-11 w-10 items-center justify-center rounded-full bg-[var(--puls-surface)]"
               >
                 <Icon name="close" size={18} />
               </button>
@@ -329,7 +351,7 @@ function MobileTab({ item, active, label }: { item: NavItem; active: boolean; la
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      className={`flex flex-col items-center gap-0.5 rounded-[14px] py-1.5 text-[11px] font-semibold ${
+      className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[14px] py-1 text-xs font-semibold ${
         active ? 'text-[var(--puls-primary-text)]' : 'text-[var(--puls-ink-muted)]'
       }`}
     >

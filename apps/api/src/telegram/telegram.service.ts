@@ -6,30 +6,40 @@
  * без привязки получает только подсказку и ничего не пишет в БД.
  */
 import { HttpException, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { CheckinDialogService, type DialogOutcome } from '../checkins/checkin-dialog.service';
 import { CheckinsService } from '../checkins/checkins.service';
 import { RateLimitService } from '../auth/rate-limit.service';
 import { httpError } from '../common/http-error';
+import { BudgetsService } from '../finance/budgets.service';
 import { TransactionsService } from '../finance/transactions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatsService } from '../stats/stats.service';
 import {
-  moodKeyboard,
+  BOT_COMMANDS,
+  dialogKeyboard,
   parseCallback,
   parseCommand,
   undoKeyboard,
   type InlineButton,
 } from './commands';
+import { DeliveryError, classifyTelegramError } from '../notifications/outbox-logic';
 import { generateLinkCode, hashLinkCode, linkCodeMatches, LINK_CODE_TTL_MS } from './link-code';
 import {
   alreadyLinkedText,
   chatTakenText,
-  checkinQuestionText,
+  checkinLineErrorText,
   checkinSavedText,
+  checkinSummaryText,
+  dialogCancelledText,
+  dialogExpiredText,
+  dialogPromptText,
   helpText,
   invalidCodeText,
   linkRequiredText,
   linkedText,
   noAccountText,
+  spentSavedText,
+  spentUsageText,
   startHintText,
   todayText,
   transactionCancelledText,
@@ -43,6 +53,9 @@ import { TELEGRAM_API, type TelegramApi } from './telegram-api';
 import type { IncomingCallback, IncomingMessage, IncomingUpdate } from './updates';
 import { normalizeUpdate } from './updates';
 
+/** Канал черновиков диалога чек-ина (Discord будет использовать свой). */
+export const CHECKIN_CHANNEL = 'telegram';
+
 /** Сколько кодов привязки можно запросить за окно (ТЗ §6: ограничение частоты). */
 export const LINK_CODE_LIMIT = 5;
 export const LINK_CODE_WINDOW_SECONDS = 10 * 60;
@@ -51,6 +64,8 @@ export interface TelegramStatus {
   enabled: boolean;
   mode: 'webhook' | 'polling';
   linked: boolean;
+  /** Бот заблокирован пользователем: доставка остановлена. */
+  blocked: boolean;
   chatUsername: string | null;
   linkedAt: string | null;
 }
@@ -72,8 +87,10 @@ export class TelegramService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly checkins: CheckinsService,
+    private readonly dialog: CheckinDialogService,
     private readonly transactions: TransactionsService,
     private readonly stats: StatsService,
+    private readonly budgets: BudgetsService,
     private readonly rateLimit: RateLimitService,
     @Inject(TELEGRAM_API) private readonly api: TelegramApi,
   ) {}
@@ -88,6 +105,20 @@ export class TelegramService implements OnModuleInit {
       return;
     }
     this.logger.log(`Telegram-бот активен, режим: ${this.mode}`);
+    void this.registerCommands();
+  }
+
+  /** Меню команд бота (setMyCommands); сбой не критичен. */
+  async registerCommands(): Promise<boolean> {
+    try {
+      await this.api.setCommands(BOT_COMMANDS);
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `Не удалось зарегистрировать команды: ${error instanceof Error ? error.message : 'unknown'}`,
+      );
+      return false;
+    }
   }
 
   /* ----- Привязка чата ----- */
@@ -98,6 +129,7 @@ export class TelegramService implements OnModuleInit {
       enabled: this.enabled,
       mode: this.mode,
       linked: link !== null,
+      blocked: link?.blockedAt != null,
       chatUsername: link?.username ?? null,
       linkedAt: link?.linkedAt.toISOString() ?? null,
     };
@@ -143,12 +175,26 @@ export class TelegramService implements OnModuleInit {
     return result.count > 0;
   }
 
-  /** Отправка в чат пользователя; false — если чат не привязан. */
-  async sendToUser(userId: string, text: string, buttons?: InlineButton[][]): Promise<boolean> {
+  /**
+   * Доставка из outbox: бросает DeliveryError (blocked — чат не привязан или
+   * бот заблокирован, Telegram 403), чтобы воркер мог выбрать backoff или стоп.
+   */
+  async deliver(userId: string, text: string, buttons?: InlineButton[][]): Promise<void> {
     const link = await this.prisma.telegramLink.findUnique({ where: { userId } });
-    if (!link) return false;
-    await this.send(link.chatId, text, buttons);
-    return true;
+    if (!link) throw new DeliveryError('telegram: чат не привязан', { blocked: true });
+    try {
+      await this.api.sendMessage({ chatId: link.chatId, text, buttons });
+    } catch (error) {
+      throw classifyTelegramError(error);
+    }
+  }
+
+  /** Помечает привязку заблокированной (бот заблокирован пользователем). */
+  async markBlocked(userId: string): Promise<void> {
+    await this.prisma.telegramLink.updateMany({
+      where: { userId, blockedAt: null },
+      data: { blockedAt: new Date() },
+    });
   }
 
   /* ----- Обработка апдейтов ----- */
@@ -202,13 +248,55 @@ export class TelegramService implements OnModuleInit {
       return;
     }
 
+    // Идёт диалог чек-ина: обычный текст — ответ на текущий шаг (сон, теги, заметка).
+    if (
+      !message.text.trim().startsWith('/') &&
+      (await this.dialog.hasActive(link.userId, CHECKIN_CHANNEL))
+    ) {
+      const outcome = await this.dialog.handle(link.userId, CHECKIN_CHANNEL, {
+        type: 'text',
+        text: message.text,
+      });
+      await this.sendOutcome(message.chatId, outcome);
+      return;
+    }
+
     switch (command.kind) {
-      case 'checkin':
-        await this.send(message.chatId, checkinQuestionText(), moodKeyboard());
+      case 'checkin': {
+        const prompt = await this.dialog.start(link.userId, CHECKIN_CHANNEL);
+        await this.sendPrompt(message.chatId, prompt);
         return;
+      }
+      case 'checkin-line': {
+        const saved = await this.dialog.saveLine(link.userId, command.text);
+        await this.send(
+          message.chatId,
+          saved.ok
+            ? checkinSummaryText(saved.checkIn)
+            : checkinLineErrorText(saved.error, saved.field),
+        );
+        return;
+      }
+      case 'mood': {
+        if (command.mood === null) {
+          await this.send(message.chatId, checkinLineErrorText('mood'));
+          return;
+        }
+        const checkIn = await this.checkins.create(link.userId, { mood: command.mood, tags: [] });
+        await this.send(message.chatId, checkinSummaryText(checkIn));
+        return;
+      }
       case 'today': {
         const day = await this.stats.day(link.userId);
         await this.send(message.chatId, todayText(day));
+        return;
+      }
+      case 'spent': {
+        if (command.text === null) {
+          await this.send(message.chatId, spentUsageText());
+          return;
+        }
+        await this.handleQuick(link.userId, message.chatId, command.text, true);
         return;
       }
       case 'help':
@@ -226,10 +314,18 @@ export class TelegramService implements OnModuleInit {
     }
   }
 
-  private async handleQuick(userId: string, chatId: string, text: string): Promise<void> {
+  private async handleQuick(
+    userId: string,
+    chatId: string,
+    text: string,
+    withBudget = false,
+  ): Promise<void> {
     try {
       const transaction = await this.transactions.quick(userId, text);
-      await this.send(chatId, transactionSavedText(transaction), undoKeyboard(transaction.id));
+      const reply = withBudget
+        ? spentSavedText(transaction, await this.budgetFor(userId, transaction))
+        : transactionSavedText(transaction);
+      await this.send(chatId, reply, undoKeyboard(transaction.id));
     } catch (error) {
       if (errorCode(error) === 'no_account') {
         await this.send(chatId, noAccountText());
@@ -237,6 +333,21 @@ export class TelegramService implements OnModuleInit {
       }
       await this.send(chatId, transactionFailedText());
     }
+  }
+
+  /** Бюджет категории операции на её месяц: лимит и потрачено (уже с этой операцией). */
+  private async budgetFor(
+    userId: string,
+    transaction: { type: string; categoryId: string | null; date: string },
+  ): Promise<{ limit: number; spent: number; categoryName: string } | null> {
+    if (transaction.type !== 'expense' || !transaction.categoryId) return null;
+    const month = transaction.date.slice(0, 7);
+    const budget = (await this.budgets.list(userId, month)).find(
+      (item) => item.categoryId === transaction.categoryId,
+    );
+    return budget
+      ? { limit: budget.limit, spent: budget.spent, categoryName: budget.categoryName }
+      : null;
   }
 
   private async handleCallback(callback: IncomingCallback): Promise<void> {
@@ -248,11 +359,29 @@ export class TelegramService implements OnModuleInit {
 
     const parsed = parseCallback(callback.data);
 
+    // Кнопка настроения из напоминания (или старого сообщения) запускает диалог.
     if (parsed.kind === 'mood') {
-      await this.checkins.create(link.userId, { mood: parsed.mood, tags: [] });
-      const text = checkinSavedText(parsed.mood);
-      await this.answer(callback.callbackQueryId, text);
-      await this.send(callback.chatId, text);
+      await this.answer(callback.callbackQueryId, checkinSavedText(parsed.mood));
+      const prompt = await this.dialog.start(link.userId, CHECKIN_CHANNEL, { mood: parsed.mood });
+      await this.sendPrompt(callback.chatId, prompt);
+      return;
+    }
+
+    if (parsed.kind === 'checkin') {
+      await this.answer(callback.callbackQueryId);
+      let outcome = await this.dialog.handle(link.userId, CHECKIN_CHANNEL, {
+        type: 'action',
+        action: parsed.action,
+      });
+      // Черновика нет, но это выбор настроения (кнопки напоминания) — начинаем диалог.
+      const mood = /^ci:mood:([1-5])$/.exec(parsed.action);
+      if (outcome.kind === 'none' && mood) {
+        const prompt = await this.dialog.start(link.userId, CHECKIN_CHANNEL, {
+          mood: Number(mood[1]),
+        });
+        outcome = { kind: 'prompt', prompt };
+      }
+      await this.sendOutcome(callback.chatId, outcome);
       return;
     }
 
@@ -282,6 +411,32 @@ export class TelegramService implements OnModuleInit {
   }
 
   /* ----- Внутреннее ----- */
+
+  private async sendPrompt(
+    chatId: string,
+    prompt: import('@puls/shared').DialogPrompt,
+  ): Promise<void> {
+    await this.send(chatId, dialogPromptText(prompt), dialogKeyboard(prompt.rows));
+  }
+
+  /** Результат шага диалога → сообщение в чат. */
+  private async sendOutcome(chatId: string, outcome: DialogOutcome): Promise<void> {
+    switch (outcome.kind) {
+      case 'prompt':
+      case 'ignored':
+        await this.sendPrompt(chatId, outcome.prompt);
+        return;
+      case 'done':
+        await this.send(chatId, checkinSummaryText(outcome.checkIn));
+        return;
+      case 'cancelled':
+        await this.send(chatId, dialogCancelledText());
+        return;
+      case 'none':
+        await this.send(chatId, dialogExpiredText());
+        return;
+    }
+  }
 
   private async send(chatId: string, text: string, buttons?: InlineButton[][]): Promise<void> {
     // Ответ бота — best-effort: сбой Telegram не должен ломать вебхук (иначе

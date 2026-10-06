@@ -117,7 +117,7 @@ budgets.csv  check_ins.csv  notification_rules.csv  daily_stats.csv
 
 - `EXPORT_TABLES` — `users` (по `id`) и таблицы по `user_id`;
 - `EXCLUDED_USER_TABLES` — секреты с причиной: `sessions`,
-  `email_verification_tokens`, `push_subscriptions`;
+  `email_verification_tokens`, `discord_link_codes`, `telegram_link_codes`;
 - `isSecretColumn()` отсекает колонки `password_hash`, `token_hash`, `*secret`,
   `auth`, `p256dh`, `private_key` в любой таблице.
 

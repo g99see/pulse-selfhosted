@@ -19,7 +19,7 @@ export class HealthService {
     return {
       status: dbUp ? 'ok' : 'degraded',
       db: dbUp ? 'up' : 'down',
-      version: process.env.APP_VERSION ?? '0.2.0',
+      version: process.env.APP_VERSION ?? '0.3.0',
       uptimeSeconds: Math.round(process.uptime()),
       timestamp: new Date().toISOString(),
     };

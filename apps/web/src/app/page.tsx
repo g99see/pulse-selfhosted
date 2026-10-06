@@ -47,15 +47,13 @@ export default async function LandingPage() {
       <SetupGuard />
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-5 py-8 sm:px-8 sm:py-10">
         <nav className="flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex min-h-11 items-center gap-2.5">
             <Logo size={36} />
-            <span className="font-heading text-xl font-extrabold">
-              {t('landing.brand', locale)}
-            </span>
+            <span className="font-display text-lg">{t('landing.brand', locale)}</span>
           </Link>
           <Link
             href="/login"
-            className="rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-4 py-2 text-sm font-semibold shadow-sm"
+            className="inline-flex min-h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-4 text-sm font-semibold shadow-sm"
           >
             {t('landing.cta.login', locale)}
           </Link>
@@ -67,23 +65,21 @@ export default async function LandingPage() {
               <Icon name="pulse" size={16} />
               {t('landing.hero.eyebrow', locale)}
             </span>
-            <h1 className="text-4xl leading-[1.08] font-extrabold sm:text-6xl">
-              {t('landing.title', locale)}
-            </h1>
+            <h1 className="text-3xl leading-[1.12] sm:text-5xl">{t('landing.title', locale)}</h1>
             <p className="max-w-xl text-lg text-[var(--puls-ink-muted)]">
               {t('landing.lead', locale)}
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/register"
-                className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] shadow-[0_10px_22px_-12px_var(--puls-primary)] transition-opacity duration-150 hover:opacity-95"
+                className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] puls-key hover:opacity-95"
               >
                 {t('landing.cta.start', locale)}
                 <Icon name="arrowRight" size={18} />
               </Link>
               <Link
                 href="/login"
-                className="inline-flex h-12 items-center rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface)] px-6 font-semibold transition-colors duration-150 hover:bg-[var(--puls-surface-2)]"
+                className="inline-flex h-12 items-center rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface)] px-6 font-semibold transition-colors duration-150 hover:bg-[var(--puls-surface-2)]"
               >
                 {t('landing.cta.login', locale)}
               </Link>
@@ -93,7 +89,7 @@ export default async function LandingPage() {
 
           <section
             aria-label={t('landing.preview.label', locale)}
-            className="flex flex-col gap-3 rounded-[32px] bg-[var(--puls-surface)] p-5 shadow-[var(--puls-shadow-lift)] sm:p-6"
+            className="flex flex-col gap-3 rounded-[var(--radius-sheet)] bg-[var(--puls-surface)] p-5 shadow-[var(--puls-shadow-lift)] sm:p-6"
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <StatTile
@@ -114,13 +110,13 @@ export default async function LandingPage() {
                 })}
               />
             </div>
-            <div className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4">
+            <div className="flex flex-col gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 text-sm font-semibold">
                   <Icon name="wallet" size={16} />
                   {t('landing.demo.budgetTitle', locale)}
                 </h2>
-                <span className="font-heading text-xl font-extrabold">{money(DEMO.spent)}</span>
+                <span className="font-numeral text-xl">{money(DEMO.spent)}</span>
               </div>
               <ProgressBar
                 tone={

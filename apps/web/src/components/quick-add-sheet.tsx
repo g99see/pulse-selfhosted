@@ -151,7 +151,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             type="button"
             onClick={onClose}
             aria-label={t('finance.close')}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--puls-surface-2)] text-[var(--puls-ink-muted)]"
+            className="flex h-11 w-10 items-center justify-center rounded-full bg-[var(--puls-surface-2)] text-[var(--puls-ink-muted)]"
           >
             <Icon name="close" size={18} />
           </button>
@@ -176,7 +176,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             onChange={(event) => setText(event.target.value)}
             placeholder={t('finance.quick.example')}
             autoComplete="off"
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15"
+            className="h-12 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15"
           />
         </label>
 
@@ -198,7 +198,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
               value={amount}
               placeholder="0"
               onChange={(event) => setAmount(event.target.value)}
-              className="h-16 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 font-heading text-3xl font-extrabold [font-variant-numeric:tabular-nums] outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15"
+              className="h-16 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 font-heading text-3xl font-extrabold [font-variant-numeric:tabular-nums] outline-none focus:border-[var(--puls-primary)] focus:ring-4 focus:ring-[var(--puls-primary)]/15"
             />
           </label>
         )}
@@ -243,7 +243,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                     const match = accounts.find((account) => account.currency === next);
                     if (match) setAccountId(match.id);
                   }}
-                  className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base"
+                  className="h-12 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base"
                 >
                   {accountCurrencies.map((code) => (
                     <option key={code} value={code}>
@@ -259,7 +259,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                 id="quick-account"
                 value={accountId}
                 onChange={(event) => setAccountId(event.target.value)}
-                className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base"
+                className="h-12 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base"
               >
                 {visibleAccounts.map((account) => (
                   <option key={account.id} value={account.id}>
@@ -277,7 +277,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
             id="quick-comment"
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            className="h-12 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)]"
+            className="h-12 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-4 text-base outline-none focus:border-[var(--puls-primary)]"
           />
         </label>
 
@@ -302,7 +302,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
           type="submit"
           data-testid="quick-add-submit"
           disabled={busy}
-          className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] shadow-[0_8px_18px_-10px_var(--puls-primary)] disabled:opacity-50"
+          className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] puls-key disabled:opacity-50"
         >
           {t('finance.quick.submit')}
         </button>

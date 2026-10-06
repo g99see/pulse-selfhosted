@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { AchievementsModule } from '../achievements/achievements.module';
 import { AuthModule } from '../auth/auth.module';
+import { CheckinDialogService } from './checkin-dialog.service';
 import { CheckinsController } from './checkins.controller';
 import { CheckinsService } from './checkins.service';
 
@@ -9,7 +10,7 @@ import { CheckinsService } from './checkins.service';
 @Module({
   imports: [AuthModule, AchievementsModule],
   controllers: [CheckinsController],
-  providers: [CheckinsService],
-  exports: [CheckinsService],
+  providers: [CheckinsService, CheckinDialogService],
+  exports: [CheckinsService, CheckinDialogService],
 })
 export class CheckinsModule {}

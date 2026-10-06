@@ -6,6 +6,7 @@ import { BudgetsService } from './budgets.service';
 import { CategoriesService } from './categories.service';
 import { FinanceController } from './finance.controller';
 import { ImportService } from './import.service';
+import { ReconciliationService } from './reconciliation.service';
 import { RATES_PROVIDER, createRatesProvider } from './rates-provider';
 import { ExchangeRatesService } from './rates.service';
 import { TransactionsService } from './transactions.service';
@@ -21,6 +22,7 @@ import { TransactionsService } from './transactions.service';
     BudgetsService,
     ExchangeRatesService,
     ImportService,
+    ReconciliationService,
     // Источник курсов по env (RATES_PROVIDER); по умолчанию — только ручные.
     { provide: RATES_PROVIDER, useFactory: () => createRatesProvider() },
   ],
@@ -30,6 +32,7 @@ import { TransactionsService } from './transactions.service';
     TransactionsService,
     BudgetsService,
     ExchangeRatesService,
+    ReconciliationService,
   ],
 })
 export class FinanceModule {}

@@ -7,6 +7,7 @@ import type {
   AccountCreateValues,
   AccountDto,
   AccountUpdateInput,
+  BankBalanceInput,
   BudgetDto,
   BudgetUpsertInput,
   CategoryCreateValues,
@@ -15,6 +16,7 @@ import type {
   ExchangeRateCreateValues,
   ExchangeRateDto,
   FinanceOverviewResponse,
+  ReconciliationResponse,
   TransactionCreateValues,
   TransactionDto,
   TransactionKind,
@@ -107,6 +109,15 @@ export const financeApi = {
     authFetch<{ deleted: number }>('/api/finance/transactions/delete-all', {
       method: 'POST',
       body: JSON.stringify({ confirm: 'DELETE' }),
+    }),
+
+  reconciliation: (accountId: string) =>
+    authFetch<ReconciliationResponse>(`/api/finance/accounts/${accountId}/reconciliation`),
+
+  setBankBalance: (accountId: string, input: BankBalanceInput) =>
+    authFetch<ReconciliationResponse>(`/api/finance/accounts/${accountId}/bank-balance`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
     }),
 
   transfer: (input: TransferCreateInput) =>

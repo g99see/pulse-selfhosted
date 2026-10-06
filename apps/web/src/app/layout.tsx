@@ -17,26 +17,26 @@ import {
 import './globals.css';
 
 /**
- * Шрифты self-hosted (ТЗ §8): Manrope для заголовков, Inter для текста.
+ * Шрифты self-hosted (ТЗ §8, docs/REDESIGN-V2.md): Unbounded для заголовков и крупных чисел, Onest для текста.
  * Файлы лежат в public/fonts (их кладёт `pnpm fonts:sync` из @fontsource),
  * поэтому ни сборка, ни браузер не обращаются к fonts.googleapis.com.
  * Кириллица и латиница — отдельные сабсеты с unicode-range, поэтому браузер
  * качает только то, что реально нужно странице.
  * Значения unicode-range заданы литералами: next/font не принимает переменные.
  */
-const interCyrillic = localFont({
-  src: '../../public/fonts/inter-cyrillic-wght-normal.woff2',
+const onestCyrillic = localFont({
+  src: '../../public/fonts/onest-cyrillic-wght-normal.woff2',
   display: 'swap',
-  variable: '--font-inter-cyrillic',
+  variable: '--font-onest-cyrillic',
   declarations: [
     { prop: 'unicode-range', value: 'U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116' },
   ],
 });
 
-const interLatin = localFont({
-  src: '../../public/fonts/inter-latin-wght-normal.woff2',
+const onestLatin = localFont({
+  src: '../../public/fonts/onest-latin-wght-normal.woff2',
   display: 'swap',
-  variable: '--font-inter-latin',
+  variable: '--font-onest-latin',
   declarations: [
     {
       prop: 'unicode-range',
@@ -46,19 +46,19 @@ const interLatin = localFont({
   ],
 });
 
-const manropeCyrillic = localFont({
-  src: '../../public/fonts/manrope-cyrillic-wght-normal.woff2',
+const unboundedCyrillic = localFont({
+  src: '../../public/fonts/unbounded-cyrillic-wght-normal.woff2',
   display: 'swap',
-  variable: '--font-manrope-cyrillic',
+  variable: '--font-unbounded-cyrillic',
   declarations: [
     { prop: 'unicode-range', value: 'U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116' },
   ],
 });
 
-const manropeLatin = localFont({
-  src: '../../public/fonts/manrope-latin-wght-normal.woff2',
+const unboundedLatin = localFont({
+  src: '../../public/fonts/unbounded-latin-wght-normal.woff2',
   display: 'swap',
-  variable: '--font-manrope-latin',
+  variable: '--font-unbounded-latin',
   declarations: [
     {
       prop: 'unicode-range',
@@ -69,16 +69,16 @@ const manropeLatin = localFont({
 });
 
 const FONT_VARIABLES = [
-  interCyrillic.variable,
-  interLatin.variable,
-  manropeCyrillic.variable,
-  manropeLatin.variable,
+  onestCyrillic.variable,
+  onestLatin.variable,
+  unboundedCyrillic.variable,
+  unboundedLatin.variable,
 ].join(' ');
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAF8F5' },
-    { media: '(prefers-color-scheme: dark)', color: '#14141A' },
+    { media: '(prefers-color-scheme: light)', color: '#EEF3EF' },
+    { media: '(prefers-color-scheme: dark)', color: '#0C1411' },
   ],
 };
 

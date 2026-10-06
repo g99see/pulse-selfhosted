@@ -68,7 +68,8 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
     const statements = [
       'DELETE FROM "daily_stats"',
       'DELETE FROM "notification_rules"',
-      'DELETE FROM "push_subscriptions"',
+      'DELETE FROM "notification_deliveries"',
+      'DELETE FROM "notification_channel_settings"',
       'DELETE FROM "transactions"',
       'DELETE FROM "budgets"',
       'DELETE FROM "categories" WHERE "user_id" IS NOT NULL',
@@ -137,7 +138,7 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
       data: { userId, mood: 4, energy: 3, tags: ['работа'], note: 'спокойный день' },
     });
     await prisma.notificationRule.create({
-      data: { userId, type: 'checkins', channel: 'web_push', schedule: { times: ['09:00'] } },
+      data: { userId, type: 'checkins', channel: 'telegram', schedule: { times: ['09:00'] } },
     });
     await prisma.dailyStat.create({ data: { userId, date: new Date('2026-10-01'), spent: 450 } });
   }
@@ -289,12 +290,12 @@ describe('Экспорт и удаление аккаунта (ТЗ §3.1, §6)'
           'users.csv',
         ]),
       );
-      // Сессии, токены и push-подписки в выгрузку не попадают.
+      // Сессии, токены и коды привязки в выгрузку не попадают.
       expect(names).not.toEqual(
         expect.arrayContaining([
           'sessions.csv',
           'email_verification_tokens.csv',
-          'push_subscriptions.csv',
+          'discord_link_codes.csv',
         ]),
       );
 

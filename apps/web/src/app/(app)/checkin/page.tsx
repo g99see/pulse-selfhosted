@@ -13,6 +13,7 @@ import {
   type Mood,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { CheckinGoalCard } from '@/components/checkin-goal-card';
 import { HabitsToday } from '@/components/habits-today';
 import { MetricScale, MoodScale } from '@/components/mood-scale';
 import { VoiceInputButton } from '@/components/voice-input-button';
@@ -30,7 +31,7 @@ const SLOT_LABEL_KEYS: Record<CheckInSlot, string> = {
 const HISTORY_PAGE = 10;
 
 const TAG_CLASS =
-  'rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 py-1.5 text-sm transition-colors aria-pressed:border-[var(--puls-wellbeing)] aria-pressed:bg-[var(--puls-wellbeing-soft)] aria-pressed:font-semibold aria-pressed:text-[var(--puls-wellbeing-text)]';
+  'rounded-[var(--radius-chip)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 py-1.5 text-sm transition-colors aria-pressed:border-[var(--puls-wellbeing)] aria-pressed:bg-[var(--puls-wellbeing-soft)] aria-pressed:font-semibold aria-pressed:text-[var(--puls-wellbeing-text)]';
 
 const TIME_SUGGESTIONS = ['09:00', '12:00', '15:00', '18:00', '20:00', '22:00'];
 
@@ -195,7 +196,7 @@ export default function CheckInPage() {
     <div className="flex flex-col gap-5" data-testid="checkin-page">
       <div className="flex items-center gap-3">
         <IconBubble name="heart" tone="wellbeing" size={44} />
-        <h1 className="text-3xl font-extrabold">{t('checkin.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('checkin.title')}</h1>
       </div>
 
       {error ? (
@@ -249,7 +250,7 @@ export default function CheckInPage() {
                     inputMode="decimal"
                     value={sleepHours}
                     onChange={(event) => setSleepHours(event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   />
                 </label>
                 <label htmlFor="checkin-water" className="flex flex-1 flex-col gap-1">
@@ -260,7 +261,7 @@ export default function CheckInPage() {
                     inputMode="numeric"
                     value={water}
                     onChange={(event) => setWater(event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   />
                 </label>
                 <label htmlFor="checkin-steps" className="flex flex-1 flex-col gap-1">
@@ -271,7 +272,7 @@ export default function CheckInPage() {
                     inputMode="numeric"
                     value={steps}
                     onChange={(event) => setSteps(event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   />
                 </label>
               </div>
@@ -330,7 +331,7 @@ export default function CheckInPage() {
                   rows={3}
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
-                  className="rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 py-2"
+                  className="rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 py-2"
                 />
               </div>
 
@@ -351,7 +352,7 @@ export default function CheckInPage() {
                   value={daySummary}
                   onChange={(event) => setDaySummary(event.target.value)}
                   placeholder={t('checkin.daySummaryPlaceholder')}
-                  className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                  className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                 />
               </div>
             </div>
@@ -378,6 +379,10 @@ export default function CheckInPage() {
         </form>
 
         <aside className="flex flex-col gap-5">
+          <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm">
+            <CheckinGoalCard />
+          </section>
+
           <section
             className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm empty:hidden"
             data-testid="checkin-habits"
@@ -399,7 +404,7 @@ export default function CheckInPage() {
                 data-testid="checkin-times-per-day"
                 value={timesPerDay}
                 onChange={(event) => changeTimesPerDay(Number(event.target.value))}
-                className="h-11 w-28 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                className="h-11 w-28 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               >
                 {[1, 2, 3, 4, 5, 6].map((count) => (
                   <option key={count} value={count}>
@@ -418,7 +423,7 @@ export default function CheckInPage() {
                     data-testid={`checkin-time-${index}`}
                     value={time}
                     onChange={(event) => changeTime(index, event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   />
                 </label>
               ))}
@@ -457,7 +462,7 @@ export default function CheckInPage() {
             >
               <span
                 aria-hidden="true"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl"
+                className="flex h-11 w-10 shrink-0 items-center justify-center rounded-full text-xl"
                 style={{ backgroundColor: MOOD_COLORS[item.mood as Mood] }}
               >
                 {MOOD_EMOJI[item.mood as Mood]}
@@ -477,8 +482,24 @@ export default function CheckInPage() {
                     {item.sleepHours !== null
                       ? ` · ${t('checkin.historySleep', { hours: item.sleepHours })}`
                       : ''}
+                    {item.water !== null
+                      ? ` · ${t('checkin.historyWater', { count: item.water })}`
+                      : ''}
+                    {item.steps !== null
+                      ? ` · ${t('checkin.historySteps', { count: item.steps })}`
+                      : ''}
                   </span>
                 </span>
+                {item.tags.length > 0 ? (
+                  <span
+                    className="flex flex-wrap gap-x-2 text-xs text-[var(--puls-wellbeing-text)]"
+                    data-testid="checkin-history-tags"
+                  >
+                    {item.tags.map((tag) => (
+                      <span key={tag}>#{tagLabel(tag)}</span>
+                    ))}
+                  </span>
+                ) : null}
                 {item.daySummary ? (
                   <span className="truncate text-sm" data-testid="checkin-history-summary">
                     {item.daySummary}

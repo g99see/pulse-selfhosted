@@ -7,7 +7,6 @@
  */
 import { defaultCache } from '@serwist/next/worker';
 import { Serwist, type PrecacheEntry } from 'serwist';
-import { registerPushHandlers, type PushScopeLike } from './push-handler';
 
 declare global {
   /**
@@ -38,6 +37,3 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
-
-// Ответ на чек-ин прямо из push-уведомления (ТЗ §3.6, §9).
-registerPushHandlers(self as unknown as PushScopeLike);

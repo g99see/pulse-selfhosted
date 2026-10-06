@@ -8,6 +8,7 @@ import type {
   InsightsFeedResponse,
   SupportResourceDto,
 } from '@puls/shared';
+import { CorrelationsCard } from '@/components/correlations-card';
 import { useT } from '@/components/locale-provider';
 import { categoryLabel } from '@/lib/category-label';
 import { MASKED_AMOUNT } from '@/components/money';
@@ -118,7 +119,7 @@ export default function InsightsPage() {
       <div className="flex items-center gap-3">
         <IconBubble name="sparkle" tone="primary" size={44} />
         <div>
-          <h1 className="text-3xl font-extrabold">{t('insights.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('insights.title')}</h1>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('insights.subtitle')}</p>
         </div>
       </div>
@@ -221,6 +222,8 @@ export default function InsightsPage() {
           ))}
         </ul>
       ) : null}
+
+      <CorrelationsCard />
 
       <SupportSection resources={support} />
 

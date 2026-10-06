@@ -18,6 +18,8 @@ export interface TelegramApi {
   sendMessage(message: OutgoingMessage): Promise<void>;
   /** Закрывает «часики» на нажатой inline-кнопке. */
   answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void>;
+  /** Регистрирует меню команд бота (setMyCommands). */
+  setCommands(commands: { command: string; description: string }[]): Promise<void>;
   /** Забирает апдейты (режим long polling для разработки). */
   getUpdates(offset: number, timeoutSeconds: number): Promise<unknown[]>;
 }
@@ -29,6 +31,10 @@ export class NullTelegramApi implements TelegramApi {
   }
 
   async answerCallbackQuery(): Promise<void> {
+    // Бот не настроен.
+  }
+
+  async setCommands(): Promise<void> {
     // Бот не настроен.
   }
 
@@ -59,6 +65,10 @@ export class GrammyTelegramApi implements TelegramApi {
 
   async answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
     await this.bot.api.answerCallbackQuery(callbackQueryId, text ? { text } : undefined);
+  }
+
+  async setCommands(commands: { command: string; description: string }[]): Promise<void> {
+    await this.bot.api.setMyCommands(commands);
   }
 
   async getUpdates(offset: number, timeoutSeconds: number): Promise<unknown[]> {

@@ -4,7 +4,15 @@
  * по данным, ничего не отправляют. Язык бота — русский, как и интерфейс по
  * умолчанию.
  */
-import { formatMoney, isCurrency, type StatsDayResponse, type TransactionDto } from '@puls/shared';
+import {
+  formatMoney,
+  isCurrency,
+  summarizeCheckin,
+  type CheckInDto,
+  type DialogPrompt,
+  type StatsDayResponse,
+  type TransactionDto,
+} from '@puls/shared';
 
 /** Подсказка, если чат ещё не привязан к аккаунту (ТЗ §6: изоляция). */
 export function linkRequiredText(): string {
@@ -33,7 +41,8 @@ export function linkedText(username?: string | null): string {
     `Готово! Чат${who} привязан к аккаунту «Пульс».`,
     '',
     'Что дальше:',
-    '/checkin — отметить настроение',
+    '/checkin — чек-ин: настроение, энергия, стресс, сон, теги, заметка',
+    '/mood 4 — быстро записать настроение',
     '«кофе 250» — записать трату',
     '/today — траты и настроение за день',
     '/help — все команды',
@@ -72,6 +81,50 @@ export function checkinSavedText(mood: number): string {
   return `Записал настроение: ${mood}/5. Спасибо!`;
 }
 
+/** Текст шага диалога: «Шаг 2/6» и вопрос. */
+export function dialogPromptText(prompt: DialogPrompt): string {
+  return `Шаг ${prompt.index}/${prompt.total}\n${prompt.question}`;
+}
+
+const SUMMARY_LABELS: Record<string, string> = {
+  mood: '🙂 Настроение',
+  energy: '⚡ Энергия',
+  stress: '😬 Стресс',
+  sleepHours: '😴 Сон, ч',
+  water: '💧 Вода',
+  steps: '👟 Шаги',
+  tags: '🏷 Теги',
+  note: '📝 Заметка',
+};
+
+/** Итог сохранённого чек-ина: все заполненные поля. */
+export function checkinSummaryText(checkIn: CheckInDto): string {
+  const lines = summarizeCheckin(checkIn).map(
+    (line) => `${SUMMARY_LABELS[line.field] ?? line.field}: ${line.value}`,
+  );
+  return ['✅ Чек-ин сохранён', '', ...lines].join('\n');
+}
+
+export function dialogCancelledText(): string {
+  return 'Чек-ин отменён. Начать заново — /checkin';
+}
+
+export function dialogExpiredText(): string {
+  return 'Этот чек-ин уже закрыт или истёк. Начать заново — /checkin';
+}
+
+export function checkinLineErrorText(error: 'empty' | 'mood' | 'value', field?: string): string {
+  if (error === 'value') {
+    const name = field ? ` (${SUMMARY_LABELS[field] ?? field})` : '';
+    return `Не получилось разобрать значение${name}. Шкалы 1–5, сон 0–24 часа.\n${checkinLineHint()}`;
+  }
+  return `Первым укажи настроение 1–5.\n${checkinLineHint()}`;
+}
+
+export function checkinLineHint(): string {
+  return 'Пример: /checkin 4 энергия 3 стресс 2 сон 7.5 #спорт заметка';
+}
+
 /** Неизвестная команда или текст. */
 export function unknownText(): string {
   return [
@@ -88,7 +141,10 @@ export function helpText(): string {
   return [
     'Я бот «Пульса». Умею:',
     '',
-    '/checkin — отметить настроение кнопками 1–5',
+    '/checkin — пошаговый чек-ин кнопками (энергия, стресс, сон, теги, заметка — по желанию)',
+    '/checkin 4 энергия 3 стресс 2 сон 7.5 #спорт заметка — всё одной строкой',
+    '/mood 4 — только настроение, одной командой',
+    '/spent 12 кофе — записать трату (категория подберётся сама)',
     '/today — траты и среднее настроение за сегодня',
     '«кофе 250» или «зарплата +80000» — записать транзакцию одной строкой',
     '/unlink — отвязать чат',
@@ -103,6 +159,29 @@ export function transactionSavedText(transaction: TransactionDto): string {
   return `Записал! ${kind}: ${money(transaction.amount, transaction.currency)}${category} — «${
     transaction.comment ?? ''
   }»`;
+}
+
+/** Ответ на /spent: трата, категория и остаток бюджета категории (если он есть). */
+export function spentSavedText(
+  transaction: TransactionDto,
+  budget: { limit: number; spent: number; categoryName: string } | null,
+): string {
+  const lines = [transactionSavedText(transaction)];
+  if (!transaction.categoryName) lines.push('Категория не определена — можно поменять на сайте.');
+  if (budget) {
+    const left = budget.limit - budget.spent;
+    lines.push(
+      left >= 0
+        ? `Бюджет «${budget.categoryName}»: осталось ${money(left, transaction.currency)} из ${money(budget.limit, transaction.currency)}`
+        : `Бюджет «${budget.categoryName}» превышен на ${money(-left, transaction.currency)}`,
+    );
+  }
+  return lines.join('\n');
+}
+
+/** /spent без суммы. */
+export function spentUsageText(): string {
+  return 'Укажите сумму и описание: /spent 12 кофе';
 }
 
 export function transactionCancelledText(transaction: TransactionSummary): string {
@@ -137,12 +216,17 @@ export function undoMissingText(): string {
 /** Итоги дня из раздела статистики (ТЗ §3.4). */
 export function todayText(day: StatsDayResponse): string {
   const mood = day.avgMood === null ? 'нет данных' : `${day.avgMood.toFixed(1)}/5`;
+  const extra: string[] = [];
+  if (day.avgEnergy !== null) extra.push(`⚡ Энергия: ${day.avgEnergy.toFixed(1)}/5`);
+  if (day.avgStress !== null) extra.push(`😬 Стресс: ${day.avgStress.toFixed(1)}/5`);
+  if (day.avgSleep !== null) extra.push(`😴 Сон: ${day.avgSleep.toFixed(1)} ч`);
   return [
     `📊 Сегодня, ${day.day}`,
     '',
     `💸 Потрачено: ${money(day.spent, day.currency)}`,
     `💰 Получено: ${money(day.earned, day.currency)}`,
     `🙂 Настроение: ${mood} (чек-инов: ${day.checkins})`,
+    ...extra,
   ].join('\n');
 }
 

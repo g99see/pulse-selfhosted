@@ -13,15 +13,18 @@ import { z } from 'zod';
 
 export const NOTIFICATION_TYPES = [
   'checkins',
+  'daily_summary',
   'payments',
   'budget',
+  'reconciliation_mismatch',
   'weekly_report',
   'reactions',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export const NotificationTypeSchema = z.enum(NOTIFICATION_TYPES);
 
-export const NOTIFICATION_CHANNELS = ['web_push', 'email', 'telegram'] as const;
+/** Каналы доставки: только мессенджеры (web push и email убраны в v2). */
+export const NOTIFICATION_CHANNELS = ['telegram', 'discord'] as const;
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 export const NotificationChannelSchema = z.enum(NOTIFICATION_CHANNELS);
 
@@ -242,6 +245,33 @@ function shiftOutOfQuietHours(slot: WallClock, quiet: QuietHours): WallClock {
   };
 }
 
+/**
+ * Ближайший момент не раньше `now`, когда отправка разрешена: вне тихих часов
+ * возвращает `now`, внутри — их конец (по часовому поясу пользователя).
+ */
+export function nextAllowedTime(now: Date, timezone: string, quiet: QuietHours): Date {
+  const zone = timezone || 'UTC';
+  const local = localParts(now, zone);
+  const slot: WallClock = {
+    year: local.year,
+    month: local.month,
+    day: local.day,
+    hour: local.hour,
+    minute: local.minute,
+  };
+  if (!isWithinQuietHours(local.hour * 60 + local.minute, quiet)) return now;
+
+  const shifted = shiftOutOfQuietHours(slot, quiet);
+  return wallTimeToInstant(
+    shifted.year,
+    shifted.month,
+    shifted.day,
+    shifted.hour,
+    shifted.minute,
+    zone,
+  );
+}
+
 export interface NextDeliveryOptions {
   /** Текущий момент (строго раньше искомого слота). */
   now: Date;
@@ -441,15 +471,6 @@ export interface NotificationRuleConfig {
   quietHours: QuietHours;
 }
 
-/** Канал по умолчанию: web push (ТЗ §3.6); email включается отдельно. */
-export const DEFAULT_CHANNELS: Record<NotificationType, NotificationChannel> = {
-  checkins: 'web_push',
-  payments: 'web_push',
-  budget: 'web_push',
-  weekly_report: 'email',
-  reactions: 'web_push',
-};
-
 /** Правило одного типа уведомлений. */
 export function defaultNotificationRule(
   type: NotificationType,
@@ -457,7 +478,7 @@ export function defaultNotificationRule(
 ): NotificationRuleConfig {
   return {
     type,
-    channel: DEFAULT_CHANNELS[type],
+    channel: 'telegram',
     enabled: true,
     times: timesForCount(DEFAULT_TIMES_PER_DAY),
     quietHours: { ...DEFAULT_QUIET_HOURS },
@@ -465,7 +486,7 @@ export function defaultNotificationRule(
   };
 }
 
-/** Правила по умолчанию для всех пяти типов (ТЗ §3.6, §7). */
+/** Правила по умолчанию для всех типов (ТЗ §3.6, §7). */
 export function defaultNotificationRules(): NotificationRuleConfig[] {
   return NOTIFICATION_TYPES.map((type) => defaultNotificationRule(type));
 }
@@ -478,51 +499,90 @@ export function isTypeEnabled(
   return rules.some((rule) => rule.type === type && rule.enabled);
 }
 
-/* ----- Схемы API ----- */
+/* ----- Настройки каналов ----- */
 
-export const NotificationRuleInputSchema = z.object({
-  type: NotificationTypeSchema,
-  /** Необязателен: при обновлении сохраняется прежний канал или значение по типу. */
-  channel: NotificationChannelSchema.optional(),
-  enabled: z.boolean(),
-  times: z
-    .array(z.string().regex(/^\d{1,2}:\d{2}$/))
-    .min(MIN_TIMES_PER_DAY)
-    .max(MAX_TIMES_PER_DAY)
-    .optional(),
-  quietHours: QuietHoursSchema.optional(),
-});
-export type NotificationRuleInput = z.infer<typeof NotificationRuleInputSchema>;
+/** Время «итога дня» по умолчанию (локальное, «HH:MM»). */
+export const DEFAULT_SUMMARY_TIME = '21:30';
 
-export const NotificationRulesUpdateSchema = z.object({
-  rules: z.array(NotificationRuleInputSchema).min(1).max(NOTIFICATION_TYPES.length),
-});
-export type NotificationRulesUpdateInput = z.infer<typeof NotificationRulesUpdateSchema>;
+const HHMM = /^\d{1,2}:\d{2}$/;
 
-export const PushSubscriptionInputSchema = z.object({
-  endpoint: z.string().url().max(2000),
-  keys: z.object({
-    p256dh: z.string().min(1).max(255),
-    auth: z.string().min(1).max(255),
-  }),
-  userAgent: z.string().max(512).optional(),
-});
-export type PushSubscriptionInput = z.infer<typeof PushSubscriptionInputSchema>;
-
-export const PushSubscriptionDeleteSchema = z.object({
-  endpoint: z.string().url().max(2000),
-});
-export type PushSubscriptionDeleteInput = z.infer<typeof PushSubscriptionDeleteSchema>;
-
-/** Публичный VAPID-ключ и признак готовности отправки (ТЗ §3.6). */
-export interface VapidPublicKeyResponse {
-  publicKey: string | null;
+/** Настройки одного канала: включён ли, расписание, тихие часы, часовой пояс и типы. */
+export interface ChannelSettingsConfig {
+  channel: NotificationChannel;
   enabled: boolean;
+  /** Время напоминаний о чек-ине («HH:MM»). */
+  times: string[];
+  /** Время «итога дня». */
+  summaryTime: string;
+  quietHours: QuietHours;
+  /** Переопределение часового пояса; null — часовой пояс профиля. */
+  timezone: string | null;
+  /** Включён ли каждый тип в этом канале. */
+  types: Record<NotificationType, boolean>;
 }
 
-/** Ответ списка правил. */
-export interface NotificationRulesResponse {
-  rules: NotificationRuleConfig[];
-  channels: NotificationChannel[];
-  types: NotificationType[];
+export function defaultChannelSettings(channel: NotificationChannel): ChannelSettingsConfig {
+  return {
+    channel,
+    enabled: true,
+    times: timesForCount(DEFAULT_TIMES_PER_DAY),
+    summaryTime: DEFAULT_SUMMARY_TIME,
+    quietHours: { ...DEFAULT_QUIET_HOURS },
+    timezone: null,
+    types: Object.fromEntries(NOTIFICATION_TYPES.map((type) => [type, true])) as Record<
+      NotificationType,
+      boolean
+    >,
+  };
+}
+
+/** Состояние канала для экрана настроек: привязка + настройки. */
+export interface NotificationChannelStatus extends ChannelSettingsConfig {
+  /** Задан ли токен бота на сервере. */
+  configured: boolean;
+  linked: boolean;
+  /** Привязка есть, но доставка остановлена (бот заблокирован). */
+  blocked: boolean;
+  accountLabel: string | null;
+}
+
+export const ChannelSettingsUpdateSchema = z.object({
+  enabled: z.boolean().optional(),
+  times: z.array(z.string().regex(HHMM)).min(MIN_TIMES_PER_DAY).max(MAX_TIMES_PER_DAY).optional(),
+  summaryTime: z.string().regex(HHMM).optional(),
+  quietHours: QuietHoursSchema.optional(),
+  timezone: z.string().min(1).max(64).nullable().optional(),
+  types: z.partialRecord(NotificationTypeSchema, z.boolean()).optional(),
+});
+export type ChannelSettingsUpdateInput = z.infer<typeof ChannelSettingsUpdateSchema>;
+
+/** Статусы записи в outbox. */
+export const DELIVERY_STATUSES = ['queued', 'sent', 'failed', 'blocked'] as const;
+export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
+
+/** Строка журнала доставок для пользователя. */
+export interface NotificationDeliveryDto {
+  id: string;
+  channel: NotificationChannel;
+  type: string;
+  status: DeliveryStatus;
+  attempts: number;
+  lastError: string | null;
+  createdAt: string;
+  sentAt: string | null;
+}
+
+/** Метрики outbox: количество записей по статусам. */
+export interface NotificationMetricsResponse {
+  counts: Record<DeliveryStatus, number>;
+  byChannel: Record<string, Record<DeliveryStatus, number>>;
+}
+
+/** Состояние Discord-бота и привязки (зеркало Telegram). */
+export interface DiscordStatusResponse {
+  enabled: boolean;
+  linked: boolean;
+  blocked: boolean;
+  username: string | null;
+  linkedAt: string | null;
 }

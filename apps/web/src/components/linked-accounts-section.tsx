@@ -142,7 +142,7 @@ export function LinkedAccountsSection() {
                     <a
                       href={googleLinkUrl()}
                       data-testid="link-google"
-                      className="flex h-12 items-center rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] px-6 font-semibold transition-opacity hover:opacity-80"
+                      className="flex h-12 items-center rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] px-6 font-semibold transition-opacity hover:opacity-80"
                     >
                       {t('settings.accounts.link')}
                     </a>

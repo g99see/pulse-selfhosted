@@ -23,6 +23,9 @@ const MAPPING_FIELDS: Array<{ column: ImportColumn; key: string }> = [
   { column: 'date', key: 'finance.import.column.date' },
   { column: 'amount', key: 'finance.import.column.amount' },
   { column: 'description', key: 'finance.import.column.description' },
+  { column: 'time', key: 'finance.import.column.time' },
+  { column: 'balance', key: 'finance.import.column.balance' },
+  { column: 'externalId', key: 'finance.import.column.externalId' },
   { column: 'type', key: 'finance.import.column.type' },
   { column: 'debit', key: 'finance.import.column.debit' },
   { column: 'credit', key: 'finance.import.column.credit' },
@@ -154,11 +157,11 @@ export default function ImportPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <IconBubble name="inbox" tone="finance" size={48} />
-          <h1 className="font-heading text-3xl font-extrabold">{t('finance.import.title')}</h1>
+          <h1 className="font-heading text-2xl font-extrabold">{t('finance.import.title')}</h1>
         </div>
         <Link
           href="/finance"
-          className="inline-flex h-10 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+          className="inline-flex h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('common.back')}
         </Link>
@@ -181,7 +184,7 @@ export default function ImportPage() {
             type="file"
             accept=".csv,text/csv"
             onChange={(event) => void onFileChange(event)}
-            className="rounded-[20px] border-2 border-dashed border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-5 text-sm"
+            className="rounded-[var(--radius-tile)] border-2 border-dashed border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-5 text-sm"
           />
         </label>
 
@@ -217,7 +220,7 @@ export default function ImportPage() {
                     data-testid={`import-mapping-${field.column}`}
                     value={preview.mapping[field.column] ?? ''}
                     onChange={(event) => void onMappingChange(field.column, event.target.value)}
-                    className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
                   >
                     <option value="">{t('finance.import.column.none')}</option>
                     {preview.headers.map((_, index) => (
@@ -292,7 +295,7 @@ export default function ImportPage() {
                 data-testid="import-account"
                 value={accountId}
                 onChange={(event) => setAccountId(event.target.value)}
-                className="h-10 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
               >
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>

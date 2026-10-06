@@ -135,4 +135,12 @@ test.describe('PWA', () => {
     const worker = await response.text();
     expect(worker).toContain('/offline');
   });
+
+  test('сервис-воркер не обрабатывает push (уведомления идут в мессенджеры)', async ({
+    request,
+  }) => {
+    const worker = await (await request.get('/sw.js')).text();
+    expect(worker).not.toMatch(/addEventListener\(\s*["']push["']/);
+    expect(worker).not.toContain('showNotification');
+  });
 });

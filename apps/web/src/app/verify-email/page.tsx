@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
   return (
     <AuthShell brand={t('landing.brand')}>
       <header className="flex flex-col gap-2 text-center">
-        <h1 className="font-heading text-3xl font-extrabold">{t('auth.verify.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('auth.verify.title')}</h1>
       </header>
 
       <Card>
@@ -101,7 +101,7 @@ export default function VerifyEmailPage() {
       </Link>
       <Link
         href="/"
-        className="text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
+        className="flex min-h-11 items-center justify-center text-center text-sm text-[var(--puls-ink-muted)] hover:text-[var(--puls-ink)]"
       >
         ← {t('app.nav.home')}
       </Link>

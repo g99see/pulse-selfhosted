@@ -15,6 +15,8 @@ import {
 } from '@nestjs/common';
 import {
   CheckInFilterSchema,
+  CheckinGoalInputSchema,
+  type CheckinGoalInput,
   CheckInInputSchema,
   CheckInScheduleSchema,
   CheckInUpdateSchema,
@@ -46,6 +48,19 @@ export class CheckinsController {
   @Get('today')
   today(@Req() req: AuthenticatedRequest) {
     return this.checkins.today(req.user!.id);
+  }
+
+  @Get('goal')
+  goal(@Req() req: AuthenticatedRequest) {
+    return this.checkins.goal(req.user!.id);
+  }
+
+  @Put('goal')
+  setGoal(
+    @Body(new ZodValidationPipe(CheckinGoalInputSchema)) body: CheckinGoalInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.checkins.setGoal(req.user!.id, body.perWeek);
   }
 
   @Get('schedule')

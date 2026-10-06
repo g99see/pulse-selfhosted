@@ -9,6 +9,7 @@
  * а в тревожном случае сервис мягко предлагает обратиться за поддержкой.
  */
 import { z } from 'zod';
+import type { CorrelationDto } from './correlations';
 import { percentChange } from './dates';
 import { localParts } from './notifications';
 import { roundMoney, type CategorySpend } from './stats';
@@ -22,6 +23,9 @@ export const INSIGHT_TYPES = [
   'budget_exceeded',
   'budget_suggestion',
   'wellbeing_concern',
+  'sleep_spend',
+  'energy_spend',
+  'mood_spend',
 ] as const;
 export type InsightType = (typeof INSIGHT_TYPES)[number];
 export const InsightTypeSchema = z.enum(INSIGHT_TYPES);
@@ -41,6 +45,9 @@ export const INSIGHT_TEXT_KEYS: Record<InsightType, string> = {
   budget_exceeded: 'insights.text.budgetExceeded',
   budget_suggestion: 'insights.text.budgetSuggestion',
   wellbeing_concern: 'insights.text.wellbeingConcern',
+  sleep_spend: 'insights.text.sleepSpend',
+  energy_spend: 'insights.text.energySpend',
+  mood_spend: 'insights.text.moodSpend',
 };
 
 /** Параметры для i18n: подставляются в шаблон по ключу. */
@@ -315,6 +322,20 @@ export function wellbeingConcernCandidates(
       weight: 1000,
     },
   ];
+}
+
+/* ----- Корреляции самочувствия и трат (ТЗ v2 §7) ----- */
+
+/** Кандидаты «в плохие дни тратишь больше»: только значимые корреляции. */
+export function correlationCandidates(correlations: readonly CorrelationDto[]): InsightCandidate[] {
+  return correlations
+    .filter((item) => item.significant && item.diffPercent !== null)
+    .map((item) => ({
+      type: `${item.metric}_spend` as const,
+      textKey: INSIGHT_TEXT_KEYS[`${item.metric}_spend` as const],
+      params: { percent: item.diffPercent as number, days: item.badDays },
+      weight: Math.min(60, item.diffPercent as number),
+    }));
 }
 
 /* ----- Оценка «полезно / не полезно» (ТЗ §3.5) ----- */

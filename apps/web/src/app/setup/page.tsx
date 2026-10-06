@@ -93,7 +93,7 @@ export default function SetupPage() {
           <p className="mx-auto w-fit rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 text-xs font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
             {t('setup.badge')}
           </p>
-          <h1 className="font-heading text-3xl font-extrabold" data-testid="setup-already">
+          <h1 className="font-heading text-2xl font-extrabold" data-testid="setup-already">
             {t('setup.already.title')}
           </h1>
         </header>
@@ -117,7 +117,7 @@ export default function SetupPage() {
     return (
       <AuthShell brand={t('landing.brand')}>
         <header className="flex flex-col gap-2 text-center">
-          <h1 className="font-heading text-3xl font-extrabold" data-testid="setup-done">
+          <h1 className="font-heading text-2xl font-extrabold" data-testid="setup-done">
             {t('setup.done.title')}
           </h1>
         </header>
@@ -138,7 +138,7 @@ export default function SetupPage() {
         <p className="mx-auto w-fit rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 py-1 text-xs font-semibold tracking-wide text-[var(--puls-primary-text)] uppercase">
           {t('setup.badge')}
         </p>
-        <h1 className="font-heading text-3xl font-extrabold">{t('setup.title')}</h1>
+        <h1 className="font-heading text-2xl font-extrabold">{t('setup.title')}</h1>
         <p className="text-[var(--puls-ink-muted)]">{t('setup.subtitle')}</p>
       </header>
 

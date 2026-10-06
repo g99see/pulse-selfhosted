@@ -23,95 +23,104 @@ model User {
   /// Первый пользователь, созданный мастером первого запуска, — admin.
   role String @default("user")
 
+  /// Цель чек-инов: сколько чек-инов в неделю (null — цель не задана).
+  checkinWeeklyGoal Int? @map("checkin_weekly_goal")
+
   // Онбординг (ТЗ §3.1): валюта, часовой пояс, цели, уведомления, приватность.
-  timezone             String    @default("UTC")
-  currency             String    @default("RUB")
-  locale               String    @default("ru")
-  goals                String[]  @default([])
-  notificationsEnabled Boolean   @default(true) @map("notifications_enabled")
-  quietHoursStart      Int       @default(22) @map("quiet_hours_start")
-  quietHoursEnd        Int       @default(8) @map("quiet_hours_end")
-  profileVisibility    String    @default("private") @map("profile_visibility")
-  onboardingStep       Int       @default(0) @map("onboarding_step")
+  timezone              String    @default("UTC")
+  currency              String    @default("RUB")
+  locale                String    @default("ru")
+  goals                 String[]  @default([])
+  notificationsEnabled  Boolean   @default(true) @map("notifications_enabled")
+  quietHoursStart       Int       @default(22) @map("quiet_hours_start")
+  quietHoursEnd         Int       @default(8) @map("quiet_hours_end")
+  profileVisibility     String    @default("private") @map("profile_visibility")
+  onboardingStep        Int       @default(0) @map("onboarding_step")
   onboardingCompletedAt DateTime? @map("onboarding_completed_at")
 
   // Расписание чек-инов (ТЗ §3.3): 3 раза в день по умолчанию, настраивается 1–6.
   checkinTimesPerDay Int      @default(3) @map("checkin_times_per_day")
   checkinTimes       String[] @default(["09:00", "15:00", "21:00"]) @map("checkin_times")
 
-  twoFaEnabled Boolean  @default(false) @map("two_fa_enabled")
+  twoFaEnabled     Boolean   @default(false) @map("two_fa_enabled")
   /// TOTP-секрет, зашифрованный AES-256-GCM (см. crypto/secret-box.ts).
   twoFaSecret      String?   @map("two_fa_secret")
   /// Момент подтверждения кода при включении (secret -> enabled).
   twoFaConfirmedAt DateTime? @map("two_fa_confirmed_at")
   /// Последний принятый шаг TOTP — защита от повторного использования кода.
   twoFaLastStep    Int?      @map("two_fa_last_step")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  sessions           Session[]
-  verificationTokens EmailVerificationToken[]
-  accounts           Account[]
-  checkIns           CheckIn[]
-  categories         Category[]
-  transactions       Transaction[]
-  budgets            Budget[]
-  notificationRules  NotificationRule[]
-  pushSubscriptions  PushSubscription[]
-  dailyStats         DailyStat[]
-  userAchievements   UserAchievement[]
-  savingsGoals       Goal[]
-  goalDeposits       GoalDeposit[]
-  recurringPayments  RecurringPayment[]
-  twoFactorBackupCodes TwoFactorBackupCode[]
-  twoFactorChallenges  TwoFactorChallenge[]
-  externalIdentities ExternalIdentity[]
-  exchangeRates      ExchangeRate[]
-  telegramLink       TelegramLink?
-  telegramLinkCodes  TelegramLinkCode[]
-  insights           Insight[]
-  posts              Post[]
-  reactions          Reaction[]
-  comments           Comment[]
+  sessions                    Session[]
+  verificationTokens          EmailVerificationToken[]
+  accounts                    Account[]
+  bankBalances                AccountBankBalance[]
+  checkIns                    CheckIn[]
+  categories                  Category[]
+  transactions                Transaction[]
+  budgets                     Budget[]
+  notificationRules           NotificationRule[]
+  dailyStats                  DailyStat[]
+  userAchievements            UserAchievement[]
+  savingsGoals                Goal[]
+  goalDeposits                GoalDeposit[]
+  recurringPayments           RecurringPayment[]
+  twoFactorBackupCodes        TwoFactorBackupCode[]
+  twoFactorChallenges         TwoFactorChallenge[]
+  externalIdentities          ExternalIdentity[]
+  exchangeRates               ExchangeRate[]
+  telegramLink                TelegramLink?
+  telegramLinkCodes           TelegramLinkCode[]
+  checkInDrafts               CheckInDraft[]
+  discordLink                 DiscordLink?
+  daySummaryLink              DaySummaryLink?
+  discordLinkCodes            DiscordLinkCode[]
+  notificationChannelSettings NotificationChannelSetting[]
+  notificationDeliveries      NotificationDelivery[]
+  insights                    Insight[]
+  posts                       Post[]
+  reactions                   Reaction[]
+  comments                    Comment[]
   /// Подписки, которые оформил пользователь (ТЗ §3.7).
-  following          Follow[] @relation("FollowFollower")
+  following                   Follow[]                     @relation("FollowFollower")
   /// Подписчики пользователя (ТЗ §3.7).
-  followers          Follow[] @relation("FollowFollowing")
+  followers                   Follow[]                     @relation("FollowFollowing")
   /// Жалобы, поданные этим пользователем (ТЗ §3.7, §3.8).
-  reports            Report[]
+  reports                     Report[]
   /// Действия модерации, совершённые этим пользователем (ТЗ §2, §3.8).
-  moderationActions  ModerationAction[]
+  moderationActions           ModerationAction[]
   /// Публичный профиль (ТЗ §3.7): описание, аватар и обложка.
-  profile            Profile?
+  profile                     Profile?
   /// Карточки публичного профиля (ТЗ §3.7).
-  profileCards       ProfileCard[]
+  profileCards                ProfileCard[]
   /// HTML-страница профиля (ТЗ §3.8) — одна на пользователя.
-  htmlPage           HtmlPage?
+  htmlPage                    HtmlPage?
   /// Версии HTML-страницы (ТЗ §3.8): последние 10 сохранений с откатом.
-  htmlPageVersions   HtmlPageVersion[]
+  htmlPageVersions            HtmlPageVersion[]
 
   /// Личный AI-ключ (ТЗ §3.9) — один на пользователя; приоритетнее общего.
-  aiKey              UserAiKey?
+  aiKey       UserAiKey?
   /// Учёт токенов AI по месяцам (ТЗ §3.9).
-  aiUsage            AiUsage[]
+  aiUsage     AiUsage[]
   /// Предложения AI-помощника (ТЗ §3.9): бюджет, цель или напоминание.
-  aiProposals        AiProposal[]
+  aiProposals AiProposal[]
 
   /// Личные токены доступа к открытому API (ТЗ §4).
-  apiTokens          ApiToken[]
+  apiTokens         ApiToken[]
   /// Исходящие вебхуки (ТЗ §4).
-  webhooks           Webhook[]
+  webhooks          Webhook[]
   /// Журнал доставок вебхуков (ТЗ §4).
-  webhookDeliveries  WebhookDelivery[]
+  webhookDeliveries WebhookDelivery[]
 
   /// Семья, в которой состоит пользователь (ТЗ §4): одна на пользователя.
   familyMembership     FamilyMember?
   /// Семьи, созданные пользователем (он владелец, ТЗ §4).
-  ownedFamilies        Family[]           @relation("FamilyOwner")
+  ownedFamilies        Family[]            @relation("FamilyOwner")
   /// Коды-приглашения в семью, созданные пользователем (ТЗ §4).
-  familyInvitesCreated FamilyInvite[]     @relation("FamilyInviteCreator")
+  familyInvitesCreated FamilyInvite[]      @relation("FamilyInviteCreator")
   /// Коды-приглашения, использованные пользователем (ТЗ §4).
-  familyInvitesUsed    FamilyInvite[]     @relation("FamilyInviteUsedBy")
+  familyInvitesUsed    FamilyInvite[]      @relation("FamilyInviteUsedBy")
   /// Операции пользователя по семейным счетам (ТЗ §4).
   familyTransactions   FamilyTransaction[]
   /// Взносы пользователя в общие цели семьи (ТЗ §4).
@@ -120,16 +129,16 @@ model User {
   timeCapsules         TimeCapsule[]
 
   /// Челленджи, созданные пользователем (ТЗ §4, P2).
-  ownedChallenges      Challenge[]          @relation("ChallengeOwner")
+  ownedChallenges         Challenge[]            @relation("ChallengeOwner")
   /// Участие пользователя в челленджах (ТЗ §4).
   challengeParticipations ChallengeParticipant[]
   /// Ежедневные отметки «держусь» (ТЗ §4).
-  challengeChecks      ChallengeCheck[]
+  challengeChecks         ChallengeCheck[]
 
   /// Привычки пользователя (ТЗ §4, P2).
-  habits               Habit[]
+  habits    Habit[]
   /// Отметки привычек по дням (ТЗ §4, P2).
-  habitLogs            HabitLog[]
+  habitLogs HabitLog[]
 
   @@map("users")
 }
@@ -177,14 +186,40 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  transactions Transaction[] @relation("TransactionAccount")
-  transfers    Transaction[] @relation("TransferTarget")
-  goals        Goal[]
-  goalDeposits GoalDeposit[]
+  transactions      Transaction[]        @relation("TransactionAccount")
+  transfers         Transaction[]        @relation("TransferTarget")
+  goals             Goal[]
+  goalDeposits      GoalDeposit[]
   recurringPayments RecurringPayment[]
+  bankBalances      AccountBankBalance[]
 
   @@index([userId])
   @@map("accounts")
+}
+
+/// Баланс счёта по данным банка (сверка): закрывающий баланс импортированной выписки
+/// либо введённый вручную остаток карты на дату.
+model AccountBankBalance {
+  id                 String    @id @default(cuid())
+  userId             String    @map("user_id")
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId          String    @map("account_id")
+  account            Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// 'statement' — из выписки, 'manual' — введён вручную.
+  source             String
+  balance            Decimal   @db.Decimal(14, 2)
+  asOf               DateTime  @map("as_of") @db.Date
+  /// Только для выписки: период и строки (для поиска расхождений).
+  periodFrom         DateTime? @map("period_from") @db.Date
+  periodTo           DateTime? @map("period_to") @db.Date
+  rows               Json?
+  /// Когда по этой выписке ушло уведомление о расхождении (один раз на выписку).
+  mismatchNotifiedAt DateTime? @map("mismatch_notified_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  @@index([accountId, createdAt])
+  @@index([userId])
+  @@map("account_bank_balances")
 }
 
 model CheckIn {
@@ -212,6 +247,25 @@ model CheckIn {
   @@map("check_ins")
 }
 
+/// Черновик многошагового чек-ина из мессенджера (ТЗ v2 §4): один активный на
+/// пользователя и канал, живёт 30 минут. Логика шагов — packages/shared/checkin-dialog.
+model CheckInDraft {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Канал диалога: telegram, discord…
+  channel   String
+  step      String
+  data      Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@unique([userId, channel])
+  @@index([expiresAt])
+  @@map("check_in_drafts")
+}
+
 /// Категория транзакции (ТЗ §7): userId = null — системная, иначе своя.
 model Category {
   id        String   @id @default(cuid())
@@ -224,8 +278,8 @@ model Category {
   isSystem  Boolean  @default(false) @map("is_system")
   createdAt DateTime @default(now()) @map("created_at")
 
-  transactions Transaction[]
-  budgets      Budget[]
+  transactions      Transaction[]
+  budgets           Budget[]
   recurringPayments RecurringPayment[]
 
   @@index([userId])
@@ -235,32 +289,39 @@ model Category {
 /// Транзакция (ТЗ §7): доход, расход или перевод между счетами.
 /// Перевод не считается расходом: type = 'transfer', transferAccountId — получатель.
 model Transaction {
-  id                String   @id @default(cuid())
-  userId            String   @map("user_id")
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accountId         String   @map("account_id")
-  account           Account  @relation("TransactionAccount", fields: [accountId], references: [id], onDelete: Cascade)
-  categoryId        String?  @map("category_id")
+  id                String    @id @default(cuid())
+  userId            String    @map("user_id")
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String    @map("account_id")
+  account           Account   @relation("TransactionAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  categoryId        String?   @map("category_id")
   category          Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  transferAccountId String?  @map("transfer_account_id")
-  transferAccount   Account? @relation("TransferTarget", fields: [transferAccountId], references: [id], onDelete: SetNull)
-  type              String   @default("expense")
-  amount            Decimal  @db.Decimal(14, 2)
-  currency          String   @default("RUB")
+  transferAccountId String?   @map("transfer_account_id")
+  transferAccount   Account?  @relation("TransferTarget", fields: [transferAccountId], references: [id], onDelete: SetNull)
+  type              String    @default("expense")
+  amount            Decimal   @db.Decimal(14, 2)
+  currency          String    @default("RUB")
   /// Курс валюты операции к основной валюте пользователя на дату (ТЗ §3.2).
-  rate              Decimal  @default(1) @db.Decimal(18, 8)
+  rate              Decimal   @default(1) @db.Decimal(18, 8)
   /// Сумма в основной валюте пользователя: amount × rate.
-  amountBase        Decimal  @default(0) @map("amount_base") @db.Decimal(14, 2)
+  amountBase        Decimal   @default(0) @map("amount_base") @db.Decimal(14, 2)
   /// Сумма зачисления при переводе между счетами разных валют.
-  toAmount          Decimal? @map("to_amount") @db.Decimal(14, 2)
-  date              DateTime @db.Date
+  toAmount          Decimal?  @map("to_amount") @db.Decimal(14, 2)
+  date              DateTime  @db.Date
   comment           String?
   /// Хеш строки импорта банковской выписки (ТЗ §3.2): идемпотентность повторного импорта.
-  importHash        String?  @map("import_hash")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  importHash        String?   @map("import_hash")
+  /// Идентификатор операции в банке (колонка «Transaction ID»): при наличии — ключ идемпотентности импорта.
+  externalId        String?   @map("external_id")
+  /// Время операции по выписке «HH:MM» (колонка date хранит только день).
+  bankTime          String?   @map("bank_time")
+  /// Остаток на счёте по данным банка после этой операции (колонка «Balance»).
+  bankBalance       Decimal?  @map("bank_balance") @db.Decimal(14, 2)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
   @@unique([userId, importHash])
+  @@index([accountId, externalId])
   @@index([userId, date])
   @@index([accountId])
   @@index([categoryId])
@@ -291,7 +352,7 @@ model NotificationRule {
   userId          String   @map("user_id")
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   type            String
-  channel         String   @default("web_push")
+  channel         String   @default("telegram")
   schedule        Json     @default("{}")
   quietHoursStart Int      @default(22) @map("quiet_hours_start")
   quietHoursEnd   Int      @default(8) @map("quiet_hours_end")
@@ -315,6 +376,10 @@ model DailyStat {
   spent         Decimal  @default(0) @db.Decimal(14, 2)
   earned        Decimal  @default(0) @db.Decimal(14, 2)
   avgMood       Float?   @map("avg_mood")
+  /// Средние по чек-инам, где поле заполнено; null — данных нет (ТЗ v2 §4).
+  avgEnergy     Float?   @map("avg_energy")
+  avgStress     Float?   @map("avg_stress")
+  avgSleep      Float?   @map("avg_sleep")
   checkinsCount Int      @default(0) @map("checkins_count")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -323,32 +388,19 @@ model DailyStat {
 }
 
 /// Подписка браузера на web push (ТЗ §3.6): endpoint и ключи шифрования.
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@index([userId])
-  @@map("push_subscriptions")
-}
-
 /// Привязка Telegram-чата к аккаунту (ТЗ §3.6, §4): один чат — один аккаунт,
 /// у пользователя один чат. Через неё бот пишет чек-ины и траты в чат.
 model TelegramLink {
-  id        String   @id @default(cuid())
-  userId    String   @unique @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chatId    String   @unique @map("chat_id")
+  id        String    @id @default(cuid())
+  userId    String    @unique @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatId    String    @unique @map("chat_id")
   username  String?
-  linkedAt  DateTime @default(now()) @map("linked_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  linkedAt  DateTime  @default(now()) @map("linked_at")
+  /// Бот заблокирован пользователем (403): доставка остановлена до новой активности.
+  blockedAt DateTime? @map("blocked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@map("telegram_links")
 }
@@ -404,8 +456,8 @@ model InstanceSettings {
   aiModel             String? @map("ai_model")
   aiMonthlyTokenLimit Int?    @map("ai_monthly_token_limit")
 
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("instance_settings")
 }
@@ -819,16 +871,16 @@ model ContentFlag {
 /// currentVersionId — текущая версия. Блокировка по жалобам — через ContentFlag
 /// (target_type = html_page).
 model HtmlPage {
-  id               String            @id @default(cuid())
-  userId           String            @unique @map("user_id")
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String           @id @default(cuid())
+  userId           String           @unique @map("user_id")
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// Опубликована ли страница. blocked-версию опубликовать нельзя (ТЗ §3.8).
-  published        Boolean           @default(false)
+  published        Boolean          @default(false)
   /// Текущая версия; при удалении версии ссылка обнуляется.
-  currentVersionId String?           @unique @map("current_version_id")
-  currentVersion   HtmlPageVersion?  @relation("HtmlPageCurrent", fields: [currentVersionId], references: [id], onDelete: SetNull)
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
+  currentVersionId String?          @unique @map("current_version_id")
+  currentVersion   HtmlPageVersion? @relation("HtmlPageCurrent", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   versions HtmlPageVersion[] @relation("HtmlPageVersions")
 
@@ -839,20 +891,20 @@ model HtmlPage {
 /// старые удаляются. html — до 2 МБ. check_status/check_reasons — результат
 /// автопроверки этой версии (ok | blocked | flagged). Откат создаёт новую версию.
 model HtmlPageVersion {
-  id          String   @id @default(cuid())
-  pageId      String   @map("page_id")
-  page        HtmlPage @relation("HtmlPageVersions", fields: [pageId], references: [id], onDelete: Cascade)
-  userId      String   @map("user_id")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  pageId       String   @map("page_id")
+  page         HtmlPage @relation("HtmlPageVersions", fields: [pageId], references: [id], onDelete: Cascade)
+  userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// HTML-код версии; размер до 2 МБ проверяется в shared/schema.ts.
-  html        String
+  html         String
   /// Необязательная заметка к версии (до 200 символов).
-  note        String?
+  note         String?
   /// Результат автопроверки: ok | blocked | flagged.
-  checkStatus String   @default("ok") @map("check_status")
+  checkStatus  String   @default("ok") @map("check_status")
   /// Причины автопроверки — массив HtmlCheckReason.
-  checkReasons Json    @default("[]") @map("check_reasons")
-  createdAt   DateTime @default(now()) @map("created_at")
+  checkReasons Json     @default("[]") @map("check_reasons")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   currentFor HtmlPage? @relation("HtmlPageCurrent")
 
@@ -989,7 +1041,9 @@ model WebhookDelivery {
   @@map("webhook_deliveries")
 }
 
-/* ===== Семейный режим (ТЗ §4) ===== */
+/**
+ * ===== Семейный режим (ТЗ §4) =====
+ */
 
 /// Семья на домашнем сервере (ТЗ §4): общие счета и цели на всех участников,
 /// у каждого при этом свой приватный дневник. Владелец (owner_id) управляет
@@ -1049,15 +1103,15 @@ model FamilyInvite {
 /// Общий счёт семьи (ТЗ §4): карта, наличные или сбережения. Баланс
 /// пересчитывается при каждой операции (доход/расход).
 model FamilyAccount {
-  id        String        @id @default(cuid())
-  familyId  String        @map("family_id")
-  family    Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  familyId  String   @map("family_id")
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
   name      String
-  type      String        @default("card")
-  balance   Decimal       @default(0) @db.Decimal(14, 2)
-  currency  String        @default("RUB")
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
+  type      String   @default("card")
+  balance   Decimal  @default(0) @db.Decimal(14, 2)
+  currency  String   @default("RUB")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   transactions FamilyTransaction[]
 
@@ -1244,4 +1298,88 @@ model HabitLog {
   @@unique([habitId, date])
   @@index([userId, date])
   @@map("habit_logs")
+}
+
+/// Привязка Discord-аккаунта (v2): одна привязка на пользователя и на Discord-аккаунт.
+/// Доставка — личным сообщением в канал dmChannelId.
+model DiscordLink {
+  id            String    @id @default(cuid())
+  userId        String    @unique @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discordUserId String    @unique @map("discord_user_id")
+  dmChannelId   String    @map("dm_channel_id")
+  username      String?
+  linkedAt      DateTime  @default(now()) @map("linked_at")
+  /// Discord вернул 50007 (нельзя писать пользователю): доставка остановлена.
+  blockedAt     DateTime? @map("blocked_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("discord_links")
+}
+
+/// Одноразовый код привязки Discord: TTL 10 минут, в БД только SHA-256 от кода.
+model DiscordLinkCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @unique @map("code_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  @@index([userId])
+  @@map("discord_link_codes")
+}
+
+/// Настройки канала доставки (telegram | discord): включён ли, расписание
+/// {times, summaryTime}, тихие часы и необязательный свой часовой пояс.
+model NotificationChannelSetting {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel    String
+  enabled    Boolean  @default(true)
+  schedule   Json     @default("{}")
+  quietStart Int      @default(22) @map("quiet_hours_start")
+  quietEnd   Int      @default(8) @map("quiet_hours_end")
+  timezone   String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, channel])
+  @@map("notification_channel_settings")
+}
+
+/// Outbox уведомлений: запись ставится в очередь и уходит воркером с
+/// экспоненциальным backoff (до 5 попыток). Статусы: queued | sent | failed | blocked.
+model NotificationDelivery {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel       String
+  type          String
+  payload       Json
+  status        String    @default("queued")
+  attempts      Int       @default(0)
+  lastError     String?   @map("last_error")
+  nextAttemptAt DateTime  @default(now()) @map("next_attempt_at")
+  sentAt        DateTime? @map("sent_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([status, nextAttemptAt])
+  @@index([userId, createdAt])
+  @@map("notification_deliveries")
+}
+
+/// Приватная ссылка «Итог дня» (/d/<токен>): в БД только SHA-256 токена,
+/// сам токен показывается один раз при создании. Одна ссылка на пользователя.
+model DaySummaryLink {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique @map("token_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("day_summary_links")
 }

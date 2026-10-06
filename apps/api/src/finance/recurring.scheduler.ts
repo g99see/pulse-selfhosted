@@ -89,7 +89,7 @@ export class RecurringScheduler implements OnModuleInit, OnModuleDestroy {
         if (untilDue <= 0) {
           if (await this.createDueTransaction(payment, now)) created += 1;
         } else if (untilDue <= REMINDER_LEAD_MS) {
-          if (await this.sendReminder(payment, now)) reminders += 1;
+          if (await this.sendReminder(payment)) reminders += 1;
         }
       }
 
@@ -146,29 +146,19 @@ export class RecurringScheduler implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Напоминание за день до списания; повторно не отправляется (remindedFor). */
-  private async sendReminder(payment: RecurringWithRelations, now: Date): Promise<boolean> {
+  private async sendReminder(payment: RecurringWithRelations): Promise<boolean> {
     if (payment.remindedFor && payment.remindedFor.getTime() === payment.nextRunAt.getTime()) {
       return false;
     }
     if (!payment.user.notificationsEnabled) return false;
 
-    const rule = await this.prisma.notificationRule.findFirst({
-      where: { userId: payment.userId, type: 'payments' },
-    });
-    if (rule && !rule.enabled) return false;
-    const channel = rule?.channel === 'email' ? 'email' : 'web_push';
-
     const currency = isCurrency(payment.account.currency) ? payment.account.currency : 'RUB';
     try {
-      await this.dispatcher.sendRecurringReminder(
-        payment.userId,
-        { now, email: payment.user.email, timezone: payment.user.timezone, channel },
-        {
-          name: payment.name,
-          amount: formatMoney(Number(payment.amount), currency, 'ru-RU'),
-          dueDate: formatDateOnly(localDateOf(payment.nextRunAt, payment.timezone)),
-        },
-      );
+      await this.dispatcher.sendRecurringReminder(payment.userId, {
+        name: payment.name,
+        amount: formatMoney(Number(payment.amount), currency, 'ru-RU'),
+        dueDate: formatDateOnly(localDateOf(payment.nextRunAt, payment.timezone)),
+      });
     } catch (error) {
       this.logger.warn(
         `Не удалось отправить напоминание «${payment.name}»: ${

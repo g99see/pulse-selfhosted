@@ -172,7 +172,7 @@ export default function PageEditorPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="flex items-center gap-3 text-3xl font-extrabold">
+        <h1 className="flex items-center gap-3 text-2xl font-extrabold">
           <IconBubble name="page" tone="wellbeing" size={48} />
           {t('htmlPage.title')}
         </h1>
@@ -273,7 +273,7 @@ export default function PageEditorPage() {
             onChange={(event) => setHtml(event.target.value)}
             spellCheck={false}
             placeholder={t('htmlPage.empty')}
-            className="h-[60vh] w-full resize-y rounded-[20px] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 font-mono text-xs leading-relaxed outline-none focus:border-[var(--puls-primary)]"
+            className="h-[60vh] w-full resize-y rounded-[var(--radius-tile)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-3 font-mono text-xs leading-relaxed outline-none focus:border-[var(--puls-primary)]"
           />
         </section>
 
@@ -287,7 +287,7 @@ export default function PageEditorPage() {
             }
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
-            className="h-[60vh] w-full rounded-[20px] border border-[var(--puls-line-strong)] bg-white"
+            className="h-[60vh] w-full rounded-[var(--radius-tile)] border-[1.5px] border-[var(--puls-line-strong)] bg-white"
           />
           <p className="text-xs text-[var(--puls-ink-muted)]">{t('htmlPage.preview.hint')}</p>
         </section>

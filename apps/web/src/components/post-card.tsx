@@ -205,12 +205,12 @@ export function PostCard({ post }: { post: PostDto }) {
                 maxLength={500}
                 onChange={(event) => setText(event.target.value)}
                 placeholder={t('feed.comments.placeholder')}
-                className="h-10 flex-1 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 text-sm"
+                className="h-11 flex-1 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 text-sm"
               />
               <button
                 type="submit"
                 data-testid="comment-submit"
-                className="h-10 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)]"
+                className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-4 text-sm font-semibold text-[var(--puls-on-primary)]"
               >
                 {t('feed.comments.submit')}
               </button>

@@ -48,6 +48,12 @@ export class InsightsController {
     return { insight: await this.insights.latest(req.user!.id) };
   }
 
+  /** Корреляции самочувствия (сон, энергия, настроение) и трат. */
+  @Get('correlations')
+  async correlations(@Req() req: AuthenticatedRequest) {
+    return this.insights.correlations(req.user!.id);
+  }
+
   /** Последний недельный разбор, если он уже собран. */
   @Get('weekly')
   async weekly(@Req() req: AuthenticatedRequest) {

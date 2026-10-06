@@ -34,6 +34,13 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     keyColumn: 'user_id',
     orderBy: '"date", "created_at"',
   },
+  // Баланс счёта по данным банка (сверка): закрывающий остаток выписки или ручной ввод.
+  {
+    table: 'account_bank_balances',
+    entity: 'accountBankBalances',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
   { table: 'budgets', entity: 'budgets', keyColumn: 'user_id', orderBy: '"month"' },
   { table: 'goals', entity: 'goals', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'goal_deposits', entity: 'goalDeposits', keyColumn: 'user_id', orderBy: '"created_at"' },
@@ -75,6 +82,27 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     entity: 'telegramLinks',
     keyColumn: 'user_id',
     orderBy: '"linked_at"',
+  },
+  // Привязка Discord (v2 §5): id аккаунта и личного канала — не секреты.
+  {
+    table: 'discord_links',
+    entity: 'discordLinks',
+    keyColumn: 'user_id',
+    orderBy: '"linked_at"',
+  },
+  // Настройки каналов уведомлений (v2 §5): расписание, тихие часы, часовой пояс.
+  {
+    table: 'notification_channel_settings',
+    entity: 'notificationChannelSettings',
+    keyColumn: 'user_id',
+    orderBy: '"channel"',
+  },
+  // Журнал доставок уведомлений (v2 §5): тип, статус, ошибка — данные пользователя.
+  {
+    table: 'notification_deliveries',
+    entity: 'notificationDeliveries',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
   },
   // Полученные достижения (ТЗ §4): код бейджа и дата — не секреты, выгружаем.
   {
@@ -174,12 +202,14 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
 export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] = [
   { table: 'sessions', reason: 'секрет: хеш токена серверной сессии' },
   { table: 'email_verification_tokens', reason: 'секрет: одноразовый токен подтверждения email' },
-  { table: 'push_subscriptions', reason: 'секрет: endpoint и ключи шифрования web push' },
+  { table: 'discord_link_codes', reason: 'секрет: хеш одноразового кода привязки Discord' },
   { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового кода привязки Telegram' },
+  { table: 'check_in_drafts', reason: 'временный черновик диалога чек-ина (TTL 30 минут)' },
   { table: 'two_factor_backup_codes', reason: 'секрет: хеши одноразовых резервных кодов 2FA' },
   { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
   // Журнал модерации (ТЗ §2, §3.8): внутренний аудит экземпляра, не данные автора.
   { table: 'moderation_actions', reason: 'внутренний журнал модерации экземпляра' },
+  { table: 'day_summary_links', reason: 'секрет: хеш токена приватной ссылки «Итог дня»' },
   // Токены открытого API (ТЗ §4): секрет — хеш токена.
   { table: 'api_tokens', reason: 'секрет: хеш личного токена доступа' },
   // Вебхуки (ТЗ §4): секрет — зашифрованный ключ подписи.

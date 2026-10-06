@@ -8,11 +8,12 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, type Insight } from '@prisma/client';
 import {
-  DEFAULT_CHANNELS,
-  DEFAULT_QUIET_HOURS,
   addDays,
   budgetExceededCandidates,
   budgetSuggestionCandidate,
+  computeCorrelations,
+  correlationCandidates,
+  CORRELATION_WINDOW_DAYS,
   categorySpendRiseCandidates,
   countryFromTimezone,
   feedbackStatsFromRows,
@@ -26,6 +27,7 @@ import {
   todayKeyInTimezone,
   wellbeingConcernCandidates,
   type CheckInDto,
+  type CorrelationsResponse,
   type InsightAction,
   type InsightCandidate,
   type InsightDto,
@@ -36,7 +38,6 @@ import {
   type InsightsApplyResponse,
   type InsightsFeedResponse,
   type InsightsFeedbackResponse,
-  type NotificationChannel,
   type TypeFeedbackStat,
   type WeeklyReportResponse,
 } from '@puls/shared';
@@ -115,6 +116,27 @@ export class InsightsService {
       orderBy: { createdAt: 'desc' },
     });
     return row ? toInsightDto(row) : null;
+  }
+
+  /** Корреляции самочувствия и трат по DailyStat за последние 60 дней. */
+  async correlations(userId: string, now: Date = new Date()): Promise<CorrelationsResponse> {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const today = todayKeyInTimezone(user.timezone, now);
+    const since = new Date(`${addDays(today, -(CORRELATION_WINDOW_DAYS - 1))}T00:00:00.000Z`);
+    const rows = await this.prisma.dailyStat.findMany({
+      where: { userId, date: { gte: since } },
+      orderBy: { date: 'asc' },
+    });
+    const correlations = computeCorrelations(
+      rows.map((row) => ({
+        day: row.date.toISOString().slice(0, 10),
+        spent: Number(row.spent),
+        avgSleep: row.avgSleep,
+        avgEnergy: row.avgEnergy,
+        avgMood: row.avgMood,
+      })),
+    );
+    return { windowDays: CORRELATION_WINDOW_DAYS, correlations };
   }
 
   /** Оценка «полезно / не полезно» — уменьшает показ неполезных типов. */
@@ -295,6 +317,8 @@ export class InsightsService {
       ...wellbeingConcernCandidates(moodDays),
     ];
 
+    candidates.push(...correlationCandidates((await this.correlations(userId, now)).correlations));
+
     const sport = moodWithSportCandidate(moodDays, { tag: SPORT_TAG });
     if (sport) candidates.push(sport);
 
@@ -377,42 +401,10 @@ export class InsightsService {
   }
 
   private async notifyWeekly(
-    user: {
-      id: string;
-      email: string;
-      timezone: string;
-      notificationsEnabled: boolean;
-      notificationRules: {
-        type: string;
-        channel: string;
-        enabled: boolean;
-        quietHoursStart: number;
-        quietHoursEnd: number;
-      }[];
-    },
+    user: { id: string; timezone: string; notificationsEnabled: boolean },
     now: Date,
   ): Promise<void> {
     if (!user.notificationsEnabled) return;
-
-    const rule = user.notificationRules.find((item) => item.type === 'weekly_report');
-    // Без сохранённого правила тип включён по умолчанию (ТЗ §3.6).
-    if (rule && !rule.enabled) return;
-
-    const channel =
-      (rule?.channel as NotificationChannel | undefined) ?? DEFAULT_CHANNELS.weekly_report;
-
-    await this.dispatcher.dispatch(
-      {
-        userId: user.id,
-        type: 'weekly_report',
-        channel,
-        times: [],
-        quietHours: {
-          start: rule?.quietHoursStart ?? DEFAULT_QUIET_HOURS.start,
-          end: rule?.quietHoursEnd ?? DEFAULT_QUIET_HOURS.end,
-        },
-      },
-      { now, email: user.email, timezone: user.timezone },
-    );
+    await this.dispatcher.notifyWeeklyReport(user.id, now, user.timezone);
   }
 }

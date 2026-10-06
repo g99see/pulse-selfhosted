@@ -1,6 +1,6 @@
 {
   "name": "@puls/shared",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Общие схемы, типы и утилиты «Пульса» (Zod).",
   "license": "AGPL-3.0-or-later",
   "main": "dist/index.js",

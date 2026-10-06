@@ -41,6 +41,7 @@ export default defineConfig({
             { text: 'Чек-ины самочувствия', link: '/guide/usage/checkins' },
             { text: 'Цели', link: '/guide/usage/goals' },
             { text: 'Импорт и экспорт', link: '/guide/usage/import-export' },
+            { text: 'Сверка со счётом банка', link: '/guide/usage/reconciliation' },
             { text: 'Статистика и рекомендации', link: '/guide/usage/stats-insights' },
             { text: 'Уведомления', link: '/guide/usage/notifications' },
             { text: 'Telegram-бот', link: '/guide/usage/telegram' },
@@ -61,6 +62,15 @@ export default defineConfig({
       '/family/': [{ text: 'Семейный режим', items: [{ text: 'Обзор', link: '/family/' }] }],
       '/api/': [{ text: 'Открытый API', items: [{ text: 'Обзор', link: '/api/' }] }],
       '/admin/': [{ text: 'Администрирование', items: [{ text: 'Обзор', link: '/admin/' }] }],
+      '/ops/': [
+        {
+          text: 'Эксплуатация',
+          items: [
+            { text: 'Бэкапы и откат миграций', link: '/ops/backup' },
+            { text: 'Администрирование', link: '/admin/' },
+          ],
+        },
+      ],
       '/security/': [{ text: 'Безопасность', items: [{ text: 'Обзор', link: '/security/' }] }],
       '/dev/': [
         {

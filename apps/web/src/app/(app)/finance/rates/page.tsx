@@ -77,11 +77,11 @@ export default function RatesPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <IconBubble name="chart" tone="finance" size={48} />
-          <h1 className="font-heading text-3xl font-extrabold">{t('finance.rates.title')}</h1>
+          <h1 className="font-heading text-2xl font-extrabold">{t('finance.rates.title')}</h1>
         </div>
         <Link
           href="/finance"
-          className="inline-flex h-10 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+          className="inline-flex h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
         >
           {t('finance.title')}
         </Link>
@@ -127,7 +127,7 @@ export default function RatesPage() {
                   type="button"
                   onClick={() => void remove(item.id)}
                   aria-label={t('finance.rates.delete')}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
                 >
                   <Icon name="close" size={14} />
                 </button>

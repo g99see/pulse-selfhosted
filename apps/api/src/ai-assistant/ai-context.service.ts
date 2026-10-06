@@ -7,7 +7,7 @@
  * возвращаются инструментам чата — они не должны попадать в модель.
  */
 import { Injectable } from '@nestjs/common';
-import { addDays, todayKeyInTimezone, type StreakDto } from '@puls/shared';
+import { addDays, sumMoney, todayKeyInTimezone, type StreakDto } from '@puls/shared';
 import { AchievementsService } from '../achievements/achievements.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -128,7 +128,7 @@ export class AiContextService {
     return {
       from,
       to,
-      total: round2(byCategory.reduce((sum, row) => sum + row.total, 0)),
+      total: sumMoney(byCategory.map((row) => row.total)),
       byCategory,
     };
   }

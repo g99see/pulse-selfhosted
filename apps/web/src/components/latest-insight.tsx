@@ -44,7 +44,10 @@ export function LatestInsight() {
               {t('insights.latest.title')}
             </h2>
           </div>
-          <Link href="/insights" className="text-sm font-semibold text-[var(--puls-primary-text)]">
+          <Link
+            href="/insights"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--puls-primary-text)]"
+          >
             {t('insights.more')}
           </Link>
         </div>
@@ -65,7 +68,7 @@ export function LatestInsight() {
             action={
               <Link
                 href="/insights"
-                className="text-sm font-semibold text-[var(--puls-primary-text)] underline"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--puls-primary-text)] underline"
               >
                 {t('app.today.insightCta')}
               </Link>

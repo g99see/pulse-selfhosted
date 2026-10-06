@@ -16,6 +16,7 @@ import {
 import {
   AccountCreateSchema,
   AccountUpdateSchema,
+  BankBalanceInputSchema,
   BudgetUpsertSchema,
   CategoryCreateSchema,
   CategoryUpdateSchema,
@@ -30,6 +31,7 @@ import {
   monthKey,
   type AccountCreateInput,
   type AccountUpdateInput,
+  type BankBalanceInput,
   type BudgetUpsertInput,
   type CategoryCreateInput,
   type CategoryUpdateInput,
@@ -48,6 +50,7 @@ import { BudgetsService } from './budgets.service';
 import { CategoriesService } from './categories.service';
 import { ExchangeRatesService } from './rates.service';
 import { ImportService } from './import.service';
+import { ReconciliationService } from './reconciliation.service';
 import { TransactionsService } from './transactions.service';
 
 /** Финансы (ТЗ §3.2): категории, счета, транзакции, переводы и бюджеты. */
@@ -61,6 +64,7 @@ export class FinanceController {
     private readonly budgets: BudgetsService,
     private readonly rates: ExchangeRatesService,
     private readonly imports: ImportService,
+    private readonly reconciliation: ReconciliationService,
   ) {}
 
   /* ----- Обзор для экрана «Финансы» ----- */
@@ -233,6 +237,22 @@ export class FinanceController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.imports.commit(req.user!.id, body);
+  }
+
+  /* ----- Сверка счёта с банком ----- */
+
+  @Get('accounts/:id/reconciliation')
+  reconcile(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.reconciliation.report(req.user!.id, id);
+  }
+
+  @Put('accounts/:id/bank-balance')
+  setBankBalance(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(BankBalanceInputSchema)) body: BankBalanceInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.reconciliation.setManualBalance(req.user!.id, id, body);
   }
 
   /* ----- Бюджеты ----- */

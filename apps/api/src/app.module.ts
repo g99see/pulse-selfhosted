@@ -19,6 +19,7 @@ import { HtmlPageModule } from './html-page/html-page.module';
 import { InsightsModule } from './insights/insights.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ObservabilityModule } from './observability/observability.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfileModule } from './profile/profile.module';
 import { RecurringModule } from './finance/recurring.module';
@@ -60,6 +61,7 @@ import { WidgetsModule } from './widgets/widgets.module';
     SocialModule,
     ApiAccessModule,
     WidgetsModule,
+    ObservabilityModule,
     WrappedModule,
   ],
 })

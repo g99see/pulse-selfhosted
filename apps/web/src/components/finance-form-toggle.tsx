@@ -32,7 +32,9 @@ export function FormToggle({
         {open ? t('finance.form.hide') : label}
       </GhostButton>
       {open ? (
-        <div className="rounded-[20px] bg-[var(--puls-surface-2)] p-4 sm:p-5">{children}</div>
+        <div className="rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4 sm:p-5">
+          {children}
+        </div>
       ) : null}
     </div>
   );

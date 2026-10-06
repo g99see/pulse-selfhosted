@@ -257,9 +257,9 @@ export function FinanceScreen({
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-3xl font-extrabold">{t('finance.title')}</h1>
+          <h1 className="font-heading text-2xl font-extrabold">{t('finance.title')}</h1>
           <p className="text-sm text-[var(--puls-ink-muted)]">{t('finance.total')}</p>
-          <p className="min-h-10 font-heading text-4xl font-extrabold text-[var(--puls-finance-text)] [font-variant-numeric:tabular-nums]">
+          <p className="min-h-11 font-heading text-4xl font-extrabold text-[var(--puls-finance-text)] [font-variant-numeric:tabular-nums]">
             {overview ? (
               <Money value={overview.totalBalance} currency={currency} testId="finance-total" />
             ) : null}
@@ -269,14 +269,21 @@ export function FinanceScreen({
           <Link
             href="/finance/import"
             data-testid="import-link"
-            className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+            className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
           >
             {t('finance.import.open')}
           </Link>
           <Link
+            href="/finance/reconcile"
+            data-testid="reconcile-link"
+            className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-4 text-sm font-semibold text-[var(--puls-primary-text)]"
+          >
+            {t('finance.reconcile.link')}
+          </Link>
+          <Link
             href="/finance/rates"
             data-testid="rates-link"
-            className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)]"
+            className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-chip)] bg-[var(--puls-finance-soft)] px-4 text-sm font-semibold text-[var(--puls-finance-text)]"
           >
             {t('finance.rates.link')}
           </Link>
@@ -316,7 +323,7 @@ export function FinanceScreen({
                 data-testid="transactions-delete-all"
                 onClick={() => void removeAllTransactions()}
                 disabled={busy}
-                className="inline-flex h-9 items-center rounded-[var(--radius-chip)] px-3 text-sm font-semibold text-[var(--puls-warning-text)] hover:bg-[var(--puls-surface-2)] disabled:opacity-50"
+                className="inline-flex h-11 items-center rounded-[var(--radius-chip)] px-3 text-sm font-semibold text-[var(--puls-warning-text)] hover:bg-[var(--puls-surface-2)] disabled:opacity-50"
               >
                 {t('finance.transactions.deleteAll')}
               </button>
@@ -380,7 +387,7 @@ export function FinanceScreen({
                         <span className="flex min-w-0 items-center gap-3">
                           <span
                             aria-hidden="true"
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg"
+                            className="flex h-11 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg"
                             style={{
                               backgroundColor: transaction.categoryColor
                                 ? `${transaction.categoryColor}22`
@@ -438,7 +445,7 @@ export function FinanceScreen({
                             type="button"
                             onClick={() => void removeTransaction(transaction.id)}
                             aria-label={t('finance.cancel')}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
+                            className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--puls-ink-muted)] hover:bg-[var(--puls-surface-2)]"
                           >
                             <Icon name="close" size={14} />
                           </button>
@@ -453,7 +460,7 @@ export function FinanceScreen({
                 <div aria-hidden="true" className="flex flex-col gap-1">
                   {Array.from({ length: 6 }, (_, index) => (
                     <div key={index} className="flex items-center gap-3 py-2">
-                      <span className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
+                      <span className="h-11 w-10 shrink-0 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
                       <span className="h-4 flex-1 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
                       <span className="h-4 w-20 animate-pulse rounded-full bg-[var(--puls-surface-2)]" />
                     </div>
@@ -570,7 +577,7 @@ export function FinanceScreen({
             {accounts.map((account) => (
               <li
                 key={account.id}
-                className={`flex flex-col gap-3 rounded-[20px] p-4 ${toneClasses(ACCOUNT_TONE[account.type])}`}
+                className={`flex flex-col gap-3 rounded-[var(--radius-tile)] p-4 ${toneClasses(ACCOUNT_TONE[account.type])}`}
               >
                 <span className="flex items-center gap-2">
                   <IconBubble name="wallet" tone={ACCOUNT_TONE[account.type]} size={36} />

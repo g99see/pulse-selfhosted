@@ -52,9 +52,6 @@ services:
       SMTP_URL: ${SMTP_URL:-}
       MAIL_FROM: ${MAIL_FROM:-Пульс <noreply@example.com>}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
-      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
-      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
@@ -63,8 +60,11 @@ services:
       # домашнего сервера нет. Для вебхука: TELEGRAM_MODE=webhook + секрет.
       TELEGRAM_MODE: ${TELEGRAM_MODE:-polling}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      # Discord-бот: токен и ID приложения из Discord Developer Portal.
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:-}
       RATES_PROVIDER: ${RATES_PROVIDER:-}
-      APP_VERSION: ${APP_VERSION:-0.2.0}
+      APP_VERSION: ${APP_VERSION:-0.3.0}
       # HTML-страница профиля (ТЗ §3.8): публичный домен песочницы нужен API,
       # чтобы строить ссылку для iframe и CSP frame-ancestors основного домена.
       DOMAIN: ${DOMAIN:-localhost}
@@ -157,7 +157,7 @@ services:
       BACKUP_DIR: /backups
       BACKUP_KEEP: ${BACKUP_KEEP:-7}
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
-      APP_VERSION: ${APP_VERSION:-0.2.0}
+      APP_VERSION: ${APP_VERSION:-0.3.0}
     volumes:
       - ./backups:/backups
       - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro

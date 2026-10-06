@@ -1,90 +1,64 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Уведомления (ТЗ §3.6, §9): публичный VAPID-ключ, подписки web push и правила
- * по типам. Всё, кроме публичного ключа, — под SessionGuard и изолировано по
- * пользователю.
+ * Уведомления (ТЗ §3.6, v2 §5): состояние и настройки каналов, журнал доставок
+ * пользователя и метрики outbox для администратора. Всё под SessionGuard и
+ * изолировано по пользователю.
  */
+import { Body, Controller, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  PushSubscriptionDeleteSchema,
-  PushSubscriptionInputSchema,
-  NotificationRulesUpdateSchema,
-  type NotificationRulesUpdateInput,
-  type PushSubscriptionDeleteInput,
-  type PushSubscriptionInput,
+  ChannelSettingsUpdateSchema,
+  NotificationChannelSchema,
+  type ChannelSettingsUpdateInput,
 } from '@puls/shared';
-import { httpError } from '../common/http-error';
-import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { SessionGuard } from '../auth/session.guard';
 import type { AuthenticatedRequest } from '../auth/auth.types';
+import { httpError } from '../common/http-error';
+import { ZodValidationPipe } from '../common/zod-validation.pipe';
+import { Roles } from '../moderation/roles.decorator';
+import { RolesGuard } from '../moderation/roles.guard';
 import { NotificationsService } from './notifications.service';
-import { PushService } from './push.service';
+import { OutboxService } from './outbox.service';
 
 @Controller('notifications')
+@UseGuards(SessionGuard)
 export class NotificationsController {
   constructor(
     private readonly notifications: NotificationsService,
-    private readonly push: PushService,
+    private readonly outbox: OutboxService,
   ) {}
 
-  /** Публичный ключ VAPID; enabled=false — отправка push отключена (ТЗ §3.6). */
-  @Get('vapid-public-key')
-  vapidPublicKey() {
-    return this.push.vapidPublicKey();
+  @Get('channels')
+  async channels(@Req() req: AuthenticatedRequest) {
+    return { channels: await this.notifications.listChannels(req.user!.id) };
   }
 
-  @Get('subscriptions')
-  @UseGuards(SessionGuard)
-  async listSubscriptions(@Req() req: AuthenticatedRequest) {
-    return { subscriptions: await this.notifications.listSubscriptions(req.user!.id) };
-  }
-
-  @Post('subscriptions')
-  @HttpCode(HttpStatus.CREATED)
-  @UseGuards(SessionGuard)
-  saveSubscription(
-    @Body(new ZodValidationPipe(PushSubscriptionInputSchema)) body: PushSubscriptionInput,
+  @Put('channels/:channel')
+  async updateChannel(
+    @Param('channel') channel: string,
+    @Body(new ZodValidationPipe(ChannelSettingsUpdateSchema)) body: ChannelSettingsUpdateInput,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.notifications.saveSubscription(req.user!.id, body);
+    const parsed = NotificationChannelSchema.safeParse(channel);
+    if (!parsed.success) throw httpError(404, 'channel_not_found', 'Неизвестный канал');
+    return { channels: await this.notifications.updateChannel(req.user!.id, parsed.data, body) };
   }
 
-  @Delete('subscriptions')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(SessionGuard)
-  async removeSubscription(
-    @Body(new ZodValidationPipe(PushSubscriptionDeleteSchema)) body: PushSubscriptionDeleteInput,
-    @Req() req: AuthenticatedRequest,
-  ): Promise<void> {
-    const removed = await this.notifications.deleteSubscription(req.user!.id, body.endpoint);
-    if (!removed) {
-      throw httpError(404, 'subscription_not_found', 'Подписка не найдена');
-    }
+  /** Последние 20 доставок пользователя. */
+  @Get('deliveries')
+  async deliveries(@Req() req: AuthenticatedRequest) {
+    return { deliveries: await this.outbox.recent(req.user!.id) };
   }
+}
 
-  @Get('rules')
-  @UseGuards(SessionGuard)
-  async listRules(@Req() req: AuthenticatedRequest) {
-    return { rules: await this.notifications.listRules(req.user!.id) };
-  }
+/** Метрики outbox: количество записей по статусам (только admin). */
+@Controller('admin/notifications')
+@UseGuards(SessionGuard, RolesGuard)
+@Roles('admin')
+export class NotificationsAdminController {
+  constructor(private readonly outbox: OutboxService) {}
 
-  @Put('rules')
-  @UseGuards(SessionGuard)
-  async updateRules(
-    @Body(new ZodValidationPipe(NotificationRulesUpdateSchema)) body: NotificationRulesUpdateInput,
-    @Req() req: AuthenticatedRequest,
-  ) {
-    return { rules: await this.notifications.updateRules(req.user!.id, body.rules) };
+  @Get('metrics')
+  metrics() {
+    return this.outbox.metrics();
   }
 }

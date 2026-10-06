@@ -15,6 +15,7 @@ import { configureApp } from '../src/app.setup';
 import { FinanceModule } from '../src/finance/finance.module';
 import { NotificationDispatcher } from '../src/notifications/dispatcher';
 import { NotificationsModule } from '../src/notifications/notifications.module';
+import { OutboxService } from '../src/notifications/outbox.service';
 import { PrismaModule } from '../src/prisma/prisma.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { StatsModule } from '../src/stats/stats.module';
@@ -40,6 +41,7 @@ const fakeApi: TelegramApi = {
   async answerCallbackQuery(id: string, text?: string): Promise<void> {
     answered.push({ id, text });
   },
+  async setCommands(): Promise<void> {},
   async getUpdates(): Promise<unknown[]> {
     return [];
   },
@@ -101,8 +103,12 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     sent.length = 0;
     answered.length = 0;
     for (const statement of [
+      'DELETE FROM "check_in_drafts"',
+      'DELETE FROM "check_ins"',
+      'DELETE FROM "daily_stats"',
       'DELETE FROM "telegram_links"',
       'DELETE FROM "telegram_link_codes"',
+      'DELETE FROM "notification_deliveries"',
       'DELETE FROM "users"',
     ]) {
       await prisma.$executeRawUnsafe(statement);
@@ -314,58 +320,180 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
   });
 
   describe('Чек-ины из чата', () => {
-    it('/checkin присылает кнопки 1–5, нажатие создаёт чек-ин', async () => {
+    const cb = (chat: number, data: string, id = `cb-${data}`) => ({
+      update_id: 100,
+      callback_query: {
+        id,
+        data,
+        from: { id: 1 },
+        message: { message_id: 9, chat: { id: chat } },
+      },
+    });
+    const text = (chat: number, value: string) => ({
+      update_id: 101,
+      message: { chat: { id: chat }, from: {}, text: value },
+    });
+
+    it('/checkin: пошаговый диалог сохраняет ВСЕ поля одной записью, статистика дня их показывает', async () => {
       const { client, userId } = await signUpLinked(
         'tg-checkin@example.com',
         'tgcheckinusr',
         '1001',
       );
 
-      const prompt = await webhookUpdate({
-        update_id: 2,
-        message: { chat: { id: 1001 }, from: {}, text: '/checkin' },
-      });
-      expect(prompt.status).toBe(200);
-      const buttons = lastSent('1001')?.buttons?.flat() ?? [];
-      expect(buttons.map((button) => button.callbackData)).toEqual([
-        'mood:1',
-        'mood:2',
-        'mood:3',
-        'mood:4',
-        'mood:5',
-      ]);
+      await webhookUpdate(text(1001, '/checkin'));
+      expect(
+        (lastSent('1001')?.buttons?.flat() ?? []).map((button) => button.callbackData),
+      ).toEqual(expect.arrayContaining(['ci:mood:1', 'ci:mood:5']));
+      expect(lastSent('1001')?.text).toContain('Шаг 1/6');
+      expect(await prisma.checkInDraft.count({ where: { userId } })).toBe(1);
 
-      await webhookUpdate({
-        update_id: 3,
-        callback_query: {
-          id: 'cb-1',
-          data: 'mood:4',
-          from: { id: 1 },
-          message: { message_id: 9, chat: { id: 1001 } },
-        },
-      });
+      await webhookUpdate(cb(1001, 'ci:mood:4'));
+      await webhookUpdate(cb(1001, 'ci:energy:3'));
+      await webhookUpdate(cb(1001, 'ci:stress:2'));
+      const sleepButtons = lastSent('1001')?.buttons?.[0]?.map((button) => button.text);
+      expect(sleepButtons).toEqual(['4', '5', '6', '7', '8', '9+']);
+      await webhookUpdate(text(1001, '7,5'));
+      await webhookUpdate(cb(1001, 'ci:tag:1'));
+      await webhookUpdate(text(1001, '#йога'));
+      await webhookUpdate(cb(1001, 'ci:tags:done'));
+      expect(lastSent('1001')?.text).toContain('Шаг 6/6');
+      await webhookUpdate(text(1001, 'Хороший день'));
+
+      const summary = lastSent('1001')?.text ?? '';
+      expect(summary).toContain('Чек-ин сохранён');
+      expect(summary).toContain('Энергия: 3/5');
+      expect(summary).toContain('Сон, ч: 7.5');
+      expect(summary).toContain('#спорт #йога');
+      expect(summary).toContain('Хороший день');
 
       const checkIns = await prisma.checkIn.findMany({ where: { userId } });
       expect(checkIns).toHaveLength(1);
-      expect(checkIns[0].mood).toBe(4);
-      expect(answered.at(-1)?.text).toContain('4/5');
-      expect(lastSent('1001')?.text).toContain('Записал');
+      expect(checkIns[0]).toMatchObject({
+        mood: 4,
+        energy: 3,
+        stress: 2,
+        sleepHours: 7.5,
+        tags: ['спорт', 'йога'],
+        note: 'Хороший день',
+      });
+      expect(await prisma.checkInDraft.count({ where: { userId } })).toBe(0);
 
-      void client;
+      const day = await client.get('/api/stats/day');
+      expect(day.status).toBe(200);
+      expect(day.body).toMatchObject({
+        avgMood: 4,
+        avgEnergy: 3,
+        avgStress: 2,
+        avgSleep: 7.5,
+        checkins: 1,
+      });
+
+      const history = await client.get('/api/checkins');
+      expect(history.body.checkIns[0]).toMatchObject({ energy: 3, stress: 2, sleepHours: 7.5 });
+    });
+
+    it('пропуск необязательных шагов сохраняет только настроение (старый формат остаётся валидным)', async () => {
+      const { client, userId } = await signUpLinked('tg-skip@example.com', 'tgskipuser', '1002');
+      await webhookUpdate(text(1002, '/checkin'));
+      await webhookUpdate(cb(1002, 'ci:mood:2'));
+      await webhookUpdate(cb(1002, 'ci:energy:skip'));
+      await webhookUpdate(cb(1002, 'ci:stress:skip'));
+      await webhookUpdate(cb(1002, 'ci:sleep:skip'));
+      await webhookUpdate(cb(1002, 'ci:tags:done'));
+      await webhookUpdate(cb(1002, 'ci:note:skip'));
+
+      const [saved] = await prisma.checkIn.findMany({ where: { userId } });
+      expect(saved).toMatchObject({ mood: 2, energy: null, stress: null, sleepHours: null });
+      const day = await client.get('/api/stats/day');
+      expect(day.body).toMatchObject({
+        avgMood: 2,
+        avgEnergy: null,
+        avgStress: null,
+        avgSleep: null,
+        checkins: 1,
+      });
+    });
+
+    it('кнопка настроения из напоминания запускает диалог с готовым настроением', async () => {
+      const { userId } = await signUpLinked('tg-remind@example.com', 'tgremindusr', '1003');
+      await webhookUpdate(cb(1003, 'ci:mood:5'));
+      expect(lastSent('1003')?.text).toContain('Шаг 2/6');
+      const draft = await prisma.checkInDraft.findFirst({ where: { userId } });
+      expect(draft).toMatchObject({ channel: 'telegram', step: 'energy' });
+      expect(draft?.expiresAt.getTime()).toBeGreaterThan(Date.now() + 29 * 60_000);
+      expect(await prisma.checkIn.count({ where: { userId } })).toBe(0);
+
+      // Старые кнопки (mood:N) тоже запускают диалог.
+      await webhookUpdate(cb(1003, 'mood:3', 'cb-legacy'));
+      expect(lastSent('1003')?.text).toContain('Шаг 2/6');
+    });
+
+    it('быстрая форма /checkin одной строкой и /mood 4', async () => {
+      const { userId } = await signUpLinked('tg-line@example.com', 'tglineuser', '1004');
+      await webhookUpdate(text(1004, '/checkin 4 энергия 3 стресс 2 сон 7.5 #спорт заметка'));
+      expect(lastSent('1004')?.text).toContain('Чек-ин сохранён');
+
+      await webhookUpdate(text(1004, '/mood 5'));
+      await webhookUpdate(text(1004, '/checkin 9'));
+      expect(lastSent('1004')?.text).toContain('настроение 1–5');
+
+      const saved = await prisma.checkIn.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'asc' },
+      });
+      expect(saved).toHaveLength(2);
+      expect(saved[0]).toMatchObject({
+        mood: 4,
+        energy: 3,
+        stress: 2,
+        sleepHours: 7.5,
+        tags: ['спорт'],
+        note: 'заметка',
+      });
+      expect(saved[1]).toMatchObject({ mood: 5, energy: null });
+    });
+
+    it('«Отмена» удаляет черновик, истёкший черновик сохраняет настроение', async () => {
+      const { userId } = await signUpLinked('tg-cancel@example.com', 'tgcancelusr', '1005');
+      await webhookUpdate(text(1005, '/checkin'));
+      await webhookUpdate(cb(1005, 'ci:cancel:1'));
+      expect(lastSent('1005')?.text).toContain('отменён');
+      expect(await prisma.checkInDraft.count({ where: { userId } })).toBe(0);
+      expect(await prisma.checkIn.count({ where: { userId } })).toBe(0);
+
+      await webhookUpdate(cb(1005, 'ci:mood:3'));
+      await webhookUpdate(cb(1005, 'ci:energy:4'));
+      await prisma.checkInDraft.updateMany({
+        where: { userId },
+        data: { expiresAt: new Date(Date.now() - 60_000) },
+      });
+      // Нажатие по протухшей кнопке — диалог закрыт.
+      await webhookUpdate(cb(1005, 'ci:stress:2'));
+      expect(lastSent('1005')?.text).toContain('истёк');
     });
 
     it('чужой чат не может создать чек-ин кнопкой', async () => {
-      await webhookUpdate({
-        update_id: 1,
-        callback_query: {
-          id: 'cb-x',
-          data: 'mood:1',
-          from: { id: 1 },
-          message: { message_id: 1, chat: { id: 555444 } },
-        },
-      });
+      await webhookUpdate(cb(555444, 'ci:mood:1', 'cb-x'));
       expect(await prisma.checkIn.count()).toBe(0);
+      expect(await prisma.checkInDraft.count()).toBe(0);
       expect(lastSent('555444')?.text).toContain('не привязан');
+    });
+
+    it('старая запись без новых полей отдаётся API с null и не ломает статистику', async () => {
+      const { client, userId } = await signUpLinked('tg-old@example.com', 'tgolduser', '1006');
+      await prisma.checkIn.create({ data: { userId, mood: 3 } });
+      const list = await client.get('/api/checkins');
+      expect(list.body.checkIns[0]).toMatchObject({
+        mood: 3,
+        energy: null,
+        stress: null,
+        sleepHours: null,
+        tags: [],
+        note: null,
+      });
+      const day = await client.get('/api/stats/day');
+      expect(day.body).toMatchObject({ avgMood: 3, avgEnergy: null, checkins: 1 });
     });
   });
 
@@ -463,7 +591,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
   });
 
   describe('Диспетчер уведомлений: канал telegram', () => {
-    it('чек-ин-вопрос уходит в чат с inline-кнопками 1–5', async () => {
+    it('чек-ин-вопрос из outbox уходит в чат с inline-кнопками 1–5', async () => {
       const { userId } = await signUpLinked('tg-dispatch@example.com', 'tgdispatchu', '1501');
       const dispatcher = app.get(NotificationDispatcher);
 
@@ -475,18 +603,20 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
           times: ['09:00'],
           quietHours: { start: 22, end: 8 },
         },
-        { now: new Date(), email: 'tg-dispatch@example.com', timezone: 'UTC' },
+        { now: new Date(), timezone: 'UTC' },
       );
-
       expect(delivered).toBe(true);
+
+      const result = await app.get(OutboxService).processQueue();
+      expect(result.sent).toBe(1);
       const message = lastSent('1501');
       expect(message?.buttons?.flat()).toHaveLength(5);
     });
 
-    it('без привязки чата доставка не удалась', async () => {
+    it('без привязки чата доставка помечается blocked, а не повторяется', async () => {
       const { userId } = await signUp('tg-none@example.com', 'tgnoneuser');
       const dispatcher = app.get(NotificationDispatcher);
-      const delivered = await dispatcher.dispatch(
+      await dispatcher.dispatch(
         {
           userId,
           type: 'checkins',
@@ -494,9 +624,10 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
           times: ['09:00'],
           quietHours: { start: 22, end: 8 },
         },
-        { now: new Date(), email: 'tg-none@example.com', timezone: 'UTC' },
+        { now: new Date(), timezone: 'UTC' },
       );
-      expect(delivered).toBe(false);
+      const result = await app.get(OutboxService).processQueue();
+      expect(result.blocked).toBe(1);
     });
   });
 

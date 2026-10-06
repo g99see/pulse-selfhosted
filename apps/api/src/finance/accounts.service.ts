@@ -47,17 +47,18 @@ export class AccountsService {
     const needsConversion = accounts.some((account) => account.currency !== user.currency);
     const points = needsConversion ? await this.rates.points(userId) : [];
     const date = todayKey();
+    // Суммируем в Decimal: каждый счёт переводится в копейки до сложения, без накопления float.
     const totalBalance = accounts.reduce((sum, account) => {
       const rate =
         account.currency === user.currency
           ? 1
           : (crossRate(points, account.currency, user.currency, user.currency, date) ?? 1);
-      return sum + Number(account.balance) * rate;
-    }, 0);
+      return sum.plus(account.balance.times(rate).toDecimalPlaces(2));
+    }, new Prisma.Decimal(0));
 
     return {
       accounts: accounts.map(toAccountDto),
-      totalBalance: Math.round(totalBalance * 100) / 100,
+      totalBalance: totalBalance.toDecimalPlaces(2).toNumber(),
       currency: user.currency,
     };
   }

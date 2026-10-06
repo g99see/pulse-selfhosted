@@ -88,7 +88,7 @@ export default function ModerationPage() {
   if (allowed === null) {
     return (
       <div className="flex flex-col gap-4" data-testid="moderation-page">
-        <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('moderation.title')}</h1>
         <p className="text-sm text-[var(--puls-ink-muted)]">{t('moderation.loading')}</p>
       </div>
     );
@@ -97,7 +97,7 @@ export default function ModerationPage() {
   if (!allowed) {
     return (
       <div className="flex flex-col gap-4" data-testid="moderation-page">
-        <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
+        <h1 className="text-2xl font-extrabold">{t('moderation.title')}</h1>
         <Card>
           <p
             role="alert"
@@ -116,7 +116,7 @@ export default function ModerationPage() {
       <div className="flex items-center gap-3">
         <IconBubble name="shield" tone="primary" size={48} />
         <div>
-          <h1 className="text-3xl font-extrabold">{t('moderation.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('moderation.title')}</h1>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('moderation.subtitle')}</p>
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function ModerationPage() {
                       value={note}
                       onChange={(event) => setNote(event.target.value)}
                       placeholder={t('moderation.note')}
-                      className="h-11 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 text-sm"
+                      className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3 text-sm"
                     />
                     <div className="flex flex-wrap gap-2">
                       {MODERATION_ACTIONS.map((action) => (

@@ -159,7 +159,7 @@ export function ProfileEditor() {
           <div
             key={card.type}
             data-testid={`profile-card-${card.type}`}
-            className="flex flex-col gap-3 rounded-[20px] bg-[var(--puls-surface-2)] p-4"
+            className="flex flex-col gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4"
           >
             <p className="font-medium">{t(`profile.card.${card.type}`)}</p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -204,7 +204,7 @@ export function ProfileEditor() {
                 aria-label={t('profile.card.html_page')}
                 value={card.html ?? ''}
                 onChange={(event) => updateCard(index, { html: event.target.value })}
-                className="min-h-32 rounded-[var(--radius-button)] border border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-4 font-mono text-sm outline-none focus:border-[var(--puls-primary)]"
+                className="min-h-32 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] p-4 font-mono text-sm outline-none focus:border-[var(--puls-primary)]"
               />
             ) : null}
           </div>
@@ -222,7 +222,7 @@ export function ProfileEditor() {
           <a
             href={`/@${profile.nickname}`}
             data-testid="profile-open-public"
-            className="text-sm font-medium text-[var(--puls-primary-text)] underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--puls-primary-text)] underline"
           >
             {t('profile.openPublic')}
           </a>

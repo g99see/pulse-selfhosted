@@ -46,7 +46,7 @@ export default function FeedPage() {
       <div className="flex items-center gap-3">
         <IconBubble name="feed" tone="primary" size={48} />
         <div>
-          <h1 className="text-3xl font-extrabold">{t('feed.title')}</h1>
+          <h1 className="text-2xl font-extrabold">{t('feed.title')}</h1>
           <p className="mt-1 text-sm text-[var(--puls-ink-muted)]">{t('feed.subtitle')}</p>
         </div>
       </div>

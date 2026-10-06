@@ -358,22 +358,6 @@ else
   set_env COOKIE_SECURE "$COOKIE_SECURE"
   set_env CADDYFILE "$CADDYFILE"
   set_env SMTP_URL "$SMTP_URL_OPT"
-  [ -z "$ADMIN_EMAIL" ] || set_env VAPID_SUBJECT "mailto:${ADMIN_EMAIL}"
-
-  info 'Генерирую VAPID-ключи для web push (throwaway-контейнер node)...'
-  if VAPID_JSON=$(docker run --rm node:22-alpine npx -y web-push generate-vapid-keys --json 2>>"$LOG_FILE"); then
-    VPUB=$(printf '%s' "$VAPID_JSON" | sed -n 's/.*"publicKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-    VPRIV=$(printf '%s' "$VAPID_JSON" | sed -n 's/.*"privateKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-    if [ -n "$VPUB" ] && [ -n "$VPRIV" ]; then
-      set_env VAPID_PUBLIC_KEY "$VPUB"
-      set_env VAPID_PRIVATE_KEY "$VPRIV"
-      info 'VAPID-ключи сохранены'
-    else
-      warn 'Не удалось разобрать VAPID-ключи — web push будет выключен.'
-    fi
-  else
-    warn 'Не удалось сгенерировать VAPID-ключи — web push будет выключен (позже: pnpm --filter @puls/api vapid:generate).'
-  fi
   chmod 600 .env
   info '.env создан (chmod 600)'
 fi

@@ -58,7 +58,10 @@ export function GoalsCard() {
           <IconBubble name="target" tone="finance" />
           <h2 className="font-heading text-lg font-bold">{t('goals.card.title')}</h2>
         </div>
-        <Link href="/goals" className="text-sm font-semibold text-[var(--puls-primary-text)]">
+        <Link
+          href="/goals"
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--puls-primary-text)]"
+        >
           {t('goals.card.more')}
         </Link>
       </div>
@@ -72,7 +75,7 @@ export function GoalsCard() {
             action={
               <Link
                 href="/goals"
-                className="text-sm font-semibold text-[var(--puls-finance-text)] underline"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--puls-finance-text)] underline"
               >
                 {t('app.today.goalsCta')}
               </Link>
@@ -84,7 +87,7 @@ export function GoalsCard() {
           {featured.map((goal) => (
             <li
               key={goal.id}
-              className="flex items-center gap-3 rounded-[20px] bg-[var(--puls-finance-soft)] p-3"
+              className="flex items-center gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-finance-soft)] p-3"
             >
               <ProgressRing
                 percent={goal.percent}

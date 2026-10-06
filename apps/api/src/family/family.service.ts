@@ -30,6 +30,7 @@ import {
   type FamilyTransactionDto,
   type FamilyTransactionKind,
   type FamilyTransactionResult,
+  sumMoney,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
@@ -42,10 +43,6 @@ type FamilyWithMembers = Prisma.FamilyGetPayload<{
 type GoalWithDeposits = Prisma.FamilyGoalGetPayload<{
   include: { deposits: { include: { user: true } } };
 }>;
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
-}
 
 /** Приводит дату к UTC-полуночи (колонка @db.Date), по умолчанию — сегодня. */
 function toDateOnly(value?: string | null): Date | null {
@@ -309,9 +306,7 @@ export class FamilyService {
     });
     const currency = accounts[0]?.currency ?? 'RUB';
     // Итог складываем как есть: счета семьи ведут в одной основной валюте.
-    const totalBalance = round2(
-      accounts.reduce((sum, account) => sum + Number(account.balance), 0),
-    );
+    const totalBalance = sumMoney(accounts.map((account) => Number(account.balance)));
     return { accounts: accounts.map(toFamilyAccountDto), totalBalance, currency };
   }
 

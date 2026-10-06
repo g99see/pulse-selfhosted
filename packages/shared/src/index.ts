@@ -4,6 +4,8 @@
  */
 export * from './mood';
 export * from './checkin';
+export * from './checkin-parser';
+export * from './checkin-dialog';
 export * from './voice-tags';
 export * from './money';
 export * from './currency';
@@ -12,6 +14,7 @@ export * from './auth';
 export * from './setup';
 export * from './finance';
 export * from './import';
+export * from './reconcile';
 export * from './stats';
 export * from './insights';
 export * from './notifications';
@@ -35,3 +38,6 @@ export * from './family';
 export * from './capsules';
 export * from './challenges';
 export * from './wrapped';
+export * from './correlations';
+export * from './checkin-goal';
+export * from './day-summary';
