@@ -387,7 +387,6 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
 
     'app.nav.capsules': 'Капсулы',
 
-
     'finance.categories.title': 'Мои категории',
     'finance.categories.hint': 'Свои категории с иконкой и цветом. Системные — только для чтения.',
     'finance.categories.name': 'Название',
@@ -933,8 +932,6 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
 
     'app.nav.achievements': 'Достижения',
 
-
-
     'achievements.title': 'Достижения',
     'achievements.subtitle': 'Бейджи за серии чек-инов, первый бюджет и цели.',
     'achievements.earned': 'Получено',
@@ -972,12 +969,7 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'achievements.goal_complete.description': 'Цель накопления выполнена.',
     'checkin.card.streak': 'Серия: {days}',
 
-
     'auth.onboarding.accountNameDefault': 'Основной счёт',
-
-
-
-
 
     // AI-помощник (ТЗ §3.9).
     'app.nav.ai': 'AI-помощник',
@@ -1522,7 +1514,6 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'habits.error.nameRequired': 'Enter a name.',
 
     'app.nav.capsules': 'Capsules',
-
 
     'finance.categories.title': 'My categories',
     'finance.categories.hint':
@@ -2070,8 +2061,6 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
 
     'app.nav.achievements': 'Achievements',
 
-
-
     'achievements.title': 'Achievements',
     'achievements.subtitle': 'Badges for check-in streaks, your first budget and goals.',
     'achievements.earned': 'Earned',
@@ -2109,12 +2098,7 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'achievements.goal_complete.description': 'The savings goal is complete.',
     'checkin.card.streak': 'Streak: {days}',
 
-
     'auth.onboarding.accountNameDefault': 'Main account',
-
-
-
-
 
     // AI assistant (ТЗ §3.9).
     'app.nav.ai': 'AI assistant',
