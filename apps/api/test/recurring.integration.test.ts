@@ -10,7 +10,6 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { MailService } from '../src/auth/mail.service';
 import { RecurringScheduler } from '../src/finance/recurring.scheduler';
-import { PushService } from '../src/notifications/push.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { TestClient } from './client';
 
@@ -59,7 +58,6 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
   let prisma: PrismaService;
   let mail: MailService;
   let scheduler: RecurringScheduler;
-  let push: PushService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -70,7 +68,6 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
     prisma = app.get(PrismaService);
     mail = app.get(MailService);
     scheduler = app.get(RecurringScheduler);
-    push = app.get(PushService);
   });
 
   afterAll(async () => {
@@ -80,7 +77,8 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
   beforeEach(async () => {
     const statements = [
       'DELETE FROM "recurring_payments"',
-      'DELETE FROM "push_subscriptions"',
+      'DELETE FROM "notification_deliveries"',
+      'DELETE FROM "telegram_links"',
       'DELETE FROM "notification_rules"',
       'DELETE FROM "transactions"',
       'DELETE FROM "budgets"',
@@ -95,7 +93,6 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
       await prisma.$executeRawUnsafe(statement);
     }
     mail.clearOutbox();
-    push.clearOutbox();
   });
 
   async function signUp(email: string, nickname: string): Promise<TestClient> {
@@ -366,11 +363,10 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
       const account = await createAccount(client);
       const payment = await createRecurring(client, account.id, { name: 'Подписка' });
 
-      await client.post('/api/notifications/subscriptions', {
-        endpoint: 'https://push.example.com/recurring-1',
-        keys: { p256dh: 'BKxRecurringPushKey', auth: 'recurringAuth123' },
-        userAgent: 'vitest',
+      const owner = await prisma.user.findFirstOrThrow({
+        where: { email: 'rec-remind@example.com' },
       });
+      await prisma.telegramLink.create({ data: { userId: owner.id, chatId: '9001' } });
 
       const now = new Date('2026-03-15T09:00:00Z');
       await prisma.recurringPayment.update({
@@ -380,9 +376,10 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
 
       const first = await scheduler.runOnce(now);
       expect(first.reminders).toBe(1);
-      const delivered = push.outbox();
-      expect(delivered.some((entry) => entry.payload.type === 'payments')).toBe(true);
-      expect(delivered.some((entry) => entry.payload.body?.includes('Подписка'))).toBe(true);
+      const delivered = await prisma.notificationDelivery.findMany({ where: { type: 'payments' } });
+      expect(delivered).toHaveLength(1);
+      expect(delivered[0]).toMatchObject({ channel: 'telegram', status: 'queued' });
+      expect(JSON.stringify(delivered[0]!.payload)).toContain('Подписка');
 
       const stamped = await prisma.recurringPayment.findUniqueOrThrow({
         where: { id: payment.id },
@@ -391,7 +388,7 @@ describe('Recurring payments API (интеграция с PostgreSQL)', () => {
 
       const second = await scheduler.runOnce(now);
       expect(second.reminders).toBe(0);
-      expect(push.outbox()).toHaveLength(delivered.length);
+      expect(await prisma.notificationDelivery.count({ where: { type: 'payments' } })).toBe(1);
 
       // Транзакция заранее не создаётся: списание ещё не наступило.
       expect((await client.get('/api/finance/transactions')).body.transactions).toHaveLength(0);

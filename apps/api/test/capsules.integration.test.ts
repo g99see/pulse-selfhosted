@@ -10,7 +10,6 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { MailService } from '../src/auth/mail.service';
 import { CapsulesScheduler } from '../src/capsules/capsules.scheduler';
-import { PushService } from '../src/notifications/push.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { TestClient } from './client';
 
@@ -39,7 +38,6 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
   let prisma: PrismaService;
   let mail: MailService;
   let scheduler: CapsulesScheduler;
-  let push: PushService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -50,7 +48,6 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
     prisma = app.get(PrismaService);
     mail = app.get(MailService);
     scheduler = app.get(CapsulesScheduler);
-    push = app.get(PushService);
   });
 
   afterAll(async () => {
@@ -67,7 +64,8 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
       'DELETE FROM "categories" WHERE "user_id" IS NOT NULL',
       'DELETE FROM "accounts"',
       'DELETE FROM "check_ins"',
-      'DELETE FROM "push_subscriptions"',
+      'DELETE FROM "notification_deliveries"',
+      'DELETE FROM "telegram_links"',
       'DELETE FROM "notification_rules"',
       'DELETE FROM "sessions"',
       'DELETE FROM "email_verification_tokens"',
@@ -77,7 +75,6 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
       await prisma.$executeRawUnsafe(statement);
     }
     mail.clearOutbox();
-    push.clearOutbox();
   });
 
   async function signUp(
@@ -251,14 +248,7 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
 
   it('планировщик открывает созревшую капсулу один раз и шлёт уведомление', async () => {
     const { client, userId } = await signUp(`${unique('cap')}@example.com`, unique('capuser'));
-    await prisma.pushSubscription.create({
-      data: {
-        userId,
-        endpoint: 'https://push.example.com/capsule',
-        p256dh: 'BKxTestPushKeyMaterials',
-        auth: 'authSecret123',
-      },
-    });
+    await prisma.telegramLink.create({ data: { userId, chatId: `cap-${userId}` } });
 
     const created = await createCapsule(client, {
       title: 'Созревшая',
@@ -278,13 +268,13 @@ describe('Capsules API (интеграция с PostgreSQL)', () => {
     expect(row.openedAt).not.toBeNull();
     expect(row.snapshot).toBeTruthy();
 
-    const delivered = push.outbox().filter((entry) => entry.payload.type === 'capsule');
+    const delivered = await prisma.notificationDelivery.findMany({ where: { type: 'capsule' } });
     expect(delivered).toHaveLength(1);
 
     // Второй тик ничего не открывает повторно (CAS по opened_at).
     const second = await scheduler.runOnce(now);
     expect(second).toEqual([]);
-    expect(push.outbox().filter((entry) => entry.payload.type === 'capsule')).toHaveLength(1);
+    expect(await prisma.notificationDelivery.count({ where: { type: 'capsule' } })).toBe(1);
   });
 
   it('не отдаёт и не удаляет чужую капсулу', async () => {

@@ -68,7 +68,7 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 - Self-hosted, open source (AGPL), no mandatory cloud services
 - Cookie sessions, CSRF protection, Argon2, 2FA (TOTP), sign-in with Google and Telegram
 - Secrets are encrypted with AES-256-GCM; "Quiet" mode hides all amounts (Alt+Q)
-- Telegram bot, web push and email notifications, PWA, open API and webhooks (Home Assistant, n8n)
+- Telegram and Discord notifications, PWA, open API and webhooks (Home Assistant, n8n)
 
 The interface is available in English and Russian, with 15 base currencies (EUR, USD, GBP, RUB, UAH, KZT and more).
 More details in the [documentation](docs-site/index.md) (currently in Russian).

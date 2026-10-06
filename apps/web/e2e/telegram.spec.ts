@@ -51,7 +51,7 @@ test('привязка Telegram-чата из настроек и отвязка
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
   await page.goto('/settings');
-  await expect(page.getByTestId('telegram-section')).toBeVisible();
+  await expect(page.getByTestId('channel-telegram')).toBeVisible();
 
   // Без настроенного бота секция честно сообщает об этом — этого достаточно.
   // Сначала ждём, пока статус бота загрузится (одно из двух состояний), иначе

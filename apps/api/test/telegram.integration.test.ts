@@ -15,6 +15,7 @@ import { configureApp } from '../src/app.setup';
 import { FinanceModule } from '../src/finance/finance.module';
 import { NotificationDispatcher } from '../src/notifications/dispatcher';
 import { NotificationsModule } from '../src/notifications/notifications.module';
+import { OutboxService } from '../src/notifications/outbox.service';
 import { PrismaModule } from '../src/prisma/prisma.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { StatsModule } from '../src/stats/stats.module';
@@ -103,6 +104,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     for (const statement of [
       'DELETE FROM "telegram_links"',
       'DELETE FROM "telegram_link_codes"',
+      'DELETE FROM "notification_deliveries"',
       'DELETE FROM "users"',
     ]) {
       await prisma.$executeRawUnsafe(statement);
@@ -463,7 +465,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
   });
 
   describe('Диспетчер уведомлений: канал telegram', () => {
-    it('чек-ин-вопрос уходит в чат с inline-кнопками 1–5', async () => {
+    it('чек-ин-вопрос из outbox уходит в чат с inline-кнопками 1–5', async () => {
       const { userId } = await signUpLinked('tg-dispatch@example.com', 'tgdispatchu', '1501');
       const dispatcher = app.get(NotificationDispatcher);
 
@@ -475,18 +477,20 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
           times: ['09:00'],
           quietHours: { start: 22, end: 8 },
         },
-        { now: new Date(), email: 'tg-dispatch@example.com', timezone: 'UTC' },
+        { now: new Date(), timezone: 'UTC' },
       );
-
       expect(delivered).toBe(true);
+
+      const result = await app.get(OutboxService).processQueue();
+      expect(result.sent).toBe(1);
       const message = lastSent('1501');
       expect(message?.buttons?.flat()).toHaveLength(5);
     });
 
-    it('без привязки чата доставка не удалась', async () => {
+    it('без привязки чата доставка помечается blocked, а не повторяется', async () => {
       const { userId } = await signUp('tg-none@example.com', 'tgnoneuser');
       const dispatcher = app.get(NotificationDispatcher);
-      const delivered = await dispatcher.dispatch(
+      await dispatcher.dispatch(
         {
           userId,
           type: 'checkins',
@@ -494,9 +498,10 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
           times: ['09:00'],
           quietHours: { start: 22, end: 8 },
         },
-        { now: new Date(), email: 'tg-none@example.com', timezone: 'UTC' },
+        { now: new Date(), timezone: 'UTC' },
       );
-      expect(delivered).toBe(false);
+      const result = await app.get(OutboxService).processQueue();
+      expect(result.blocked).toBe(1);
     });
   });
 

@@ -19,6 +19,7 @@ import {
   undoKeyboard,
   type InlineButton,
 } from './commands';
+import { DeliveryError, classifyTelegramError } from '../notifications/outbox-logic';
 import { generateLinkCode, hashLinkCode, linkCodeMatches, LINK_CODE_TTL_MS } from './link-code';
 import {
   alreadyLinkedText,
@@ -51,6 +52,8 @@ export interface TelegramStatus {
   enabled: boolean;
   mode: 'webhook' | 'polling';
   linked: boolean;
+  /** Бот заблокирован пользователем: доставка остановлена. */
+  blocked: boolean;
   chatUsername: string | null;
   linkedAt: string | null;
 }
@@ -98,6 +101,7 @@ export class TelegramService implements OnModuleInit {
       enabled: this.enabled,
       mode: this.mode,
       linked: link !== null,
+      blocked: link?.blockedAt != null,
       chatUsername: link?.username ?? null,
       linkedAt: link?.linkedAt.toISOString() ?? null,
     };
@@ -143,12 +147,26 @@ export class TelegramService implements OnModuleInit {
     return result.count > 0;
   }
 
-  /** Отправка в чат пользователя; false — если чат не привязан. */
-  async sendToUser(userId: string, text: string, buttons?: InlineButton[][]): Promise<boolean> {
+  /**
+   * Доставка из outbox: бросает DeliveryError (blocked — чат не привязан или
+   * бот заблокирован, Telegram 403), чтобы воркер мог выбрать backoff или стоп.
+   */
+  async deliver(userId: string, text: string, buttons?: InlineButton[][]): Promise<void> {
     const link = await this.prisma.telegramLink.findUnique({ where: { userId } });
-    if (!link) return false;
-    await this.send(link.chatId, text, buttons);
-    return true;
+    if (!link) throw new DeliveryError('telegram: чат не привязан', { blocked: true });
+    try {
+      await this.api.sendMessage({ chatId: link.chatId, text, buttons });
+    } catch (error) {
+      throw classifyTelegramError(error);
+    }
+  }
+
+  /** Помечает привязку заблокированной (бот заблокирован пользователем). */
+  async markBlocked(userId: string): Promise<void> {
+    await this.prisma.telegramLink.updateMany({
+      where: { userId, blockedAt: null },
+      data: { blockedAt: new Date() },
+    });
   }
 
   /* ----- Обработка апдейтов ----- */
