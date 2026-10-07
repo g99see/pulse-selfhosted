@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { RolesGuard } from '../auth/roles.guard';
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { AchievementsController } from './achievements.controller';
