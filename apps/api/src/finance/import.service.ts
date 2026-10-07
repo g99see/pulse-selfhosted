@@ -142,6 +142,36 @@ export class ImportService {
     };
   }
 
+  /**
+   * Разбирает по категориям уже загруженные операции без категории: тот же
+   * распознаватель, что и при импорте. Категории, выбранные вручную, не трогаем.
+   */
+  async recategorize(userId: string): Promise<{ checked: number; categorized: number }> {
+    const recognizer = await this.buildRecognizer(userId);
+    const rows = await this.prisma.transaction.findMany({
+      where: { userId, categoryId: null, type: { in: ['expense', 'income'] } },
+      select: { id: true, type: true, comment: true },
+    });
+    const byCategory = new Map<string, string[]>();
+    for (const row of rows) {
+      if (!row.comment) continue;
+      const match = recognizer(row.comment, row.type === 'income' ? 'income' : 'expense');
+      if (!match?.categoryId) continue;
+      const ids = byCategory.get(match.categoryId) ?? [];
+      ids.push(row.id);
+      byCategory.set(match.categoryId, ids);
+    }
+    let categorized = 0;
+    for (const [categoryId, ids] of byCategory) {
+      const result = await this.prisma.transaction.updateMany({
+        where: { id: { in: ids }, userId, categoryId: null },
+        data: { categoryId },
+      });
+      categorized += result.count;
+    }
+    return { checked: rows.length, categorized };
+  }
+
   async commit(userId: string, input: ImportCommitRequest) {
     const account = await this.accounts.resolveOwned(userId, input.accountId);
     const parsed = this.parse(input);
