@@ -94,6 +94,6 @@ test('импорт выписки CSV создаёт транзакции из �
   // Транзакции видны на экране финансов в подходящих категориях.
   await page.goto('/finance');
   const list = page.getByTestId('finance-transactions');
-  await expect(list).toContainText('Еда');
+  await expect(list).toContainText('Кафе и рестораны');
   await expect(list).toContainText('Зарплата');
 });
