@@ -5,6 +5,7 @@
  */
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { DiscordStatusResponse } from '@puls/shared';
+import { PasswordResetService } from '../auth/password-reset.service';
 import { RateLimitService } from '../auth/rate-limit.service';
 import { httpError } from '../common/http-error';
 import {
@@ -37,6 +38,7 @@ export class DiscordService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly rateLimit: RateLimitService,
+    private readonly passwordReset: PasswordResetService,
     @Inject(DISCORD_API) private readonly api: DiscordApi,
   ) {}
 
@@ -122,9 +124,21 @@ export class DiscordService implements OnModuleInit {
     if (!this.enabled) return;
 
     if (event.kind === 'interaction') {
+      if (event.command === 'password') {
+        const reply = await this.passwordLink(event.discordUserId);
+        await this.safe(() => this.api.respondInteraction(event.interactionId, event.token, reply));
+        return;
+      }
       if (event.command !== 'link') return;
       const reply = await this.link(event.discordUserId, event.username, event.code);
       await this.safe(() => this.api.respondInteraction(event.interactionId, event.token, reply));
+      return;
+    }
+
+    // Команда смены пароля в личных сообщениях (v3 §7).
+    if (/^[/!]password$/i.test(event.text.trim())) {
+      const reply = await this.passwordLink(event.discordUserId);
+      await this.safe(() => this.api.sendMessage(event.channelId, reply));
       return;
     }
 
@@ -142,6 +156,21 @@ export class DiscordService implements OnModuleInit {
       data: { blockedAt: null },
     });
     await this.safe(() => this.api.sendMessage(event.channelId, TEXT.hint));
+  }
+
+  /** Команда /password: одноразовая ссылка сброса/установки пароля (30 мин, v3 §7). */
+  private async passwordLink(discordUserId: string): Promise<string> {
+    const link = await this.prisma.discordLink.findUnique({
+      where: { discordUserId },
+      include: { user: true },
+    });
+    if (!link) return TEXT.hint;
+    const issued = await this.passwordReset.issue(
+      link.userId,
+      link.user.passwordHash ? 'reset' : 'setup',
+    );
+    const duration = link.user.passwordHash ? '30 минут' : '24 часа';
+    return `Ссылка для нового пароля «Пульса»:\n${issued.url}\n\nСсылка одноразовая и действует ${duration}.`;
   }
 
   /** Привязывает Discord-аккаунт по коду; возвращает текст ответа. */

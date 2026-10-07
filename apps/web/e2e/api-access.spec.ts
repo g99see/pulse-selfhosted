@@ -44,10 +44,11 @@ test('открытый API: токен в настройках, /api/v1/me по 
   // Регистрация, подтверждение email и онбординг.
   await page.goto('/register');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Повторите пароль').fill(PASSWORD);
   await page.getByLabel('Никнейм').fill(nickname);
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL(/verify-email/);
+  await expect(page).toHaveURL(/onboarding/, { timeout: 20_000 });
 
   const token = await verificationTokenFor(request, email);
   await page.goto(`/verify-email?token=${token}`);

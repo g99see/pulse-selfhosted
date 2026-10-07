@@ -31,8 +31,8 @@
 
 Prisma-модели: `User Session EmailVerificationToken Account CheckIn Category
 Transaction Budget NotificationRule DailyStat DiscordLink NotificationDelivery TelegramLink
-TelegramLinkCode ExternalIdentity InstanceSettings TwoFactorBackupCode
-TwoFactorChallenge ExchangeRate Goal GoalDeposit Insight RecurringPayment
+TelegramLinkCode ExternalIdentity InstanceSettings
+PasswordToken ExchangeRate Goal GoalDeposit Insight RecurringPayment
 Achievement UserAchievement TimeCapsule Habit HabitLog DaySummaryLink` и др. (полный список — `apps/api/prisma/schema.prisma`).
 Социальных сущностей (подписки, лента, публичные профили, семья, челленджи) нет — данные одного пользователя другому не показываются.
 

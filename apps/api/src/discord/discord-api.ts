@@ -50,6 +50,15 @@ export const LINK_COMMAND = {
   ],
 };
 
+/** Определение slash-команды /password (ссылка для смены пароля, v3 §7). */
+export const PASSWORD_COMMAND = {
+  name: 'password',
+  type: 1,
+  description: 'Get a one-time link to set a new Puls password',
+  description_localizations: { ru: 'Ссылка для смены или установки пароля Пульса' },
+  dm_permission: true,
+};
+
 /** Заглушка без токена: ничего не делает. */
 export class NullDiscordApi implements DiscordApi {
   async createDmChannel(discordUserId: string): Promise<string> {
@@ -135,7 +144,10 @@ export class RestDiscordApi implements DiscordApi {
 
   async registerCommands(): Promise<void> {
     if (this.applicationId.length === 0) return;
-    await this.call('PUT', `/applications/${this.applicationId}/commands`, [LINK_COMMAND]);
+    await this.call('PUT', `/applications/${this.applicationId}/commands`, [
+      LINK_COMMAND,
+      PASSWORD_COMMAND,
+    ]);
   }
 
   private async call<T = unknown>(

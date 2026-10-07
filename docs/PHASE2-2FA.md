@@ -1,88 +1,68 @@
-# Фаза 2 — Двухфакторная аутентификация (TOTP, ТЗ §6)
+# Фаза 2 — 2FA и вход через Telegram: удаление (ТЗ §7, v3)
 
-Кратко: TOTP по RFC 6238 (HMAC-SHA1, шаг 30 с, 6 цифр, окно ±1), секрет
-хранится зашифрованным AES-256-GCM, резервные коды — только хешами, шаг входа
-между паролем и кодом — одноразовым пропуском. Всё реализовано на `node:crypto`
-без новых зависимостей.
+Раньше здесь описывалась двухфакторная аутентификация (TOTP) и вход через
+Telegram (Login Widget). В v3 §7 **и то, и другое удалено**. Документ фиксирует,
+что убрано и чем заменено; актуальное поведение входа — в `docs/PHASE1-AUTH.md`.
 
-## Новые переменные окружения
+## Что удалено
 
-| Переменная | Назначение | Обязательность |
-|---|---|---|
-| `APP_ENCRYPTION_KEY` | мастер-ключ AES-256-GCM, ровно 32 байта в base64 | в production обязательна для 2FA |
+### 2FA (TOTP) — удалена полностью
 
-Поведение без ключа:
-- `NODE_ENV=production` и нет `APP_ENCRYPTION_KEY` → 2FA **недоступна**: `POST /api/auth/2fa/setup`
-  отвечает `503 two_factor_unavailable`, а `GET /api/auth/2fa` возвращает `available: false`
-  (UI показывает явное предупреждение). Никакого «тихого» отката к небезопасному ключу.
-- dev/test → используется явный тестовый ключ `DEV_TEST_KEY_BASE64` (детерминированный,
-  только для не-production; см. `apps/api/src/crypto/secret-box.ts`).
+- Нет эндпоинтов `/api/auth/2fa`, `/api/auth/2fa/setup|enable|disable` и
+  `/api/auth/login/2fa`; `POST /api/auth/login` больше не возвращает
+  `twoFactorRequired`/`challengeToken`.
+- Нет кода: `apps/api/src/auth/two-factor.service.ts`, `crypto/totp.ts`,
+  `crypto/base32.ts`, `crypto/qr.ts`, веб-компонента `two-factor-section.tsx`,
+  e2e-спеки `two-factor.spec.ts`.
+- Миграция `apps/api/prisma/migrations/20261007110000_remove_2fa_tg_login/`
+  удаляет колонки `two_fa_enabled`, `two_fa_secret`, `two_fa_confirmed_at`,
+  `two_fa_last_step` и таблицы `two_factor_backup_codes`, `two_factor_challenges`.
+  `down.sql` возвращает структуру пустой: секреты и резервные коды восстановить
+  нельзя, у всех 2FA остаётся выключенной.
+- `two_factor_backup_codes` и `two_factor_challenges` исключены из реестра
+  выгрузки (`account/data-registry.ts`); `two_fa_secret` больше в схеме нет.
+- `APP_ENCRYPTION_KEY` **больше не связан с 2FA**. Он по-прежнему нужен для
+  хранения секретов: AI-ключи, секреты вебхуков открытого API, тела капсул.
 
-`.env.example`, Caddyfile и docker-compose не менялись: переменную описываем здесь.
+### Вход через Telegram — удалён
 
-## API (все под `SessionGuard`, кроме входа)
+- Нет эндпоинтов `/api/auth/telegram` и `/api/auth/link/telegram`; нет
+  Telegram Login Widget и файла `components/telegram-login-button.tsx`.
+- `GET /api/auth/providers` возвращает только `{ google }`; `ExternalProviderId`
+  в `@puls/shared` — только `'google'`.
+- Telegram остаётся **каналом уведомлений** и ботом (чек-ины, быстрые траты,
+  команда `/password`); вход через него невозможен.
+- Строки `external_identities` с `provider = 'telegram'` **сохранены** — только
+  как признак «пользователь входил через Telegram и пароля не задал» (см. ниже).
 
-| Метод | Путь | Назначение |
-|---|---|---|
-| `GET` | `/api/auth/2fa` | статус `{ enabled, available }` |
-| `POST` | `/api/auth/2fa/setup` | сгенерировать секрет, вернуть `secret`, `otpauthUri`, `qrDataUrl` |
-| `POST` | `/api/auth/2fa/enable` | `{ code }` → включить 2FA и выдать 10 резервных кодов |
-| `POST` | `/api/auth/2fa/disable` | `{ password, code }` → выключить 2FA |
-| `POST` | `/api/auth/login` | при включённой 2FA: `200 { twoFactorRequired: true, challengeToken }` **без сессии** |
-| `POST` | `/api/auth/login/2fa` | `{ challengeToken, code }` → сессия (код TOTP или резервный) |
+## Чем заменено
 
-Статус и настройка строго изолированы по пользователю (берём `req.user` из сессии).
+- **Вход** — логин (никнейм) **или** почта плюс пароль (`POST /api/auth/login`).
+- **Регистрация** — прямо с начального экрана, без обязательного email
+  (`POST /api/auth/register`); почта нужна только для сброса пароля письмом.
+- **Пароль** — минимум 8 символов, хранится хешем Argon2id.
+- **Забыли пароль** — одноразовая ссылка `POST /api/auth/forgot-password`
+  (письмо, если почта указана) либо команда `/password` в боте.
+- **Сброс/установка по ссылке** — токен живёт **30 минут**, в БД хранится только
+  SHA-256 (`password_tokens`); при установке нового пароля все сессии
+  пользователя завершаются.
+- **Пользователи, входившие только через Telegram** (у них `passwordHash = null`):
+  бот при первом сообщении сам присылает одноразовую ссылку «задайте логин и
+  пароль» (setup-токен) и после следующего входа показывается напоминание.
+  ТЗ ожидает ссылку с TTL 24 часа — в коде те же 30 минут.
 
-## Хранение и безопасность
+## Лимиты
 
-- `users.two_fa_secret` — секрет TOTP в формате `v1.<iv>.<tag>.<ciphertext>`
-  (AES-256-GCM, случайный IV 12 байт, аутентификация GCM). В открытом виде не хранится.
-- `users.two_fa_last_step` — последний принятый шаг TOTP. Повтор кода в окне (и код,
-  которым подтверждали включение) отклоняется: принимается только шаг строго больше.
-- `two_factor_backup_codes` — SHA-256 от нормализованного резервного кода; выставляется
-  `used_at` при использовании, повтор не проходит.
-- `two_factor_challenges` — SHA-256 от токена пропуска, TTL 5 минут, одноразовый.
-- Лимит попыток второго фактора через существующий `RateLimitService`:
-  5 на пропуск и 20 на IP за 15 минут → `429 rate_limited`.
+- Вход: 5 попыток на логин/почту и 100 на IP за 15 минут → `429 rate_limited`.
+- Ссылка-установка в боте: не чаще 1 раза в 10 минут на чат.
 
-## Криптомодули (`apps/api/src/crypto/`)
+## Тесты и миграция
 
-- `base32.ts` — RFC 4648 без зависимостей.
-- `totp.ts` — `generateTotpSecret`, `hotp`, `totp`, `matchTotpStep`, `otpauthUri`.
-  Покрыт векторами Приложения B RFC 6238 (8 и 6 цифр).
-- `secret-box.ts` — `SecretBox`, `resolveMasterKey`, DI-провайдер `SecretBoxService`.
-  Переиспользуется будущими AI-ключами.
-- `qr.ts` — минимальный QR-энкодер (byte-режим, версии 1–10, L/M/Q/H, автоподбор
-  версии и маски). Матрицы сверены с независимым декодером (zxing-cpp). Если ссылка
-  не помещается — `qrDataUrl: null`, UI всё равно показывает секрет и URI для ручного ввода.
-
-## Выгрузка данных (ТЗ §3.1, §6)
-
-`two_factor_backup_codes` и `two_factor_challenges` добавлены в `EXCLUDED_USER_TABLES`,
-`code_hash` — в шаблоны секретных колонок; `two_fa_secret` уже был скрыт в
-`EXPORT_TABLES` для `users`. Есть unit-тест на покрытие реестра и интеграционный тест,
-что выгрузка не содержит секретов 2FA.
-
-## UI
-
-- `apps/web/src/components/two-factor-section.tsx` — секция на `/settings`: QR/секрет,
-  ввод кода, показ резервных кодов, выключение по паролю и коду.
-- `apps/web/src/app/login/page.tsx` — при `twoFactorRequired` показывается шаг ввода
-  кода (TOTP или резервного) и вход завершается.
-- Строки — только в `apps/web/src/lib/i18n.ts` (ru + en, одинаковый набор ключей).
-
-## Тесты
-
-- Юнит: `src/crypto/totp.test.ts` (векторы RFC 6238), `secret-box.test.ts`, `qr.test.ts`.
-- Интеграционные: `test/two-factor.integration.test.ts` — setup/enable/disable, вход с
-  2FA, отказ входа без сессии, повтор TOTP и резервного кода, чужой секрет, лимит 429,
-  шифрование секрета в БД, отсутствие секретов в выгрузке.
-- Web: `test/two-factor-client.test.ts`, проверки i18n и отсутствия зашитых строк.
-- E2E: `apps/web/e2e/two-factor.spec.ts` — включение через API и вход с вторым фактором
-  в браузере; отдельно проверяется, что вход без 2FA не изменился.
-
-## Миграция
-
-`apps/api/prisma/migrations/20261001155200_two_factor/migration.sql` — колонки
-`two_fa_secret`, `two_fa_confirmed_at`, `two_fa_last_step` и две таблицы. Создана
-отдельно, чтобы не тянуть чужие незакоммиченные изменения схемы.
+- Удалены `two-factor.integration.test.ts`, `totp.test.ts`, `base32`/`qr.test.ts`,
+  `telegram.test.ts`, `two-factor-client.test.ts`, e2e `two-factor.spec.ts`.
+- `packages/shared/src/two-factor.ts` и его схемы удалены.
+- В `apps/api/test/external-auth.integration.test.ts` закреплено, что
+  `/auth/telegram` и `/auth/link/telegram` больше не существуют.
+- Миграции: `20261007110000_remove_2fa_tg_login` (удаление 2FA и входа через
+  Telegram) и `20261007112000_optional_email_password_tokens` (почта
+  необязательна, таблица `password_tokens` для ссылок сброса/установки).

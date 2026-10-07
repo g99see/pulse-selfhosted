@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Клиент API аутентификации (ТЗ §6): cookie-сессии + CSRF-заголовок.
+ * Клиент API аутентификации (ТЗ §6, v3 §7): cookie-сессии + CSRF-заголовок.
  * Все запросы идут с credentials: 'include'.
  */
 import type {
+  ForgotPasswordInput,
   IdentitiesResponse,
   LoginInputValues,
   LoginResult,
   MeResponse,
+  NicknameAvailabilityResponse,
   OnboardingInputValues,
   OnboardingResponse,
+  PasswordTokenInfo,
+  PasswordTokenInput,
   ProvidersResponse,
   PublicUser,
   RegisterInputValues,
   SessionsResponse,
-  TelegramAuthInput,
-  TwoFactorEnableResponse,
-  TwoFactorSetupResponse,
-  TwoFactorStatus,
 } from '@puls/shared';
 import { API_BASE_URL } from './api';
 
@@ -122,45 +122,47 @@ export async function authFetch<T>(path: string, init: RequestInit = {}): Promis
 }
 
 export const authApi = {
+  /** Регистрация (v3 §7.2): логин + пароль, почта необязательна; сразу выдаёт сессию. */
   register: (input: RegisterInputValues) =>
-    authFetch<{ user: PublicUser }>('/api/auth/register', {
+    authFetch<{ user: PublicUser; verificationSent: boolean }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(input),
     }),
 
+  /** Живая проверка доступности логина на форме регистрации. */
+  nicknameAvailable: (nickname: string) =>
+    authFetch<NicknameAvailabilityResponse>(
+      `/api/auth/nickname-available?nickname=${encodeURIComponent(nickname)}`,
+    ),
+
+  /** Вход: логин ИЛИ почта + пароль (v3 §7.3). */
   login: (input: LoginInputValues) =>
     authFetch<LoginResult>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(input),
     }),
 
-  /** Второй шаг входа: код TOTP или резервный код (ТЗ §6). */
-  loginTwoFactor: (challengeToken: string, code: string) =>
-    authFetch<{ user: PublicUser }>('/api/auth/login/2fa', {
-      method: 'POST',
-      body: JSON.stringify({ challengeToken, code }),
-    }),
-
-  twoFactorStatus: () => authFetch<TwoFactorStatus>('/api/auth/2fa'),
-
-  twoFactorSetup: () =>
-    authFetch<TwoFactorSetupResponse>('/api/auth/2fa/setup', { method: 'POST' }),
-
-  twoFactorEnable: (code: string) =>
-    authFetch<TwoFactorEnableResponse>('/api/auth/2fa/enable', {
-      method: 'POST',
-      body: JSON.stringify({ code }),
-    }),
-
-  twoFactorDisable: (password: string, code: string) =>
-    authFetch<void>('/api/auth/2fa/disable', {
-      method: 'POST',
-      body: JSON.stringify({ password, code }),
-    }),
-
   logout: () => authFetch<void>('/api/auth/logout', { method: 'POST' }),
 
   me: () => authFetch<MeResponse>('/api/auth/me'),
+
+  /** Ссылка сброса пароля: письмом (если есть почта) или сообщением бота. */
+  forgotPassword: (input: ForgotPasswordInput) =>
+    authFetch<{ sent: true }>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  /** Что за токеном из ссылки сброса/установки пароля. */
+  passwordToken: (token: string) =>
+    authFetch<PasswordTokenInfo>(`/api/auth/password-token?token=${encodeURIComponent(token)}`),
+
+  /** Новый пароль по токену: завершает прочие сессии и выдаёт текущую. */
+  resetPassword: (input: PasswordTokenInput) =>
+    authFetch<{ user: PublicUser }>('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 
   verifyEmail: (token: string) =>
     authFetch<{ user: PublicUser }>('/api/auth/verify-email', {
@@ -184,24 +186,15 @@ export const authApi = {
 
   revokeSession: (id: string) => authFetch<void>(`/api/auth/sessions/${id}`, { method: 'DELETE' }),
 
+  /** «Выйти со всех устройств»: завершает все сессии, кроме текущей. */
+  revokeOtherSessions: () =>
+    authFetch<{ revoked: number }>('/api/auth/sessions', { method: 'DELETE' }),
+
   /** Включённые владельцем внешние провайдеры (ТЗ §3.1). */
   providers: () => authFetch<ProvidersResponse>('/api/auth/providers'),
 
-  /** Вход через Telegram Login Widget: данные подписывает Telegram. */
-  telegram: (input: TelegramAuthInput) =>
-    authFetch<{ user: PublicUser; needsEmail: boolean }>('/api/auth/telegram', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    }),
-
   /** Привязанные способы входа текущего пользователя. */
   identities: () => authFetch<IdentitiesResponse>('/api/auth/identities'),
-
-  linkTelegram: (input: TelegramAuthInput) =>
-    authFetch<IdentitiesResponse>('/api/auth/link/telegram', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    }),
 
   unlinkIdentity: (provider: string) =>
     authFetch<void>(`/api/auth/identities/${provider}`, { method: 'DELETE' }),

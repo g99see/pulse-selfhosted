@@ -25,7 +25,7 @@ export interface ExportTable {
 
 /** Таблицы, которые отдаются пользователю (без секретов). */
 export const EXPORT_TABLES: readonly ExportTable[] = [
-  { table: 'users', entity: 'user', keyColumn: 'id', secretColumns: ['two_fa_secret'] },
+  { table: 'users', entity: 'user', keyColumn: 'id', secretColumns: ['password_hash'] },
   { table: 'accounts', entity: 'accounts', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'categories', entity: 'categories', keyColumn: 'user_id', orderBy: '"created_at"' },
   {
@@ -69,7 +69,7 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
     keyColumn: 'user_id',
     orderBy: '"date", "base", "quote"',
   },
-  // Внешние привязки входа (ТЗ §3.1, §7): subject не секрет, выгружаем как есть.
+  // Внешние привязки (Google; для Telegram — прежние записи без пароля): subject не секрет.
   {
     table: 'external_identities',
     entity: 'externalIdentities',
@@ -146,11 +146,10 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
 export const EXCLUDED_USER_TABLES: readonly { table: string; reason: string }[] = [
   { table: 'sessions', reason: 'секрет: хеш токена серверной сессии' },
   { table: 'email_verification_tokens', reason: 'секрет: одноразовый токен подтверждения email' },
-  { table: 'discord_link_codes', reason: 'секрет: хеш одноразового кода привязки Discord' },
-  { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового кода привязки Telegram' },
+  { table: 'discord_link_codes', reason: 'секрет: хеш одноразового токена привязки Discord' },
+  { table: 'telegram_link_codes', reason: 'секрет: хеш одноразового токена привязки Telegram' },
   { table: 'check_in_drafts', reason: 'временный черновик диалога чек-ина (TTL 30 минут)' },
-  { table: 'two_factor_backup_codes', reason: 'секрет: хеши одноразовых резервных кодов 2FA' },
-  { table: 'two_factor_challenges', reason: 'секрет: хеш временного пропуска шага 2FA' },
+  { table: 'password_tokens', reason: 'секрет: хеш одноразового токена установки/сброса пароля' },
   { table: 'day_summary_links', reason: 'секрет: хеш токена приватной ссылки «Итог дня»' },
   // Токены открытого API (ТЗ §4): секрет — хеш токена.
   { table: 'api_tokens', reason: 'секрет: хеш личного токена доступа' },

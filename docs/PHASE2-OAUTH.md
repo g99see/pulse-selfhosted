@@ -1,9 +1,10 @@
-# Фаза 2. Вход через Google и Telegram (ТЗ §3.1, §7)
+# Фаза 2. Вход через Google (Telegram-вход удалён в v3 §7.3)
 
-Документ описывает внешние способы входа: Google (OAuth2/OIDC, authorization code
-+ PKCE) и Telegram Login Widget (подпись HMAC-SHA256). Оба включаются ключами
-владельца инстанса; без ключей провайдер выключен, кнопки в интерфейсе скрыты, а
-эндпоинты отвечают `404 provider_disabled`.
+Документ описывает внешний способ входа — Google (OAuth2/OIDC, authorization code
++ PKCE). Вход через Telegram Login Widget **удалён** (v3 §7.3): Telegram остаётся
+только каналом уведомлений и ботом, но способом входа больше не является.
+Провайдер включается ключами владельца инстанса; без ключей он выключен, кнопка в
+интерфейсе скрыта, а эндпоинты отвечают `404 provider_disabled`.
 
 ## Переменные окружения
 
@@ -18,26 +19,26 @@
 | `GOOGLE_AUTH_ENDPOINT` | нет | подмена endpoint согласия (тесты/self-hosted прокси) |
 | `GOOGLE_TOKEN_ENDPOINT` | нет | подмена token endpoint |
 | `GOOGLE_JWKS_URL` | нет | подмена набора JWKS |
-| `TELEGRAM_BOT_TOKEN` | для Telegram | токен бота вида `123:ABC` |
-| `TELEGRAM_BOT_USERNAME` | для Telegram | имя бота для виджета (без `@`) |
 | `OAUTH_STATE_TTL_SECONDS` | нет | TTL `state`/PKCE, по умолчанию 600 с |
 | `WEB_APP_URL` | нет | куда возвращать браузер после callback (по умолчанию `http://localhost:3000`) |
 
-Включатель — наличие обеих переменных пары. Непустые значения обязательны: пустая
-строка считается «не задано».
+Включатель — наличие обеих переменных пары `GOOGLE_*`. Непустые значения
+обязательны: пустая строка считается «не задано». Переменные `TELEGRAM_*` — это
+бот-канал уведомлений (см. `docs/PHASE2-TELEGRAM.md`), а не способ входа.
 
 ## Эндпоинты
 
 | Метод | Путь | Доступ | Назначение |
 | --- | --- | --- | --- |
-| GET | `/api/auth/providers` | публичный | список включённых провайдеров: `{ google, telegram, telegramBotUsername }` |
+| GET | `/api/auth/providers` | публичный | список включённых провайдеров: `{ google }` |
 | GET | `/api/auth/google/start` | публичный | 302 на Google (authorization code + PKCE + state) |
 | GET | `/api/auth/google/callback` | публичный | обмен кода, проверка `id_token`, вход или привязка, редирект в web |
-| POST | `/api/auth/telegram` | публичный (CSRF) | вход по данным Telegram Login Widget |
 | GET | `/api/auth/identities` | SessionGuard | привязанные способы входа текущего пользователя |
 | GET | `/api/auth/link/google/start` | SessionGuard | начать привязку Google (intent = link) |
-| POST | `/api/auth/link/telegram` | SessionGuard | привязать Telegram |
 | DELETE | `/api/auth/identities/:provider` | SessionGuard | отвязать способ входа |
+
+Эндпоинтов `/api/auth/telegram` и `/api/auth/link/telegram` больше нет;
+`ExternalProviderId` (`@puls/shared`) содержит только `'google'`.
 
 ## Google: поток и защита
 
@@ -59,20 +60,6 @@
    ошибки — `/login?error=<oauth_cancelled|oauth_state|oauth_exchange|oauth_token>`,
    привязка — `/settings?linked=google` или `/settings?error=link_failed`.
 
-## Telegram: поток и защита
-
-Telegram Login Widget отдаёт `{ id, first_name, last_name, username, photo_url,
-auth_date, hash }`. Проверка (`apps/api/src/auth/external/telegram.ts`):
-
-* секрет = `SHA-256(bot_token)`, подпись = `HMAC-SHA256(check_string, секрет)`,
-  где `check_string` — все поля кроме `hash`, отсортированные по имени,
-  `ключ=значение`, соединённые `\n`;
-* сравнение — `timingSafeEqual`; hash строго `[a-f0-9]{64}`;
-* `auth_date` не старше 24 часов и не из будущего (запас 60 с).
-
-Схема тела — «свободная» (`z.looseObject`), чтобы новые поля Telegram не ломали
-подпись. Ошибки → `401 invalid_telegram_auth`.
-
 ## Создание пользователя и привязка
 
 * **Вход по существующей привязке** `(provider, subject)` — находим пользователя,
@@ -82,16 +69,17 @@ auth_date, hash }`. Проверка (`apps/api/src/auth/external/telegram.ts`):
   При `email_verified !== true` привязки нет.
 * **Иначе — новый пользователь**: `passwordHash = null`, никнейм генерируется и
   проверяется на уникальность (`puls-<6 base36>`, без эмодзи и пробелов).
-  Для Google ставится `emailVerifiedAt`, если email подтверждён; без email —
-  технический адрес `g-<sub>@google.invalid`.
-* **Telegram без email** — технический адрес `tg-<id>@telegram.invalid`.
-  `GET /api/auth/me` возвращает `needsEmail: true`, и в настройках показывается
-  мягкая подсказка указать настоящий email.
+  `emailVerifiedAt` ставится, если email подтверждён; без email адрес не задаётся
+  (при регистрации по Google почта техническая, см. `docs/PHASE1-AUTH.md`).
+* **Пользователи, входившие ранее через Telegram**, остаются в
+  `external_identities` со строкой `provider = 'telegram'` — как признак «пароля
+  нет». Телеграм-бот при первом сообщении присылает им одноразовую ссылку
+  установки логина и пароля (v3 §7).
 * **Отвязка** запрещена, если у пользователя нет пароля и это единственная
   привязка → `409 last_login_method`.
 
-Вход по паролю для таких аккаунтов даёт `401 invalid_credentials`
-(`passwordHash = null`) — прежнее поведение сохранено.
+Вход по паролю для аккаунтов без пароля даёт `401 invalid_credentials`
+(`passwordHash = null`); пользователь задаёт пароль по ссылке из бота.
 
 ## Модель данных и выгрузка
 
@@ -114,32 +102,28 @@ model ExternalIdentity {
 
 ## Интерфейс
 
-* `components/provider-buttons.tsx` — кнопки на `/login` и `/register`; блок не
-  рендерится, если ни один провайдер не включён.
-* `components/telegram-login-button.tsx` — вставка скрипта Telegram-виджета.
-* `components/linked-accounts-section.tsx` — секция «Способы входа» в `/settings`
-  (подключена одной строкой).
+* `components/provider-buttons.tsx` — кнопка Google на `/login` и `/register`;
+  блок не рендерится, если провайдер выключен.
+* `components/linked-accounts-section.tsx` — секция «Способы входа» в `/settings`.
 * Тексты — только в `lib/i18n.ts` (ru + en, ключи совпадают).
 
 ## Тесты
 
-* Юнит: `providers.test.ts`, `telegram.test.ts` (подделка/просрочка/будущее),
-  `google.tokens.test.ts` (подпись RS256/exp/iss/aud/kid/alg локальными ключами),
-  `nickname.test.ts` (коллизии), `oauth-state.service.test.ts` (PKCE, TTL, replay),
-  `google.gateway.test.ts` (PKCE S256 в URL).
+* Юнит: `providers.test.ts`, `google.tokens.test.ts` (подпись RS256/exp/iss/aud/kid/alg
+  локальными ключами), `nickname.test.ts` (коллизии), `oauth-state.service.test.ts`
+  (PKCE, TTL, replay), `google.gateway.test.ts` (PKCE S256 в URL).
 * Интеграционные: `test/external-auth.integration.test.ts` — шлюз Google подменён
   фейком (реальных запросов к Google нет), проверяются 404 без ключей, вход,
-  привязка по подтверждённому email, replay state, подделка/просрочка Telegram,
-  уникальность никнеймов, отвязка единственного способа, изоляция по пользователю.
-* E2E: `apps/web/e2e/external-auth.spec.ts` — при выключенных провайдерах кнопок
-  нет, `/api/auth/google/start` → 404, вход по паролю работает, раздел привязок
-  показывает пароль.
+  привязка по подтверждённому email, replay state, уникальность никнеймов, отвязка
+  единственного способа, изоляция по пользователю, а также что `/auth/telegram` и
+  `/auth/link/telegram` не существуют.
+* E2E: `apps/web/e2e/external-auth.spec.ts` — при выключенном провайдере кнопки
+  нет, `/api/auth/google/start` → 404, вход по логину и паролю работает, раздел
+  привязок показывает пароль.
 
 ## Ограничения
 
 * Хранилище `state` — Valkey при наличии `REDIS_URL`, иначе память процесса
   (в тестах — всегда память). Для нескольких инстансов API без Valkey state не
   разделяется.
-* Смена/добавление собственно email у Telegram-аккаунта реализована только
-  подсказкой (`needsEmail`); отдельный эндпоинт смены email — вне рамок задачи.
-* Реальные запросы к Google/Telegram в автотестах не выполняются.
+* Реальные запросы к Google в автотестах не выполняются.

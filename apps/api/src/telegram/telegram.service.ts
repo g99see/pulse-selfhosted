@@ -23,6 +23,7 @@ import {
   type InlineButton,
 } from './commands';
 import { DeliveryError, classifyTelegramError } from '../notifications/outbox-logic';
+import { PasswordResetService } from '../auth/password-reset.service';
 import { generateLinkCode, hashLinkCode, linkCodeMatches, LINK_CODE_TTL_MS } from './link-code';
 import {
   alreadyLinkedText,
@@ -38,6 +39,7 @@ import {
   linkRequiredText,
   linkedText,
   noAccountText,
+  passwordLinkText,
   spentSavedText,
   spentUsageText,
   startHintText,
@@ -92,6 +94,7 @@ export class TelegramService implements OnModuleInit {
     private readonly stats: StatsService,
     private readonly budgets: BudgetsService,
     private readonly rateLimit: RateLimitService,
+    private readonly passwordReset: PasswordResetService,
     @Inject(TELEGRAM_API) private readonly api: TelegramApi,
   ) {}
 
@@ -244,6 +247,8 @@ export class TelegramService implements OnModuleInit {
 
     // Изоляция: чужой чат без привязки — только подсказка, никаких данных.
     if (!link) {
+      // Раньше входил через Telegram и пароля нет: присылаем ссылку установки логина и пароля.
+      if (await this.sendSetupLinkIfNeeded(message.chatId)) return;
       await this.send(message.chatId, linkRequiredText());
       return;
     }
@@ -306,6 +311,15 @@ export class TelegramService implements OnModuleInit {
         await this.prisma.telegramLink.deleteMany({ where: { userId: link.userId } });
         await this.send(message.chatId, unlinkedText());
         return;
+      case 'password': {
+        const user = await this.prisma.user.findUnique({ where: { id: link.userId } });
+        const issued = await this.passwordReset.issue(
+          link.userId,
+          user?.passwordHash ? 'reset' : 'setup',
+        );
+        await this.send(message.chatId, passwordLinkText(issued.url, !user?.passwordHash));
+        return;
+      }
       case 'quick':
         await this.handleQuick(link.userId, message.chatId, command.text);
         return;
@@ -472,6 +486,26 @@ export class TelegramService implements OnModuleInit {
     if (record.expiresAt.getTime() <= Date.now()) return null;
     if (!linkCodeMatches(code, record.codeHash)) return null;
     return { id: record.id, userId: record.userId };
+  }
+
+  /**
+   * Пользователю без пароля, который раньше входил через Telegram, шлёт ссылку
+   * установки логина и пароля (v3 §7.3). Не чаще раза в 10 минут на чат, чтобы
+   * не спамить. true — сообщение ушло (или уже отправлялось в этом окне).
+   */
+  private async sendSetupLinkIfNeeded(chatId: string): Promise<boolean> {
+    const identity = await this.prisma.externalIdentity.findUnique({
+      where: { provider_subject: { provider: 'telegram', subject: chatId } },
+      include: { user: true },
+    });
+    if (!identity || identity.user.passwordHash !== null) return false;
+
+    const limit = await this.rateLimit.consume(`telegram:setup-link:${chatId}`, 1, 10 * 60);
+    if (!limit.allowed) return true;
+
+    const issued = await this.passwordReset.issue(identity.userId, 'setup');
+    await this.send(chatId, passwordLinkText(issued.url, true));
+    return true;
   }
 
   /** Привязывает чат: один чат — один аккаунт, у пользователя один чат. */

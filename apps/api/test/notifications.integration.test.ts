@@ -333,6 +333,20 @@ describe('Уведомления v2 (интеграция с PostgreSQL)', () =>
       expect((await client.del('/api/discord/link')).status).toBe(204);
       expect(await prisma.discordLink.count()).toBe(0);
     });
+
+    it('/password в ЛС привязанного Discord присылает одноразовую ссылку (v3 §7)', async () => {
+      const { userId } = await signUp('dc12@example.com', 'dc12user');
+      await linkDiscord(userId, '720');
+      await discord.handleEvent({
+        kind: 'message',
+        discordUserId: '720',
+        username: 'x',
+        channelId: 'dm-720',
+        text: '!password',
+      });
+      expect(fakeDiscord.lastTo('dm-720')?.content).toContain('/reset-password?token=');
+      expect(await prisma.passwordToken.count({ where: { userId } })).toBe(1);
+    });
   });
 
   describe('Outbox: отправка, повторы, блокировки', () => {

@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Эндпоинты внешнего входа (ТЗ §3.1, §7): Google OAuth2/OIDC с PKCE и Telegram
- * Login Widget. Без ключей владельца провайдер выключен: `GET /api/auth/providers`
+ * Эндпоинты внешнего входа (ТЗ §3.1, §7): Google OAuth2/OIDC с PKCE (вход через
+ * Telegram удалён в v3 §7.3). Без ключей владельца провайдер выключен: `GET /api/auth/providers`
  * сообщает только о включённых, а сами эндпоинты отвечают 404 provider_disabled.
  * `state` хранится на сервере с TTL и в httpOnly-cookie — повторное использование
  * отклоняется, коллбэк привязан к браузеру.
  */
 import {
-  Body,
   Controller,
   Delete,
   Get,
@@ -15,37 +14,28 @@ import {
   HttpStatus,
   Inject,
   Param,
-  Post,
   Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
-import { ExternalProviderSchema, TelegramAuthSchema } from '@puls/shared';
+import { ExternalProviderSchema } from '@puls/shared';
 import { cookieSecure } from '../../common/cookie-secure';
 import { httpError } from '../../common/http-error';
-import { ZodValidationPipe } from '../../common/zod-validation.pipe';
-import { toPublicUser } from '../auth.service';
 import type { AuthenticatedRequest } from '../auth.types';
 import { clearCookieOptions, SESSION_COOKIE, sessionCookieOptions } from '../cookies';
 import { SessionGuard } from '../session.guard';
 import type { SessionContext } from '../session.service';
 import { constantTimeEqual } from '../tokens';
-import { ExternalAuthService, needsEmail } from './external-auth.service';
+import { ExternalAuthService } from './external-auth.service';
 import { GOOGLE_OAUTH_GATEWAY, type GoogleOAuthGateway } from './google.gateway';
 import {
   OAuthStateService,
   OAUTH_STATE_TTL_SECONDS,
   type OAuthIntent,
 } from './oauth-state.service';
-import { googleConfig, providerAvailability, telegramConfig, type GoogleConfig } from './providers';
-import {
-  TelegramAuthError,
-  verifyTelegramAuth,
-  type TelegramAuthPayload,
-  type TelegramVerifiedUser,
-} from './telegram';
+import { googleConfig, providerAvailability, type GoogleConfig } from './providers';
 
 /** httpOnly-cookie со state: JS её не читает и подделать не может. */
 export const OAUTH_STATE_COOKIE = 'puls_oauth_state';
@@ -80,7 +70,7 @@ export class ExternalAuthController {
 
   /** Что включил владелец — web рисует только эти кнопки (ТЗ §3.1). */
   @Get('providers')
-  providers(): { google: boolean; telegram: boolean; telegramBotUsername: string | null } {
+  providers(): { google: boolean } {
     return providerAvailability();
   }
 
@@ -165,45 +155,9 @@ export class ExternalAuthController {
     return res.redirect(`${this.webAppUrl}${user.onboardingCompletedAt ? '/app' : '/onboarding'}`);
   }
 
-  @Post('telegram')
-  @HttpCode(HttpStatus.OK)
-  async telegram(
-    @Body(new ZodValidationPipe(TelegramAuthSchema)) body: Record<string, unknown>,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: ReturnType<typeof toPublicUser>; needsEmail: boolean }> {
-    const config = telegramConfig();
-    if (!config)
-      throw httpError(404, 'provider_disabled', 'Вход через Telegram не настроен на этом сервере');
-
-    const verified = this.verifyTelegram(body, config.botToken);
-    const { user, token, expiresAt } = await this.external.loginWithTelegram(
-      verified,
-      contextOf(req),
-    );
-    res.cookie(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
-    return { user: toPublicUser(user), needsEmail: needsEmail(user) };
-  }
-
   @Get('identities')
   @UseGuards(SessionGuard)
   identities(@Req() req: AuthenticatedRequest) {
-    return this.external.listIdentities(req.user!.id);
-  }
-
-  @Post('link/telegram')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(SessionGuard)
-  async linkTelegram(
-    @Body(new ZodValidationPipe(TelegramAuthSchema)) body: Record<string, unknown>,
-    @Req() req: AuthenticatedRequest,
-  ) {
-    const config = telegramConfig();
-    if (!config)
-      throw httpError(404, 'provider_disabled', 'Вход через Telegram не настроен на этом сервере');
-
-    const verified = this.verifyTelegram(body, config.botToken);
-    await this.external.linkTelegramIdentity(req.user!.id, verified);
     return this.external.listIdentities(req.user!.id);
   }
 
@@ -244,17 +198,6 @@ export class ExternalAuthController {
     const proto = req.protocol || 'http';
     const host = req.get('host') ?? `localhost:${process.env.API_PORT ?? 3001}`;
     return `${proto}://${host}/api/auth/google/callback`;
-  }
-
-  private verifyTelegram(body: Record<string, unknown>, botToken: string): TelegramVerifiedUser {
-    try {
-      return verifyTelegramAuth(body as unknown as TelegramAuthPayload, botToken);
-    } catch (error) {
-      if (error instanceof TelegramAuthError) {
-        throw httpError(401, 'invalid_telegram_auth', 'Не удалось проверить вход через Telegram');
-      }
-      throw error;
-    }
   }
 }
 

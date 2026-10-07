@@ -21,10 +21,10 @@
 
 | Статус | Функций |
 | --- | --- |
-| работает | 42 |
+| работает | 41 |
 | частично | 4 |
 | сломана | 0 (после исправлений) |
-| неактуальна | 2 |
+| неактуальна | 3 |
 | **всего** | **48** |
 
 До исправлений в этой ветке были **сломаны/неполны 4 пункта** (они ниже в списке багов, все
@@ -53,13 +53,13 @@
 
 | Функция | Источник | Статус | Доказательство |
 | --- | --- | --- | --- |
-| 2FA TOTP + резервные коды | PHASE2-2FA, usage/security-2fa | работает | `two-factor.integration.test.ts` (11) |
+| 2FA TOTP + резервные коды | PHASE2-2FA (v3 §7.1) | **неактуальна** | Удалено: TOTP, резервные коды и пропуска убраны из кода и схемы, `two-factor.integration.test.ts` удалён |
 | Достижения и серии | PHASE2-ACHIEVEMENTS | работает | `achievements.integration.test.ts` (17); серия чек-инов проверена и в `v2-features` |
 | Мультивалютность, курсы | PHASE2-CURRENCY | работает | `currency.integration.test.ts` (13) |
 | Цели и пополнения | PHASE2-GOALS, usage/goals | работает | `goals.integration.test.ts` (11) |
 | Импорт CSV | PHASE2-IMPORT | работает | `import.integration.test.ts` (9); после импорта теперь срабатывают бюджет и сверка (были сломаны) |
 | Инсайты, недельный разбор, обратная связь | PHASE2-INSIGHTS | работает | `insights.integration.test.ts` (10). Пункт «недельный отчёт в Telegram не отправляется» устарел: отправка идёт через `notifyWeeklyReport` (`notifications.integration.test.ts`) |
-| Вход через Google и Telegram | PHASE2-OAUTH | работает | `external-auth.integration.test.ts` (23, на фейках провайдеров) |
+| Вход через Google | PHASE2-OAUTH | работает | `external-auth.integration.test.ts` (на фейках провайдеров; вход через Telegram удалён в v3 §7.3) |
 | Регулярные платежи | PHASE2-RECURRING | работает | `recurring.integration.test.ts` (10) |
 | Telegram-бот: привязка, команды, быстрые траты, undo | PHASE2-TELEGRAM, usage/telegram | работает | `telegram.integration.test.ts` (26), `commands.test.ts`. Добавлены `/spent`, меню `setMyCommands` |
 

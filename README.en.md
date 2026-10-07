@@ -58,7 +58,7 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 **Privacy and security**
 
 - Self-hosted, open source (AGPL), no mandatory cloud services
-- Cookie sessions, CSRF protection, Argon2, 2FA (TOTP), sign-in with Google and Telegram
+- Cookie sessions, CSRF protection, Argon2, sign-in with login or email and with Google
 - Secrets are encrypted with AES-256-GCM; "Quiet" mode hides all amounts (Alt+Q)
 - Telegram and Discord notifications, open API and webhooks (Home Assistant, n8n)
 

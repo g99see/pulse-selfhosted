@@ -49,7 +49,7 @@ export default defineConfig({
             { text: 'Год в цифрах', link: '/guide/usage/wrapped' },
             { text: 'Режим «Тишина»', link: '/guide/usage/quiet-mode' },
             { text: 'Голосовой чек-ин', link: '/guide/usage/voice-checkin' },
-            { text: 'Безопасность и 2FA', link: '/guide/usage/security-2fa' },
+            { text: 'Безопасность', link: '/security/' },
           ],
         },
       ],
