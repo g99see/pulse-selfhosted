@@ -13,6 +13,8 @@ export * from './dates';
 export * from './auth';
 export * from './setup';
 export * from './finance';
+export * from './categories';
+export * from './merchants';
 export * from './import';
 export * from './reconcile';
 export * from './stats';

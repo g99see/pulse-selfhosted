@@ -119,7 +119,7 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
         amount: 450,
         type: 'expense',
         description: 'Обед в кафе',
-        categoryName: 'Еда',
+        categoryName: 'Кафе и рестораны',
         duplicate: false,
         error: null,
       });
@@ -163,7 +163,7 @@ describe('Импорт CSV (интеграция с PostgreSQL, ТЗ §3.2)', ()
       const categories = transactions.body.transactions.map(
         (tx: { categoryName: string | null }) => tx.categoryName,
       );
-      expect(categories).toContain('Еда');
+      expect(categories).toContain('Кафе и рестораны');
       expect(categories).toContain('Зарплата');
     });
 

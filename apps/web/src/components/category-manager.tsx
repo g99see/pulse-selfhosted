@@ -2,9 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import type { CategoryDto, CategoryKind } from '@puls/shared';
+import { orderCategoryTree, type CategoryDto, type CategoryKind } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { categoryLabel } from '@/lib/category-label';
+import { CategorySelect } from '@/components/category-select';
 import { financeApi } from '@/lib/finance-client';
 import { FormToggle } from '@/components/finance-form-toggle';
 import { Card, PrimaryButton } from '@/components/ui';
@@ -51,11 +52,18 @@ function CategoryFormFields({
   errors,
   idPrefix,
   onChange,
+  parentOptions,
+  parentId,
+  onParentChange,
 }: {
   values: CategoryFormValues;
   errors: CategoryFormError[];
   idPrefix: string;
   onChange: (patch: Partial<CategoryFormValues>) => void;
+  /** Свои категории для выбора родителя (без самой редактируемой). */
+  parentOptions?: CategoryDto[];
+  parentId?: string;
+  onParentChange?: (value: string) => void;
 }) {
   const { t } = useT();
   const nameId = `${idPrefix}-name`;
@@ -100,6 +108,18 @@ function CategoryFormFields({
           ))}
         </div>
       </fieldset>
+
+      {parentOptions ? (
+        <CategorySelect
+          id={`${idPrefix}-parent`}
+          label={t('finance.categories.parent')}
+          testId={`${idPrefix}-parent`}
+          categories={parentOptions}
+          value={parentId ?? ''}
+          onChange={(next) => onParentChange?.(next)}
+          emptyLabel={t('finance.categories.parentNone')}
+        />
+      ) : null}
 
       <fieldset className="flex flex-col gap-2">
         <legend className="text-xs text-[var(--puls-ink-muted)]">
@@ -187,15 +207,22 @@ export function CategoryManager({
 
   const own = categories.filter((category) => !category.isSystem);
   const system = categories.filter((category) => category.isSystem);
+  const ownTree = orderCategoryTree(categories).filter((category) => !category.isSystem);
 
   const [createForm, setCreateForm] = useState<CategoryFormValues>(EMPTY_FORM);
+  const [createParent, setCreateParent] = useState('');
   const [createErrors, setCreateErrors] = useState<CategoryFormError[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<CategoryFormValues>(EMPTY_FORM);
+  const [editParent, setEditParent] = useState('');
   const [editErrors, setEditErrors] = useState<CategoryFormError[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [mergeSource, setMergeSource] = useState('');
+  const [mergeTarget, setMergeTarget] = useState('');
+  const [mergeConfirm, setMergeConfirm] = useState(false);
+  const [mergeError, setMergeError] = useState(false);
 
   async function create(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -206,8 +233,12 @@ export function CategoryManager({
 
     setBusy(true);
     try {
-      await financeApi.createCategory(result.values);
+      await financeApi.createCategory({
+        ...result.values,
+        ...(createParent ? { parentId: createParent } : {}),
+      });
       setCreateForm(EMPTY_FORM);
+      setCreateParent('');
       setCreateErrors([]);
       setNotice('finance.categories.created');
       onChanged();
@@ -222,6 +253,7 @@ export function CategoryManager({
     setNotice(null);
     setDeleteId(null);
     setEditId(category.id);
+    setEditParent(category.parentId ?? '');
     setEditErrors([]);
     setEditForm(formFromDto(category));
   }
@@ -235,13 +267,45 @@ export function CategoryManager({
 
     setBusy(true);
     try {
-      await financeApi.updateCategory(editId, result.values);
+      await financeApi.updateCategory(editId, {
+        ...result.values,
+        ...(editParent ? { parentId: editParent } : {}),
+      });
       setEditId(null);
       setEditErrors([]);
       setNotice('finance.categories.updated');
       onChanged();
     } catch {
       setEditErrors(['name_required']);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startMerge(event: React.FormEvent): void {
+    event.preventDefault();
+    setNotice(null);
+    if (!mergeSource || !mergeTarget || mergeSource === mergeTarget) {
+      setMergeError(true);
+      return;
+    }
+    setMergeError(false);
+    setMergeConfirm(true);
+  }
+
+  async function confirmMerge(): Promise<void> {
+    setBusy(true);
+    try {
+      await financeApi.mergeCategory(mergeSource, mergeTarget);
+      setMergeConfirm(false);
+      setMergeSource('');
+      setMergeTarget('');
+      setMergeError(false);
+      setNotice('finance.categories.merged');
+      onChanged();
+    } catch {
+      setMergeConfirm(false);
+      setMergeError(true);
     } finally {
       setBusy(false);
     }
@@ -262,6 +326,7 @@ export function CategoryManager({
   }
 
   const deleting = own.find((category) => category.id === deleteId) ?? null;
+  const mergeSourceCategory = own.find((category) => category.id === mergeSource) ?? null;
 
   return (
     <Card className="flex flex-col gap-4">
@@ -281,10 +346,11 @@ export function CategoryManager({
         data-testid="finance-categories"
         aria-label={t('finance.categories.listLabel')}
       >
-        {own.map((category) => (
+        {ownTree.map((category) => (
           <li
             key={category.id}
             data-testid="category-item"
+            style={category.depth === 1 ? { paddingLeft: '2.25rem' } : undefined}
             className="flex flex-col gap-3 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] px-4 py-3"
           >
             {editId === category.id ? (
@@ -294,6 +360,11 @@ export function CategoryManager({
                   errors={editErrors}
                   idPrefix="category-edit"
                   onChange={(patch) => setEditForm((previous) => ({ ...previous, ...patch }))}
+                  parentOptions={own.filter(
+                    (category) => category.kind === editForm.kind && category.id !== editId,
+                  )}
+                  parentId={editParent}
+                  onParentChange={setEditParent}
                 />
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -404,6 +475,81 @@ export function CategoryManager({
         </div>
       ) : null}
 
+      {mergeConfirm ? (
+        <div
+          role="alertdialog"
+          aria-modal="false"
+          aria-label={t('finance.categories.merge')}
+          data-testid="merge-confirm-panel"
+          className="flex flex-col gap-2 rounded-[var(--radius-button)] border border-[var(--puls-warning)]/40 px-4 py-3"
+        >
+          <p className="text-sm font-medium">
+            {t('finance.categories.mergeConfirm', {
+              name: mergeSourceCategory ? categoryLabel(mergeSourceCategory, t) : '',
+            })}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-testid="merge-confirm"
+              autoFocus
+              disabled={busy}
+              onClick={() => void confirmMerge()}
+              className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-warning)] px-4 text-sm font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+            >
+              {t('finance.categories.mergeSubmit')}
+            </button>
+            <button
+              type="button"
+              data-testid="merge-cancel"
+              onClick={() => setMergeConfirm(false)}
+              className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] px-4 text-sm font-medium"
+            >
+              {t('finance.categories.cancel')}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <FormToggle label={t('finance.categories.merge')} testId="merge-form-toggle">
+        <form className="flex flex-col gap-4" onSubmit={(event) => startMerge(event)}>
+          <p className="text-xs text-[var(--puls-ink-muted)]">
+            {t('finance.categories.mergeHint')}
+          </p>
+          <CategorySelect
+            id="merge-source"
+            label={t('finance.categories.mergeSource')}
+            testId="merge-source"
+            categories={own}
+            value={mergeSource}
+            onChange={setMergeSource}
+            emptyLabel={t('finance.category.pick')}
+          />
+          <CategorySelect
+            id="merge-target"
+            label={t('finance.categories.mergeTarget')}
+            testId="merge-target"
+            categories={own}
+            value={mergeTarget}
+            onChange={setMergeTarget}
+            emptyLabel={t('finance.category.pick')}
+          />
+          {mergeError ? (
+            <p role="alert" className="text-xs text-[var(--puls-warning-text)]">
+              {t('finance.categories.mergeError')}
+            </p>
+          ) : null}
+          <PrimaryButton
+            type="submit"
+            data-testid="merge-submit"
+            disabled={busy || own.length < 2}
+            className="self-start"
+          >
+            {t('finance.categories.mergeSubmit')}
+          </PrimaryButton>
+        </form>
+      </FormToggle>
+
       <FormToggle label={t('finance.categories.new')} testId="category-form-toggle">
         <form className="flex flex-col gap-4" onSubmit={(event) => void create(event)}>
           <CategoryFormFields
@@ -411,6 +557,9 @@ export function CategoryManager({
             errors={createErrors}
             idPrefix="category"
             onChange={(patch) => setCreateForm((previous) => ({ ...previous, ...patch }))}
+            parentOptions={own.filter((category) => category.kind === createForm.kind)}
+            parentId={createParent}
+            onParentChange={setCreateParent}
           />
           <PrimaryButton
             type="submit"

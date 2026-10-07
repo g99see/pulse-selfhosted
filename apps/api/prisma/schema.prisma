@@ -51,6 +51,7 @@ model User {
   bankBalances                AccountBankBalance[]
   checkIns                    CheckIn[]
   categories                  Category[]
+  userMerchants               UserMerchant[]
   transactions                Transaction[]
   budgets                     Budget[]
   notificationRules           NotificationRule[]
@@ -220,7 +221,7 @@ model CheckInDraft {
   @@map("check_in_drafts")
 }
 
-/// Категория транзакции (ТЗ §7): userId = null — системная, иначе своя.
+/// Категория транзакции (ТЗ §7, v2 §8): userId = null — системная, иначе своя.
 model Category {
   id        String   @id @default(cuid())
   userId    String?  @map("user_id")
@@ -230,14 +231,42 @@ model Category {
   color     String   @default("#6E6E7A")
   kind      String   @default("expense")
   isSystem  Boolean  @default(false) @map("is_system")
+  /// Стабильный ключ стандартной категории (у своих — null): по нему справочник
+  /// магазинов и импорт выбирают категорию по умолчанию.
+  key       String?  @unique
+  /// Родительская категория: подкатегории дерева категорий (ТЗ v2 §8).
+  parentId  String?  @map("parent_id")
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Category[] @relation("CategoryTree")
   createdAt DateTime @default(now()) @map("created_at")
 
   transactions      Transaction[]
   budgets           Budget[]
   recurringPayments RecurringPayment[]
+  userMerchants     UserMerchant[]
 
   @@index([userId])
+  @@index([parentId])
   @@map("categories")
+}
+
+/// Личный магазин пользователя (ТЗ v2 §9): название, категория и шаблон строки
+/// в выписке. Имеет приоритет над общей базой магазинов при автоопределении.
+model UserMerchant {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  /// Шаблон строки в выписке (регулярное выражение) для автоопределения.
+  pattern    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([categoryId])
+  @@map("user_merchants")
 }
 
 /// Транзакция (ТЗ §7): доход, расход или перевод между счетами.

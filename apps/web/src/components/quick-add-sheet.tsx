@@ -73,6 +73,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
   const visibleCategories = categories.filter((category) =>
     effectiveType === 'income' ? category.kind === 'income' : category.kind === 'expense',
   );
+  const parentIds = new Set(categories.map((category) => category.id));
 
   // Валюты счетов и выбор валюты в форме транзакции (ТЗ §3.2). Валюта
   // транзакции равна валюте выбранного счёта, поэтому выбор валюты сужает счёт.
@@ -221,6 +222,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
                     backgroundColor: isActive ? `${category.color}33` : 'transparent',
                   }}
                 >
+                  {category.parentId !== null && parentIds.has(category.parentId) ? '↳ ' : ''}
                   {categoryLabel(category, t)}
                 </button>
               );

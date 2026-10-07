@@ -28,6 +28,13 @@ export const EXPORT_TABLES: readonly ExportTable[] = [
   { table: 'users', entity: 'user', keyColumn: 'id', secretColumns: ['password_hash'] },
   { table: 'accounts', entity: 'accounts', keyColumn: 'user_id', orderBy: '"created_at"' },
   { table: 'categories', entity: 'categories', keyColumn: 'user_id', orderBy: '"created_at"' },
+  // Личные магазины пользователя (ТЗ v2 §9): название, шаблон и категория.
+  {
+    table: 'user_merchants',
+    entity: 'userMerchants',
+    keyColumn: 'user_id',
+    orderBy: '"created_at"',
+  },
   {
     table: 'transactions',
     entity: 'transactions',
