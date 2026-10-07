@@ -26,7 +26,7 @@ export default defineConfig({
           // Telegram-бот включён для e2e (ТЗ §3.6): реальных запросов к
           // Telegram нет — тест шлёт вебхук сам, режим webhook.
           command:
-            'export TELEGRAM_BOT_TOKEN=e2e-telegram-token TELEGRAM_WEBHOOK_SECRET=e2e-telegram-secret TELEGRAM_MODE=webhook TELEGRAM_API_FAKE=1; pnpm --filter @puls/api build && pnpm --filter @puls/api start',
+            'export TELEGRAM_BOT_TOKEN=e2e-telegram-token TELEGRAM_WEBHOOK_SECRET=e2e-telegram-secret TELEGRAM_MODE=webhook TELEGRAM_API_FAKE=1 TELEGRAM_BOT_USERNAME=e2e_pulse_bot; pnpm --filter @puls/api build && pnpm --filter @puls/api start',
           url: `${apiURL}/health`,
           reuseExistingServer: !process.env.CI,
           timeout: 180_000,
