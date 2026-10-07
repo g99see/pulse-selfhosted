@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// AES-256-GCM «сейф» для секретов (ТЗ §6): TOTP-секреты, позже — AI-ключи.
+// AES-256-GCM «сейф» для секретов (ТЗ §6): AI-ключи.
 import { describe, expect, it } from 'vitest';
 import { createSecretBox, DEV_TEST_KEY_BASE64, resolveMasterKey, SecretBox } from './secret-box';
 

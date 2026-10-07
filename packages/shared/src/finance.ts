@@ -46,19 +46,6 @@ export interface SystemCategory {
 }
 
 /** Готовые категории (ТЗ §3.2). Засеиваются в БД как системные (user_id = null). */
-export const SYSTEM_CATEGORIES: readonly SystemCategory[] = [
-  { name: 'Еда', icon: 'utensils', color: '#2BA889', kind: 'expense' },
-  { name: 'Транспорт', icon: 'bus', color: '#5B5BD6', kind: 'expense' },
-  { name: 'Жильё', icon: 'house', color: '#F2A25C', kind: 'expense' },
-  { name: 'Развлечения', icon: 'party-popper', color: '#E5484D', kind: 'expense' },
-  { name: 'Здоровье', icon: 'heart-pulse', color: '#E5484D', kind: 'expense' },
-  { name: 'Подписки', icon: 'repeat', color: '#5B5BD6', kind: 'expense' },
-  { name: 'Покупки', icon: 'shopping-bag', color: '#2BA889', kind: 'expense' },
-  { name: 'Связь', icon: 'smartphone', color: '#6E6E7A', kind: 'expense' },
-  { name: 'Прочее', icon: 'circle-ellipsis', color: '#6E6E7A', kind: 'expense' },
-  { name: 'Зарплата', icon: 'banknote', color: '#2BA889', kind: 'income' },
-  { name: 'Прочий доход', icon: 'plus', color: '#2BA889', kind: 'income' },
-];
 
 /**
  * Ключевые слова для автоматического подбора категории в быстром вводе
@@ -121,6 +108,8 @@ export function guessCategoryName(input: string): string | null {
 export const CategoryCreateSchema = z.object({
   name: z.string().trim().min(1, { message: 'Введите название' }).max(80),
   kind: CategoryKindSchema,
+  /** Родительская категория: подкатегории дерева (ТЗ v2 §8). */
+  parentId: z.string().min(1).optional(),
   icon: z
     .string()
     .trim()
@@ -286,6 +275,10 @@ export interface CategoryDto {
   color: string;
   kind: CategoryKind;
   isSystem: boolean;
+  /** Стабильный ключ стандартной категории (у своих — null). */
+  key: string | null;
+  /** id родительской категории для подкатегорий (ТЗ §8). */
+  parentId: string | null;
 }
 
 export interface TransactionDto {

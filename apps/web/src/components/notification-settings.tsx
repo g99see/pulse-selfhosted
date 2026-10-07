@@ -5,15 +5,15 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   NOTIFICATION_TYPES,
   timesForCount,
+  type BotConnectLinkResponse,
   type ChannelSettingsUpdateInput,
   type NotificationChannel,
   type NotificationChannelStatus,
   type NotificationDeliveryDto,
   type NotificationType,
-  type TelegramLinkCodeResponse,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { Alert, Card, GhostButton, PrimaryButton } from '@/components/ui';
+import { Alert, Card, GhostButton } from '@/components/ui';
 import { discordApi, notificationsApi } from '@/lib/notifications-client';
 import { telegramApi } from '@/lib/telegram-client';
 
@@ -24,7 +24,6 @@ const TYPE_LABEL_KEYS: Record<NotificationType, string> = {
   budget: 'notifications.type.budget',
   reconciliation_mismatch: 'notifications.type.reconciliation',
   weekly_report: 'notifications.type.weeklyReport',
-  reactions: 'notifications.type.reactions',
 };
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
@@ -129,9 +128,9 @@ function ChannelCard({
 }) {
   const { t } = useT();
   const channel: NotificationChannel = status.channel;
-  const [code, setCode] = useState<TelegramLinkCodeResponse | null>(null);
+  const [link, setLink] = useState<BotConnectLinkResponse | null>(null);
+  const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
   // Оптимистичные значения переключателей: состояние меняется сразу по клику,
   // а не после ответа сервера; при ошибке откатывается.
@@ -154,11 +153,11 @@ function ChannelCard({
     }
   }
 
-  async function requestCode(): Promise<void> {
+  async function requestConnect(): Promise<void> {
+    if (link) return;
     setBusy(true);
-    setCopied(false);
     try {
-      setCode(await (channel === 'telegram' ? telegramApi.linkCode() : discordApi.linkCode()));
+      setLink(await (channel === 'telegram' ? telegramApi.connect() : discordApi.connect()));
       setError(false);
     } catch {
       setError(true);
@@ -171,7 +170,7 @@ function ChannelCard({
     setBusy(true);
     try {
       await (channel === 'telegram' ? telegramApi.unlink() : discordApi.unlink());
-      setCode(null);
+      setLink(null);
       await onRelink();
     } catch {
       setError(true);
@@ -180,15 +179,58 @@ function ChannelCard({
     }
   }
 
-  async function copyCode(): Promise<void> {
-    if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code.code);
-      setCopied(true);
-    } catch {
-      setCopied(false);
+  // Одноразовую ссылку-подключение берём сразу, как только карточка показана
+  // без привязки: тогда на кнопке уже есть готовый deep-link для пользователя
+  // и для e2e-теста, который из него извлекает токен.
+  useEffect(() => {
+    if (!status.configured || status.linked || link) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await (channel === 'telegram'
+          ? telegramApi.connect()
+          : discordApi.connect());
+        if (!cancelled) setLink(response);
+      } catch {
+        if (!cancelled) setError(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [channel, status.configured, status.linked, link]);
+
+  // Пока ссылка жива, опрашиваем статус канала: экран сам переключится на
+  // «привязан», как только пользователь подтвердит подключение в мессенджере.
+  useEffect(() => {
+    if (!link || status.linked || status.blocked) {
+      setWaiting(false);
+      return;
     }
-  }
+    const expiresAt = new Date(link.expiresAt).getTime();
+    const deadline = Math.min(expiresAt, Date.now() + 10 * 60 * 1000);
+    setWaiting(true);
+    const interval = window.setInterval(() => {
+      if (Date.now() >= deadline) {
+        window.clearInterval(interval);
+        setWaiting(false);
+        return;
+      }
+      void onRelink();
+    }, 3000);
+    const timeout = window.setTimeout(
+      () => {
+        window.clearInterval(interval);
+        setWaiting(false);
+      },
+      Math.max(0, deadline - Date.now()),
+    );
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+      setWaiting(false);
+    };
+  }, [link, status.linked, status.blocked, onRelink]);
 
   const id = `notif-${channel}`;
 
@@ -206,6 +248,12 @@ function ChannelCard({
 
         {error ? <Alert>{t('notifications.error')}</Alert> : null}
 
+        {status.blocked ? (
+          <Alert>
+            <span data-testid={`${channel}-blocked`}>{t('notifications.channel.blocked')}</span>
+          </Alert>
+        ) : null}
+
         {!status.configured ? (
           <p data-testid={`${channel}-disabled`} className="text-sm text-[var(--puls-ink-muted)]">
             {t('notifications.channel.disabled')}
@@ -221,11 +269,6 @@ function ChannelCard({
                   : t('notifications.channel.accountHidden'),
               })}
             </p>
-            {status.blocked ? (
-              <Alert>
-                <span data-testid={`${channel}-blocked`}>{t('notifications.channel.blocked')}</span>
-              </Alert>
-            ) : null}
             <GhostButton
               type="button"
               data-testid={`${channel}-unlink`}
@@ -243,14 +286,17 @@ function ChannelCard({
               {t('notifications.channel.unlinked')}
             </p>
             <div className="flex flex-wrap gap-3">
-              <PrimaryButton
-                type="button"
-                data-testid={`${channel}-link`}
-                disabled={busy}
-                onClick={() => void requestCode()}
+              <a
+                data-testid={`${channel}-connect`}
+                href={link?.url ?? '#'}
+                target="_blank"
+                rel="noreferrer"
+                aria-disabled={busy}
+                onClick={() => void requestConnect()}
+                className="puls-key inline-flex h-12 items-center rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] hover:opacity-95 aria-disabled:opacity-50"
               >
-                {code ? t('notifications.channel.newCode') : t('notifications.channel.link')}
-              </PrimaryButton>
+                {t('notifications.channel.connect')}
+              </a>
               <GhostButton
                 type="button"
                 data-testid={`${channel}-refresh`}
@@ -261,24 +307,32 @@ function ChannelCard({
               </GhostButton>
             </div>
 
-            {code ? (
-              <div className="flex flex-col gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4">
-                <p className="text-sm font-medium">{t('notifications.channel.codeTitle')}</p>
-                <p
-                  data-testid={`${channel}-code`}
-                  className="font-mono text-2xl font-bold tracking-wider"
-                >
-                  {code.code}
+            {link ? (
+              <span data-testid={`${channel}-connect-url`} className="sr-only">
+                {link.url}
+              </span>
+            ) : null}
+
+            {link ? (
+              <p className="text-xs text-[var(--puls-ink-muted)]">
+                {t(`notifications.channel.connectHint.${channel}`)}
+              </p>
+            ) : null}
+
+            {link && waiting ? (
+              <div
+                data-testid={`${channel}-connecting`}
+                className="flex flex-col gap-1 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4 text-sm"
+              >
+                <p className="font-medium">
+                  {t('notifications.channel.connecting', {
+                    channel: t(`notifications.channel.${channel}`),
+                  })}
                 </p>
+                <p className="text-[var(--puls-ink-muted)]">{t('notifications.channel.waiting')}</p>
                 <p className="text-xs text-[var(--puls-ink-muted)]">
-                  {t(`notifications.channel.codeHint.${channel}`, { code: code.code })}
+                  {t('notifications.channel.ttl', { minutes: Math.round(link.ttlSeconds / 60) })}
                 </p>
-                <p className="text-xs text-[var(--puls-ink-muted)]">
-                  {t('notifications.channel.ttl', { minutes: Math.round(code.ttlSeconds / 60) })}
-                </p>
-                <GhostButton type="button" onClick={() => void copyCode()}>
-                  {copied ? t('notifications.channel.copied') : t('notifications.channel.copy')}
-                </GhostButton>
               </div>
             ) : null}
           </div>

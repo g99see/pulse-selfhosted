@@ -3,9 +3,10 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { DiscordModule } from '../discord/discord.module';
 import { FinanceModule } from '../finance/finance.module';
-import { RolesGuard } from '../moderation/roles.guard';
+import { RolesGuard } from '../auth/roles.guard';
 import { StatsModule } from '../stats/stats.module';
 import { TelegramModule } from '../telegram/telegram.module';
+import { AchievementAlerts } from './achievement-alerts';
 import { BudgetAlerts } from './budget-alerts';
 import { NotificationDispatcher } from './dispatcher';
 import { NotificationsAdminController, NotificationsController } from './notifications.controller';
@@ -25,6 +26,7 @@ import { NotificationsScheduler } from './scheduler';
     NotificationsScheduler,
     BudgetAlerts,
     ReconciliationAlerts,
+    AchievementAlerts,
     RolesGuard,
   ],
   exports: [NotificationsService, OutboxService, NotificationDispatcher, NotificationsScheduler],

@@ -15,17 +15,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StatsService } from '../stats/stats.service';
 import { channelTimezone, toChannelConfig, type DueDelivery } from './due';
 import {
+  buildAchievementEarned,
   buildBudgetAlert,
   buildCapsuleOpenedNotification,
   buildDailySummary,
   buildMessage,
-  buildPostActivityNotification,
   buildReconciliationMismatch,
   buildRecurringReminder,
+  type AchievementEarnedInfo,
   type BudgetAlertInfo,
   type CapsuleOpenedInfo,
   type NotificationMessage,
-  type PostActivityInfo,
   type ReconciliationMismatchInfo,
   type RecurringReminderInfo,
 } from './messages';
@@ -128,15 +128,23 @@ export class NotificationDispatcher implements DeliveryDispatcher {
     return queued > 0;
   }
 
-  /** Реакция или комментарий к посту (ТЗ §3.7). */
-  async notifyPostActivity(userId: string, info: PostActivityInfo): Promise<boolean> {
-    return (await this.notify(userId, 'reactions', buildPostActivityNotification(info))) > 0;
-  }
-
   /** Открылась капсула времени (ТЗ §4, P2): тип вне переключателей — идёт в любой активный канал. */
   async notifyCapsuleOpened(userId: string, info: CapsuleOpenedInfo): Promise<boolean> {
     const channels = await this.activeChannels(userId);
     const message = buildCapsuleOpenedNotification(info);
+    for (const { config, timezone } of channels) {
+      await this.outbox.enqueue(userId, config.channel, message, {
+        timezone,
+        quietHours: config.quietHours,
+      });
+    }
+    return channels.length > 0;
+  }
+
+  /** Новый уровень достижения (v3 §4): тип вне переключателей — в любой активный канал. */
+  async notifyAchievementEarned(userId: string, info: AchievementEarnedInfo): Promise<boolean> {
+    const channels = await this.activeChannels(userId);
+    const message = buildAchievementEarned(info);
     for (const { config, timezone } of channels) {
       await this.outbox.enqueue(userId, config.channel, message, {
         timezone,

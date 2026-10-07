@@ -5,10 +5,15 @@
  * → Telegram → Finance): источник вызывает `emit`, подписчик слушает `on`.
  */
 import { EventEmitter } from 'node:events';
+import type { AchievementEvent } from '@puls/shared';
 
 export interface InternalEventMap {
   /** Импорт выписки сохранил новый закрывающий остаток банка. */
   'statement.imported': { userId: string; accountId: string; statementId: string };
+  /** Произошло событие, после которого нужно проверить достижения (см. AchievementsService). */
+  'achievement.check': { userId: string; event: AchievementEvent };
+  /** Пользователь получил новый уровень достижения (не при тихом пересчёте). */
+  'achievement.earned': { userId: string; code: string; level: string };
   /** Импорт добавил расходы: сумма в базовой валюте по категории и месяцу. */
   'import.expenses': {
     userId: string;

@@ -30,6 +30,13 @@ export interface DiscordApi {
   respondInteraction(interactionId: string, token: string, content: string): Promise<void>;
   /** Регистрирует глобальную slash-команду /link. */
   registerCommands(): Promise<void>;
+  /** getMe: идентификация общего бота Pulse для deep-link (ТЗ §6). */
+  getMe(): Promise<{ id: string | null; username: string | null }>;
+  /** Обмен OAuth-кода на пользователя Discord (привязка одним нажатием, ТЗ §6). */
+  exchangeOAuthCode(
+    code: string,
+    redirectUri: string,
+  ): Promise<{ userId: string; username: string | null }>;
 }
 
 /** Определение slash-команды /link code:<код>. */
@@ -50,6 +57,15 @@ export const LINK_COMMAND = {
   ],
 };
 
+/** Определение slash-команды /password (ссылка для смены пароля, v3 §7). */
+export const PASSWORD_COMMAND = {
+  name: 'password',
+  type: 1,
+  description: 'Get a one-time link to set a new Puls password',
+  description_localizations: { ru: 'Ссылка для смены или установки пароля Пульса' },
+  dm_permission: true,
+};
+
 /** Заглушка без токена: ничего не делает. */
 export class NullDiscordApi implements DiscordApi {
   async createDmChannel(discordUserId: string): Promise<string> {
@@ -58,6 +74,12 @@ export class NullDiscordApi implements DiscordApi {
   async sendMessage(): Promise<void> {}
   async respondInteraction(): Promise<void> {}
   async registerCommands(): Promise<void> {}
+  async getMe(): Promise<{ id: string | null; username: string | null }> {
+    return { id: null, username: null };
+  }
+  async exchangeOAuthCode(): Promise<{ userId: string; username: string | null }> {
+    throw new DiscordApiError('Discord OAuth не настроен', 503, undefined);
+  }
 }
 
 /** Фейк для тестов: пишет всё в память, умеет падать по сценарию. */
@@ -68,6 +90,15 @@ export class FakeDiscordApi implements DiscordApi {
   /** Ошибки, которые отдадут следующие вызовы sendMessage (по одной на вызов). */
   readonly failures: DiscordApiError[] = [];
   commandsRegistered = 0;
+  /** Ответ getMe: имя общего бота для deep-link. */
+  botIdentity: { id: string | null; username: string | null } = {
+    id: '9000',
+    username: 'pulse_bot',
+  };
+  /** OAuth-код → пользователь Discord: тесты кладут сюда пары без сети. */
+  readonly oauthUsers = new Map<string, { userId: string; username: string | null }>();
+  /** Ошибка для следующего exchangeOAuthCode; сбрасывается после броска. */
+  oauthFailure: DiscordApiError | null = null;
 
   async createDmChannel(discordUserId: string): Promise<string> {
     const existing = this.dmChannels.get(discordUserId);
@@ -89,6 +120,24 @@ export class FakeDiscordApi implements DiscordApi {
 
   async registerCommands(): Promise<void> {
     this.commandsRegistered += 1;
+  }
+
+  async getMe(): Promise<{ id: string | null; username: string | null }> {
+    return this.botIdentity;
+  }
+
+  async exchangeOAuthCode(
+    code: string,
+    _redirectUri: string,
+  ): Promise<{ userId: string; username: string | null }> {
+    const failure = this.oauthFailure;
+    if (failure) {
+      this.oauthFailure = null;
+      throw failure;
+    }
+    const user = this.oauthUsers.get(code);
+    if (!user) throw new DiscordApiError('invalid_grant', 400, undefined);
+    return user;
   }
 
   lastTo(channelId: string): { channelId: string; content: string } | undefined {
@@ -135,7 +184,54 @@ export class RestDiscordApi implements DiscordApi {
 
   async registerCommands(): Promise<void> {
     if (this.applicationId.length === 0) return;
-    await this.call('PUT', `/applications/${this.applicationId}/commands`, [LINK_COMMAND]);
+    await this.call('PUT', `/applications/${this.applicationId}/commands`, [
+      LINK_COMMAND,
+      PASSWORD_COMMAND,
+    ]);
+  }
+
+  async getMe(): Promise<{ id: string | null; username: string | null }> {
+    const me = await this.call<{ id?: string; username?: string }>('GET', '/users/@me');
+    return { id: me.id ?? null, username: me.username ?? null };
+  }
+
+  /**
+   * Обмен OAuth-кода (grant_type=authorization_code) на access_token, затем
+   * GET /users/@me за идентификатором пользователя. Секрет клиента — из env.
+   */
+  async exchangeOAuthCode(
+    code: string,
+    redirectUri: string,
+  ): Promise<{ userId: string; username: string | null }> {
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri,
+      client_id: this.applicationId,
+      client_secret: process.env.DISCORD_CLIENT_SECRET ?? '',
+    });
+    const tokenResponse = await fetch(`${BASE_URL}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body,
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!tokenResponse.ok) {
+      throw new DiscordApiError(`OAuth ${tokenResponse.status}`, tokenResponse.status, undefined);
+    }
+    const token = (await tokenResponse.json()) as { access_token?: string };
+    if (!token.access_token) throw new DiscordApiError('OAuth: нет access_token', 400, undefined);
+
+    const userResponse = await fetch(`${BASE_URL}/users/@me`, {
+      headers: { authorization: `Bearer ${token.access_token}` },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!userResponse.ok) {
+      throw new DiscordApiError(`users/@me ${userResponse.status}`, userResponse.status, undefined);
+    }
+    const user = (await userResponse.json()) as { id?: string; username?: string };
+    if (!user.id) throw new DiscordApiError('OAuth: нет id пользователя', 400, undefined);
+    return { userId: user.id, username: user.username ?? null };
   }
 
   private async call<T = unknown>(

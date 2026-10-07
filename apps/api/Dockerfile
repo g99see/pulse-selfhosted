@@ -32,6 +32,7 @@ COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/prisma ./apps/api/prisma
+COPY --from=build /app/apps/api/data ./apps/api/data
 WORKDIR /app/apps/api
 # pnpm не линкует транзитивные зависимости в apps/api/node_modules, а код API
 # импортирует express напрямую (json-парсер в app.setup.ts, типы Request/

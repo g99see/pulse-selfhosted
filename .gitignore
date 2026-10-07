@@ -10,9 +10,6 @@ out/
 # кеш и сборка документации VitePress
 docs-site/.vitepress/cache/
 docs-site/.vitepress/dist/
-# service worker PWA генерируется сборкой (ТЗ §7)
-apps/web/public/sw.js
-apps/web/public/sw.js.map
 
 # tests & coverage
 coverage/
@@ -43,3 +40,5 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+apps/web/public/sw.js
+apps/web/public/swe-worker*.js

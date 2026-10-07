@@ -24,9 +24,18 @@ import { TELEGRAM_API, type OutgoingMessage, type TelegramApi } from '../src/tel
 import { TestClient } from './client';
 
 process.env.DISCORD_BOT_TOKEN = 'test-discord-token';
+process.env.DISCORD_APPLICATION_ID = 'app-123';
+process.env.DISCORD_OAUTH_REDIRECT_URI = 'https://pulse.example/api/discord/callback';
 process.env.TELEGRAM_BOT_TOKEN = 'test-token';
 
 const PASSWORD = 'Secret12345';
+
+/** Достаёт одноразовый токен из OAuth-ссылки Discord (?state=) или deep-link. */
+function tokenFromUrl(url: string): string {
+  const match = /[?&]state=([A-Za-z0-9_-]+)/.exec(url);
+  if (!match) throw new Error(`в ссылке нет state-токена: ${url}`);
+  return match[1]!;
+}
 
 const sentTelegram: OutgoingMessage[] = [];
 let telegramFailure: unknown = null;
@@ -43,6 +52,9 @@ const fakeTelegram: TelegramApi = {
   async setCommands() {},
   async getUpdates() {
     return [];
+  },
+  async getMe() {
+    return { id: '1', username: 'pulse_test_bot' };
   },
 };
 
@@ -227,111 +239,180 @@ describe('Уведомления v2 (интеграция с PostgreSQL)', () =>
   });
 
   describe('Привязка Discord', () => {
-    it('статус и код привязки: TTL 10 минут, в БД только хеш', async () => {
+    it('статус и ссылка подключения: TTL 10 минут, токен в state, в БД только хеш', async () => {
       const { client, userId } = await signUp('dc1@example.com', 'dc1user');
       const status = await client.get('/api/discord/status');
       expect(status.body).toMatchObject({ enabled: true, linked: false, blocked: false });
 
-      const created = await client.post('/api/discord/link-code');
+      const created = await client.post('/api/discord/connect');
       expect(created.status).toBe(201);
       expect(created.body.ttlSeconds).toBe(600);
+      expect(created.body.url).toContain('https://discord.com/oauth2/authorize?');
+      const token = tokenFromUrl(created.body.url as string);
       const row = await prisma.discordLinkCode.findFirstOrThrow({ where: { userId } });
-      expect(row.codeHash).not.toContain(created.body.code as string);
+      expect(row.codeHash).not.toContain(token);
+      expect(row.codeHash).toMatch(/^[0-9a-f]{64}$/);
     });
 
-    it('slash-команда /link code:<код> привязывает аккаунт и открывает DM', async () => {
+    it('OAuth callback привязывает аккаунт одним нажатием, открывает DM и гасит токен', async () => {
       const { client, userId } = await signUp('dc2@example.com', 'dc2user');
-      const { code } = (await client.post('/api/discord/link-code')).body as { code: string };
+      const { url } = (await client.post('/api/discord/connect')).body as { url: string };
+      const state = tokenFromUrl(url);
+      fakeDiscord.oauthUsers.set('oauth-code-1', { userId: '555', username: 'neo' });
 
-      await discord.handleEvent({
-        kind: 'interaction',
-        discordUserId: '555',
-        username: 'neo',
-        interactionId: 'i1',
-        token: 't1',
-        command: 'link',
-        code,
-      });
+      const callback = await new TestClient(server).get(
+        `/api/discord/callback?code=oauth-code-1&state=${state}`,
+      );
+      expect(callback.status).toBe(302);
+      expect(callback.headers.location).toContain('/settings?discord=connected');
 
       const link = await prisma.discordLink.findUniqueOrThrow({ where: { userId } });
       expect(link).toMatchObject({ discordUserId: '555', dmChannelId: 'dm-555', username: 'neo' });
-      expect(fakeDiscord.responses.at(-1)?.content).toContain('привязан');
+      expect(fakeDiscord.lastTo('dm-555')?.content).toContain('привязан');
+      expect(
+        (await prisma.discordLinkCode.findFirst({ where: { userId } }))?.usedAt,
+      ).not.toBeNull();
       expect((await client.get('/api/discord/status')).body).toMatchObject({
         linked: true,
         username: 'neo',
       });
     });
 
-    it('личное сообщение «/link КОД» тоже привязывает; код одноразовый', async () => {
-      const { client, userId } = await signUp('dc3@example.com', 'dc3user');
-      const { code } = (await client.post('/api/discord/link-code')).body as { code: string };
-
-      await discord.handleEvent({
-        kind: 'message',
-        discordUserId: '556',
-        username: 'trinity',
-        channelId: 'dm-556',
-        text: `/link ${code}`,
+    it('OAuth callback: просроченный токен — редирект с ошибкой, привязки нет', async () => {
+      const { client, userId } = await signUp('dc2b@example.com', 'dc2buser');
+      const { url } = (await client.post('/api/discord/connect')).body as { url: string };
+      const state = tokenFromUrl(url);
+      await prisma.discordLinkCode.updateMany({
+        where: { userId },
+        data: { expiresAt: new Date(Date.now() - 1000) },
       });
-      expect(
-        (await prisma.discordLink.findUniqueOrThrow({ where: { userId } })).discordUserId,
-      ).toBe('556');
 
-      // Второй Discord-аккаунт тем же кодом не привяжется.
-      await discord.handleEvent({
-        kind: 'message',
-        discordUserId: '557',
-        username: 'morpheus',
-        channelId: 'dm-557',
-        text: `/link ${code}`,
-      });
-      expect(await prisma.discordLink.count()).toBe(1);
-      expect(fakeDiscord.lastTo('dm-557')?.content).toContain('не подошёл');
+      const callback = await new TestClient(server).get(
+        `/api/discord/callback?code=whatever&state=${state}`,
+      );
+      expect(callback.status).toBe(302);
+      expect(callback.headers.location).toContain('discord=error');
+      expect(await prisma.discordLink.count()).toBe(0);
     });
 
-    it('неверный код не привязывает, любая реплика получает подсказку', async () => {
-      await signUp('dc4@example.com', 'dc4user');
+    it('OAuth callback: токен одноразовый — повторный вызов отклоняется', async () => {
+      const { client } = await signUp('dc2c@example.com', 'dc2cuser');
+      const { url } = (await client.post('/api/discord/connect')).body as { url: string };
+      const state = tokenFromUrl(url);
+      fakeDiscord.oauthUsers.set('oauth-code-2', { userId: '556', username: 'trinity' });
+
+      await new TestClient(server).get(`/api/discord/callback?code=oauth-code-2&state=${state}`);
+      const second = await new TestClient(server).get(
+        `/api/discord/callback?code=oauth-code-2&state=${state}`,
+      );
+      expect(second.headers.location).toContain('discord=error');
+      expect(await prisma.discordLink.count()).toBe(1);
+    });
+
+    it('slash-команда /link с токеном привязывает аккаунт и открывает DM', async () => {
+      const { client, userId } = await signUp('dc3@example.com', 'dc3user');
+      const { url } = (await client.post('/api/discord/connect')).body as { url: string };
+      const token = tokenFromUrl(url);
+
+      await discord.handleEvent({
+        kind: 'interaction',
+        discordUserId: '557',
+        username: 'neo',
+        interactionId: 'i1',
+        token: 't1',
+        command: 'link',
+        code: token,
+      });
+
+      const link = await prisma.discordLink.findUniqueOrThrow({ where: { userId } });
+      expect(link).toMatchObject({ discordUserId: '557', dmChannelId: 'dm-557', username: 'neo' });
+      expect(fakeDiscord.responses.at(-1)?.content).toContain('привязан');
+    });
+
+    it('личное сообщение «/start ТОКЕН» тоже привязывает; токен одноразовый', async () => {
+      const { client, userId } = await signUp('dc4@example.com', 'dc4user');
+      const { url } = (await client.post('/api/discord/connect')).body as { url: string };
+      const token = tokenFromUrl(url);
+
       await discord.handleEvent({
         kind: 'message',
         discordUserId: '558',
-        username: 'x',
+        username: 'trinity',
         channelId: 'dm-558',
-        text: '/link wrongcode99',
+        text: `/start ${token}`,
+      });
+      expect(
+        (await prisma.discordLink.findUniqueOrThrow({ where: { userId } })).discordUserId,
+      ).toBe('558');
+
+      // Второй Discord-аккаунт тем же токеном не привяжется.
+      await discord.handleEvent({
+        kind: 'message',
+        discordUserId: '559',
+        username: 'morpheus',
+        channelId: 'dm-559',
+        text: `/start ${token}`,
+      });
+      expect(await prisma.discordLink.count()).toBe(1);
+      expect(fakeDiscord.lastTo('dm-559')?.content).toContain('использована');
+    });
+
+    it('неверный токен не привязывает, любая реплика получает подсказку', async () => {
+      await signUp('dc5@example.com', 'dc5user');
+      await discord.handleEvent({
+        kind: 'message',
+        discordUserId: '560',
+        username: 'x',
+        channelId: 'dm-560',
+        text: '/start wrongtoken99',
       });
       expect(await prisma.discordLink.count()).toBe(0);
       await discord.handleEvent({
         kind: 'message',
-        discordUserId: '558',
+        discordUserId: '560',
         username: 'x',
-        channelId: 'dm-558',
+        channelId: 'dm-560',
         text: 'привет',
       });
-      expect(fakeDiscord.lastTo('dm-558')?.content).toContain('/link');
+      expect(fakeDiscord.lastTo('dm-560')?.content).toContain('Подключить');
     });
 
     it('Discord-аккаунт, занятый другим пользователем, не перепривязывается', async () => {
-      const first = await signUp('dc5a@example.com', 'dc5a');
-      const second = await signUp('dc5b@example.com', 'dc5b');
+      const first = await signUp('dc6a@example.com', 'dc6a');
+      const second = await signUp('dc6b@example.com', 'dc6b');
       await linkDiscord(first.userId, '600');
-      const { code } = (await second.client.post('/api/discord/link-code')).body as {
-        code: string;
-      };
+      const { url } = (await second.client.post('/api/discord/connect')).body as { url: string };
+      const token = tokenFromUrl(url);
 
       await discord.handleEvent({
         kind: 'message',
         discordUserId: '600',
         username: 'x',
         channelId: 'dm-600',
-        text: `/link ${code}`,
+        text: `/start ${token}`,
       });
       expect(await prisma.discordLink.findFirst({ where: { userId: second.userId } })).toBeNull();
     });
 
     it('отвязка из настроек', async () => {
-      const { client, userId } = await signUp('dc6@example.com', 'dc6user');
+      const { client, userId } = await signUp('dc7@example.com', 'dc7user');
       await linkDiscord(userId);
       expect((await client.del('/api/discord/link')).status).toBe(204);
       expect(await prisma.discordLink.count()).toBe(0);
+    });
+
+    it('/password в ЛС привязанного Discord присылает одноразовую ссылку (v3 §7)', async () => {
+      const { userId } = await signUp('dc12@example.com', 'dc12user');
+      await linkDiscord(userId, '720');
+      await discord.handleEvent({
+        kind: 'message',
+        discordUserId: '720',
+        username: 'x',
+        channelId: 'dm-720',
+        text: '!password',
+      });
+      expect(fakeDiscord.lastTo('dm-720')?.content).toContain('/reset-password?token=');
+      expect(await prisma.passwordToken.count({ where: { userId } })).toBe(1);
     });
   });
 

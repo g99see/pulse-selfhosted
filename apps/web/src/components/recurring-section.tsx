@@ -11,7 +11,7 @@ import type {
   RecurringUpcomingItem,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
-import { categoryLabel } from '@/lib/category-label';
+import { categoryTreeOptions } from '@/components/category-select';
 import { MASKED_AMOUNT } from '@/components/money';
 import { formatDate, formatMoneyLocale } from '@/lib/format';
 import { FormToggle } from '@/components/finance-form-toggle';
@@ -86,8 +86,6 @@ export function RecurringSection({
   useEffect(() => {
     if (!accountId && accounts.length > 0) setAccountId(accounts[0].id);
   }, [accounts, accountId]);
-
-  const categoryOptions = categories.filter((category) => category.kind === type);
 
   async function submit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -293,11 +291,7 @@ export function RecurringSection({
               className={inputClass}
             >
               <option value="">{t('finance.noCategory')}</option>
-              {categoryOptions.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {categoryLabel(category, t)}
-                </option>
-              ))}
+              {categoryTreeOptions(categories, t, type)}
             </select>
           </label>
           <label htmlFor="recurring-frequency" className="flex flex-col gap-1">

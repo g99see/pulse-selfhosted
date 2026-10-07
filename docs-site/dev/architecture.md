@@ -1,15 +1,13 @@
 # Архитектура
 
 Как устроен «Пульс»: схема сервисов, путь запроса, данные, фоновые задачи,
-локализация и изоляция пользовательского HTML.
+локализация.
 
 ## Схема
 
 ```
 Браузер ──HTTPS──► Caddy ─┬─ /api/*, /health ─► api:3001 (NestJS) ─► PostgreSQL 16
                           └─ всё остальное   ─► web:3000 (Next.js SSR)   Valkey 8 (кеш, BullMQ)
-
-Браузер ──► usercontent.<домен> (SANDBOX_DOMAIN) ─ только /sandbox/* ─► api (HTML пользователя, строгий CSP)
 ```
 
 Контейнеры compose: `postgres`, `valkey`, `api`, `web`, `backup`, `caddy`.
@@ -31,12 +29,12 @@
 
 ## Данные
 
-Prisma-модели (36): `User Session EmailVerificationToken Account CheckIn Category
+Prisma-модели: `User Session EmailVerificationToken Account CheckIn Category
 Transaction Budget NotificationRule DailyStat DiscordLink NotificationDelivery TelegramLink
-TelegramLinkCode ExternalIdentity InstanceSettings TwoFactorBackupCode
-TwoFactorChallenge ExchangeRate Goal GoalDeposit Insight RecurringPayment
-Achievement UserAchievement Follow Post Reaction Comment Profile ProfileCard
-Report ModerationAction ContentFlag HtmlPage HtmlPageVersion`.
+TelegramLinkCode ExternalIdentity InstanceSettings
+PasswordToken ExchangeRate Goal GoalDeposit Insight RecurringPayment
+Achievement UserAchievement TimeCapsule Habit HabitLog DaySummaryLink` и др. (полный список — `apps/api/prisma/schema.prisma`).
+Социальных сущностей (подписки, лента, публичные профили, семья, челленджи) нет — данные одного пользователя другому не показываются.
 
 - Суммы — `Decimal(14,2)` в БД, числа в API.
 - **Любая таблица с `user_id` обязана быть в `account/data-registry.ts`** — иначе
@@ -58,36 +56,9 @@ BullMQ на Valkey с таймерным фолбэком: напоминани�
 русской строке в `.tsx`, не прошедшей через `t()`. Язык выбирается по cookie
 `puls_locale` → `Accept-Language` → `ru`.
 
-## HTML-страница и песочница
-
-- **Хранение:** `HtmlPage` (одна на пользователя) + `HtmlPageVersion` (последние
-  10 версий; откат создаёт новую версию).
-- **Автопроверка** `checkHtmlPage` (`shared/html-page.ts`): статус
-  `ok | blocked | flagged`; `blocked` не публикуется; опционально ClamAV
-  (`CLAMAV_*`, пусто — выключено).
-- **Отдача:** `html-page/sandbox.controller.ts` на отдельном домене со строгим
-  CSP; Caddy срезает cookie в обе стороны и пропускает только `/sandbox/*`.
-- **Показ:** `iframe` `sandbox="allow-scripts"` **без** `allow-same-origin`,
-  `referrerPolicy="no-referrer"` — у страницы чужой origin.
-- **Редактор** (`/page-editor`): textarea + `iframe srcdoc` с теми же атрибутами,
-  4 шаблона из `shared/html-templates.ts`, загрузка `.html` (multipart, поле
-  `file`, до 2 МБ).
-
-## Короткие адреса `/@nickname`
-
-Next.js резервирует `@` под parallel routes, поэтому литеральный `@` в имени
-папки маршрута невозможен. В `next.config.mjs` заданы rewrites:
-
-```
-/@:nickname/page → /u/:nickname/page
-/@:nickname      → /u/:nickname
-```
-
-Новые публичные маршруты профиля кладите в `app/u/[nickname]/…`.
-
 ## См. также
 
 - [Разработчикам](/dev/)
 - [Как внести вклад](/dev/contributing)
-- [Безопасность и песочница](/security/)
+- [Безопасность](/security/)
 - [Администрирование](/admin/)

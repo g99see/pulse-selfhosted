@@ -8,6 +8,7 @@ import {
   type AccountUpdateInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { ExchangeRatesService } from './rates.service';
 
@@ -74,6 +75,7 @@ export class AccountsService {
         currency: input.currency ?? user.currency,
       },
     });
+    InternalEvents.emit('achievement.check', { userId, event: 'account' });
     return toAccountDto(account);
   }
 

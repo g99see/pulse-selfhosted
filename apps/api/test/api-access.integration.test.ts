@@ -143,7 +143,6 @@ describe('Открытый API и вебхуки (интеграция с Postgr
       'DELETE FROM "accounts"',
       'DELETE FROM "check_ins"',
       'DELETE FROM "user_achievements"',
-      'DELETE FROM "posts"',
       'DELETE FROM "sessions"',
       'DELETE FROM "email_verification_tokens"',
       'DELETE FROM "users"',

@@ -14,8 +14,8 @@ import { SessionGuard } from '../auth/session.guard';
 import type { AuthenticatedRequest } from '../auth/auth.types';
 import { httpError } from '../common/http-error';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
-import { Roles } from '../moderation/roles.decorator';
-import { RolesGuard } from '../moderation/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { NotificationsService } from './notifications.service';
 import { OutboxService } from './outbox.service';
 

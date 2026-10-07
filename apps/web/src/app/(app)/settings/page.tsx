@@ -9,7 +9,6 @@ import { ApiAccessSection } from '@/components/api-access-section';
 import { LinkedAccountsSection } from '@/components/linked-accounts-section';
 import { QuietModeSection } from '@/components/quiet-mode-section';
 import { NotificationSettings } from '@/components/notification-settings';
-import { TwoFactorSection } from '@/components/two-factor-section';
 import { useT } from '@/components/locale-provider';
 
 /**
@@ -26,10 +25,6 @@ export default function SettingsPage() {
       <SettingsGroup title={t('settings.group.privacy')}>
         <QuietModeSection />
         <DaySummarySection />
-      </SettingsGroup>
-
-      <SettingsGroup title={t('settings.group.security')}>
-        <TwoFactorSection />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.group.accounts')}>

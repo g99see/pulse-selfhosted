@@ -1,59 +1,35 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// E2E внешнего входа (ТЗ §3.1, §7). Без ключей владельца кнопки Google/Telegram
-// скрыты, эндпоинты отвечают 404 provider_disabled, а обычный вход по паролю
-// работает как раньше. Раздел «Способы входа» в настройках показывает пароль.
+// E2E внешнего входа (v3 §7.3). Telegram-вход и 2FA удалены: вход только логином
+// и паролем. Без ключей владельца кнопка Google скрыта, вход через Telegram
+// отвечает 404. Раздел «Способы входа» показывает пароль и (при наличии) Google.
 import { expect, test } from '@playwright/test';
 
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:3001';
 const PASSWORD = 'Secret12345';
 
-interface SentMail {
-  to: string;
-  subject: string;
-  text: string;
-  link?: string;
-  kind?: string;
-}
-
-async function verificationTokenFor(
-  request: import('@playwright/test').APIRequestContext,
-  email: string,
-): Promise<string> {
-  const response = await request.get(`${API_URL}/api/auth/dev/outbox`);
-  expect(response.ok()).toBeTruthy();
-
-  const body = (await response.json()) as { messages: SentMail[] };
-  const letter = [...body.messages]
-    .reverse()
-    .find((message) => message.to === email && message.kind === 'email-verification');
-
-  expect(letter, `письмо для ${email} должно быть в outbox`).toBeTruthy();
-  const token = /verify-email\?token=([A-Za-z0-9_-]+)/.exec(
-    letter?.link ?? letter?.text ?? '',
-  )?.[1];
-  expect(token, 'в письме должна быть ссылка с токеном').toBeTruthy();
-  return token as string;
-}
-
-test('без ключей провайдеры выключены, пароль остаётся рабочим способом входа', async ({
+test('провайдеры: Telegram-входа нет, Google выключен без ключей, пароль остаётся', async ({
   page,
   request,
 }) => {
-  // 1. Список провайдеров: всё выключено.
+  // 1. Список провайдеров: только Google, и он выключен без ключей владельца.
   const providers = await request.get(`${API_URL}/api/auth/providers`);
   expect(providers.ok()).toBeTruthy();
-  expect(await providers.json()).toEqual({
-    google: false,
-    telegram: false,
-    telegramBotUsername: null,
-  });
+  expect(await providers.json()).toEqual({ google: false });
 
-  // 2. Выключенный эндпоинт отвечает 404 provider_disabled.
+  // 2. Выключенный Google отвечает 404 provider_disabled.
   const google = await request.get(`${API_URL}/api/auth/google/start`, { maxRedirects: 0 });
   expect(google.status()).toBe(404);
   expect(((await google.json()) as { code: string }).code).toBe('provider_disabled');
 
-  // 3. На /login и /register кнопок провайдеров нет.
+  // 3. Входа через Telegram и 2FA больше нет.
+  expect((await request.post(`${API_URL}/api/auth/telegram`, { data: { id: 1 } })).status()).toBe(
+    404,
+  );
+  expect(
+    (await request.post(`${API_URL}/api/auth/link/telegram`, { data: { id: 1 } })).status(),
+  ).toBe(404);
+
+  // 4. На /login и /register кнопок провайдеров нет.
   await page.goto('/login');
   await expect(page.getByTestId('provider-buttons')).toHaveCount(0);
   await expect(page.getByTestId('google-login')).toHaveCount(0);
@@ -62,19 +38,14 @@ test('без ключей провайдеры выключены, пароль 
   await expect(page.getByTestId('provider-buttons')).toHaveCount(0);
   await expect(page.getByTestId('google-login')).toHaveCount(0);
 
-  // 4. Обычный вход по паролю по-прежнему работает: регистрация и подтверждение.
+  // 5. Регистрация логином и паролем по-прежнему работает: сразу сессия и онбординг.
   const unique = Date.now().toString().slice(-9);
-  const email = `e2e-oauth-${unique}@example.com`;
   const nickname = `oauth${unique}`;
 
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
   await page.getByLabel('Никнейм').fill(nickname);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Повторите пароль').fill(PASSWORD);
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL(/verify-email/);
-
-  const token = await verificationTokenFor(request, email);
-  await page.goto(`/verify-email?token=${token}`);
   await expect(page).toHaveURL(/onboarding/, { timeout: 20_000 });
 
   await expect(page.getByTestId('onboarding-step-1')).toBeVisible();
@@ -88,7 +59,7 @@ test('без ключей провайдеры выключены, пароль 
   await page.getByTestId('onboarding-finish').click();
   await expect(page).toHaveURL(/\/app$/, { timeout: 20_000 });
 
-  // 5. Раздел «Способы входа» в настройках: пароль, внешних привязок нет.
+  // 6. Раздел «Способы входа»: пароль задан, внешних привязок нет.
   await page.goto('/settings');
   await expect(page.getByTestId('linked-accounts')).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId('password-status')).toHaveText('Задан');

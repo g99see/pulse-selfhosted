@@ -27,7 +27,6 @@ const SLIDE_BG: Record<string, string> = {
   mood: 'linear-gradient(160deg, var(--puls-wellbeing-soft), var(--puls-surface))',
   checkins: 'linear-gradient(160deg, var(--puls-wellbeing-soft), var(--puls-primary-soft))',
   goals: 'linear-gradient(160deg, var(--puls-finance-soft), var(--puls-primary-soft))',
-  share: 'linear-gradient(160deg, var(--puls-primary-soft), var(--puls-finance-soft))',
 };
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -46,7 +45,6 @@ export default function WrappedPage() {
   const [slide, setSlide] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [visible, setVisible] = useState(true);
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -287,29 +285,8 @@ export default function WrappedPage() {
       ),
     });
 
-    result.push({
-      key: 'share',
-      node: (
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h2 className="text-xl font-bold">{t('wrapped.share.title')}</h2>
-          <p className="text-[var(--puls-ink-muted)]">{t('wrapped.share.body')}</p>
-          <button
-            type="button"
-            data-testid="wrapped-share"
-            onClick={() => void share()}
-            className="h-11 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-5 text-sm font-semibold text-[var(--puls-on-primary)]"
-          >
-            {t('wrapped.share.button')}
-          </button>
-          <p aria-live="polite" role="status" className="text-xs text-[var(--puls-ink-muted)]">
-            {shareStatus === 'copied' ? t('wrapped.share.copied') : ''}
-          </p>
-        </div>
-      ),
-    });
-
     return result;
-  }, [data, isEmpty, locale, t, shareStatus]);
+  }, [data, isEmpty, locale, t]);
 
   // Смена слайда с лёгкой анимацией; при reduced motion — мгновенно.
   useEffect(() => {
@@ -328,7 +305,6 @@ export default function WrappedPage() {
         const max = Math.max(slides.length - 1, 0);
         return Math.min(Math.max(next, 0), max);
       });
-      setShareStatus('idle');
     },
     [slides.length],
   );
@@ -341,21 +317,6 @@ export default function WrappedPage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [go, slide]);
-
-  async function share(): Promise<void> {
-    const text = t('wrapped.share.text', { year });
-    const nav = navigator as Navigator & { share?: (payload: ShareData) => Promise<void> };
-    try {
-      if (typeof nav.share === 'function') {
-        await nav.share({ title: t('wrapped.title'), text });
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      setShareStatus('copied');
-    } catch {
-      // Пользователь отменил или нет доступа — тихо остаёмся на слайде.
-    }
-  }
 
   const total = slides.length;
   const current = slides[slide];

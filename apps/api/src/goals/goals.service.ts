@@ -15,11 +15,10 @@ import {
   type GoalDto,
   type GoalMilestoneEvent,
   type GoalUpdateInput,
-  type GoalVisibility,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
-import { SocialPostsService } from '../social/social-posts.service';
 import { DomainEvents } from '../api-access/domain-events';
 
 type GoalWithDeposits = Prisma.GoalGetPayload<{ include: { deposits: true } }>;
@@ -59,7 +58,6 @@ export function toGoalDto(goal: GoalWithDeposits, from: Date = new Date()): Goal
     percent,
     deadline: goal.deadline ? goal.deadline.toISOString() : null,
     image: goal.image,
-    visibility: goal.visibility as GoalVisibility,
     accountId: goal.accountId,
     currency: goal.currency,
     requiredMonthly: requiredMonthlyContribution(targetAmount, savedAmount, goal.deadline, from),
@@ -82,10 +80,7 @@ function toDepositDto(deposit: Prisma.GoalDepositGetPayload<object>): GoalDeposi
 /** Цели накоплений (ТЗ §3.2, сценарий 2): CRUD, пополнения и вехи прогресса. */
 @Injectable()
 export class GoalsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly posts: SocialPostsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(userId: string): Promise<GoalDto[]> {
     const goals = await this.prisma.goal.findMany({
@@ -131,20 +126,13 @@ export class GoalsService {
         savedAmount: new Prisma.Decimal(input.savedAmount ?? 0),
         deadline: input.deadline ? toDateOnly(input.deadline) : null,
         image: input.image ?? null,
-        visibility: input.visibility,
         accountId: input.accountId ?? null,
         currency: user.currency,
       },
       include: { deposits: true },
     });
+    InternalEvents.emit('achievement.check', { userId, event: 'goal' });
     const dto = toGoalDto(goal);
-    // Пост в ленту о новой цели (ТЗ §3.7): приватность берём у самой цели.
-    await this.posts.create({
-      userId,
-      type: 'goal',
-      visibility: goal.visibility as GoalVisibility,
-      payload: { goalId: goal.id, title: goal.title, image: goal.image, percent: dto.percent },
-    });
     return dto;
   }
 
@@ -166,7 +154,6 @@ export class GoalsService {
           ? { deadline: input.deadline ? toDateOnly(input.deadline) : null }
           : {}),
         ...(input.image !== undefined ? { image: input.image } : {}),
-        ...(input.visibility !== undefined ? { visibility: input.visibility } : {}),
         ...(input.accountId !== undefined ? { accountId: input.accountId ?? null } : {}),
       },
       include: { deposits: true },
@@ -218,13 +205,14 @@ export class GoalsService {
       return { deposit: created, updated: next };
     });
 
+    InternalEvents.emit('achievement.check', { userId, event: 'goal' });
     const dto = toGoalDto(updated);
     const milestone: GoalMilestoneEvent = {
       percent: dto.percent,
       reached: crossedMilestones(previousPercent, dto.percent),
     };
 
-    // Пост-веха в ленту (ТЗ §3.7): только когда пополнение пересекло 25/50/75/100%.
+    // Веха: только когда пополнение пересекло 25/50/75/100%.
     if (milestone.reached.length > 0) {
       // Событие для вебхуков (ТЗ §4): сигнатуру deposit не меняет.
       DomainEvents.emit('goal.milestone', userId, {
@@ -232,17 +220,6 @@ export class GoalsService {
         title: goal.title,
         percent: dto.percent,
         reached: milestone.reached,
-      });
-      await this.posts.create({
-        userId,
-        type: 'milestone',
-        visibility: updated.visibility as GoalVisibility,
-        payload: {
-          goalId: goal.id,
-          title: goal.title,
-          percent: dto.percent,
-          reached: milestone.reached,
-        },
       });
     }
 

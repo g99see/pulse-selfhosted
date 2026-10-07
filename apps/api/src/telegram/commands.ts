@@ -12,10 +12,11 @@ import {
   parseQuickTransaction,
   type Mood,
 } from '@puls/shared';
+import { LINK_TOKEN_PATTERN } from './link-token';
 
 /** Намерение пользователя по тексту сообщения. */
 export type TelegramCommand =
-  | { kind: 'start'; code: string | null }
+  | { kind: 'start'; token: string | null }
   | { kind: 'checkin' }
   /** `/checkin 4 энергия 3 …` — быстрая форма одной строкой. */
   | { kind: 'checkin-line'; text: string }
@@ -26,6 +27,8 @@ export type TelegramCommand =
   | { kind: 'spent'; text: string | null }
   | { kind: 'help' }
   | { kind: 'unlink' }
+  /** `/password` — ссылка сброса или установки пароля (v3 §7). */
+  | { kind: 'password' }
   | { kind: 'quick'; text: string }
   | { kind: 'unknown' };
 
@@ -41,9 +44,6 @@ export interface InlineButton {
   text: string;
   callbackData: string;
 }
-
-/** Символы одноразового кода привязки: латиница, цифры, дефис и подчёркивание. */
-export const LINK_CODE_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
 
 /**
  * Аргументы `/spent`: «12 кофе», «12.5 такси» или «кофе 12» → «кофе 12».
@@ -67,6 +67,7 @@ export const BOT_COMMANDS: { command: string; description: string }[] = [
   { command: 'spent', description: 'Записать трату: /spent 12 кофе' },
   { command: 'today', description: 'Траты и настроение за сегодня' },
   { command: 'help', description: 'Справка по командам' },
+  { command: 'password', description: 'Ссылка для смены или установки пароля' },
   { command: 'unlink', description: 'Отвязать чат' },
 ];
 
@@ -85,7 +86,7 @@ export function parseCommand(raw: string): TelegramCommand {
         const candidate = rest[0];
         return {
           kind: 'start',
-          code: candidate && LINK_CODE_PATTERN.test(candidate) ? candidate : null,
+          token: candidate && LINK_TOKEN_PATTERN.test(candidate) ? candidate : null,
         };
       }
       case 'checkin': {
@@ -102,6 +103,8 @@ export function parseCommand(raw: string): TelegramCommand {
         return { kind: 'help' };
       case 'unlink':
         return { kind: 'unlink' };
+      case 'password':
+        return { kind: 'password' };
       default:
         return { kind: 'unknown' };
     }

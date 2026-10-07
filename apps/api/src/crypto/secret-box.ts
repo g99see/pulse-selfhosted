@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * AES-256-GCM «сейф» для секретов (ТЗ §6): TOTP-секреты сейчас, AI-ключи — потом.
+ * AES-256-GCM «сейф» для секретов (ТЗ §6): AI-ключи и токены.
  *
  * Мастер-ключ берётся из APP_ENCRYPTION_KEY (32 байта в base64). В production
  * без ключа сейф недоступен — 2FA явно выключена, а не «наполовину работает».
@@ -119,8 +119,8 @@ export class SecretBoxService {
   private unavailable(): Error {
     return httpError(
       503,
-      'two_factor_unavailable',
-      'Двухфакторная аутентификация недоступна: не задан APP_ENCRYPTION_KEY',
+      'encryption_unavailable',
+      'Шифрование недоступно: не задан APP_ENCRYPTION_KEY',
     );
   }
 }

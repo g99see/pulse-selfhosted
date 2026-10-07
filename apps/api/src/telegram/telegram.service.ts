@@ -6,6 +6,7 @@
  * без привязки получает только подсказку и ничего не пишет в БД.
  */
 import { HttpException, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import type { BotConnectLinkResponse } from '@puls/shared';
 import { CheckinDialogService, type DialogOutcome } from '../checkins/checkin-dialog.service';
 import { CheckinsService } from '../checkins/checkins.service';
 import { RateLimitService } from '../auth/rate-limit.service';
@@ -23,7 +24,16 @@ import {
   type InlineButton,
 } from './commands';
 import { DeliveryError, classifyTelegramError } from '../notifications/outbox-logic';
-import { generateLinkCode, hashLinkCode, linkCodeMatches, LINK_CODE_TTL_MS } from './link-code';
+import { PasswordResetService } from '../auth/password-reset.service';
+import {
+  buildTelegramDeepLink,
+  generateLinkToken,
+  hashLinkToken,
+  linkTokenMatches,
+  linkTokenState,
+  LINK_TOKEN_TTL_MS,
+  type LinkTokenState,
+} from './link-token';
 import {
   alreadyLinkedText,
   chatTakenText,
@@ -33,11 +43,13 @@ import {
   dialogCancelledText,
   dialogExpiredText,
   dialogPromptText,
+  expiredTokenText,
   helpText,
-  invalidCodeText,
+  invalidTokenText,
   linkRequiredText,
   linkedText,
   noAccountText,
+  passwordLinkText,
   spentSavedText,
   spentUsageText,
   startHintText,
@@ -48,6 +60,7 @@ import {
   undoMissingText,
   unknownText,
   unlinkedText,
+  usedTokenText,
 } from './messages';
 import { TELEGRAM_API, type TelegramApi } from './telegram-api';
 import type { IncomingCallback, IncomingMessage, IncomingUpdate } from './updates';
@@ -56,9 +69,9 @@ import { normalizeUpdate } from './updates';
 /** Канал черновиков диалога чек-ина (Discord будет использовать свой). */
 export const CHECKIN_CHANNEL = 'telegram';
 
-/** Сколько кодов привязки можно запросить за окно (ТЗ §6: ограничение частоты). */
-export const LINK_CODE_LIMIT = 5;
-export const LINK_CODE_WINDOW_SECONDS = 10 * 60;
+/** Сколько ссылок привязки можно запросить за окно (ТЗ §6: ограничение частоты). */
+export const LINK_TOKEN_LIMIT = 5;
+export const LINK_TOKEN_WINDOW_SECONDS = 10 * 60;
 
 export interface TelegramStatus {
   enabled: boolean;
@@ -67,13 +80,9 @@ export interface TelegramStatus {
   /** Бот заблокирован пользователем: доставка остановлена. */
   blocked: boolean;
   chatUsername: string | null;
+  /** Имя общего бота Pulse (env или getMe) для deep-link; null — неизвестно. */
+  botUsername: string | null;
   linkedAt: string | null;
-}
-
-export interface LinkCodeResult {
-  code: string;
-  expiresAt: string;
-  ttlSeconds: number;
 }
 
 @Injectable()
@@ -83,6 +92,9 @@ export class TelegramService implements OnModuleInit {
   private readonly token = process.env.TELEGRAM_BOT_TOKEN ?? '';
   private readonly mode: 'webhook' | 'polling' =
     process.env.TELEGRAM_MODE === 'polling' ? 'polling' : 'webhook';
+  /** Кеш имени общего бота: getMe — сетевой вызов, а статус спрашивают часто. */
+  private botUsernameCache: string | null = null;
+  private botUsernameResolved = false;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -92,6 +104,7 @@ export class TelegramService implements OnModuleInit {
     private readonly stats: StatsService,
     private readonly budgets: BudgetsService,
     private readonly rateLimit: RateLimitService,
+    private readonly passwordReset: PasswordResetService,
     @Inject(TELEGRAM_API) private readonly api: TelegramApi,
   ) {}
 
@@ -131,23 +144,63 @@ export class TelegramService implements OnModuleInit {
       linked: link !== null,
       blocked: link?.blockedAt != null,
       chatUsername: link?.username ?? null,
+      botUsername: await this.getBotUsername(),
       linkedAt: link?.linkedAt.toISOString() ?? null,
     };
   }
 
-  /** Одноразовый код для привязки чата; в БД попадает только хеш. */
-  async createLinkCode(userId: string): Promise<LinkCodeResult> {
+  /**
+   * Имя общего бота Pulse (ТЗ §6): из TELEGRAM_BOT_USERNAME, иначе getMe.
+   * Кешируется в поле: getMe — сетевой вызов, а статус запрашивается часто.
+   */
+  async getBotUsername(): Promise<string | null> {
+    if (this.botUsernameResolved) return this.botUsernameCache;
+    this.botUsernameResolved = true;
+
+    const fromEnv = (process.env.TELEGRAM_BOT_USERNAME ?? '').trim().replace(/^@/, '');
+    if (fromEnv.length > 0) {
+      this.botUsernameCache = fromEnv;
+      return this.botUsernameCache;
+    }
+
+    try {
+      const me = await this.api.getMe();
+      this.botUsernameCache = me.username ? me.username.replace(/^@/, '') : null;
+    } catch (error) {
+      this.logger.warn(
+        `Не удалось получить имя бота (getMe): ${error instanceof Error ? error.message : 'unknown'}`,
+      );
+      this.botUsernameCache = null;
+    }
+    return this.botUsernameCache;
+  }
+
+  /**
+   * Одноразовая ссылка-подключение (ТЗ §6): кнопка в настройках создаёт токен
+   * (TTL 10 минут, в БД только хеш) и отдаёт deep-link на общего бота. Токен
+   * гасится ботом при `/start <токен>`.
+   */
+  async connectLink(userId: string): Promise<BotConnectLinkResponse> {
     if (!this.enabled) {
       throw httpError(503, 'telegram_disabled', 'Telegram-бот не настроен');
     }
 
+    const botUsername = await this.getBotUsername();
+    if (botUsername === null) {
+      throw httpError(
+        503,
+        'telegram_bot_username_unavailable',
+        'Не удалось определить имя бота Telegram: задайте TELEGRAM_BOT_USERNAME',
+      );
+    }
+
     const limit = await this.rateLimit.consume(
-      `telegram:link-code:${userId}`,
-      LINK_CODE_LIMIT,
-      LINK_CODE_WINDOW_SECONDS,
+      `telegram:connect:${userId}`,
+      LINK_TOKEN_LIMIT,
+      LINK_TOKEN_WINDOW_SECONDS,
     );
     if (!limit.allowed) {
-      throw httpError(429, 'rate_limited', 'Слишком много запросов кода. Попробуйте позже', {
+      throw httpError(429, 'rate_limited', 'Слишком много запросов ссылки. Попробуйте позже', {
         retryAfterSeconds: limit.retryAfterSeconds,
       });
     }
@@ -156,16 +209,16 @@ export class TelegramService implements OnModuleInit {
       where: { userId, expiresAt: { lt: new Date() } },
     });
 
-    const code = generateLinkCode();
-    const expiresAt = new Date(Date.now() + LINK_CODE_TTL_MS);
+    const token = generateLinkToken();
+    const expiresAt = new Date(Date.now() + LINK_TOKEN_TTL_MS);
     await this.prisma.telegramLinkCode.create({
-      data: { userId, codeHash: hashLinkCode(code), expiresAt },
+      data: { userId, codeHash: hashLinkToken(token), expiresAt },
     });
 
     return {
-      code,
+      url: buildTelegramDeepLink(botUsername, token),
       expiresAt: expiresAt.toISOString(),
-      ttlSeconds: Math.round(LINK_CODE_TTL_MS / 1000),
+      ttlSeconds: Math.round(LINK_TOKEN_TTL_MS / 1000),
     };
   }
 
@@ -211,20 +264,37 @@ export class TelegramService implements OnModuleInit {
     const command = parseCommand(message.text);
     const link = await this.prisma.telegramLink.findUnique({ where: { chatId: message.chatId } });
 
+    // Любая активность в чате — признак, что пользователь снова открыт для бота
+    // (ТЗ §6: бот был заблокирован — снимаем блокировку, канал снова активен).
+    if (link?.blockedAt) {
+      await this.prisma.telegramLink.update({
+        where: { userId: link.userId },
+        data: { blockedAt: null },
+      });
+    }
+
     if (command.kind === 'start') {
-      if (!command.code) {
+      if (!command.token) {
         await this.send(message.chatId, link ? alreadyLinkedText() : startHintText());
         return;
       }
 
-      const code = await this.resolveCode(command.code);
-      if (!code) {
-        await this.send(message.chatId, link ? alreadyLinkedText() : invalidCodeText());
+      const resolved = await this.resolveToken(command.token);
+      if (!resolved || resolved.state === 'missing') {
+        await this.send(message.chatId, link ? alreadyLinkedText() : invalidTokenText());
+        return;
+      }
+      if (resolved.state === 'expired') {
+        await this.send(message.chatId, expiredTokenText());
+        return;
+      }
+      if (resolved.state === 'used') {
+        await this.send(message.chatId, link ? alreadyLinkedText() : usedTokenText());
         return;
       }
 
       // Чат уже занят другим аккаунтом — перепривязка невозможна.
-      if (link && link.userId !== code.userId) {
+      if (link && link.userId !== resolved.userId) {
         await this.send(message.chatId, chatTakenText());
         return;
       }
@@ -233,7 +303,12 @@ export class TelegramService implements OnModuleInit {
         return;
       }
 
-      const result = await this.linkChat(code.userId, message.chatId, message.username, code.id);
+      const result = await this.linkChat(
+        resolved.userId,
+        message.chatId,
+        message.username,
+        resolved.id,
+      );
       if (result === 'taken') {
         await this.send(message.chatId, chatTakenText());
         return;
@@ -244,6 +319,8 @@ export class TelegramService implements OnModuleInit {
 
     // Изоляция: чужой чат без привязки — только подсказка, никаких данных.
     if (!link) {
+      // Раньше входил через Telegram и пароля нет: присылаем ссылку установки логина и пароля.
+      if (await this.sendSetupLinkIfNeeded(message.chatId)) return;
       await this.send(message.chatId, linkRequiredText());
       return;
     }
@@ -306,6 +383,15 @@ export class TelegramService implements OnModuleInit {
         await this.prisma.telegramLink.deleteMany({ where: { userId: link.userId } });
         await this.send(message.chatId, unlinkedText());
         return;
+      case 'password': {
+        const user = await this.prisma.user.findUnique({ where: { id: link.userId } });
+        const issued = await this.passwordReset.issue(
+          link.userId,
+          user?.passwordHash ? 'reset' : 'setup',
+        );
+        await this.send(message.chatId, passwordLinkText(issued.url, !user?.passwordHash));
+        return;
+      }
       case 'quick':
         await this.handleQuick(link.userId, message.chatId, command.text);
         return;
@@ -463,15 +549,38 @@ export class TelegramService implements OnModuleInit {
     }
   }
 
-  /** Находит действующий одноразовый код; null — истёк, использован или не найден. */
-  private async resolveCode(code: string): Promise<{ id: string; userId: string } | null> {
+  /**
+   * Находит токен привязки по хешу и классифицирует его (ТЗ §6): null — записи
+   * нет (токен не наш); иначе — состояние ok/expired/used и владелец.
+   */
+  private async resolveToken(
+    token: string,
+  ): Promise<{ id: string; userId: string; state: LinkTokenState } | null> {
     const record = await this.prisma.telegramLinkCode.findUnique({
-      where: { codeHash: hashLinkCode(code) },
+      where: { codeHash: hashLinkToken(token) },
     });
-    if (!record || record.usedAt !== null) return null;
-    if (record.expiresAt.getTime() <= Date.now()) return null;
-    if (!linkCodeMatches(code, record.codeHash)) return null;
-    return { id: record.id, userId: record.userId };
+    if (!record || !linkTokenMatches(token, record.codeHash)) return null;
+    return { id: record.id, userId: record.userId, state: linkTokenState(record) };
+  }
+
+  /**
+   * Пользователю без пароля, который раньше входил через Telegram, шлёт ссылку
+   * установки логина и пароля (v3 §7.3). Не чаще раза в 10 минут на чат, чтобы
+   * не спамить. true — сообщение ушло (или уже отправлялось в этом окне).
+   */
+  private async sendSetupLinkIfNeeded(chatId: string): Promise<boolean> {
+    const identity = await this.prisma.externalIdentity.findUnique({
+      where: { provider_subject: { provider: 'telegram', subject: chatId } },
+      include: { user: true },
+    });
+    if (!identity || identity.user.passwordHash !== null) return false;
+
+    const limit = await this.rateLimit.consume(`telegram:setup-link:${chatId}`, 1, 10 * 60);
+    if (!limit.allowed) return true;
+
+    const issued = await this.passwordReset.issue(identity.userId, 'setup');
+    await this.send(chatId, passwordLinkText(issued.url, true));
+    return true;
   }
 
   /** Привязывает чат: один чат — один аккаунт, у пользователя один чат. */

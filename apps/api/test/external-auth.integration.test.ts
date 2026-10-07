@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Интеграционные тесты внешнего входа (ТЗ §3.1, §7): Google OAuth2/OIDC с PKCE
-// (шлюз подменён фейком — реальных запросов к Google нет) и Telegram Login Widget
-// (подпись, подделка, просрочка). Проверяются также привязка по подтверждённому
+// (шлюз подменён фейком — реальных запросов к Google нет). Вход через Telegram
+// удалён (v3 §7.3): эндпоинтов нет. Проверяются привязка по подтверждённому
 // email, генерация никнейма при коллизии, отвязка и изоляция по пользователю.
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { createHash, createHmac } from 'node:crypto';
 import type { Server } from 'node:http';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -26,8 +25,6 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { TestClient } from './client';
 
 const PASSWORD = 'Secret12345';
-const BOT_TOKEN = '999:TEST-BOT-TOKEN';
-const BOT_USERNAME = 'puls_test_bot';
 const GOOGLE_CLIENT_ID = 'puls-test.apps.googleusercontent.com';
 
 /** Фейковый шлюз Google: реальный HTTP не выполняется (ТЗ §7). */
@@ -74,21 +71,6 @@ function googleClaims(overrides: Partial<GoogleIdTokenClaims> = {}): GoogleIdTok
   };
 }
 
-function signTelegram(
-  payload: Record<string, unknown>,
-  botToken = BOT_TOKEN,
-): Record<string, unknown> {
-  const checkString = Object.entries(payload)
-    .filter(([key, value]) => key !== 'hash' && value !== undefined && value !== null)
-    .map(([key, value]) => `${key}=${String(value)}`)
-    .sort()
-    .join('\n');
-  const hash = createHmac('sha256', createHash('sha256').update(botToken).digest())
-    .update(checkString)
-    .digest('hex');
-  return { ...payload, hash };
-}
-
 function setCookies(response: { headers: Record<string, unknown> }): string[] {
   const raw = response.headers['set-cookie'];
   if (!raw) return [];
@@ -123,7 +105,7 @@ function absorbCookies(client: TestClient, response: { headers: Record<string, u
   }
 }
 
-describe('Внешний вход: Google и Telegram (интеграция)', () => {
+describe('Внешний вход: Google (интеграция)', () => {
   let app: INestApplication;
   let server: Server;
   let prisma: PrismaService;
@@ -173,16 +155,9 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
     process.env.GOOGLE_CLIENT_SECRET = 'test-secret';
   }
 
-  function useTelegram(): void {
-    process.env.TELEGRAM_BOT_TOKEN = BOT_TOKEN;
-    process.env.TELEGRAM_BOT_USERNAME = BOT_USERNAME;
-  }
-
   function restoreEnv(): void {
     delete process.env.GOOGLE_CLIENT_ID;
     delete process.env.GOOGLE_CLIENT_SECRET;
-    delete process.env.TELEGRAM_BOT_TOKEN;
-    delete process.env.TELEGRAM_BOT_USERNAME;
   }
 
   async function registerAndVerify(
@@ -209,18 +184,13 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
       const client = new TestClient(server);
       const response = await client.get('/api/auth/providers');
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ google: false, telegram: false, telegramBotUsername: null });
+      expect(response.body).toEqual({ google: false });
     });
 
     it('с ключами сообщает о включённых провайдерах', async () => {
       useGoogle();
-      useTelegram();
       const response = await new TestClient(server).get('/api/auth/providers');
-      expect(response.body).toEqual({
-        google: true,
-        telegram: true,
-        telegramBotUsername: BOT_USERNAME,
-      });
+      expect(response.body).toEqual({ google: true });
     });
   });
 
@@ -231,15 +201,11 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
       expect(response.body.code).toBe('provider_disabled');
     });
 
-    it('telegram → 404 provider_disabled', async () => {
+    it('вход через Telegram удалён: эндпоинтов /auth/telegram и /auth/link/telegram нет', async () => {
       const client = new TestClient(server);
       await client.csrf();
-      const response = await client.post(
-        '/api/auth/telegram',
-        signTelegram({ id: 1, auth_date: Math.floor(Date.now() / 1000) }),
-      );
-      expect(response.status).toBe(404);
-      expect(response.body.code).toBe('provider_disabled');
+      expect((await client.post('/api/auth/telegram', { id: 1 })).status).toBe(404);
+      expect((await client.post('/api/auth/link/telegram', { id: 1 })).status).toBe(404);
     });
   });
 
@@ -320,7 +286,7 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
       expect(identity?.subject).toBe('google-subject-1');
     });
 
-    it('не привязывает при email_verified=false, создаёт пользователя с техническим адресом', async () => {
+    it('не привязывает при email_verified=false, создаёт пользователя без почты', async () => {
       useGoogle();
       google.claims = googleClaims({
         sub: 'no-email-sub',
@@ -335,10 +301,12 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
       client.cookies[OAUTH_STATE_COOKIE] = state;
       absorbCookies(client, await client.get(`/api/auth/google/callback?code=c&state=${state}`));
 
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { email: 'g-no-email-sub@google.invalid' },
+      const identity = await prisma.externalIdentity.findUniqueOrThrow({
+        where: { provider_subject: { provider: 'google', subject: 'no-email-sub' } },
+        include: { user: true },
       });
-      expect(user.emailVerifiedAt).toBeNull();
+      expect(identity.user.email).toBeNull();
+      expect(identity.user.emailVerifiedAt).toBeNull();
       const me = await client.get('/api/auth/me');
       expect(me.body.needsEmail).toBe(true);
     });
@@ -392,172 +360,27 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
     });
   });
 
-  describe('Telegram Login Widget (ТЗ §7)', () => {
-    it('входит по корректной подписи и создаёт пользователя без пароля', async () => {
-      useTelegram();
-      const client = new TestClient(server);
-      await client.csrf();
-      const now = Math.floor(Date.now() / 1000);
-
-      const response = await client.post(
-        '/api/auth/telegram',
-        signTelegram({ id: 555, first_name: 'Dmitro', username: 'dmitro', auth_date: now }),
-      );
-
-      expect(response.status).toBe(200);
-      expect(client.cookies['puls_session']).toBeTruthy();
-      expect(response.body.needsEmail).toBe(true);
-
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { email: 'tg-555@telegram.invalid' },
-      });
-      expect(user.passwordHash).toBeNull();
-      expect(user.emailVerifiedAt).toBeNull();
-      expect(user.nickname).toMatch(/^[a-z0-9][a-z0-9_-]{2,31}$/);
-
-      const me = await client.get('/api/auth/me');
-      expect(me.body.needsEmail).toBe(true);
-      expect(me.body.user.email).toBe('tg-555@telegram.invalid');
-    });
-
-    it('повторный вход возвращает того же пользователя', async () => {
-      useTelegram();
-      const now = Math.floor(Date.now() / 1000);
-      const payload = signTelegram({ id: 777, first_name: 'Ann', auth_date: now });
-
-      const first = new TestClient(server);
-      await first.csrf();
-      expect((await first.post('/api/auth/telegram', payload)).status).toBe(200);
-
-      const second = new TestClient(server);
-      await second.csrf();
-      expect((await second.post('/api/auth/telegram', payload)).status).toBe(200);
-
-      expect(
-        await prisma.user.findUnique({ where: { email: 'tg-777@telegram.invalid' } }),
-      ).not.toBeNull();
-      expect(
-        await prisma.externalIdentity.count({ where: { provider: 'telegram', subject: '777' } }),
-      ).toBe(1);
-    });
-
-    it('отклоняет подделанную подпись (401)', async () => {
-      useTelegram();
-      const client = new TestClient(server);
-      await client.csrf();
-      const payload = signTelegram({ id: 1, auth_date: Math.floor(Date.now() / 1000) });
-      payload.id = 2;
-
-      const response = await client.post('/api/auth/telegram', payload);
-      expect(response.status).toBe(401);
-      expect(response.body.code).toBe('invalid_telegram_auth');
-      expect(
-        await prisma.externalIdentity.findFirst({ where: { provider: 'telegram', subject: '2' } }),
-      ).toBeNull();
-    });
-
-    it('отклоняет просроченный auth_date (401)', async () => {
-      useTelegram();
-      const client = new TestClient(server);
-      await client.csrf();
-      const stale = Math.floor(Date.now() / 1000) - 26 * 60 * 60;
-
-      const response = await client.post(
-        '/api/auth/telegram',
-        signTelegram({ id: 3, auth_date: stale }),
-      );
-      expect(response.status).toBe(401);
-      expect(response.body.code).toBe('invalid_telegram_auth');
-      expect(
-        await prisma.externalIdentity.findFirst({ where: { provider: 'telegram', subject: '3' } }),
-      ).toBeNull();
-    });
-
-    it('разные Telegram-аккаунты получают разные (уникальные) никнеймы', async () => {
-      useTelegram();
-      const now = Math.floor(Date.now() / 1000);
-      for (const id of [11, 12, 13]) {
-        const client = new TestClient(server);
-        await client.csrf();
-        expect(
-          (await client.post('/api/auth/telegram', signTelegram({ id, auth_date: now }))).status,
-        ).toBe(200);
-      }
-
-      const nicknames = await prisma.user.findMany({
-        where: {
-          email: {
-            in: ['tg-11@telegram.invalid', 'tg-12@telegram.invalid', 'tg-13@telegram.invalid'],
-          },
-        },
-      });
-      expect(nicknames).toHaveLength(3);
-      const values = nicknames.map((user) => user.nickname);
-      expect(new Set(values).size).toBe(3);
-      for (const nickname of values) expect(nickname).toMatch(/^[a-z0-9][a-z0-9_-]{2,31}$/);
-    });
-
-    it('вход по паролю для Telegram-аккаунта невозможен (invalid_credentials)', async () => {
-      useTelegram();
-      const client = new TestClient(server);
-      await client.csrf();
-      const now = Math.floor(Date.now() / 1000);
-      await client.post('/api/auth/telegram', signTelegram({ id: 900, auth_date: now }));
-
-      const fresh = new TestClient(server);
-      await fresh.csrf();
-      const response = await fresh.post('/api/auth/login', {
-        email: 'tg-900@telegram.invalid',
-        password: PASSWORD,
-      });
-      expect(response.status).toBe(401);
-      expect(response.body.code).toBe('invalid_credentials');
-    });
-  });
-
   describe('Привязки в настройках (ТЗ §3.1)', () => {
     it('список привязок требует вход', async () => {
       const response = await new TestClient(server).get('/api/auth/identities');
       expect(response.status).toBe(401);
     });
 
-    it('привязывает Telegram к аккаунту с паролем и отвязывает его', async () => {
-      const { client } = await registerAndVerify('linker@example.com', 'linkeruser');
-      useTelegram();
-      const now = Math.floor(Date.now() / 1000);
-
-      const linked = await client.post(
-        '/api/auth/link/telegram',
-        signTelegram({ id: 4242, first_name: 'Link', auth_date: now }),
-      );
-      expect(linked.status).toBe(200);
-      expect(linked.body.passwordSet).toBe(true);
-      expect(linked.body.identities.map((item: { provider: string }) => item.provider)).toEqual([
-        'telegram',
-      ]);
-
-      const removed = await client.del('/api/auth/identities/telegram');
-      expect(removed.status).toBe(204);
-
-      const after = await client.get('/api/auth/identities');
-      expect(after.body.identities).toEqual([]);
-    });
-
     it('нельзя отвязать единственный способ входа (409 last_login_method)', async () => {
-      useTelegram();
+      useGoogle();
+      const start = await request(server)
+        .get('/api/auth/google/start')
+        .set('X-Forwarded-For', '10.1.0.9');
+      const state = stateFromLocation(start.headers.location as string);
       const client = new TestClient(server);
       await client.csrf();
-      await client.post(
-        '/api/auth/telegram',
-        signTelegram({ id: 31337, auth_date: Math.floor(Date.now() / 1000) }),
-      );
+      client.cookies[OAUTH_STATE_COOKIE] = state;
+      absorbCookies(client, await client.get(`/api/auth/google/callback?code=c&state=${state}`));
+      expect((await client.get('/api/auth/me')).status).toBe(200);
 
-      const response = await client.del('/api/auth/identities/telegram');
+      const response = await client.del('/api/auth/identities/google');
       expect(response.status).toBe(409);
       expect(response.body.code).toBe('last_login_method');
-      expect(
-        await prisma.externalIdentity.count({ where: { provider: 'telegram', subject: '31337' } }),
-      ).toBe(1);
     });
 
     it('привязка Google из настроек через OAuth-поток', async () => {
@@ -615,11 +438,11 @@ describe('Внешний вход: Google и Telegram (интеграция)', (
     it('привязки изолированы по пользователю', async () => {
       const { client: first } = await registerAndVerify('iso-a@example.com', 'isoauser');
       const { client: second } = await registerAndVerify('iso-b@example.com', 'isobuser');
-      useTelegram();
-      await first.post(
-        '/api/auth/link/telegram',
-        signTelegram({ id: 8080, auth_date: Math.floor(Date.now() / 1000) }),
-      );
+      useGoogle();
+      const start = await first.get('/api/auth/link/google/start');
+      const state = stateFromLocation(start.headers.location as string);
+      first.cookies[OAUTH_STATE_COOKIE] = state;
+      await first.get(`/api/auth/google/callback?code=c&state=${state}`);
 
       const other = await second.get('/api/auth/identities');
       expect(other.body.identities).toEqual([]);

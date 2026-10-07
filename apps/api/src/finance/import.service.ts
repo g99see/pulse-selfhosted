@@ -10,9 +10,9 @@ import {
   detectDelimiter,
   detectHeaderRow,
   convertToBase,
-  guessCategoryName,
   importOccurrenceKey,
   importRowKey,
+  matchCategoryByText,
   analyzeStatement,
   toCents,
   roundRate,
@@ -25,6 +25,7 @@ import {
   type ImportCommitRequest,
   type ImportPreviewRequest,
   type ImportPreviewRow,
+  type ImportRecognition,
   type ImportRowType,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
@@ -32,6 +33,7 @@ import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
+import { MerchantsService } from './merchants.service';
 import { ExchangeRatesService } from './rates.service';
 import { toDateOnly } from './transactions.service';
 
@@ -74,6 +76,7 @@ export class ImportService {
     private readonly prisma: PrismaService,
     private readonly accounts: AccountsService,
     private readonly categories: CategoriesService,
+    private readonly merchants: MerchantsService,
     private readonly rates: ExchangeRatesService,
   ) {}
 
@@ -83,11 +86,13 @@ export class ImportService {
       this.existingKeys(userId),
       this.existingExternalIds(userId),
     ]);
+    const recognizer = await this.buildRecognizer(userId);
     const rows = buildImportPreview(parsed.rows, {
       mapping: parsed.mapping,
       hasHeader: parsed.hasHeader,
       existingKeys,
       existingExternalIds,
+      recognize: recognizer,
     });
 
     return {
@@ -98,6 +103,42 @@ export class ImportService {
       rows,
       summary: summarizeImportRows(rows),
       limits: { maxBytes: IMPORT_MAX_BYTES, maxRows: IMPORT_MAX_ROWS },
+    };
+  }
+
+  /**
+   * Готовит распознавание магазинов для предпросмотра: один индекс (свои + общая
+   * база) и карта названий категорий, чтобы не поднимать базу на каждую строку.
+   */
+  private async buildRecognizer(
+    userId: string,
+  ): Promise<(description: string, kind: ImportRowType | null) => ImportRecognition | null> {
+    const [index, categories] = await Promise.all([
+      this.merchants.prepare(userId),
+      this.categories.list(userId),
+    ]);
+    const nameById = new Map(categories.map((category) => [category.id, category.name]));
+    return (description: string, kind: ImportRowType | null) => {
+      // 1. Магазин: своя база приоритетнее общей (ТЗ v2 §9).
+      const match = this.merchants.recognizeBatch(index, description);
+      if (match) {
+        return {
+          categoryId: match.categoryId,
+          categoryName: nameById.get(match.categoryId) ?? null,
+          merchantName: match.name,
+        };
+      }
+      // 2. Категория по алиасу дерева, если магазин не распознан (родовые траты).
+      const byAlias = matchCategoryByText(description, categories, kind ?? undefined);
+      if (byAlias) {
+        return {
+          categoryId: byAlias,
+          categoryName: nameById.get(byAlias) ?? null,
+          merchantName: null,
+        };
+      }
+      // 3. Не распознано — операция попадёт в очередь «Требует внимания».
+      return null;
     };
   }
 
@@ -114,13 +155,7 @@ export class ImportService {
         row.error === null && row.date !== null && row.amount !== null && row.amount > 0,
     );
 
-    const categories = await this.categories.list(userId);
-    const categoryByName = new Map<string, string>();
-    // list() отдаёт системные первыми, свои — следом; свои перекрывают системные по имени.
-    for (const category of categories) {
-      categoryByName.set(category.name.toLowerCase(), category.id);
-    }
-
+    const recognizer = await this.buildRecognizer(userId);
     const prepared: PreparedRow[] = valid.map((row) => {
       // Одинаковые строки выписки — разные операции: номер повтора входит в хеш.
       // Если банк прислал ID операции — он и есть ключ идемпотентности (переживает правки
@@ -129,7 +164,7 @@ export class ImportService {
         importRowKey(row.date, row.amount, row.description),
         row.occurrence,
       );
-      const guessed = row.description ? guessCategoryName(row.description) : null;
+      const recognition = row.description ? recognizer(row.description, row.type) : null;
       return {
         hash:
           row.externalId !== null
@@ -140,7 +175,7 @@ export class ImportService {
         amount: row.amount,
         type: row.type ?? 'expense',
         description: row.description,
-        categoryId: guessed ? (categoryByName.get(guessed.toLowerCase()) ?? null) : null,
+        categoryId: recognition?.categoryId ?? null,
         externalId: row.externalId,
         time: row.time,
         balance: row.balance,
@@ -264,6 +299,8 @@ export class ImportService {
         additions: [...additions.values()],
       };
     });
+
+    InternalEvents.emit('achievement.check', { userId, event: 'import' });
 
     if (outcome.additions.length > 0) {
       InternalEvents.emit('import.expenses', { userId, additions: outcome.additions });

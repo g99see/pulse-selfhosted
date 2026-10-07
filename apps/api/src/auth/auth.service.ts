@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Injectable } from '@nestjs/common';
 import { Prisma, type Account, type User } from '@prisma/client';
-import type { LoginInput, OnboardingInput, PublicUser, RegisterInput } from '@puls/shared';
+import {
+  nicknameSchema,
+  type LoginInput,
+  type NicknameAvailabilityResponse,
+  type OnboardingInput,
+  type PublicUser,
+  type RegisterInput,
+} from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { INSTANCE_SETTINGS_ID } from '../common/instance';
 import { PrismaService } from '../prisma/prisma.service';
@@ -10,7 +17,6 @@ import { MailService } from './mail.service';
 import { PasswordService } from './password.service';
 import { SessionService, type SessionContext } from './session.service';
 import { generateToken, hashToken } from './tokens';
-import { TwoFactorService } from './two-factor.service';
 
 /** Пользователь в ответах API — контракт общий с web (см. @puls/shared). */
 export type { PublicUser };
@@ -27,7 +33,6 @@ export function toPublicUser(user: User): PublicUser {
     goals: user.goals,
     notificationsEnabled: user.notificationsEnabled,
     quietHours: { start: user.quietHoursStart, end: user.quietHoursEnd },
-    profileVisibility: user.profileVisibility,
     emailVerified: user.emailVerifiedAt !== null,
     onboardingStep: user.onboardingStep,
     onboardingCompleted: user.onboardingCompletedAt !== null,
@@ -41,9 +46,6 @@ interface IssuedSession {
   expiresAt: Date;
 }
 
-/** Результат входа: либо сессия, либо необходимость второго фактора (ТЗ §6). */
-export type LoginOutcome = IssuedSession | { twoFactorRequired: true; challengeToken: string };
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -51,18 +53,26 @@ export class AuthService {
     private readonly passwords: PasswordService,
     private readonly sessions: SessionService,
     private readonly mail: MailService,
-    private readonly twoFactor: TwoFactorService,
   ) {}
 
-  async register(input: RegisterInput): Promise<{ user: PublicUser; verificationSent: true }> {
+  /**
+   * Регистрация (v3 §7.2): логин + пароль, почта необязательна. Сессия выдаётся
+   * сразу; письмо подтверждения (если почта указана) вход не блокирует.
+   */
+  async register(
+    input: RegisterInput,
+    context: SessionContext,
+  ): Promise<IssuedSession & { verificationSent: boolean }> {
     await this.assertRegistrationOpen();
 
     const [byEmail, byNickname] = await Promise.all([
-      this.prisma.user.findUnique({ where: { email: input.email } }),
+      input.email
+        ? this.prisma.user.findUnique({ where: { email: input.email } })
+        : Promise.resolve(null),
       this.prisma.user.findUnique({ where: { nickname: input.nickname } }),
     ]);
-    if (byEmail) throw httpError(409, 'email_taken', 'Этот email уже зарегистрирован');
-    if (byNickname) throw httpError(409, 'nickname_taken', 'Этот никнейм уже занят');
+    if (byEmail) throw httpError(409, 'email_taken', 'Эта почта уже зарегистрирована');
+    if (byNickname) throw httpError(409, 'nickname_taken', 'Этот логин уже занят');
 
     const passwordHash = await this.passwords.hash(input.password);
 
@@ -70,61 +80,69 @@ export class AuthService {
     try {
       user = await this.prisma.user.create({
         data: {
-          email: input.email,
+          email: input.email ?? null,
           nickname: input.nickname,
           passwordHash,
           locale: input.locale,
         },
       });
     } catch (error) {
-      // Гонка двух регистраций с одним email/никнеймом.
+      // Гонка двух регистраций с одной почтой/логином.
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         const target = String((error.meta?.target as string[] | undefined)?.join(',') ?? '');
         if (target.includes('nickname')) {
-          throw httpError(409, 'nickname_taken', 'Этот никнейм уже занят');
+          throw httpError(409, 'nickname_taken', 'Этот логин уже занят');
         }
-        throw httpError(409, 'email_taken', 'Этот email уже зарегистрирован');
+        throw httpError(409, 'email_taken', 'Эта почта уже зарегистрирована');
       }
       throw error;
     }
 
-    await this.issueVerificationToken(user);
-    return { user: toPublicUser(user), verificationSent: true };
+    let verificationSent = false;
+    if (user.email) {
+      try {
+        await this.issueVerificationToken(user, user.email);
+        verificationSent = true;
+      } catch {
+        // Письмо не ушло (SMTP недоступен) — аккаунт всё равно создан, вход не блокируется.
+      }
+    }
+
+    const { token, session } = await this.sessions.create(user.id, context);
+    return { user: toPublicUser(user), token, expiresAt: session.expiresAt, verificationSent };
   }
 
-  async login(input: LoginInput, context: SessionContext): Promise<LoginOutcome> {
-    const user = await this.prisma.user.findUnique({ where: { email: input.email } });
+  /** Живая проверка логина на форме регистрации. */
+  async nicknameAvailability(raw: string): Promise<NicknameAvailabilityResponse> {
+    const parsed = nicknameSchema.safeParse(raw);
+    if (!parsed.success) return { available: false, reason: 'invalid' };
+    const taken = await this.prisma.user.findUnique({ where: { nickname: parsed.data } });
+    return taken ? { available: false, reason: 'taken' } : { available: true, reason: null };
+  }
 
-    // Не раскрываем, существует ли адрес: и на пустом месте считаем хеш.
+  /** Вход по логину ИЛИ почте (v3 §7.2); подтверждение почты вход не блокирует. */
+  async login(input: LoginInput, context: SessionContext): Promise<IssuedSession> {
+    const user = await this.prisma.user.findFirst({
+      where: { OR: [{ nickname: input.login }, { email: input.login }] },
+    });
+
+    // Не раскрываем, существует ли пользователь: и на пустом месте считаем хеш.
     const passwordHash =
       user?.passwordHash ??
       '$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
     const passwordOk = await this.passwords.verify(passwordHash, input.password);
 
     if (!user || !user.passwordHash || !passwordOk) {
-      throw httpError(401, 'invalid_credentials', 'Неверный email или пароль');
-    }
-    if (user.emailVerifiedAt === null) {
-      throw httpError(403, 'email_not_verified', 'Подтвердите email — мы отправили ссылку письмом');
-    }
-
-    // Пароль верен, но включена 2FA: выдаём пропуск, сессию пока не создаём.
-    if (this.twoFactor.requiresTwoFactor(user)) {
-      const challengeToken = await this.twoFactor.createChallenge(user.id);
-      return { twoFactorRequired: true, challengeToken };
+      throw httpError(401, 'invalid_credentials', 'Неверный логин или пароль');
     }
 
     const { token, session } = await this.sessions.create(user.id, context);
     return { user: toPublicUser(user), token, expiresAt: session.expiresAt };
   }
 
-  /** Второй шаг входа: код TOTP или резервный код по пропуску (ТЗ §6). */
-  async loginWithTwoFactor(
-    challengeToken: string,
-    code: string,
-    context: SessionContext,
-  ): Promise<IssuedSession> {
-    const user = await this.twoFactor.consumeChallenge(challengeToken, code);
+  /** Выдаёт сессию существующему пользователю (после установки пароля по токену). */
+  async openSession(userId: string, context: SessionContext): Promise<IssuedSession> {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
     const { token, session } = await this.sessions.create(user.id, context);
     return { user: toPublicUser(user), token, expiresAt: session.expiresAt };
   }
@@ -158,8 +176,8 @@ export class AuthService {
   /** Отправляет письмо повторно. Ответ всегда одинаковый — против перебора адресов. */
   async resendVerification(email: string): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (user && user.emailVerifiedAt === null) {
-      await this.issueVerificationToken(user);
+    if (user && user.email && user.emailVerifiedAt === null) {
+      await this.issueVerificationToken(user, user.email);
     }
   }
 
@@ -186,7 +204,7 @@ export class AuthService {
     }
   }
 
-  private async issueVerificationToken(user: User): Promise<void> {
+  private async issueVerificationToken(user: User, email: string): Promise<void> {
     const token = generateToken();
     const expiresAt = new Date(Date.now() + EMAIL_VERIFY_TTL_HOURS * 60 * 60 * 1000);
 
@@ -197,7 +215,7 @@ export class AuthService {
       }),
     ]);
 
-    await this.mail.sendEmailVerification(user.email, token);
+    await this.mail.sendEmailVerification(email, token);
   }
 
   async completeOnboarding(
@@ -229,7 +247,6 @@ export class AuthService {
           notificationsEnabled: input.notificationsEnabled,
           quietHoursStart: input.quietHoursStart,
           quietHoursEnd: input.quietHoursEnd,
-          profileVisibility: input.profileVisibility,
           onboardingStep: 4,
           onboardingCompletedAt: new Date(),
         },

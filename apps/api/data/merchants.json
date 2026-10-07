@@ -1,0 +1,6334 @@
+{
+  "version": 1,
+  "updated": "2026-10-07",
+  "merchants": [
+    {
+      "id": "netto",
+      "name": "Netto",
+      "aliases": ["netto"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "ftex",
+      "name": "Føtex",
+      "aliases": ["fotex", "foetex", "føtex food"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "bilka",
+      "name": "Bilka",
+      "aliases": ["bilka"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "rema-1000",
+      "name": "Rema 1000",
+      "aliases": ["rema", "rema1000"],
+      "patterns": ["^rema\\b"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "lidl",
+      "name": "Lidl",
+      "aliases": ["lidl"],
+      "patterns": ["^lidl"],
+      "defaultCategory": "groceries",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "aldi",
+      "name": "Aldi",
+      "aliases": ["aldi", "aldi sud", "aldi nord"],
+      "patterns": ["^aldi\\b"],
+      "defaultCategory": "groceries",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "365discount",
+      "name": "365discount",
+      "aliases": ["365 discount", "coop 365", "365discount"],
+      "patterns": ["^365\\s?disc"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "coop",
+      "name": "Coop",
+      "aliases": ["coop", "coop 365", "coop dk"],
+      "patterns": ["^coop\\b"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "kvickly",
+      "name": "Kvickly",
+      "aliases": ["kvickly"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "superbrugsen",
+      "name": "SuperBrugsen",
+      "aliases": ["superbrugsen", "super brugsen"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "dagli-brugsen",
+      "name": "Dagli'Brugsen",
+      "aliases": ["dagli brugsen", "daglibrugsen", "brugsen"],
+      "patterns": ["^(dagli\\s?)?brugsen"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "meny",
+      "name": "Meny",
+      "aliases": ["meny"],
+      "patterns": ["^meny\\b"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "irma",
+      "name": "Irma",
+      "aliases": ["irma"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "spar",
+      "name": "Spar",
+      "aliases": ["spar", "eurospar", "spar dk"],
+      "patterns": ["^(euro)?spar\\b"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "min-kbmand",
+      "name": "Min Købmand",
+      "aliases": ["min kobmand"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "lokal-brugsen",
+      "name": "Lokal Brugsen",
+      "aliases": ["lokalbrugsen", "lokal brugsen"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "fakta",
+      "name": "Fakta",
+      "aliases": ["fakta"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "lvbjerg",
+      "name": "Løvbjerg",
+      "aliases": ["lovbjerg"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "abc-lavpris",
+      "name": "Abc Lavpris",
+      "aliases": ["abc lavpris"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "fleggaard",
+      "name": "Fleggaard",
+      "aliases": ["fleggaard"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "too-good-to-go",
+      "name": "Too Good To Go",
+      "aliases": ["too good to go", "tgtg"],
+      "patterns": ["^tgtg\\b"],
+      "defaultCategory": "groceries",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "lagkagehuset",
+      "name": "Lagkagehuset",
+      "aliases": ["lagkagehuset"],
+      "patterns": [],
+      "defaultCategory": "cafe",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "ica",
+      "name": "Ica",
+      "aliases": ["ica", "ica maxi", "ica supermarket", "ica nara"],
+      "patterns": ["^ica\\b"],
+      "defaultCategory": "groceries",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "coop-sverige",
+      "name": "Coop Sverige",
+      "aliases": ["coop konsum", "stora coop"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "willys",
+      "name": "Willys",
+      "aliases": ["willys"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "hemkop",
+      "name": "Hemköp",
+      "aliases": ["hemkop"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "city-gross",
+      "name": "City Gross",
+      "aliases": ["city gross"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "rema-1000-norge",
+      "name": "Rema 1000 Norge",
+      "aliases": ["rema 1000 norge"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "kiwi",
+      "name": "Kiwi",
+      "aliases": ["kiwi"],
+      "patterns": ["^kiwi\\b"],
+      "defaultCategory": "groceries",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "coop-norge",
+      "name": "Coop Norge",
+      "aliases": ["coop extra", "coop mega", "coop prix"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "bunnpris",
+      "name": "Bunnpris",
+      "aliases": ["bunnpris"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "s-market",
+      "name": "S-market",
+      "aliases": ["s market", "s-market", "prisma"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "k-market",
+      "name": "K-Market",
+      "aliases": ["k market", "k-market", "k-supermarket"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "carrefour",
+      "name": "Carrefour",
+      "aliases": ["carrefour", "carrefour market", "carrefour express"],
+      "patterns": ["^carrefour"],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "auchan",
+      "name": "Auchan",
+      "aliases": ["auchan"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "leclerc",
+      "name": "Leclerc",
+      "aliases": ["leclerc", "e leclerc"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "intermarche",
+      "name": "Intermarché",
+      "aliases": ["intermarche"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "monoprix",
+      "name": "Monoprix",
+      "aliases": ["monoprix"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "casino",
+      "name": "Casino",
+      "aliases": ["casino supermarche", "petit casino"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "mercadona",
+      "name": "Mercadona",
+      "aliases": ["mercadona"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "dia",
+      "name": "Dia",
+      "aliases": ["dia market", "supermercados dia"],
+      "patterns": ["^dia\\s(market|%)"],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "eroski",
+      "name": "Eroski",
+      "aliases": ["eroski"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "consum",
+      "name": "Consum",
+      "aliases": ["consum"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "caprabo",
+      "name": "Caprabo",
+      "aliases": ["caprabo"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "bonpreu",
+      "name": "Bonpreu",
+      "aliases": ["bonpreu", "bon preu", "esclat"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "condis",
+      "name": "Condis",
+      "aliases": ["condis"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "el-corte-ingles",
+      "name": "El Corte Inglés",
+      "aliases": ["el corte ingles", "hipercor"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "edeka",
+      "name": "Edeka",
+      "aliases": ["edeka", "e center"],
+      "patterns": ["^edeka"],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "rewe",
+      "name": "Rewe",
+      "aliases": ["rewe", "rewe city"],
+      "patterns": ["^rewe"],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "kaufland",
+      "name": "Kaufland",
+      "aliases": ["kaufland"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "penny",
+      "name": "Penny",
+      "aliases": ["penny", "penny markt"],
+      "patterns": ["^penny\\s(markt|\\d)"],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "netto-marken-discount",
+      "name": "Netto Marken-Discount",
+      "aliases": ["netto marken discount"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "real",
+      "name": "Real",
+      "aliases": ["real markt"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "tegut",
+      "name": "Tegut",
+      "aliases": ["tegut"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "albert-heijn",
+      "name": "Albert Heijn",
+      "aliases": ["albert heijn", "ah to go"],
+      "patterns": ["^(ah|albert heijn)\\b"],
+      "defaultCategory": "groceries",
+      "country": "NL",
+      "region": "Europe"
+    },
+    {
+      "id": "jumbo",
+      "name": "Jumbo",
+      "aliases": ["jumbo"],
+      "patterns": ["^jumbo\\b"],
+      "defaultCategory": "groceries",
+      "country": "NL",
+      "region": "Europe"
+    },
+    {
+      "id": "plus",
+      "name": "Plus",
+      "aliases": ["plus supermarkt"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "NL",
+      "region": "Europe"
+    },
+    {
+      "id": "delhaize",
+      "name": "Delhaize",
+      "aliases": ["delhaize"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "BE",
+      "region": "Europe"
+    },
+    {
+      "id": "colruyt",
+      "name": "Colruyt",
+      "aliases": ["colruyt"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "BE",
+      "region": "Europe"
+    },
+    {
+      "id": "billa",
+      "name": "Billa",
+      "aliases": ["billa"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "AT",
+      "region": "Europe"
+    },
+    {
+      "id": "spar-osterreich",
+      "name": "Spar Österreich",
+      "aliases": ["spar oesterreich", "interspar"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "AT",
+      "region": "Europe"
+    },
+    {
+      "id": "hofer",
+      "name": "Hofer",
+      "aliases": ["hofer"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "AT",
+      "region": "Europe"
+    },
+    {
+      "id": "migros",
+      "name": "Migros",
+      "aliases": ["migros"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "CH",
+      "region": "Europe"
+    },
+    {
+      "id": "coop-schweiz",
+      "name": "Coop Schweiz",
+      "aliases": ["coop schweiz", "coop pronto"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "CH",
+      "region": "Europe"
+    },
+    {
+      "id": "esselunga",
+      "name": "Esselunga",
+      "aliases": ["esselunga"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "conad",
+      "name": "Conad",
+      "aliases": ["conad"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "tesco",
+      "name": "Tesco",
+      "aliases": ["tesco", "tesco express", "tesco metro"],
+      "patterns": ["^tesco"],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "sainsbury-s",
+      "name": "Sainsbury's",
+      "aliases": ["sainsburys", "sainsbury s", "sainsbury"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "asda",
+      "name": "Asda",
+      "aliases": ["asda"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "morrisons",
+      "name": "Morrisons",
+      "aliases": ["morrisons"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "waitrose",
+      "name": "Waitrose",
+      "aliases": ["waitrose"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "co-op-food",
+      "name": "Co-op Food",
+      "aliases": ["co op food", "coop food", "the co operative"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "iceland",
+      "name": "Iceland",
+      "aliases": ["iceland foods"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "ocado",
+      "name": "Ocado",
+      "aliases": ["ocado"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "marks-spencer",
+      "name": "Marks & Spencer",
+      "aliases": ["marks and spencer", "m&s", "marks spencer"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "biedronka",
+      "name": "Biedronka",
+      "aliases": ["biedronka"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "zabka",
+      "name": "Żabka",
+      "aliases": ["zabka"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "carrefour-polska",
+      "name": "Carrefour Polska",
+      "aliases": ["carrefour polska"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "auchan-polska",
+      "name": "Auchan Polska",
+      "aliases": ["auchan polska"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "kaufland-polska",
+      "name": "Kaufland Polska",
+      "aliases": ["kaufland polska"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "dino",
+      "name": "Dino",
+      "aliases": ["dino polska", "market dino"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "stokrotka",
+      "name": "Stokrotka",
+      "aliases": ["stokrotka"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "lewiatan",
+      "name": "Lewiatan",
+      "aliases": ["lewiatan"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "rossmann",
+      "name": "Rossmann",
+      "aliases": ["rossmann"],
+      "patterns": [],
+      "defaultCategory": "beauty",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "silpo",
+      "name": "Silpo",
+      "aliases": ["silpo", "сільпо", "сильпо"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "atb",
+      "name": "ATB",
+      "aliases": ["atb", "атб", "atb market"],
+      "patterns": ["^atb\\b"],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "novus",
+      "name": "Novus",
+      "aliases": ["novus", "новус"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "varus",
+      "name": "Varus",
+      "aliases": ["varus", "варус"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "fora",
+      "name": "Fora",
+      "aliases": ["fora", "фора"],
+      "patterns": ["^fora\\b"],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "metro-cash-carry",
+      "name": "Metro Cash & Carry",
+      "aliases": ["metro cash carry", "metro cash and carry"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "auchan-2",
+      "name": "Auchan Україна",
+      "aliases": ["auchan ukraine", "ашан"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "eko-market",
+      "name": "EKO market",
+      "aliases": ["eko market", "еко маркет"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "magnit",
+      "name": "Magnit",
+      "aliases": ["магнит", "magnit"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "pyaterochka",
+      "name": "Pyaterochka",
+      "aliases": ["пятерочка", "пятёрочка", "pyaterochka"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "perekrestok",
+      "name": "Perekrestok",
+      "aliases": ["перекресток", "перекрёсток"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "vkusvill",
+      "name": "VkusVill",
+      "aliases": ["вкусвилл", "vkusvill"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "walmart",
+      "name": "Walmart",
+      "aliases": ["walmart", "wal mart", "wm supercenter"],
+      "patterns": ["^wal\\s?mart"],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "costco",
+      "name": "Costco",
+      "aliases": ["costco", "costco wholesale"],
+      "patterns": ["^costco"],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "target",
+      "name": "Target",
+      "aliases": ["target", "target store"],
+      "patterns": ["^target\\s(t|store|\\d)"],
+      "defaultCategory": "shopping",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "kroger",
+      "name": "Kroger",
+      "aliases": ["kroger"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "safeway",
+      "name": "Safeway",
+      "aliases": ["safeway"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "whole-foods",
+      "name": "Whole Foods",
+      "aliases": ["whole foods", "wholefds", "whole foods market"],
+      "patterns": ["^whole\\s?f"],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "trader-joe-s",
+      "name": "Trader Joe's",
+      "aliases": ["trader joes", "trader joe s"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "publix",
+      "name": "Publix",
+      "aliases": ["publix"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "albertsons",
+      "name": "Albertsons",
+      "aliases": ["albertsons"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "aldi-us",
+      "name": "Aldi US",
+      "aliases": ["aldi usa"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "h-e-b",
+      "name": "H-E-B",
+      "aliases": ["heb", "h e b"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "sam-s-club",
+      "name": "Sam's Club",
+      "aliases": ["sams club", "sam s club"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "instacart",
+      "name": "Instacart",
+      "aliases": ["instacart"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "loblaws",
+      "name": "Loblaws",
+      "aliases": ["loblaws", "no frills", "real canadian superstore"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "CA",
+      "region": "North America"
+    },
+    {
+      "id": "mcdonald-s",
+      "name": "McDonald's",
+      "aliases": ["mcdonalds", "mcdonald s", "mc donalds", "макдоналдс", "mcd"],
+      "patterns": ["^mc\\s?donald"],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "burger-king",
+      "name": "Burger King",
+      "aliases": ["burger king", "бургер кинг"],
+      "patterns": ["^burger king"],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "kfc",
+      "name": "KFC",
+      "aliases": ["kfc", "kentucky fried chicken"],
+      "patterns": ["^kfc\\b"],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "subway",
+      "name": "Subway",
+      "aliases": ["subway", "subway sandwiches"],
+      "patterns": ["^subway\\b"],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "domino-s-pizza",
+      "name": "Domino's Pizza",
+      "aliases": ["dominos", "domino s", "dominos pizza"],
+      "patterns": ["^domino"],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "pizza-hut",
+      "name": "Pizza Hut",
+      "aliases": ["pizza hut"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "papa-john-s",
+      "name": "Papa John's",
+      "aliases": ["papa johns", "papa john s"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "taco-bell",
+      "name": "Taco Bell",
+      "aliases": ["taco bell"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "wendy-s",
+      "name": "Wendy's",
+      "aliases": ["wendys", "wendy s"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "chipotle",
+      "name": "Chipotle",
+      "aliases": ["chipotle"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "five-guys",
+      "name": "Five Guys",
+      "aliases": ["five guys"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "popeyes",
+      "name": "Popeyes",
+      "aliases": ["popeyes"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "dunkin",
+      "name": "Dunkin'",
+      "aliases": ["dunkin", "dunkin donuts"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "chick-fil-a",
+      "name": "Chick-fil-A",
+      "aliases": ["chick fil a", "chickfila"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "shake-shack",
+      "name": "Shake Shack",
+      "aliases": ["shake shack"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "in-n-out-burger",
+      "name": "In-N-Out Burger",
+      "aliases": ["in n out", "in-n-out"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "sunset-boulevard",
+      "name": "Sunset Boulevard",
+      "aliases": ["sunset boulevard", "sunset blvd"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "max-burgers",
+      "name": "Max Burgers",
+      "aliases": ["max burgers", "max hamburgerrestauranger"],
+      "patterns": ["^max\\sburger"],
+      "defaultCategory": "fast_food",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "jensens-bfhus",
+      "name": "Jensens Bøfhus",
+      "aliases": ["jensens bofhus"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "barburrito",
+      "name": "Barburrito",
+      "aliases": ["barburrito"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "vapiano",
+      "name": "Vapiano",
+      "aliases": ["vapiano"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "wagamama",
+      "name": "Wagamama",
+      "aliases": ["wagamama"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "nando-s",
+      "name": "Nando's",
+      "aliases": ["nandos", "nando s"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "pret-a-manger",
+      "name": "Pret A Manger",
+      "aliases": ["pret a manger", "pret"],
+      "patterns": ["^pret\\b"],
+      "defaultCategory": "coffee",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "greggs",
+      "name": "Greggs",
+      "aliases": ["greggs"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "leon",
+      "name": "Leon",
+      "aliases": ["leon restaurants"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "wasabi",
+      "name": "Wasabi",
+      "aliases": ["wasabi sushi"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "starbucks",
+      "name": "Starbucks",
+      "aliases": ["starbucks", "starbucks coffee"],
+      "patterns": ["^starbucks"],
+      "defaultCategory": "coffee",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "costa-coffee",
+      "name": "Costa Coffee",
+      "aliases": ["costa coffee", "costa"],
+      "patterns": ["^costa\\b"],
+      "defaultCategory": "coffee",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "espresso-house",
+      "name": "Espresso House",
+      "aliases": ["espresso house"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "joe-the-juice",
+      "name": "Joe & The Juice",
+      "aliases": ["joe and the juice", "joe & the juice", "joe the juice"],
+      "patterns": ["^joe\\s?(&|and)?\\s?the juice"],
+      "defaultCategory": "coffee",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "baresso",
+      "name": "Baresso",
+      "aliases": ["baresso"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "emmerys",
+      "name": "Emmerys",
+      "aliases": ["emmerys"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "paul",
+      "name": "Paul",
+      "aliases": ["paul boulangerie"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "tim-hortons",
+      "name": "Tim Hortons",
+      "aliases": ["tim hortons"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "CA",
+      "region": "North America"
+    },
+    {
+      "id": "caffe-nero",
+      "name": "Caffè Nero",
+      "aliases": ["caffe nero"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "illy",
+      "name": "Illy",
+      "aliases": ["illy caffe"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "lavazza",
+      "name": "Lavazza",
+      "aliases": ["lavazza"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "kaffeklubben",
+      "name": "Kaffeklubben",
+      "aliases": ["kaffeklubben"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "block-house",
+      "name": "Block House",
+      "aliases": ["block house"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "hesburger",
+      "name": "Hesburger",
+      "aliases": ["hesburger"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "dolce-gusto",
+      "name": "Dolce Gusto",
+      "aliases": ["nescafe dolce gusto"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "aroma-espresso-bar",
+      "name": "Aroma Espresso Bar",
+      "aliases": ["aroma espresso"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "veggie-grill",
+      "name": "Veggie Grill",
+      "aliases": ["veggie grill"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "panera-bread",
+      "name": "Panera Bread",
+      "aliases": ["panera bread", "panera"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "panda-express",
+      "name": "Panda Express",
+      "aliases": ["panda express"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "sbarro",
+      "name": "Sbarro",
+      "aliases": ["sbarro"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "telepizza",
+      "name": "Telepizza",
+      "aliases": ["telepizza"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "foster-s-hollywood",
+      "name": "Foster's Hollywood",
+      "aliases": ["fosters hollywood"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "100-montaditos",
+      "name": "100 Montaditos",
+      "aliases": ["100 montaditos"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "rodilla",
+      "name": "Rodilla",
+      "aliases": ["rodilla"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "ginos",
+      "name": "Ginos",
+      "aliases": ["ginos"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "puzata-hata",
+      "name": "Puzata Hata",
+      "aliases": ["puzata hata", "пузата хата"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "mafia",
+      "name": "Mafia",
+      "aliases": ["mafia pizza", "мафія"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "aroma-kava",
+      "name": "Aroma Kava",
+      "aliases": ["aroma kava", "арома кава"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "dim-kavu",
+      "name": "Dim Kavu",
+      "aliases": ["dim kavu", "дім кави"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "coffee-fox",
+      "name": "Coffee Fox",
+      "aliases": ["coffee fox"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "vkusno-i-tochka",
+      "name": "Vkusno i tochka",
+      "aliases": ["вкусно и точка"],
+      "patterns": [],
+      "defaultCategory": "fast_food",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "coffeemania",
+      "name": "Coffeemania",
+      "aliases": ["кофемания", "coffeemania"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "shokoladnitsa",
+      "name": "Shokoladnitsa",
+      "aliases": ["шоколадница"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "wolt",
+      "name": "Wolt",
+      "aliases": ["wolt", "wolt dk", "wolt.com"],
+      "patterns": ["^wolt"],
+      "defaultCategory": "food_delivery",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "just-eat",
+      "name": "Just Eat",
+      "aliases": ["just eat", "justeat", "just-eat", "just eat takeaway", "takeaway.com"],
+      "patterns": ["^just\\s?eat"],
+      "defaultCategory": "food_delivery",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "foodora",
+      "name": "Foodora",
+      "aliases": ["foodora"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "hungry-dk",
+      "name": "Hungry.dk",
+      "aliases": ["hungry dk", "hungry.dk"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "uber-eats",
+      "name": "Uber Eats",
+      "aliases": ["uber eats", "ubereats"],
+      "patterns": ["^uber\\s?eats"],
+      "defaultCategory": "food_delivery",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "deliveroo",
+      "name": "Deliveroo",
+      "aliases": ["deliveroo"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "glovo",
+      "name": "Glovo",
+      "aliases": ["glovo"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "bolt-food",
+      "name": "Bolt Food",
+      "aliases": ["bolt food"],
+      "patterns": ["^bolt\\s?food"],
+      "defaultCategory": "food_delivery",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "lieferando",
+      "name": "Lieferando",
+      "aliases": ["lieferando"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "pyszne-pl",
+      "name": "Pyszne.pl",
+      "aliases": ["pyszne", "pyszne pl"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "doordash",
+      "name": "DoorDash",
+      "aliases": ["doordash", "dd doordash"],
+      "patterns": ["^(dd\\s)?doordash"],
+      "defaultCategory": "food_delivery",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "grubhub",
+      "name": "Grubhub",
+      "aliases": ["grubhub"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "delivery-club",
+      "name": "Delivery Club",
+      "aliases": ["delivery club", "деливери клаб"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "yandex-eda",
+      "name": "Yandex Eda",
+      "aliases": ["яндекс еда", "yandex eda"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "rocket",
+      "name": "Rocket",
+      "aliases": ["rocket ua", "рокет"],
+      "patterns": [],
+      "defaultCategory": "food_delivery",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "circle-k",
+      "name": "Circle K",
+      "aliases": ["circle k", "circlek", "statoil"],
+      "patterns": ["^circle\\s?k"],
+      "defaultCategory": "fuel",
+      "country": "GLOBAL",
+      "region": "Nordics"
+    },
+    {
+      "id": "q8",
+      "name": "Q8",
+      "aliases": ["q8", "q8 danmark", "q8 express"],
+      "patterns": ["^q8\\b"],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "shell",
+      "name": "Shell",
+      "aliases": ["shell", "shell express", "shell select"],
+      "patterns": ["^shell\\b"],
+      "defaultCategory": "fuel",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "ok-benzin",
+      "name": "OK Benzin",
+      "aliases": ["ok benzin", "ok plus", "ok a.m.b.a"],
+      "patterns": ["^ok\\s(benzin|plus)"],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "ingo",
+      "name": "Ingo",
+      "aliases": ["ingo", "ingo tank"],
+      "patterns": ["^ingo\\b"],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "uno-x",
+      "name": "Uno-X",
+      "aliases": ["uno x", "unox", "uno-x"],
+      "patterns": ["^uno\\s?x"],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "f24",
+      "name": "F24",
+      "aliases": ["f24"],
+      "patterns": ["^f24\\b"],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "yx",
+      "name": "YX",
+      "aliases": ["yx", "yx 7-eleven"],
+      "patterns": ["^yx\\b"],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "go-on",
+      "name": "Go'on",
+      "aliases": ["go on", "goon"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "omv",
+      "name": "OMV",
+      "aliases": ["omv"],
+      "patterns": ["^omv\\b"],
+      "defaultCategory": "fuel",
+      "country": "AT",
+      "region": "Europe"
+    },
+    {
+      "id": "bp",
+      "name": "BP",
+      "aliases": ["bp", "bp connect"],
+      "patterns": ["^bp\\s"],
+      "defaultCategory": "fuel",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "esso",
+      "name": "Esso",
+      "aliases": ["esso"],
+      "patterns": ["^esso\\b"],
+      "defaultCategory": "fuel",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "total-energies",
+      "name": "Total Energies",
+      "aliases": ["total energies", "totalenergies", "total access"],
+      "patterns": ["^total(energies)?\\b"],
+      "defaultCategory": "fuel",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "aral",
+      "name": "Aral",
+      "aliases": ["aral"],
+      "patterns": ["^aral\\b"],
+      "defaultCategory": "fuel",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "repsol",
+      "name": "Repsol",
+      "aliases": ["repsol"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "cepsa",
+      "name": "Cepsa",
+      "aliases": ["cepsa", "moeve"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "orlen",
+      "name": "Orlen",
+      "aliases": ["orlen"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "lotos",
+      "name": "Lotos",
+      "aliases": ["lotos"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "neste",
+      "name": "Neste",
+      "aliases": ["neste"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "preem",
+      "name": "Preem",
+      "aliases": ["preem"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "okq8",
+      "name": "OKQ8",
+      "aliases": ["okq8"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "chevron",
+      "name": "Chevron",
+      "aliases": ["chevron"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "exxonmobil",
+      "name": "ExxonMobil",
+      "aliases": ["exxon", "exxonmobil", "mobil"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "wog",
+      "name": "Wog",
+      "aliases": ["wog", "вог"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "okko",
+      "name": "OKKO",
+      "aliases": ["okko", "окко"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "upg",
+      "name": "UPG",
+      "aliases": ["upg"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "socar",
+      "name": "SOCAR",
+      "aliases": ["socar"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "klo",
+      "name": "KLO",
+      "aliases": ["klo", "кло"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "lukoil",
+      "name": "Lukoil",
+      "aliases": ["лукойл", "lukoil"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "gazprom-neft",
+      "name": "Gazprom Neft",
+      "aliases": ["газпромнефть", "gazprom neft"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "tesla-supercharger",
+      "name": "Tesla Supercharger",
+      "aliases": ["tesla supercharger", "supercharger"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "clever",
+      "name": "Clever",
+      "aliases": ["clever ladning", "clever a/s"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "spirii",
+      "name": "Spirii",
+      "aliases": ["spirii"],
+      "patterns": [],
+      "defaultCategory": "fuel",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "7-eleven",
+      "name": "7-Eleven",
+      "aliases": ["7 eleven", "7-eleven", "seven eleven"],
+      "patterns": ["^7[\\s-]?eleven"],
+      "defaultCategory": "groceries",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "kiosk",
+      "name": "Kiosk",
+      "aliases": ["kiosk", "narvesen"],
+      "patterns": ["^narvesen"],
+      "defaultCategory": "groceries",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "pressbyran",
+      "name": "Pressbyrån",
+      "aliases": ["pressbyran"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "zabka-nano",
+      "name": "Žabka Nano",
+      "aliases": ["zabka nano"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "relay",
+      "name": "Relay",
+      "aliases": ["relay", "relay france"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "dsb",
+      "name": "DSB",
+      "aliases": ["dsb", "dsb billetautomat", "dsb app"],
+      "patterns": ["^dsb\\b"],
+      "defaultCategory": "public_transport",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "rejsekort",
+      "name": "Rejsekort",
+      "aliases": ["rejsekort", "rejsekort a/s"],
+      "patterns": ["^rejsekort"],
+      "defaultCategory": "public_transport",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "movia",
+      "name": "Movia",
+      "aliases": ["movia"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "metroselskabet",
+      "name": "Metroselskabet",
+      "aliases": ["metro", "metroselskabet", "kobenhavns metro"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "rejseplanen",
+      "name": "Rejseplanen",
+      "aliases": ["rejseplanen"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "skanetrafiken",
+      "name": "Skånetrafiken",
+      "aliases": ["skanetrafiken"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "sl",
+      "name": "SL",
+      "aliases": ["storstockholms lokaltrafik", "sl access"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "ruter",
+      "name": "Ruter",
+      "aliases": ["ruter"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "hsl",
+      "name": "HSL",
+      "aliases": ["hsl", "helsingin seudun liikenne"],
+      "patterns": ["^hsl\\b"],
+      "defaultCategory": "public_transport",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "deutsche-bahn",
+      "name": "Deutsche Bahn",
+      "aliases": [
+        "deutsche bahn",
+        "db bahn",
+        "db automat",
+        "db fernverkehr",
+        "db vertrieb",
+        "db regio"
+      ],
+      "patterns": ["^db\\s(automat|vertrieb|fern|regio|bahn)"],
+      "defaultCategory": "intercity",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "bvg",
+      "name": "BVG",
+      "aliases": ["bvg", "berliner verkehrsbetriebe"],
+      "patterns": ["^bvg\\b"],
+      "defaultCategory": "public_transport",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "hvv",
+      "name": "HVV",
+      "aliases": ["hvv", "hamburger verkehrsverbund"],
+      "patterns": ["^hvv\\b"],
+      "defaultCategory": "public_transport",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "mvg",
+      "name": "MVG",
+      "aliases": ["mvg", "mvv"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "transport-for-london",
+      "name": "Transport for London",
+      "aliases": ["tfl", "transport for london", "tfl travel charge"],
+      "patterns": ["^tfl\\b"],
+      "defaultCategory": "public_transport",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "national-rail",
+      "name": "National Rail",
+      "aliases": ["national rail", "trainline", "lner", "gwr"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "ratp",
+      "name": "RATP",
+      "aliases": ["ratp", "navigo"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "sncf",
+      "name": "SNCF",
+      "aliases": ["sncf", "sncf connect", "oui sncf"],
+      "patterns": ["^(oui\\s)?sncf"],
+      "defaultCategory": "intercity",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "tmb",
+      "name": "TMB",
+      "aliases": ["tmb", "tmb barcelona"],
+      "patterns": ["^tmb\\b"],
+      "defaultCategory": "public_transport",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "renfe",
+      "name": "Renfe",
+      "aliases": ["renfe", "rodalies"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "trenitalia",
+      "name": "Trenitalia",
+      "aliases": ["trenitalia"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "italo",
+      "name": "Italo",
+      "aliases": ["italo treno"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "flixbus",
+      "name": "Flixbus",
+      "aliases": ["flixbus", "flix bus", "flixtrain"],
+      "patterns": ["^flix"],
+      "defaultCategory": "intercity",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "regiojet",
+      "name": "RegioJet",
+      "aliases": ["regiojet", "student agency"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "CZ",
+      "region": "Europe"
+    },
+    {
+      "id": "eurolines",
+      "name": "Eurolines",
+      "aliases": ["eurolines"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "scandlines",
+      "name": "Scandlines",
+      "aliases": ["scandlines"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "dfds",
+      "name": "DFDS",
+      "aliases": ["dfds"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "stena-line",
+      "name": "Stena Line",
+      "aliases": ["stena line"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "viking-line",
+      "name": "Viking Line",
+      "aliases": ["viking line"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "tallink",
+      "name": "Tallink",
+      "aliases": ["tallink"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "EE",
+      "region": "Nordics"
+    },
+    {
+      "id": "intercity-ukrzaliznytsia",
+      "name": "Intercity Ukrzaliznytsia",
+      "aliases": ["ukrzaliznytsia", "укрзалізниця", "укрзализныця", "uz.gov.ua"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "pkp-intercity",
+      "name": "PKP Intercity",
+      "aliases": ["pkp intercity", "pkp"],
+      "patterns": [],
+      "defaultCategory": "intercity",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "ztm-warszawa",
+      "name": "ZTM Warszawa",
+      "aliases": ["ztm warszawa", "ztm"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "kyiv-metro",
+      "name": "Kyiv Metro",
+      "aliases": ["kyiv metro", "київський метрополітен"],
+      "patterns": [],
+      "defaultCategory": "public_transport",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "uber",
+      "name": "Uber",
+      "aliases": ["uber", "uber trip", "uber bv"],
+      "patterns": ["^uber\\b"],
+      "defaultCategory": "taxi",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "bolt",
+      "name": "Bolt",
+      "aliases": ["bolt", "bolt ride", "bolt.eu"],
+      "patterns": ["^bolt\\b"],
+      "defaultCategory": "taxi",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "lyft",
+      "name": "Lyft",
+      "aliases": ["lyft"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "cabify",
+      "name": "Cabify",
+      "aliases": ["cabify"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "freenow",
+      "name": "FreeNow",
+      "aliases": ["free now", "freenow", "mytaxi"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "dantaxi",
+      "name": "Dantaxi",
+      "aliases": ["dantaxi", "dan taxi"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "taxa-4x35",
+      "name": "Taxa 4x35",
+      "aliases": ["taxa 4x35", "4x35", "taxa"],
+      "patterns": ["^taxa\\b"],
+      "defaultCategory": "taxi",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "viggo",
+      "name": "Viggo",
+      "aliases": ["viggo"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "yandex-go",
+      "name": "Yandex Go",
+      "aliases": ["yandex go", "yandex taxi", "яндекс go", "яндекс такси"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "uklon",
+      "name": "Uklon",
+      "aliases": ["uklon", "уклон"],
+      "patterns": [],
+      "defaultCategory": "taxi",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "voi",
+      "name": "Voi",
+      "aliases": ["voi", "voi technology", "voi scooters"],
+      "patterns": ["^voi\\b"],
+      "defaultCategory": "bike_scooter",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "lime",
+      "name": "Lime",
+      "aliases": ["lime", "lime scooter", "neutron holdings"],
+      "patterns": ["^lime\\b"],
+      "defaultCategory": "bike_scooter",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "tier",
+      "name": "Tier",
+      "aliases": ["tier mobility", "tier scooter", "dott"],
+      "patterns": [],
+      "defaultCategory": "bike_scooter",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "donkey-republic",
+      "name": "Donkey Republic",
+      "aliases": ["donkey republic"],
+      "patterns": [],
+      "defaultCategory": "bike_scooter",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "bycyklen",
+      "name": "Bycyklen",
+      "aliases": ["bycyklen"],
+      "patterns": [],
+      "defaultCategory": "bike_scooter",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "nextbike",
+      "name": "Nextbike",
+      "aliases": ["nextbike"],
+      "patterns": [],
+      "defaultCategory": "bike_scooter",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "parkering-kbenhavn",
+      "name": "Parkering København",
+      "aliases": ["parkering", "easypark", "easy park", "apcoa", "q-park", "qpark", "parkman"],
+      "patterns": [],
+      "defaultCategory": "parking",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "ryanair",
+      "name": "Ryanair",
+      "aliases": ["ryanair"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "easyjet",
+      "name": "EasyJet",
+      "aliases": ["easyjet"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "wizz-air",
+      "name": "Wizz Air",
+      "aliases": ["wizz air", "wizzair"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "sas",
+      "name": "SAS",
+      "aliases": ["scandinavian airlines", "sas scandinavian", "sas airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "norwegian",
+      "name": "Norwegian",
+      "aliases": ["norwegian air", "norwegian air shuttle"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "vueling",
+      "name": "Vueling",
+      "aliases": ["vueling", "vueling airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "lufthansa",
+      "name": "Lufthansa",
+      "aliases": ["lufthansa"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "klm",
+      "name": "KLM",
+      "aliases": ["klm"],
+      "patterns": ["^klm\\b"],
+      "defaultCategory": "flights",
+      "country": "NL",
+      "region": "Europe"
+    },
+    {
+      "id": "air-france",
+      "name": "Air France",
+      "aliases": ["air france"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "british-airways",
+      "name": "British Airways",
+      "aliases": ["british airways"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "finnair",
+      "name": "Finnair",
+      "aliases": ["finnair"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "airbaltic",
+      "name": "airBaltic",
+      "aliases": ["airbaltic"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "LV",
+      "region": "Europe"
+    },
+    {
+      "id": "turkish-airlines",
+      "name": "Turkish Airlines",
+      "aliases": ["turkish airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "TR",
+      "region": "Europe"
+    },
+    {
+      "id": "emirates",
+      "name": "Emirates",
+      "aliases": ["emirates airline"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "AE",
+      "region": "Global"
+    },
+    {
+      "id": "lot-polish-airlines",
+      "name": "LOT Polish Airlines",
+      "aliases": ["lot polish airlines", "lot airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "delta-air-lines",
+      "name": "Delta Air Lines",
+      "aliases": ["delta air lines", "delta airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "united-airlines",
+      "name": "United Airlines",
+      "aliases": ["united airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "american-airlines",
+      "name": "American Airlines",
+      "aliases": ["american airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "southwest-airlines",
+      "name": "Southwest Airlines",
+      "aliases": ["southwest airlines"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "skyscanner",
+      "name": "Skyscanner",
+      "aliases": ["skyscanner"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "kiwi-com",
+      "name": "Kiwi.com",
+      "aliases": ["kiwi.com", "kiwi com"],
+      "patterns": [],
+      "defaultCategory": "flights",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "aeroport",
+      "name": "Aeroport",
+      "aliases": ["aeroport", "airport", "aeropuerto", "flughafen"],
+      "patterns": [],
+      "defaultCategory": "travel",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "booking-com",
+      "name": "Booking.com",
+      "aliases": ["booking.com", "booking com", "booking"],
+      "patterns": ["^booking\\b"],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "airbnb",
+      "name": "Airbnb",
+      "aliases": ["airbnb"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hotels-com",
+      "name": "Hotels.com",
+      "aliases": ["hotels.com", "hotels com"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "expedia",
+      "name": "Expedia",
+      "aliases": ["expedia"],
+      "patterns": [],
+      "defaultCategory": "travel",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "agoda",
+      "name": "Agoda",
+      "aliases": ["agoda"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hostelworld",
+      "name": "Hostelworld",
+      "aliases": ["hostelworld"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hilton",
+      "name": "Hilton",
+      "aliases": ["hilton"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "marriott",
+      "name": "Marriott",
+      "aliases": ["marriott"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "radisson",
+      "name": "Radisson",
+      "aliases": ["radisson"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "scandic",
+      "name": "Scandic",
+      "aliases": ["scandic hotels", "scandic"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "generator-hostels",
+      "name": "Generator Hostels",
+      "aliases": ["generator hostel"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "getyourguide",
+      "name": "GetYourGuide",
+      "aliases": ["getyourguide"],
+      "patterns": [],
+      "defaultCategory": "travel",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "tiqets",
+      "name": "Tiqets",
+      "aliases": ["tiqets"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hertz",
+      "name": "Hertz",
+      "aliases": ["hertz"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "sixt",
+      "name": "Sixt",
+      "aliases": ["sixt"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "europcar",
+      "name": "Europcar",
+      "aliases": ["europcar"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "avis",
+      "name": "Avis",
+      "aliases": ["avis"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "aliases": ["enterprise rent a car"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "fdm",
+      "name": "FDM",
+      "aliases": ["fdm"],
+      "patterns": ["^fdm\\b"],
+      "defaultCategory": "car",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "q-park",
+      "name": "Q-Park",
+      "aliases": ["q park"],
+      "patterns": [],
+      "defaultCategory": "parking",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "aliases": ["spotify", "spotify ab", "spotify p"],
+      "patterns": ["^spotify"],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "aliases": ["netflix", "netflix.com"],
+      "patterns": ["^netflix"],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "aliases": [
+        "apple",
+        "apple.com/bill",
+        "apple services",
+        "apple store",
+        "itunes",
+        "app store"
+      ],
+      "patterns": ["^(apple|itunes)"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "aliases": [
+        "google",
+        "google one",
+        "google play",
+        "google storage",
+        "google cloud",
+        "google *"
+      ],
+      "patterns": ["^google\\b"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "youtube-premium",
+      "name": "YouTube Premium",
+      "aliases": ["youtube premium", "youtube", "youtubepremium"],
+      "patterns": ["^youtube"],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "amazon-prime",
+      "name": "Amazon Prime",
+      "aliases": ["amazon prime", "prime video", "amzn prime"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "disney",
+      "name": "Disney+",
+      "aliases": ["disney plus", "disney+", "disneyplus"],
+      "patterns": ["^disney"],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hbo-max",
+      "name": "HBO Max",
+      "aliases": ["hbo max", "max.com", "hbomax"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "viaplay",
+      "name": "Viaplay",
+      "aliases": ["viaplay"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "tv-2-play",
+      "name": "TV 2 Play",
+      "aliases": ["tv 2 play", "tv2 play", "tv2"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "storytel",
+      "name": "Storytel",
+      "aliases": ["storytel"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "audible",
+      "name": "Audible",
+      "aliases": ["audible"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "mofibo",
+      "name": "Mofibo",
+      "aliases": ["mofibo"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "tidal",
+      "name": "Tidal",
+      "aliases": ["tidal"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "deezer",
+      "name": "Deezer",
+      "aliases": ["deezer"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "soundcloud",
+      "name": "SoundCloud",
+      "aliases": ["soundcloud"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "aliases": ["twitch", "twitch interactive"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "crunchyroll",
+      "name": "Crunchyroll",
+      "aliases": ["crunchyroll"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "paramount",
+      "name": "Paramount+",
+      "aliases": ["paramount plus", "paramount+"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hulu",
+      "name": "Hulu",
+      "aliases": ["hulu"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "peacock",
+      "name": "Peacock",
+      "aliases": ["peacock tv"],
+      "patterns": [],
+      "defaultCategory": "music_video",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "microsoft",
+      "name": "Microsoft",
+      "aliases": [
+        "microsoft",
+        "microsoft 365",
+        "microsoft store",
+        "msft",
+        "office 365",
+        "xbox live"
+      ],
+      "patterns": ["^(microsoft|msft)"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "adobe",
+      "name": "Adobe",
+      "aliases": ["adobe", "adobe systems", "adobe creative cloud"],
+      "patterns": ["^adobe"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "aliases": ["dropbox"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "aliases": ["github", "github inc"],
+      "patterns": ["^github"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "aliases": ["openai", "chatgpt", "openai *chatgpt"],
+      "patterns": ["^openai"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "aliases": ["anthropic", "claude.ai"],
+      "patterns": ["^(anthropic|claude)"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "aliases": ["cloudflare"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "digitalocean",
+      "name": "DigitalOcean",
+      "aliases": ["digitalocean"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "hetzner",
+      "name": "Hetzner",
+      "aliases": ["hetzner", "hetzner online"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "ovh",
+      "name": "OVH",
+      "aliases": ["ovh", "ovhcloud"],
+      "patterns": ["^ovh"],
+      "defaultCategory": "software",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "aws",
+      "name": "AWS",
+      "aliases": ["amazon web services", "aws", "aws emea"],
+      "patterns": ["^aws\\b"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "namecheap",
+      "name": "Namecheap",
+      "aliases": ["namecheap"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "godaddy",
+      "name": "GoDaddy",
+      "aliases": ["godaddy"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "aliases": ["vercel"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "aliases": ["notion labs", "notion"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "aliases": ["slack"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "aliases": ["zoom", "zoom.us"],
+      "patterns": ["^zoom\\b"],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "aliases": ["canva"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "aliases": ["figma"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "jetbrains",
+      "name": "JetBrains",
+      "aliases": ["jetbrains"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "CZ",
+      "region": "Europe"
+    },
+    {
+      "id": "1password",
+      "name": "1Password",
+      "aliases": ["1password", "agilebits"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "nordvpn",
+      "name": "NordVPN",
+      "aliases": ["nordvpn", "nord security"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "protonmail",
+      "name": "ProtonMail",
+      "aliases": ["proton", "protonmail", "proton ag"],
+      "patterns": ["^proton\\b"],
+      "defaultCategory": "software",
+      "country": "CH",
+      "region": "Europe"
+    },
+    {
+      "id": "duolingo",
+      "name": "Duolingo",
+      "aliases": ["duolingo"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "coursera",
+      "name": "Coursera",
+      "aliases": ["coursera"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "udemy",
+      "name": "Udemy",
+      "aliases": ["udemy"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "skillshare",
+      "name": "Skillshare",
+      "aliases": ["skillshare"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "medium",
+      "name": "Medium",
+      "aliases": ["medium.com"],
+      "patterns": [],
+      "defaultCategory": "software",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "patreon",
+      "name": "Patreon",
+      "aliases": ["patreon"],
+      "patterns": [],
+      "defaultCategory": "subscriptions",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "substack",
+      "name": "Substack",
+      "aliases": ["substack"],
+      "patterns": [],
+      "defaultCategory": "subscriptions",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "aliases": ["linkedin"],
+      "patterns": [],
+      "defaultCategory": "subscriptions",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "tinder",
+      "name": "Tinder",
+      "aliases": ["tinder"],
+      "patterns": [],
+      "defaultCategory": "subscriptions",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "bumble",
+      "name": "Bumble",
+      "aliases": ["bumble"],
+      "patterns": [],
+      "defaultCategory": "subscriptions",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "strava",
+      "name": "Strava",
+      "aliases": ["strava"],
+      "patterns": [],
+      "defaultCategory": "sport",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "myfitnesspal",
+      "name": "MyFitnessPal",
+      "aliases": ["myfitnesspal"],
+      "patterns": [],
+      "defaultCategory": "sport",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "aliases": ["steam", "steam purchase", "steampowered", "valve"],
+      "patterns": ["^steam"],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "riot-games",
+      "name": "Riot Games",
+      "aliases": ["riot games", "riotgames", "riot"],
+      "patterns": ["^riot\\b"],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "epic-games",
+      "name": "Epic Games",
+      "aliases": ["epic games", "epicgames"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "playstation",
+      "name": "PlayStation",
+      "aliases": ["playstation", "sony playstation", "psn", "sie"],
+      "patterns": ["^(playstation|psn)"],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "xbox",
+      "name": "Xbox",
+      "aliases": ["xbox", "xbox game pass"],
+      "patterns": ["^xbox"],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "nintendo",
+      "name": "Nintendo",
+      "aliases": ["nintendo", "nintendo eshop"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "blizzard",
+      "name": "Blizzard",
+      "aliases": ["blizzard", "battle.net"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "ea",
+      "name": "EA",
+      "aliases": ["electronic arts", "ea games", "origin"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "ubisoft",
+      "name": "Ubisoft",
+      "aliases": ["ubisoft"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "gog",
+      "name": "GOG",
+      "aliases": ["gog.com", "gog"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "humble-bundle",
+      "name": "Humble Bundle",
+      "aliases": ["humble bundle"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "g2a",
+      "name": "G2A",
+      "aliases": ["g2a", "g2a.com"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "eneba",
+      "name": "Eneba",
+      "aliases": ["eneba"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "kinguin",
+      "name": "Kinguin",
+      "aliases": ["kinguin"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "roblox",
+      "name": "Roblox",
+      "aliases": ["roblox"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "supercell",
+      "name": "Supercell",
+      "aliases": ["supercell"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "FI",
+      "region": "Nordics"
+    },
+    {
+      "id": "mojang",
+      "name": "Mojang",
+      "aliases": ["minecraft", "mojang"],
+      "patterns": [],
+      "defaultCategory": "games",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "elgiganten",
+      "name": "Elgiganten",
+      "aliases": ["elgiganten", "elgiganten.dk"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "power",
+      "name": "Power",
+      "aliases": ["power", "power.dk", "power dk"],
+      "patterns": ["^power(\\.dk|\\sdk)"],
+      "defaultCategory": "electronics",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "proshop",
+      "name": "Proshop",
+      "aliases": ["proshop", "proshop.dk"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "computersalg",
+      "name": "Computersalg",
+      "aliases": ["computersalg"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "komplett",
+      "name": "Komplett",
+      "aliases": ["komplett"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "telia-butik",
+      "name": "Telia Butik",
+      "aliases": ["telia butik"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "bang-olufsen",
+      "name": "Bang & Olufsen",
+      "aliases": ["bang olufsen", "bang and olufsen"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "mediamarkt",
+      "name": "MediaMarkt",
+      "aliases": ["mediamarkt", "media markt"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "saturn",
+      "name": "Saturn",
+      "aliases": ["saturn electro"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "fnac",
+      "name": "Fnac",
+      "aliases": ["fnac"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "darty",
+      "name": "Darty",
+      "aliases": ["darty"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "currys",
+      "name": "Currys",
+      "aliases": ["currys", "pc world"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "best-buy",
+      "name": "Best Buy",
+      "aliases": ["best buy", "bestbuy"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "micro-center",
+      "name": "Micro Center",
+      "aliases": ["micro center"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "newegg",
+      "name": "Newegg",
+      "aliases": ["newegg"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "apple-store",
+      "name": "Apple Store",
+      "aliases": ["apple retail", "apple store retail"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "samsung",
+      "name": "Samsung",
+      "aliases": ["samsung"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "dell",
+      "name": "Dell",
+      "aliases": ["dell"],
+      "patterns": ["^dell\\b"],
+      "defaultCategory": "electronics",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "foxtrot",
+      "name": "Foxtrot",
+      "aliases": ["foxtrot", "фокстрот"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "rozetka",
+      "name": "Rozetka",
+      "aliases": ["rozetka", "розетка"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "comfy",
+      "name": "Comfy",
+      "aliases": ["comfy", "комфі"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "allo",
+      "name": "Allo",
+      "aliases": ["allo.ua", "алло"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "eldorado",
+      "name": "Eldorado",
+      "aliases": ["eldorado", "ельдорадо"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "media-expert",
+      "name": "Media Expert",
+      "aliases": ["media expert"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "rtv-euro-agd",
+      "name": "RTV Euro AGD",
+      "aliases": ["rtv euro agd", "euro rtv agd"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "x-kom",
+      "name": "x-kom",
+      "aliases": ["x kom", "x-kom"],
+      "patterns": [],
+      "defaultCategory": "electronics",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "allegro",
+      "name": "Allegro",
+      "aliases": ["allegro"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "olx",
+      "name": "OLX",
+      "aliases": ["olx"],
+      "patterns": ["^olx\\b"],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "dba",
+      "name": "DBA",
+      "aliases": ["dba.dk"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "vinted",
+      "name": "Vinted",
+      "aliases": ["vinted"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "zalando",
+      "name": "Zalando",
+      "aliases": ["zalando"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "about-you",
+      "name": "About You",
+      "aliases": ["about you"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "aliases": [
+        "amazon",
+        "amazon.com",
+        "amazon.de",
+        "amazon.co.uk",
+        "amzn",
+        "amzn mktp",
+        "amazon marketplace"
+      ],
+      "patterns": ["^(amazon|amzn)"],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "ebay",
+      "name": "eBay",
+      "aliases": ["ebay"],
+      "patterns": ["^ebay"],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "aliexpress",
+      "name": "AliExpress",
+      "aliases": ["aliexpress", "ali express"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "temu",
+      "name": "Temu",
+      "aliases": ["temu"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "shein",
+      "name": "Shein",
+      "aliases": ["shein"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "etsy",
+      "name": "Etsy",
+      "aliases": ["etsy"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "wildberries",
+      "name": "Wildberries",
+      "aliases": ["wildberries"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "ozon",
+      "name": "Ozon",
+      "aliases": ["ozon"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "prom-ua",
+      "name": "Prom.ua",
+      "aliases": ["prom.ua", "пром юа"],
+      "patterns": [],
+      "defaultCategory": "marketplace",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "kasta",
+      "name": "Kasta",
+      "aliases": ["kasta"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "nova-poshta",
+      "name": "Nova Poshta",
+      "aliases": ["nova poshta", "нова пошта"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "inpost",
+      "name": "InPost",
+      "aliases": ["inpost", "paczkomat"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "dhl",
+      "name": "DHL",
+      "aliases": ["dhl"],
+      "patterns": ["^dhl\\b"],
+      "defaultCategory": "shopping",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "postnord",
+      "name": "PostNord",
+      "aliases": ["postnord", "post nord"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "gls",
+      "name": "GLS",
+      "aliases": ["gls"],
+      "patterns": ["^gls\\b"],
+      "defaultCategory": "shopping",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "ups",
+      "name": "UPS",
+      "aliases": ["ups"],
+      "patterns": ["^ups\\b"],
+      "defaultCategory": "shopping",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "fedex",
+      "name": "FedEx",
+      "aliases": ["fedex"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "ikea",
+      "name": "IKEA",
+      "aliases": ["ikea", "ikea dk", "ikea.com"],
+      "patterns": ["^ikea\\b"],
+      "defaultCategory": "home_goods",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "h-m",
+      "name": "H&M",
+      "aliases": ["h&m", "h and m", "hennes mauritz", "h & m"],
+      "patterns": ["^h\\s?&\\s?m\\b"],
+      "defaultCategory": "clothes",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "zara",
+      "name": "Zara",
+      "aliases": ["zara", "zara home"],
+      "patterns": ["^zara\\b"],
+      "defaultCategory": "clothes",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "uniqlo",
+      "name": "Uniqlo",
+      "aliases": ["uniqlo"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "JP",
+      "region": "Global"
+    },
+    {
+      "id": "primark",
+      "name": "Primark",
+      "aliases": ["primark"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "bershka",
+      "name": "Bershka",
+      "aliases": ["bershka"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "pull-bear",
+      "name": "Pull&Bear",
+      "aliases": ["pull and bear", "pull&bear"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "mango",
+      "name": "Mango",
+      "aliases": ["mango", "mng"],
+      "patterns": ["^mango\\b"],
+      "defaultCategory": "clothes",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "massimo-dutti",
+      "name": "Massimo Dutti",
+      "aliases": ["massimo dutti"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "stradivarius",
+      "name": "Stradivarius",
+      "aliases": ["stradivarius"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "c-a",
+      "name": "C&A",
+      "aliases": ["c&a", "c and a"],
+      "patterns": ["^c\\s?&\\s?a\\b"],
+      "defaultCategory": "clothes",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "new-yorker",
+      "name": "New Yorker",
+      "aliases": ["new yorker"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "bestseller",
+      "name": "Bestseller",
+      "aliases": ["bestseller", "jack & jones", "vero moda", "only", "jack and jones"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "jack-jones",
+      "name": "Jack & Jones",
+      "aliases": ["jack jones"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "vero-moda",
+      "name": "Vero Moda",
+      "aliases": ["vero moda"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "weekday",
+      "name": "Weekday",
+      "aliases": ["weekday"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "monki",
+      "name": "Monki",
+      "aliases": ["monki"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "cos",
+      "name": "Cos",
+      "aliases": ["cos store"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "lindex",
+      "name": "Lindex",
+      "aliases": ["lindex"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "kappahl",
+      "name": "KappAhl",
+      "aliases": ["kappahl"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "kaufmann",
+      "name": "Kaufmann",
+      "aliases": ["kaufmann"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "magasin",
+      "name": "Magasin",
+      "aliases": ["magasin du nord", "magasin"],
+      "patterns": ["^magasin\\b"],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "salling",
+      "name": "Salling",
+      "aliases": ["salling", "salling group"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "tiger",
+      "name": "Tiger",
+      "aliases": ["flying tiger", "flying tiger copenhagen", "tiger store"],
+      "patterns": ["^(flying )?tiger\\b"],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "sstrene-grene",
+      "name": "Søstrene Grene",
+      "aliases": ["sostrene grene", "sostrene"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "jysk",
+      "name": "Jysk",
+      "aliases": ["jysk"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "bauhaus",
+      "name": "Bauhaus",
+      "aliases": ["bauhaus"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "jem-fix",
+      "name": "Jem & Fix",
+      "aliases": ["jem & fix", "jem og fix", "jem fix"],
+      "patterns": ["^jem\\s?(&|og)?\\s?fix"],
+      "defaultCategory": "home_goods",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "silvan",
+      "name": "Silvan",
+      "aliases": ["silvan"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "harald-nyborg",
+      "name": "Harald Nyborg",
+      "aliases": ["harald nyborg"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "thansen",
+      "name": "Thansen",
+      "aliases": ["thansen"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "biltema",
+      "name": "Biltema",
+      "aliases": ["biltema"],
+      "patterns": [],
+      "defaultCategory": "car",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "leroy-merlin",
+      "name": "Leroy Merlin",
+      "aliases": ["leroy merlin"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "obi",
+      "name": "Obi",
+      "aliases": ["obi baumarkt", "obi markt"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "hornbach",
+      "name": "Hornbach",
+      "aliases": ["hornbach"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "castorama",
+      "name": "Castorama",
+      "aliases": ["castorama"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "b-q",
+      "name": "B&Q",
+      "aliases": ["b&q", "b and q"],
+      "patterns": ["^b\\s?&\\s?q\\b"],
+      "defaultCategory": "home_goods",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "home-depot",
+      "name": "Home Depot",
+      "aliases": ["home depot", "the home depot"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "lowe-s",
+      "name": "Lowe's",
+      "aliases": ["lowes", "lowe s"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "epicentr",
+      "name": "Epicentr",
+      "aliases": ["epicentr", "епіцентр", "эпицентр"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "jula",
+      "name": "Jula",
+      "aliases": ["jula"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "clas-ohlson",
+      "name": "Clas Ohlson",
+      "aliases": ["clas ohlson"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "normal",
+      "name": "Normal",
+      "aliases": ["normal", "normal dk", "normal store"],
+      "patterns": ["^normal\\b"],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "matas",
+      "name": "Matas",
+      "aliases": ["matas", "matas a/s"],
+      "patterns": ["^matas\\b"],
+      "defaultCategory": "beauty",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "sephora",
+      "name": "Sephora",
+      "aliases": ["sephora"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "douglas",
+      "name": "Douglas",
+      "aliases": ["douglas parfumerie", "douglas"],
+      "patterns": ["^douglas\\b"],
+      "defaultCategory": "cosmetics",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "dm-drogerie-markt",
+      "name": "dm-drogerie markt",
+      "aliases": ["dm drogerie", "dm markt", "dm-drogerie"],
+      "patterns": ["^dm[\\s-]drogerie"],
+      "defaultCategory": "cosmetics",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "rossmann-de",
+      "name": "Rossmann DE",
+      "aliases": ["rossmann markt"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "boots",
+      "name": "Boots",
+      "aliases": ["boots", "boots uk", "boots pharmacy"],
+      "patterns": ["^boots\\b"],
+      "defaultCategory": "pharmacy",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "superdrug",
+      "name": "Superdrug",
+      "aliases": ["superdrug"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "lush",
+      "name": "Lush",
+      "aliases": ["lush"],
+      "patterns": ["^lush\\b"],
+      "defaultCategory": "cosmetics",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "the-body-shop",
+      "name": "The Body Shop",
+      "aliases": ["the body shop", "body shop"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "kicks",
+      "name": "Kicks",
+      "aliases": ["kicks"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "lyko",
+      "name": "Lyko",
+      "aliases": ["lyko"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "ulta-beauty",
+      "name": "Ulta Beauty",
+      "aliases": ["ulta", "ulta beauty"],
+      "patterns": [],
+      "defaultCategory": "cosmetics",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "sports-direct",
+      "name": "Sports Direct",
+      "aliases": ["sports direct"],
+      "patterns": [],
+      "defaultCategory": "sport_goods",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "decathlon",
+      "name": "Decathlon",
+      "aliases": ["decathlon"],
+      "patterns": [],
+      "defaultCategory": "sport_goods",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "intersport",
+      "name": "Intersport",
+      "aliases": ["intersport"],
+      "patterns": [],
+      "defaultCategory": "sport_goods",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "sportmaster",
+      "name": "Sportmaster",
+      "aliases": ["sportmaster", "спортмастер"],
+      "patterns": [],
+      "defaultCategory": "sport_goods",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "nike",
+      "name": "Nike",
+      "aliases": ["nike", "nike store"],
+      "patterns": ["^nike\\b"],
+      "defaultCategory": "clothes_shoes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "adidas",
+      "name": "Adidas",
+      "aliases": ["adidas"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "DE",
+      "region": "Global"
+    },
+    {
+      "id": "puma",
+      "name": "Puma",
+      "aliases": ["puma"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "DE",
+      "region": "Global"
+    },
+    {
+      "id": "new-balance",
+      "name": "New Balance",
+      "aliases": ["new balance"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "foot-locker",
+      "name": "Foot Locker",
+      "aliases": ["foot locker", "footlocker"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "skechers",
+      "name": "Skechers",
+      "aliases": ["skechers"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "ecco",
+      "name": "Ecco",
+      "aliases": ["ecco", "ecco sko"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "deichmann",
+      "name": "Deichmann",
+      "aliases": ["deichmann"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "footshop",
+      "name": "Footshop",
+      "aliases": ["footshop"],
+      "patterns": [],
+      "defaultCategory": "clothes_shoes",
+      "country": "CZ",
+      "region": "Europe"
+    },
+    {
+      "id": "zalando-lounge",
+      "name": "Zalando Lounge",
+      "aliases": ["zalando lounge"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "boozt",
+      "name": "Boozt",
+      "aliases": ["boozt"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "asos",
+      "name": "Asos",
+      "aliases": ["asos"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "tommy-hilfiger",
+      "name": "Tommy Hilfiger",
+      "aliases": ["tommy hilfiger"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "calvin-klein",
+      "name": "Calvin Klein",
+      "aliases": ["calvin klein"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "levi-s",
+      "name": "Levi's",
+      "aliases": ["levis", "levi s", "levi strauss"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "gap",
+      "name": "Gap",
+      "aliases": ["gap"],
+      "patterns": ["^gap\\b"],
+      "defaultCategory": "clothes",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "old-navy",
+      "name": "Old Navy",
+      "aliases": ["old navy"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "nordstrom",
+      "name": "Nordstrom",
+      "aliases": ["nordstrom"],
+      "patterns": [],
+      "defaultCategory": "clothes",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "macy-s",
+      "name": "Macy's",
+      "aliases": ["macys", "macy s"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "kohl-s",
+      "name": "Kohl's",
+      "aliases": ["kohls"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "dollar-tree",
+      "name": "Dollar Tree",
+      "aliases": ["dollar tree"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "cvs",
+      "name": "CVS",
+      "aliases": ["cvs", "cvs pharmacy"],
+      "patterns": ["^cvs\\b"],
+      "defaultCategory": "pharmacy",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "walgreens",
+      "name": "Walgreens",
+      "aliases": ["walgreens"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "rite-aid",
+      "name": "Rite Aid",
+      "aliases": ["rite aid"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "apotek",
+      "name": "Apotek",
+      "aliases": ["apotek", "apoteket", "apotekeren", "din apotek"],
+      "patterns": ["^apotek"],
+      "defaultCategory": "pharmacy",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "webapoteket",
+      "name": "Webapoteket",
+      "aliases": ["webapoteket"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "docmorris",
+      "name": "DocMorris",
+      "aliases": ["docmorris"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "shop-apotheke",
+      "name": "Shop Apotheke",
+      "aliases": ["shop apotheke"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "farmacia",
+      "name": "Farmacia",
+      "aliases": ["farmacia", "farmacias", "pharmacie", "apotheke"],
+      "patterns": ["^(farmacia|pharmacie|apotheke)"],
+      "defaultCategory": "pharmacy",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "apteka",
+      "name": "Apteka",
+      "aliases": ["apteka", "doz apteka", "gemini apteka", "аптека"],
+      "patterns": ["^(apteka|аптека)"],
+      "defaultCategory": "pharmacy",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "apteka-gemini",
+      "name": "Apteka Gemini",
+      "aliases": ["apteka gemini"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "apteka-doz",
+      "name": "Apteka Doz",
+      "aliases": ["apteka doz"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "apteka-podorozhnyk",
+      "name": "Apteka Podorozhnyk",
+      "aliases": ["podorozhnyk", "подорожник"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "apteka-911",
+      "name": "Apteka 911",
+      "aliases": ["apteka 911", "аптека 911"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "anc",
+      "name": "Anc",
+      "aliases": ["apteka anc", "анц"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "bad-medicina",
+      "name": "Bad Medicina",
+      "aliases": ["apteka dobroho dnya", "аптека доброго дня"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "eapteka",
+      "name": "Eapteka",
+      "aliases": ["eapteka", "апрель аптека", "аптека ру", "36.6"],
+      "patterns": [],
+      "defaultCategory": "pharmacy",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "sundhed-dk",
+      "name": "Sundhed.dk",
+      "aliases": ["sundhed.dk", "lægehuset", "laegehuset"],
+      "patterns": [],
+      "defaultCategory": "doctors",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "tandlge",
+      "name": "Tandlæge",
+      "aliases": ["tandlaege", "tandlæge", "tandklinik"],
+      "patterns": ["^tandl"],
+      "defaultCategory": "dentist",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "falck",
+      "name": "Falck",
+      "aliases": ["falck"],
+      "patterns": [],
+      "defaultCategory": "doctors",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "fitness-world",
+      "name": "Fitness World",
+      "aliases": ["fitness world", "fitnessworld"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "sats",
+      "name": "SATS",
+      "aliases": ["sats", "sats elixia"],
+      "patterns": ["^sats\\b"],
+      "defaultCategory": "gym",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "fitness-dk",
+      "name": "Fitness DK",
+      "aliases": ["fitness dk"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "puregym",
+      "name": "PureGym",
+      "aliases": ["puregym", "pure gym"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "basic-fit",
+      "name": "Basic-Fit",
+      "aliases": ["basic fit", "basic-fit"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "NL",
+      "region": "Europe"
+    },
+    {
+      "id": "mcfit",
+      "name": "McFit",
+      "aliases": ["mcfit"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "anytime-fitness",
+      "name": "Anytime Fitness",
+      "aliases": ["anytime fitness"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "planet-fitness",
+      "name": "Planet Fitness",
+      "aliases": ["planet fitness"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "gold-s-gym",
+      "name": "Gold's Gym",
+      "aliases": ["golds gym"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "classpass",
+      "name": "ClassPass",
+      "aliases": ["classpass"],
+      "patterns": [],
+      "defaultCategory": "gym",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "cinemaxx",
+      "name": "Cinemaxx",
+      "aliases": ["cinemaxx"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "nordisk-film-biografer",
+      "name": "Nordisk Film Biografer",
+      "aliases": ["nordisk film", "biograf"],
+      "patterns": ["^biograf"],
+      "defaultCategory": "cinema_events",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "grand-teatret",
+      "name": "Grand Teatret",
+      "aliases": ["grand teatret"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "cinema-city",
+      "name": "Cinema City",
+      "aliases": ["cinema city"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "multikino",
+      "name": "Multikino",
+      "aliases": ["multikino"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "kinopolis",
+      "name": "Kinopolis",
+      "aliases": ["kinopolis"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "odeon",
+      "name": "Odeon",
+      "aliases": ["odeon"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "vue-cinemas",
+      "name": "Vue Cinemas",
+      "aliases": ["vue cinema"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "amc-theatres",
+      "name": "AMC Theatres",
+      "aliases": ["amc theatres"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "ticketmaster",
+      "name": "Ticketmaster",
+      "aliases": ["ticketmaster"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "billetlugen",
+      "name": "Billetlugen",
+      "aliases": ["billetlugen"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "eventbrite",
+      "name": "Eventbrite",
+      "aliases": ["eventbrite"],
+      "patterns": [],
+      "defaultCategory": "cinema_events",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "tivoli",
+      "name": "Tivoli",
+      "aliases": ["tivoli"],
+      "patterns": [],
+      "defaultCategory": "entertainment",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "legoland",
+      "name": "Legoland",
+      "aliases": ["legoland"],
+      "patterns": [],
+      "defaultCategory": "entertainment",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "telenor",
+      "name": "Telenor",
+      "aliases": ["telenor", "telenor a/s"],
+      "patterns": ["^telenor"],
+      "defaultCategory": "mobile",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "tdc",
+      "name": "TDC",
+      "aliases": ["tdc", "nuuday", "yousee"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "telia",
+      "name": "Telia",
+      "aliases": ["telia", "telia danmark"],
+      "patterns": ["^telia\\b"],
+      "defaultCategory": "mobile",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "3-denmark",
+      "name": "3 Denmark",
+      "aliases": ["3 danmark", "hi3g", "3dk"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "lyca-mobile",
+      "name": "Lyca Mobile",
+      "aliases": ["lyca mobile", "lycamobile", "lyca"],
+      "patterns": ["^lyca"],
+      "defaultCategory": "mobile",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "cbb-mobil",
+      "name": "CBB Mobil",
+      "aliases": ["cbb mobil", "cbb"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "oister",
+      "name": "Oister",
+      "aliases": ["oister"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "lebara",
+      "name": "Lebara",
+      "aliases": ["lebara"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "vodafone",
+      "name": "Vodafone",
+      "aliases": ["vodafone"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "o2",
+      "name": "O2",
+      "aliases": ["o2", "o2 uk"],
+      "patterns": ["^o2\\b"],
+      "defaultCategory": "mobile",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "ee",
+      "name": "EE",
+      "aliases": ["ee limited"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "orange",
+      "name": "Orange",
+      "aliases": ["orange", "orange france", "orange espana"],
+      "patterns": ["^orange\\b"],
+      "defaultCategory": "mobile",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "movistar",
+      "name": "Movistar",
+      "aliases": ["movistar", "telefonica"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "t-mobile",
+      "name": "T-Mobile",
+      "aliases": ["t mobile", "t-mobile"],
+      "patterns": ["^t[\\s-]mobile"],
+      "defaultCategory": "mobile",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "telekom",
+      "name": "Telekom",
+      "aliases": ["deutsche telekom", "telekom deutschland"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "play",
+      "name": "Play",
+      "aliases": ["play mobile", "p4"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "plus-gsm",
+      "name": "Plus GSM",
+      "aliases": ["plus gsm", "polkomtel"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "verizon",
+      "name": "Verizon",
+      "aliases": ["verizon", "verizon wireless"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "at-t",
+      "name": "AT&T",
+      "aliases": ["at&t", "att", "at and t"],
+      "patterns": ["^at\\s?&\\s?t\\b"],
+      "defaultCategory": "mobile",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "kyivstar",
+      "name": "Kyivstar",
+      "aliases": ["kyivstar", "київстар", "киевстар"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "vodafone-ukraine",
+      "name": "Vodafone Ukraine",
+      "aliases": ["vodafone ukraine", "vodafone ua"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "lifecell",
+      "name": "lifecell",
+      "aliases": ["lifecell", "лайфселл"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "mts",
+      "name": "MTS",
+      "aliases": ["мтс", "mts"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "beeline",
+      "name": "Beeline",
+      "aliases": ["билайн", "beeline"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "megafon",
+      "name": "Megafon",
+      "aliases": ["мегафон", "megafon"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "RU",
+      "region": "Europe"
+    },
+    {
+      "id": "tele2",
+      "name": "Tele2",
+      "aliases": ["tele2"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "telenor-sverige",
+      "name": "Telenor Sverige",
+      "aliases": ["telenor sverige"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "comcast-xfinity",
+      "name": "Comcast Xfinity",
+      "aliases": ["comcast", "xfinity"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "spectrum",
+      "name": "Spectrum",
+      "aliases": ["spectrum", "charter communications"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "fastweb",
+      "name": "Fastweb",
+      "aliases": ["fastweb"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "IT",
+      "region": "Europe"
+    },
+    {
+      "id": "skype",
+      "name": "Skype",
+      "aliases": ["skype"],
+      "patterns": [],
+      "defaultCategory": "mobile",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "ukrtelecom",
+      "name": "Ukrtelecom",
+      "aliases": ["ukrtelecom", "укртелеком"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "datagroup",
+      "name": "Datagroup",
+      "aliases": ["datagroup", "датагруп"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "triolan",
+      "name": "Triolan",
+      "aliases": ["triolan", "триолан"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "starlink",
+      "name": "Starlink",
+      "aliases": ["starlink"],
+      "patterns": [],
+      "defaultCategory": "home_internet",
+      "country": "US",
+      "region": "Global"
+    },
+    {
+      "id": "rsted",
+      "name": "Ørsted",
+      "aliases": ["orsted", "ørsted", "andel energi", "ewii", "norlys", "eon danmark"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "hofor",
+      "name": "HOFOR",
+      "aliases": ["hofor"],
+      "patterns": [],
+      "defaultCategory": "water_heating",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "skat",
+      "name": "SKAT",
+      "aliases": ["skat", "skattestyrelsen"],
+      "patterns": ["^skat\\b"],
+      "defaultCategory": "taxes_fees",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "udbetaling-danmark",
+      "name": "Udbetaling Danmark",
+      "aliases": ["udbetaling danmark", "su", "statens uddannelsesstotte"],
+      "patterns": [],
+      "defaultCategory": "salary",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "borger-dk",
+      "name": "Borger.dk",
+      "aliases": ["borger.dk", "politi", "politiet"],
+      "patterns": [],
+      "defaultCategory": "taxes_fees",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "hmrc",
+      "name": "HMRC",
+      "aliases": ["hmrc", "hm revenue"],
+      "patterns": [],
+      "defaultCategory": "taxes_fees",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "irs",
+      "name": "IRS",
+      "aliases": ["irs", "internal revenue service"],
+      "patterns": [],
+      "defaultCategory": "taxes_fees",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "zus",
+      "name": "ZUS",
+      "aliases": ["zus"],
+      "patterns": ["^zus\\b"],
+      "defaultCategory": "taxes_fees",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "e-on",
+      "name": "E.ON",
+      "aliases": ["e.on", "eon energie"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "vattenfall",
+      "name": "Vattenfall",
+      "aliases": ["vattenfall"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "iberdrola",
+      "name": "Iberdrola",
+      "aliases": ["iberdrola"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "endesa",
+      "name": "Endesa",
+      "aliases": ["endesa"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "british-gas",
+      "name": "British Gas",
+      "aliases": ["british gas"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "dtek",
+      "name": "DTEK",
+      "aliases": ["dtek", "дтек", "ДТЕК"],
+      "patterns": [],
+      "defaultCategory": "electricity",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "naftogaz",
+      "name": "Naftogaz",
+      "aliases": ["naftogaz", "нафтогаз"],
+      "patterns": [],
+      "defaultCategory": "water_heating",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "kyivvodokanal",
+      "name": "Kyivvodokanal",
+      "aliases": ["kyivvodokanal", "київводоканал"],
+      "patterns": [],
+      "defaultCategory": "water_heating",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "mobilepay",
+      "name": "MobilePay",
+      "aliases": ["mobilepay", "mobile pay", "mobilepay overførsel"],
+      "patterns": ["^mobilepay"],
+      "defaultCategory": "transfers",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "swish",
+      "name": "Swish",
+      "aliases": ["swish"],
+      "patterns": ["^swish\\b"],
+      "defaultCategory": "transfers",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "vipps",
+      "name": "Vipps",
+      "aliases": ["vipps"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "NO",
+      "region": "Nordics"
+    },
+    {
+      "id": "paypal",
+      "name": "PayPal",
+      "aliases": ["paypal", "paypal *"],
+      "patterns": ["^paypal"],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "wise",
+      "name": "Wise",
+      "aliases": ["wise", "transferwise", "wise europe"],
+      "patterns": ["^(wise|transferwise)\\b"],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "revolut",
+      "name": "Revolut",
+      "aliases": ["revolut"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "paysend",
+      "name": "Paysend",
+      "aliases": ["paysend", "paysend.com"],
+      "patterns": ["^paysend"],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "western-union",
+      "name": "Western Union",
+      "aliases": ["western union"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "moneygram",
+      "name": "MoneyGram",
+      "aliases": ["moneygram"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "remitly",
+      "name": "Remitly",
+      "aliases": ["remitly"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "venmo",
+      "name": "Venmo",
+      "aliases": ["venmo"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "cash-app",
+      "name": "Cash App",
+      "aliases": ["cash app"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "zelle",
+      "name": "Zelle",
+      "aliases": ["zelle"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "blik",
+      "name": "Blik",
+      "aliases": ["blik"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "bizum",
+      "name": "Bizum",
+      "aliases": ["bizum"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "ES",
+      "region": "Europe"
+    },
+    {
+      "id": "lunar",
+      "name": "Lunar",
+      "aliases": ["lunar", "lunar bank"],
+      "patterns": ["^lunar\\b"],
+      "defaultCategory": "savings",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "nordea",
+      "name": "Nordea",
+      "aliases": ["nordea"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "danske-bank",
+      "name": "Danske Bank",
+      "aliases": ["danske bank"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "jyske-bank",
+      "name": "Jyske Bank",
+      "aliases": ["jyske bank"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "sydbank",
+      "name": "Sydbank",
+      "aliases": ["sydbank"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "spar-nord",
+      "name": "Spar Nord",
+      "aliases": ["spar nord"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "monzo",
+      "name": "Monzo",
+      "aliases": ["monzo"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "starling",
+      "name": "Starling",
+      "aliases": ["starling bank"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "n26",
+      "name": "N26",
+      "aliases": ["n26"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "monobank",
+      "name": "Monobank",
+      "aliases": ["monobank", "монобанк"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "privatbank",
+      "name": "PrivatBank",
+      "aliases": ["privatbank", "приватбанк", "privat24"],
+      "patterns": [],
+      "defaultCategory": "transfers",
+      "country": "UA",
+      "region": "Europe"
+    },
+    {
+      "id": "binance",
+      "name": "Binance",
+      "aliases": ["binance"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "coinbase",
+      "name": "Coinbase",
+      "aliases": ["coinbase"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "kraken",
+      "name": "Kraken",
+      "aliases": ["kraken"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "nordnet",
+      "name": "Nordnet",
+      "aliases": ["nordnet"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "saxo-bank",
+      "name": "Saxo Bank",
+      "aliases": ["saxo bank", "saxo"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "trading-212",
+      "name": "Trading 212",
+      "aliases": ["trading 212"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "interactive-brokers",
+      "name": "Interactive Brokers",
+      "aliases": ["interactive brokers"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "robinhood",
+      "name": "Robinhood",
+      "aliases": ["robinhood"],
+      "patterns": [],
+      "defaultCategory": "savings",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "payment-fee",
+      "name": "Payment fee",
+      "aliases": ["payment fee", "card fee", "monthly fee", "account fee", "gebyr", "kortgebyr"],
+      "patterns": ["^(payment|card|account|monthly)\\s+fee"],
+      "defaultCategory": "bank_fees",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "atm-withdrawal",
+      "name": "ATM Withdrawal",
+      "aliases": [
+        "atm",
+        "atm withdrawal",
+        "cash withdrawal",
+        "hævning",
+        "hovedkasse",
+        "kontantudbetaling"
+      ],
+      "patterns": ["^(atm|cash\\swithdrawal|hævning)"],
+      "defaultCategory": "cash",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "khan-academy",
+      "name": "Khan Academy",
+      "aliases": ["khan academy"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "babbel",
+      "name": "Babbel",
+      "aliases": ["babbel"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "busuu",
+      "name": "Busuu",
+      "aliases": ["busuu"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "memrise",
+      "name": "Memrise",
+      "aliases": ["memrise"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "lingoda",
+      "name": "Lingoda",
+      "aliases": ["lingoda"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "preply",
+      "name": "Preply",
+      "aliases": ["preply"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "UA",
+      "region": "Global"
+    },
+    {
+      "id": "italki",
+      "name": "Italki",
+      "aliases": ["italki"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "goodreads",
+      "name": "Goodreads",
+      "aliases": ["goodreads"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "saxo-academy",
+      "name": "Saxo Academy",
+      "aliases": ["sprogskole", "sprogcenter", "kursus"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "akademisk-bogladen",
+      "name": "Akademisk Bogladen",
+      "aliases": ["bogladen", "academic books", "saxo.com"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "amazon-kindle",
+      "name": "Amazon Kindle",
+      "aliases": ["kindle", "amazon kindle"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "bookbeat",
+      "name": "Bookbeat",
+      "aliases": ["bookbeat"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "empik",
+      "name": "Empik",
+      "aliases": ["empik"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "PL",
+      "region": "Europe"
+    },
+    {
+      "id": "waterstones",
+      "name": "Waterstones",
+      "aliases": ["waterstones"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "barnes-noble",
+      "name": "Barnes & Noble",
+      "aliases": ["barnes & noble"],
+      "patterns": [],
+      "defaultCategory": "education",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "maxi-zoo",
+      "name": "Maxi Zoo",
+      "aliases": ["maxi zoo", "maxizoo"],
+      "patterns": [],
+      "defaultCategory": "pets",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "plantorama",
+      "name": "Plantorama",
+      "aliases": ["plantorama"],
+      "patterns": [],
+      "defaultCategory": "home_goods",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "fressnapf",
+      "name": "Fressnapf",
+      "aliases": ["fressnapf"],
+      "patterns": [],
+      "defaultCategory": "pets",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "zooplus",
+      "name": "Zooplus",
+      "aliases": ["zooplus"],
+      "patterns": [],
+      "defaultCategory": "pets",
+      "country": "DE",
+      "region": "Europe"
+    },
+    {
+      "id": "petco",
+      "name": "Petco",
+      "aliases": ["petco"],
+      "patterns": [],
+      "defaultCategory": "pets",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "petsmart",
+      "name": "PetSmart",
+      "aliases": ["petsmart"],
+      "patterns": [],
+      "defaultCategory": "pets",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "pets-at-home",
+      "name": "Pets at Home",
+      "aliases": ["pets at home"],
+      "patterns": [],
+      "defaultCategory": "pets",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "toys-r-us",
+      "name": "Toys R Us",
+      "aliases": ["toys r us"],
+      "patterns": [],
+      "defaultCategory": "kids",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "lego",
+      "name": "LEGO",
+      "aliases": ["lego", "lego store", "lego.com"],
+      "patterns": ["^lego\\b"],
+      "defaultCategory": "kids",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "br-legetj",
+      "name": "BR Legetøj",
+      "aliases": ["br legetoj", "br"],
+      "patterns": [],
+      "defaultCategory": "kids",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "smyths-toys",
+      "name": "Smyths Toys",
+      "aliases": ["smyths toys"],
+      "patterns": [],
+      "defaultCategory": "kids",
+      "country": "GLOBAL",
+      "region": "Europe"
+    },
+    {
+      "id": "hamleys",
+      "name": "Hamleys",
+      "aliases": ["hamleys"],
+      "patterns": [],
+      "defaultCategory": "kids",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "mothercare",
+      "name": "Mothercare",
+      "aliases": ["mothercare"],
+      "patterns": [],
+      "defaultCategory": "kids",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "babysam",
+      "name": "Babysam",
+      "aliases": ["babysam"],
+      "patterns": [],
+      "defaultCategory": "kids",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "interflora",
+      "name": "Interflora",
+      "aliases": ["interflora"],
+      "patterns": [],
+      "defaultCategory": "gifts",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "moonpig",
+      "name": "Moonpig",
+      "aliases": ["moonpig"],
+      "patterns": [],
+      "defaultCategory": "gifts",
+      "country": "UK",
+      "region": "Europe"
+    },
+    {
+      "id": "pandora",
+      "name": "Pandora",
+      "aliases": ["pandora", "pandora jewelry"],
+      "patterns": ["^pandora\\b"],
+      "defaultCategory": "gifts",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "swarovski",
+      "name": "Swarovski",
+      "aliases": ["swarovski"],
+      "patterns": [],
+      "defaultCategory": "gifts",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "georg-jensen",
+      "name": "Georg Jensen",
+      "aliases": ["georg jensen"],
+      "patterns": [],
+      "defaultCategory": "gifts",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "hallmark",
+      "name": "Hallmark",
+      "aliases": ["hallmark"],
+      "patterns": [],
+      "defaultCategory": "gifts",
+      "country": "US",
+      "region": "North America"
+    },
+    {
+      "id": "flying-tiger",
+      "name": "Flying Tiger",
+      "aliases": ["flying tiger"],
+      "patterns": [],
+      "defaultCategory": "shopping",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "joe-the-juice-dk",
+      "name": "Joe & The Juice DK",
+      "aliases": ["joe juice denmark"],
+      "patterns": [],
+      "defaultCategory": "coffee",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "cocks-cows",
+      "name": "Cocks & Cows",
+      "aliases": ["cocks and cows", "cocks & cows"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "madklubben",
+      "name": "Madklubben",
+      "aliases": ["madklubben"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "hotel-cecil",
+      "name": "Hotel Cecil",
+      "aliases": ["hotel cecil"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "cabinn",
+      "name": "Cabinn",
+      "aliases": ["cabinn"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "wakeup",
+      "name": "Wakeup",
+      "aliases": ["wakeup copenhagen"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "nordic-choice",
+      "name": "Nordic Choice",
+      "aliases": ["nordic choice", "clarion"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "SE",
+      "region": "Nordics"
+    },
+    {
+      "id": "hotel-ibis",
+      "name": "Hotel Ibis",
+      "aliases": ["ibis", "ibis hotel", "accor"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "novotel",
+      "name": "Novotel",
+      "aliases": ["novotel"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "FR",
+      "region": "Europe"
+    },
+    {
+      "id": "holiday-inn",
+      "name": "Holiday Inn",
+      "aliases": ["holiday inn"],
+      "patterns": [],
+      "defaultCategory": "hotels",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "transfer",
+      "name": "Transfer",
+      "aliases": [
+        "transfer",
+        "overførsel",
+        "overforsel",
+        "bank transfer",
+        "money transfer",
+        "siirto",
+        "überweisung",
+        "przelew",
+        "переказ",
+        "перевод"
+      ],
+      "patterns": ["^(transfer|overf.rsel|overforsel|überweisung|przelew)\\b"],
+      "defaultCategory": "transfers",
+      "country": "GLOBAL",
+      "region": "Global"
+    },
+    {
+      "id": "ln",
+      "name": "Løn",
+      "aliases": [
+        "løn",
+        "lon",
+        "lønoverførsel",
+        "lonoverforsel",
+        "feriepenge",
+        "salary",
+        "gehalt",
+        "wypłata",
+        "зарплата"
+      ],
+      "patterns": ["^l.n(\\s|$|overf)"],
+      "defaultCategory": "salary",
+      "country": "DK",
+      "region": "Nordics"
+    },
+    {
+      "id": "interest",
+      "name": "Interest",
+      "aliases": ["interest", "renter", "rente", "interest paid", "kapitalisation"],
+      "patterns": ["^(interest|renter?)\\b"],
+      "defaultCategory": "other_income",
+      "country": "GLOBAL",
+      "region": "Global"
+    }
+  ]
+}

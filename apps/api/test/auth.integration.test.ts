@@ -83,7 +83,7 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
   });
 
   describe('Регистрация (ТЗ §3.1)', () => {
-    it('создаёт пользователя, нормализует email/никнейм и шлёт письмо', async () => {
+    it('создаёт пользователя, нормализует email/логин, шлёт письмо и сразу выдаёт сессию', async () => {
       const client = new TestClient(server);
       await client.csrf();
 
@@ -98,6 +98,8 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
       expect(response.body.user).not.toHaveProperty('passwordHash');
       expect(response.body.verificationSent).toBe(true);
       expect(mail.lastVerificationTokenFor('user@example.com')).toBeTruthy();
+      expect(client.cookies['puls_session']).toBeTruthy();
+      expect((await client.get('/api/auth/me')).status).toBe(200);
 
       const stored = await prisma.user.findUnique({ where: { email: 'user@example.com' } });
       expect(stored?.passwordHash?.startsWith('$argon2id$')).toBe(true);
@@ -142,6 +144,52 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
       expect(response.body.code).toBe('nickname_taken');
     });
 
+    it('почта необязательна: аккаунт без почты, письмо не уходит, вход по логину', async () => {
+      const client = new TestClient(server);
+      await client.csrf();
+      const response = await client.post('/api/auth/register', {
+        nickname: 'NoMail',
+        password: PASSWORD,
+        passwordConfirm: PASSWORD,
+        email: '',
+      });
+      expect(response.status).toBe(201);
+      expect(response.body.user).toMatchObject({ email: null, nickname: 'nomail' });
+      expect(response.body.verificationSent).toBe(false);
+      expect(mail.outbox()).toHaveLength(0);
+
+      const other = new TestClient(server);
+      await other.csrf();
+      const login = await other.post('/api/auth/login', { login: 'NoMail', password: PASSWORD });
+      expect(login.status).toBe(200);
+      expect((await other.get('/api/auth/me')).body.user.nickname).toBe('nomail');
+    });
+
+    it('повтор пароля должен совпадать (400)', async () => {
+      const client = new TestClient(server);
+      await client.csrf();
+      const response = await client.post('/api/auth/register', {
+        nickname: 'mismatch',
+        password: PASSWORD,
+        passwordConfirm: 'Different12345',
+      });
+      expect(response.status).toBe(400);
+      expect(await prisma.user.count()).toBe(0);
+    });
+
+    it('живая проверка логина: свободен, занят, недопустим', async () => {
+      const client = new TestClient(server);
+      await client.csrf();
+      await client.post('/api/auth/register', { nickname: 'taken1', password: PASSWORD });
+
+      const free = await client.get('/api/auth/nickname-available?nickname=freename');
+      expect(free.body).toEqual({ available: true, reason: null });
+      const taken = await client.get('/api/auth/nickname-available?nickname=Taken1');
+      expect(taken.body).toEqual({ available: false, reason: 'taken' });
+      const bad = await client.get('/api/auth/nickname-available?nickname=admin');
+      expect(bad.body).toEqual({ available: false, reason: 'invalid' });
+    });
+
     it('возвращает 400 validation_error и не создаёт пользователя', async () => {
       const client = new TestClient(server);
       await client.csrf();
@@ -159,7 +207,7 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
   });
 
   describe('Подтверждение email', () => {
-    it('не даёт войти до подтверждения (403 email_not_verified)', async () => {
+    it('неподтверждённая почта вход не блокирует (и по почте, и по логину)', async () => {
       const client = new TestClient(server);
       await client.csrf();
       await client.post('/api/auth/register', {
@@ -168,13 +216,18 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         nickname: 'noverify',
       });
 
-      const response = await client.post('/api/auth/login', {
+      const byEmail = await client.post('/api/auth/login', {
         email: 'noverify@example.com',
         password: PASSWORD,
       });
+      expect(byEmail.status).toBe(200);
+      expect(byEmail.body.user.emailVerified).toBe(false);
 
-      expect(response.status).toBe(403);
-      expect(response.body.code).toBe('email_not_verified');
+      const byLogin = await client.post('/api/auth/login', {
+        login: 'noverify',
+        password: PASSWORD,
+      });
+      expect(byLogin.status).toBe(200);
     });
 
     it('подтверждает email, сразу логинит и помечает адрес', async () => {
@@ -283,8 +336,8 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
       expect((await client.post('/api/auth/logout')).status).toBe(204);
       expect((await client.get('/api/auth/me')).status).toBe(401);
 
-      const session = await prisma.session.findFirst();
-      expect(session?.revokedAt).toBeInstanceOf(Date);
+      const sessions = await prisma.session.findMany();
+      expect(sessions.some((item) => item.revokedAt instanceof Date)).toBe(true);
     });
 
     it('список сессий и отзыв другой сессии', async () => {
@@ -296,7 +349,8 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
 
       const list = await first.get('/api/auth/sessions');
       expect(list.status).toBe(200);
-      expect(list.body.sessions).toHaveLength(2);
+      // Регистрация и подтверждение почты выдают по сессии, плюс вход второго клиента.
+      expect(list.body.sessions.length).toBeGreaterThanOrEqual(2);
       expect(list.body.sessions.filter((s: { current: boolean }) => s.current)).toHaveLength(1);
       expect(list.body.sessions[0]).not.toHaveProperty('tokenHash');
 
@@ -305,7 +359,114 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
       expect((await second.get('/api/auth/me')).status).toBe(401);
 
       const after = await first.get('/api/auth/sessions');
-      expect(after.body.sessions).toHaveLength(1);
+      expect(after.body.sessions.length).toBe(list.body.sessions.length - 1);
+    });
+
+    it('«выйти из всех сессий» отзывает все, кроме текущей', async () => {
+      const { client: first } = await registerAndVerify('all@example.com', 'alluser');
+      const second = new TestClient(server);
+      await second.csrf();
+      await second.post('/api/auth/login', { login: 'alluser', password: PASSWORD });
+
+      const response = await first.del('/api/auth/sessions');
+      expect(response.status).toBe(200);
+      expect(response.body.revoked).toBeGreaterThanOrEqual(1);
+      expect((await second.get('/api/auth/me')).status).toBe(401);
+      expect((await first.get('/api/auth/me')).status).toBe(200);
+      expect((await first.get('/api/auth/sessions')).body.sessions).toHaveLength(1);
+    });
+  });
+
+  describe('Сброс и установка пароля (v3 §7)', () => {
+    it('письмо со ссылкой: новый пароль, все сессии завершены, старый пароль не работает', async () => {
+      const { client } = await registerAndVerify('reset@example.com', 'resetuser');
+
+      const asked = await client.post('/api/auth/forgot-password', { login: 'resetuser' });
+      expect(asked.status).toBe(202);
+      const token = mail.lastPasswordResetTokenFor('reset@example.com') as string;
+      expect(token).toBeTruthy();
+
+      const stored = await prisma.passwordToken.findFirstOrThrow();
+      expect(stored.tokenHash).not.toContain(token);
+      expect((stored.expiresAt.getTime() - Date.now()) / 60000).toBeLessThanOrEqual(30);
+
+      const info = await client.get(`/api/auth/password-token?token=${token}`);
+      expect(info.body).toMatchObject({ valid: true, purpose: 'reset', nickname: 'resetuser' });
+
+      const done = await client.post('/api/auth/reset-password', {
+        token,
+        password: 'BrandNew12345',
+        passwordConfirm: 'BrandNew12345',
+      });
+      expect(done.status).toBe(200);
+
+      // Токен одноразовый.
+      const again = await client.post('/api/auth/reset-password', {
+        token,
+        password: 'Another12345',
+      });
+      expect(again.status).toBe(400);
+
+      const fresh = new TestClient(server);
+      await fresh.csrf();
+      expect(
+        (await fresh.post('/api/auth/login', { login: 'resetuser', password: PASSWORD })).status,
+      ).toBe(401);
+      expect(
+        (await fresh.post('/api/auth/login', { login: 'resetuser', password: 'BrandNew12345' }))
+          .status,
+      ).toBe(200);
+    });
+
+    it('ответ forgot-password одинаков для неизвестного логина и пользователя без почты', async () => {
+      const client = new TestClient(server);
+      await client.csrf();
+      await client.post('/api/auth/register', { nickname: 'nomail2', password: PASSWORD });
+      mail.clearOutbox();
+
+      expect((await client.post('/api/auth/forgot-password', { login: 'ghost' })).status).toBe(202);
+      expect((await client.post('/api/auth/forgot-password', { login: 'nomail2' })).status).toBe(
+        202,
+      );
+      expect(mail.outbox()).toHaveLength(0);
+      expect(await prisma.passwordToken.count()).toBe(0);
+    });
+
+    it('токен установки для пользователя без пароля задаёт логин и пароль', async () => {
+      const user = await prisma.user.create({ data: { nickname: 'user-abc123', email: null } });
+      const { PasswordResetService } = await import('../src/auth/password-reset.service');
+      const link = await app.get(PasswordResetService).issue(user.id, 'setup');
+      const token = new URL(link.url).searchParams.get('token') as string;
+
+      const client = new TestClient(server);
+      await client.csrf();
+      expect((await client.get(`/api/auth/password-token?token=${token}`)).body.purpose).toBe(
+        'setup',
+      );
+      const done = await client.post('/api/auth/reset-password', {
+        token,
+        nickname: 'Chosen-Name',
+        password: PASSWORD,
+        passwordConfirm: PASSWORD,
+      });
+      expect(done.status).toBe(200);
+      expect(done.body.user.nickname).toBe('chosen-name');
+      expect((await client.get('/api/auth/me')).status).toBe(200);
+    });
+
+    it('просроченный токен отклоняется', async () => {
+      const user = await prisma.user.create({ data: { nickname: 'expired1', email: null } });
+      const { PasswordResetService } = await import('../src/auth/password-reset.service');
+      const link = await app.get(PasswordResetService).issue(user.id, 'setup');
+      const token = new URL(link.url).searchParams.get('token') as string;
+      await prisma.passwordToken.updateMany({ data: { expiresAt: new Date(Date.now() - 1000) } });
+
+      const client = new TestClient(server);
+      await client.csrf();
+      expect((await client.get(`/api/auth/password-token?token=${token}`)).body.valid).toBe(false);
+      expect(
+        (await client.post('/api/auth/reset-password', { token, password: PASSWORD })).status,
+      ).toBe(400);
     });
   });
 
@@ -345,7 +506,6 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         notificationsEnabled: false,
         quietHoursStart: 23,
         quietHoursEnd: 7,
-        profileVisibility: 'subscribers',
         firstAccount: { name: 'Карта', type: 'card', balance: 1500.5 },
       };
 
@@ -357,7 +517,6 @@ describe('Auth API (интеграция с PostgreSQL)', () => {
         currency: 'EUR',
         locale: 'en',
         goals: ['money', 'habits'],
-        profileVisibility: 'subscribers',
         onboardingCompleted: true,
       });
 

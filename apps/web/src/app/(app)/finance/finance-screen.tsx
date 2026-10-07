@@ -15,6 +15,7 @@ import {
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { categoryLabel } from '@/lib/category-label';
+import { categoryTreeOptions } from '@/components/category-select';
 import { Money, MASKED_AMOUNT } from '@/components/money';
 import { CategoryManager } from '@/components/category-manager';
 import { RecurringSection } from '@/components/recurring-section';
@@ -156,9 +157,7 @@ export function FinanceScreen({
   // Режим «Тишина» (ТЗ §4): суммы внутри составных строк прячутся одной маской.
   const money = (value: number, currencyCode: Currency = currency): string =>
     quiet ? MASKED_AMOUNT : formatMoneyLocale(value, locale, currencyCode);
-  const expenseCategories = categories.filter((category) => category.kind === 'expense');
   const selectedAccountCurrency = accountCurrency || currency;
-
   // Новые сверху: по дате, при равенстве — по времени создания.
   const sorted = useMemo(
     () =>
@@ -351,11 +350,11 @@ export function FinanceScreen({
                 onChange={(event) => setFilterCategory(event.target.value)}
               >
                 <option value="">{t('finance.filter.all')}</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {categoryLabel(category, t)}
-                  </option>
-                ))}
+                {categoryTreeOptions(
+                  categories,
+                  t,
+                  filterType === 'expense' || filterType === 'income' ? filterType : undefined,
+                )}
               </Select>
               <Select
                 id="filter-account"
@@ -544,11 +543,7 @@ export function FinanceScreen({
                   onChange={(event) => setBudgetCategory(event.target.value)}
                 >
                   <option value="">{t('finance.filter.all')}</option>
-                  {expenseCategories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {categoryLabel(category, t)}
-                    </option>
-                  ))}
+                  {categoryTreeOptions(categories, t, 'expense')}
                 </Select>
                 <Field
                   id="budget-limit"

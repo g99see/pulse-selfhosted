@@ -5,7 +5,9 @@
  * Для чек-инов в Telegram к сообщению добавляются кнопки 1–5 (kind = checkin).
  */
 import {
+  achievementTitle,
   budgetLevel,
+  type AchievementLevel,
   formatMoney,
   isCurrency,
   localParts,
@@ -102,42 +104,7 @@ export function buildMessage(
         body: 'Ваши финансы и настроение за неделю собраны.',
         url: '/app',
       };
-    case 'reactions':
-      return {
-        type,
-        title: 'Новая реакция',
-        body: 'Кто-то отреагировал на вашу запись.',
-        url: '/app/profile',
-      };
   }
-}
-
-/** Данные события на посте (ТЗ §3.7): кто и как отреагировал на запись. */
-export interface PostActivityInfo {
-  actorNickname: string;
-  kind: 'reaction' | 'comment';
-  /** Эмодзи-реакция (для kind = reaction). */
-  emoji?: string;
-  /** Короткий предпросмотр текста комментария (для kind = comment). */
-  preview?: string;
-}
-
-/**
- * Уведомление владельцу поста о новой реакции или комментарии (ТЗ §3.7) —
- * тип reactions, ссылка на ленту. Публикуется через NotificationDispatcher.
- */
-export function buildPostActivityNotification(info: PostActivityInfo): NotificationMessage {
-  const title = info.kind === 'reaction' ? 'Новая реакция' : 'Новый комментарий';
-  const body =
-    info.kind === 'reaction'
-      ? `@${info.actorNickname} поставил ${info.emoji ?? '👍'} вашей записи.`
-      : `@${info.actorNickname}: ${info.preview ?? 'comment'}`;
-  return {
-    type: 'reactions',
-    title,
-    body,
-    url: '/feed',
-  };
 }
 
 export interface CapsuleOpenedInfo {
@@ -240,4 +207,34 @@ export function buildReconciliationMismatch(info: ReconciliationMismatchInfo): N
     body: `Счёт «${info.accountName}»: расхождение ${info.difference}. Проверьте операции.`,
     url: '/app/finance',
   };
+}
+
+export interface AchievementEarnedInfo {
+  code: string;
+  level: AchievementLevel;
+  locale: 'ru' | 'en';
+}
+
+const LEVEL_LABELS: Record<'ru' | 'en', Record<AchievementLevel, string>> = {
+  ru: { bronze: 'бронза', silver: 'серебро', gold: 'золото' },
+  en: { bronze: 'bronze', silver: 'silver', gold: 'gold' },
+};
+
+/** Уведомление о полученном уровне достижения (v3 §4): только мессенджеры, без web push. */
+export function buildAchievementEarned(info: AchievementEarnedInfo): NotificationMessage {
+  const title = achievementTitle(info.code, info.locale);
+  const level = LEVEL_LABELS[info.locale][info.level];
+  return info.locale === 'en'
+    ? {
+        type: 'achievement',
+        title: 'New achievement',
+        body: `“${title}” — ${level}. Well done!`,
+        url: '/achievements',
+      }
+    : {
+        type: 'achievement',
+        title: 'Новое достижение',
+        body: `«${title}» — ${level}. Так держать!`,
+        url: '/achievements',
+      };
 }

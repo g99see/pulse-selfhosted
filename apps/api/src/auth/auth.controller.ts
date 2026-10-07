@@ -9,26 +9,25 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import {
+  ForgotPasswordSchema,
   LoginSchema,
   OnboardingSchema,
+  PasswordTokenSchema,
   RegisterSchema,
   ResendVerificationSchema,
-  TwoFactorDisableSchema,
-  TwoFactorEnableSchema,
-  TwoFactorLoginSchema,
   VerifyEmailSchema,
+  type ForgotPasswordInput,
   type LoginInput,
   type OnboardingInput,
+  type PasswordTokenInput,
   type RegisterInput,
-  type TwoFactorDisableInput,
-  type TwoFactorEnableInput,
-  type TwoFactorLoginInput,
 } from '@puls/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { httpError } from '../common/http-error';
@@ -47,14 +46,14 @@ import { RateLimitService } from './rate-limit.service';
 import { SessionGuard } from './session.guard';
 import { SessionService } from './session.service';
 import { generateToken } from './tokens';
-import { TwoFactorService } from './two-factor.service';
+import { PasswordResetService } from './password-reset.service';
 
-const LOGIN_EMAIL_LIMIT = 5;
+const LOGIN_NAME_LIMIT = 5;
 const LOGIN_IP_LIMIT = 100;
 const RESEND_LIMIT = 10;
-/** Лимит попыток ввода второго фактора (ТЗ §6): на пропуск и на IP. */
-const TWO_FACTOR_ATTEMPT_LIMIT = 5;
-const TWO_FACTOR_IP_LIMIT = 20;
+const NICKNAME_CHECK_LIMIT = 60;
+const PASSWORD_RESET_LIMIT = 5;
+const PASSWORD_TOKEN_IP_LIMIT = 20;
 const WINDOW_SECONDS = 15 * 60;
 
 @Controller('auth')
@@ -64,7 +63,7 @@ export class AuthController {
     private readonly sessions: SessionService,
     private readonly mail: MailService,
     private readonly rateLimit: RateLimitService,
-    private readonly twoFactor: TwoFactorService,
+    private readonly passwordReset: PasswordResetService,
   ) {}
 
   /** Выдаёт CSRF-cookie; web вызывает при загрузке формы (ТЗ §6). */
@@ -75,10 +74,31 @@ export class AuthController {
     return { csrfToken: token };
   }
 
+  /** Регистрация: логин + пароль (+ почта); сразу выдаёт сессию (v3 §7.2). */
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  register(@Body(new ZodValidationPipe(RegisterSchema)) body: RegisterInput) {
-    return this.auth.register(body);
+  async register(
+    @Body(new ZodValidationPipe(RegisterSchema)) body: RegisterInput,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, token, expiresAt, verificationSent } = await this.auth.register(
+      body,
+      contextOf(req),
+    );
+    res.cookie(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
+    return { user, verificationSent };
+  }
+
+  /** Живая проверка доступности логина на форме регистрации. */
+  @Get('nickname-available')
+  async nicknameAvailable(
+    @Query('nickname') nickname: string | undefined,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.limit(`nickname:ip:${req.ip ?? 'unknown'}`, NICKNAME_CHECK_LIMIT, res);
+    return this.auth.nicknameAvailability(String(nickname ?? ''));
   }
 
   @Post('login')
@@ -87,75 +107,54 @@ export class AuthController {
     @Body(new ZodValidationPipe(LoginSchema)) body: LoginInput,
     @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<
-    { user: ReturnType<typeof toPublicUser> } | { twoFactorRequired: true; challengeToken: string }
-  > {
-    await this.enforceLoginRateLimit(req, body.email, res);
+  ): Promise<{ user: ReturnType<typeof toPublicUser> }> {
+    await this.enforceLoginRateLimit(req, body.login, res);
     const outcome = await this.auth.login(body, contextOf(req));
-    await this.rateLimit.reset(`login:email:${body.email}`);
-
-    // Включена 2FA: пароль верен, но сессию выдаём только после второго шага.
-    if ('twoFactorRequired' in outcome) {
-      return outcome;
-    }
+    await this.rateLimit.reset(`login:name:${body.login}`);
 
     res.cookie(SESSION_COOKIE, outcome.token, sessionCookieOptions(outcome.expiresAt));
     return { user: outcome.user };
   }
 
-  /** Второй шаг входа (ТЗ §6): код TOTP или одноразовый резервный код. */
-  @Post('login/2fa')
+  /** Письмо со ссылкой сброса пароля (если у пользователя есть почта и настроен SMTP). */
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async forgotPassword(
+    @Body(new ZodValidationPipe(ForgotPasswordSchema)) body: ForgotPasswordInput,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ sent: true }> {
+    await this.limit(`forgot:ip:${req.ip ?? 'unknown'}`, PASSWORD_RESET_LIMIT, res);
+    await this.limit(`forgot:login:${body.login}`, PASSWORD_RESET_LIMIT, res);
+    await this.passwordReset.requestByMail(body.login);
+    // Ответ одинаков всегда — не раскрываем, есть ли такой пользователь и почта.
+    return { sent: true };
+  }
+
+  /** Что за токеном пароля: действителен ли и нужно ли задавать логин. */
+  @Get('password-token')
+  async passwordToken(
+    @Query('token') token: string | undefined,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.limit(`pwtoken:ip:${req.ip ?? 'unknown'}`, PASSWORD_TOKEN_IP_LIMIT, res);
+    return this.passwordReset.info(String(token ?? ''));
+  }
+
+  /** Установка/сброс пароля по токену (письмо или бот); завершает все сессии. */
+  @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async loginTwoFactor(
-    @Body(new ZodValidationPipe(TwoFactorLoginSchema)) body: TwoFactorLoginInput,
+  async resetPassword(
+    @Body(new ZodValidationPipe(PasswordTokenSchema)) body: PasswordTokenInput,
     @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ user: ReturnType<typeof toPublicUser> }> {
-    await this.enforceTwoFactorRateLimit(req, body.challengeToken, res);
-    const { user, token, expiresAt } = await this.auth.loginWithTwoFactor(
-      body.challengeToken,
-      body.code,
-      contextOf(req),
-    );
+    await this.limit(`pwtoken:ip:${req.ip ?? 'unknown'}`, PASSWORD_TOKEN_IP_LIMIT, res);
+    const { userId } = await this.passwordReset.consume(body.token, body.password, body.nickname);
+    const { user, token, expiresAt } = await this.auth.openSession(userId, contextOf(req));
     res.cookie(SESSION_COOKIE, token, sessionCookieOptions(expiresAt));
     return { user };
-  }
-
-  /** Статус 2FA для настроек (ТЗ §6). */
-  @Get('2fa')
-  @UseGuards(SessionGuard)
-  twoFactorStatus(@Req() req: AuthenticatedRequest) {
-    return this.twoFactor.status(req.user!);
-  }
-
-  /** Начало настройки: секрет, otpauth:// URI и QR (ТЗ §6). */
-  @Post('2fa/setup')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(SessionGuard)
-  setupTwoFactor(@Req() req: AuthenticatedRequest) {
-    return this.twoFactor.setup(req.user!);
-  }
-
-  /** Подтверждение кода: включает 2FA и выдаёт резервные коды. */
-  @Post('2fa/enable')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(SessionGuard)
-  enableTwoFactor(
-    @Body(new ZodValidationPipe(TwoFactorEnableSchema)) body: TwoFactorEnableInput,
-    @Req() req: AuthenticatedRequest,
-  ) {
-    return this.twoFactor.enable(req.user!, body.code);
-  }
-
-  /** Выключение 2FA: требует пароль и действующий код. */
-  @Post('2fa/disable')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(SessionGuard)
-  async disableTwoFactor(
-    @Body(new ZodValidationPipe(TwoFactorDisableSchema)) body: TwoFactorDisableInput,
-    @Req() req: AuthenticatedRequest,
-  ): Promise<void> {
-    await this.twoFactor.disable(req.user!, body.password, body.code);
   }
 
   @Post('verify-email')
@@ -197,8 +196,6 @@ export class AuthController {
   @UseGuards(SessionGuard)
   me(@Req() req: AuthenticatedRequest) {
     const user = req.user!;
-    // needsEmail: аккаунт из Telegram с техническим адресом — UI мягко предложит
-    // указать настоящий email (ТЗ §3.1, §7).
     return {
       user: toPublicUser(user),
       onboardingCompleted: user.onboardingCompletedAt !== null,
@@ -222,6 +219,14 @@ export class AuthController {
   async listSessions(@Req() req: AuthenticatedRequest): Promise<{ sessions: unknown[] }> {
     const sessions = await this.sessions.list(req.user!.id, req.session!.id);
     return { sessions };
+  }
+
+  /** «Выйти из всех сессий»: завершает все входы, кроме текущего. */
+  @Delete('sessions')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionGuard)
+  async revokeOtherSessions(@Req() req: AuthenticatedRequest): Promise<{ revoked: number }> {
+    return { revoked: await this.sessions.revokeAll(req.user!.id, req.session!.id) };
   }
 
   @Delete('sessions/:id')
@@ -270,38 +275,25 @@ export class AuthController {
     return { messages: this.mail.outbox() };
   }
 
-  private async enforceTwoFactorRateLimit(
-    req: AuthenticatedRequest,
-    challengeToken: string,
-    res: Response,
-  ): Promise<void> {
-    const ip = req.ip ?? 'unknown';
-    const [byChallenge, byIp] = await Promise.all([
-      this.rateLimit.consume(
-        `login2fa:challenge:${challengeToken}`,
-        TWO_FACTOR_ATTEMPT_LIMIT,
-        WINDOW_SECONDS,
-      ),
-      this.rateLimit.consume(`login2fa:ip:${ip}`, TWO_FACTOR_IP_LIMIT, WINDOW_SECONDS),
-    ]);
-
-    if (!byChallenge.allowed || !byIp.allowed) {
-      const retryAfterSeconds = Math.max(byChallenge.retryAfterSeconds, byIp.retryAfterSeconds);
-      res.setHeader('Retry-After', String(retryAfterSeconds));
-      throw httpError(429, 'rate_limited', 'Слишком много попыток. Попробуйте позже', {
-        retryAfterSeconds,
+  /** Общий лимит по ключу: 429 с Retry-After при превышении. */
+  private async limit(key: string, max: number, res: Response): Promise<void> {
+    const result = await this.rateLimit.consume(key, max, WINDOW_SECONDS);
+    if (!result.allowed) {
+      res.setHeader('Retry-After', String(result.retryAfterSeconds));
+      throw httpError(429, 'rate_limited', 'Слишком много запросов. Попробуйте позже', {
+        retryAfterSeconds: result.retryAfterSeconds,
       });
     }
   }
 
   private async enforceLoginRateLimit(
     req: AuthenticatedRequest,
-    email: string,
+    login: string,
     res: Response,
   ): Promise<void> {
     const ip = req.ip ?? 'unknown';
     const [byEmail, byIp] = await Promise.all([
-      this.rateLimit.consume(`login:email:${email}`, LOGIN_EMAIL_LIMIT, WINDOW_SECONDS),
+      this.rateLimit.consume(`login:name:${login}`, LOGIN_NAME_LIMIT, WINDOW_SECONDS),
       this.rateLimit.consume(`login:ip:${ip}`, LOGIN_IP_LIMIT, WINDOW_SECONDS),
     ]);
 

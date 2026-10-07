@@ -1,11 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Caddy в режиме http (без домена и сертификатов): установка в локальной сети
 # по адресу вида http://192.168.1.50. Включается CADDYFILE=Caddyfile.http в .env.
-# Основной сайт — порт 80, песочница пользовательского HTML — порт 8080
-# (другой origin, поэтому cookie основного сайта в песочницу не попадают).
-# Порты 8081/8082 — для Tailscale Serve (https://… -> 127.0.0.1:8081/8082):
-# те же сайты, но с X-Forwarded-Proto https (Secure-cookie при COOKIE_SECURE=auto).
-# В compose они публикуются только на loopback.
+# Сайт — порт 80. Порт 8081 — для Tailscale Serve (https://… -> 127.0.0.1:8081):
+# тот же сайт, но с X-Forwarded-Proto https (Secure-cookie при COOKIE_SECURE=auto).
+# В compose он публикуется только на loopback.
 {
 	auto_https off
 }
@@ -28,26 +26,6 @@
 	header {
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		-Server
-	}
-}
-
-# Песочница: ТОЛЬКО /sandbox/* на API, остальное — 404; cookie срезаются.
-:8080 {
-	handle /sandbox/* {
-		reverse_proxy api:3001 {
-			header_up -Cookie
-			header_down -Set-Cookie
-		}
-	}
-	handle {
-		respond 404
-	}
-
-	header {
-		Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https: http:; img-src https: http: data:; form-action 'none'; base-uri 'none'; frame-ancestors {$PUBLIC_ORIGIN:http://localhost} {$EXTRA_ORIGINS:}"
-		X-Content-Type-Options "nosniff"
-		Referrer-Policy "no-referrer"
 		-Server
 	}
 }
@@ -77,27 +55,6 @@
 	header {
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		-Server
-	}
-}
-
-# Для Tailscale Serve: как :8080, но запрос считается https.
-:8082 {
-	handle /sandbox/* {
-		reverse_proxy api:3001 {
-			header_up -Cookie
-			header_up X-Forwarded-Proto https
-			header_down -Set-Cookie
-		}
-	}
-	handle {
-		respond 404
-	}
-
-	header {
-		Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https: http:; img-src https: http: data:; form-action 'none'; base-uri 'none'; frame-ancestors {$PUBLIC_ORIGIN:http://localhost} {$EXTRA_ORIGINS:}"
-		X-Content-Type-Options "nosniff"
-		Referrer-Policy "no-referrer"
 		-Server
 	}
 }

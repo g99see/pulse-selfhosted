@@ -12,6 +12,7 @@ import {
   type ReconciliationResponse,
   type StatementRow,
 } from '@puls/shared';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { dayKeyOf, toDateOnly } from './transactions.service';
@@ -56,6 +57,7 @@ export class ReconciliationService {
         asOf: toDateOnly(input.date),
       },
     });
+    InternalEvents.emit('achievement.check', { userId, event: 'reconciliation' });
     return this.report(userId, accountId);
   }
 

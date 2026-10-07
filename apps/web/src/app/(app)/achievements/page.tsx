@@ -2,38 +2,147 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { achievementByCode, type AchievementCode, type AchievementsResponse } from '@puls/shared';
-import { useT } from '@/components/locale-provider';
+import {
+  achievementByCode,
+  type AchievementStatusDto,
+  type AchievementsResponse,
+  type Locale,
+} from '@puls/shared';
+import { useT, type TranslateFn } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
 import { Card, IconBubble, ProgressBar } from '@/components/ui';
-import { ShareButton } from '@/components/share-button';
-import { groupAchievements, recentlyEarnedCodes, streakProgress } from '@/lib/achievements';
+import {
+  descriptionThreshold,
+  groupAchievements,
+  levelLabelKey,
+  recentlyEarnedCodes,
+  streakProgress,
+} from '@/lib/achievements';
 import { achievementsApi } from '@/lib/achievements-client';
 import { CHECKIN_CHANGED_EVENT } from '@/lib/checkin-client';
 import { formatDate } from '@/lib/format';
 
-/** Пиктограмма бейджа (ТЗ §8): эмодзи по коду. */
-const BADGE_EMOJI: Record<AchievementCode, string> = {
-  first_checkin: '🌱',
-  checkin_streak_7: '🔥',
-  checkin_streak_30: '🏅',
-  checkin_streak_100: '💯',
-  first_transaction: '🧾',
-  first_budget_closed: '📊',
-  first_goal: '🎯',
-  goal_half: '⛰️',
-  goal_complete: '🏆',
-};
-
-const GROUP_LABEL_KEYS: Record<string, string> = {
-  checkins: 'achievements.group.checkins',
-  finance: 'achievements.group.finance',
-  goals: 'achievements.group.goals',
-};
-
 const CELEBRATION_MS = 3000;
 
-/** Экран достижений (ТЗ §4, §8): сетка бейджей, стрик и прогресс до награды. */
+/** Подставляет порог уровня в описание вместо плейсхолдера {n}. */
+function fillThreshold(text: string, threshold: number): string {
+  return text.replace('{n}', String(threshold));
+}
+
+/** Пломбы уровней: полученные подсвечены, остальные показаны как закрытые. */
+function TierSeals({ item, t }: { item: AchievementStatusDto; t: TranslateFn }) {
+  return (
+    <ul className="flex flex-wrap items-center justify-center gap-1.5">
+      {item.tiers.map((tier) => {
+        const earned = tier.earnedAt !== null;
+        return (
+          <li
+            key={`${tier.level}-${tier.threshold}`}
+            data-testid={`achievement-tier-${item.code}-${tier.level}`}
+            data-tier-earned={earned}
+            className={`flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-[10px] font-semibold ${
+              earned
+                ? 'bg-[var(--puls-wellbeing-soft)] text-[var(--puls-wellbeing-text)]'
+                : 'bg-[var(--puls-surface)] text-[var(--puls-ink-muted)] opacity-70'
+            }`}
+          >
+            <span aria-hidden="true">{earned ? '★' : '☆'}</span>
+            <span>
+              {t(levelLabelKey(tier.level))} {tier.threshold}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Карточка достижения: иконка, тексты, уровни, прогресс или награда. */
+function AchievementCard({
+  item,
+  t,
+  locale,
+}: {
+  item: AchievementStatusDto;
+  t: TranslateFn;
+  locale: Locale;
+}) {
+  const definition = achievementByCode(item.code);
+  // Скрытое до получения достижение маскируем — без утечки иконки, текста и прогресса.
+  const masked = item.hidden && !item.earned;
+  const emoji = masked ? '❔' : (definition?.icon ?? '⭐');
+  const title = masked
+    ? t('achievements.hidden.title')
+    : t(definition?.titleKey ?? 'achievements.title');
+  const description = masked
+    ? t('achievements.hidden.description')
+    : fillThreshold(
+        t(definition?.descriptionKey ?? 'achievements.title'),
+        descriptionThreshold(item),
+      );
+
+  return (
+    <li
+      data-testid={`achievement-${item.code}`}
+      data-earned={item.earned}
+      className={`flex flex-col items-center gap-3 rounded-[var(--radius-card)] p-5 text-center ${
+        item.earned
+          ? 'bg-[var(--puls-wellbeing-soft)] shadow-sm'
+          : 'bg-[var(--puls-surface-2)] text-[var(--puls-ink-muted)]'
+      }`}
+    >
+      <div className="flex flex-col items-center gap-2">
+        <span
+          aria-hidden="true"
+          className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl ${
+            item.earned
+              ? 'bg-[var(--puls-surface)] shadow-sm'
+              : 'bg-[var(--puls-line)] opacity-60 grayscale'
+          }`}
+        >
+          {emoji}
+        </span>
+        <span className="flex flex-col gap-0.5">
+          <span className={`font-semibold ${item.earned ? 'text-[var(--puls-ink)]' : ''}`}>
+            {title}
+          </span>
+          <span className="text-xs text-[var(--puls-ink-muted)]">{description}</span>
+        </span>
+      </div>
+
+      {masked ? null : <TierSeals item={item} t={t} />}
+
+      {item.earned ? (
+        <>
+          <p className="text-xs font-semibold text-[var(--puls-wellbeing-text)]">
+            {t('achievements.earned')}
+            {item.level ? ` · ${t(levelLabelKey(item.level))}` : ''}
+            {item.earnedAt
+              ? ` · ${formatDate(item.earnedAt, locale, { dateStyle: 'medium' })}`
+              : ''}
+          </p>
+        </>
+      ) : masked ? (
+        <p className="text-xs text-[var(--puls-ink-muted)]">{t('achievements.locked')}</p>
+      ) : item.nextThreshold !== null ? (
+        <div className="w-full">
+          <ProgressBar
+            value={Math.round(item.progress * item.nextThreshold)}
+            max={item.nextThreshold}
+            label={t('achievements.progress', {
+              current: item.value,
+              target: item.nextThreshold,
+            })}
+          />
+        </div>
+      ) : (
+        <p className="text-xs text-[var(--puls-ink-muted)]">{t('achievements.locked')}</p>
+      )}
+    </li>
+  );
+}
+
+/** Экран достижений (ТЗ v2 §4): уровни, прогресс и серия чек-инов. */
 export default function AchievementsPage() {
   const { t, locale } = useT();
   const [data, setData] = useState<AchievementsResponse | null>(null);
@@ -128,11 +237,6 @@ export default function AchievementsPage() {
             {t('achievements.streak.longest', { days: streak.longest })}
           </p>
 
-          <ShareButton
-            type="checkin_streak"
-            shareText={t('share.text.streak', { days: streak.current })}
-          />
-
           {streak.nextMilestone ? (
             <ProgressBar
               value={Math.round(streakProgress(streak) * streak.nextMilestone.threshold)}
@@ -153,87 +257,14 @@ export default function AchievementsPage() {
 
       {groups.map((view) => (
         <section key={view.group} className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold">
-            {t(GROUP_LABEL_KEYS[view.group] ?? 'achievements.title')}
-          </h2>
+          <h2 className="text-lg font-bold">{t(`achievements.group.${view.group}`)}</h2>
           <ul
             className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
             data-testid={`achievements-group-${view.group}`}
           >
-            {view.items.map((item) => {
-              const definition = achievementByCode(item.code);
-              const emoji = BADGE_EMOJI[item.code] ?? '⭐';
-              return (
-                <li
-                  key={item.code}
-                  data-testid={`achievement-${item.code}`}
-                  data-earned={item.earned}
-                  className={`flex flex-col items-center gap-3 rounded-[var(--radius-card)] p-5 text-center ${
-                    item.earned
-                      ? 'bg-[var(--puls-wellbeing-soft)] shadow-sm'
-                      : 'bg-[var(--puls-surface-2)] text-[var(--puls-ink-muted)]'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl ${
-                        item.earned
-                          ? 'bg-[var(--puls-surface)] shadow-sm'
-                          : 'bg-[var(--puls-line)] opacity-60 grayscale'
-                      }`}
-                    >
-                      {emoji}
-                    </span>
-                    <span className="flex flex-col gap-0.5">
-                      <span
-                        className={`font-semibold ${item.earned ? 'text-[var(--puls-ink)]' : ''}`}
-                      >
-                        {t(definition?.titleKey ?? 'achievements.title')}
-                      </span>
-                      <span className="text-xs text-[var(--puls-ink-muted)]">
-                        {t(definition?.descriptionKey ?? 'achievements.title')}
-                      </span>
-                    </span>
-                  </div>
-
-                  {item.earned ? (
-                    <>
-                      <p className="text-xs font-semibold text-[var(--puls-wellbeing-text)]">
-                        {t('achievements.earned')}
-                        {item.earnedAt
-                          ? ` · ${formatDate(item.earnedAt, locale, { dateStyle: 'medium' })}`
-                          : ''}
-                      </p>
-                      <ShareButton
-                        type="achievement"
-                        id={item.code}
-                        shareText={t('share.text.achievement', {
-                          title: t(definition?.titleKey ?? 'achievements.title'),
-                        })}
-                      />
-                    </>
-                  ) : definition?.threshold &&
-                    definition.group === 'checkins' &&
-                    item.progress > 0 ? (
-                    <div className="w-full">
-                      <ProgressBar
-                        value={Math.round(item.progress * definition.threshold)}
-                        max={definition.threshold}
-                        label={t('achievements.progress', {
-                          current: Math.round(item.progress * definition.threshold),
-                          target: definition.threshold,
-                        })}
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-xs text-[var(--puls-ink-muted)]">
-                      {t('achievements.locked')}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
+            {view.items.map((item) => (
+              <AchievementCard key={item.code} item={item} t={t} locale={locale} />
+            ))}
           </ul>
         </section>
       ))}

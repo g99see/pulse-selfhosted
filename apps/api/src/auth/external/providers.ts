@@ -5,9 +5,9 @@
  * не показываются. Конфигурация читается из окружения на каждый вызов, чтобы
  * тесты могли подменять env без перезапуска.
  */
-export type ExternalProviderId = 'google' | 'telegram';
+export type ExternalProviderId = 'google';
 
-export const EXTERNAL_PROVIDERS: readonly ExternalProviderId[] = ['google', 'telegram'];
+export const EXTERNAL_PROVIDERS: readonly ExternalProviderId[] = ['google'];
 
 export type EnvLike = Record<string, string | undefined>;
 
@@ -16,15 +16,8 @@ export interface GoogleConfig {
   clientSecret: string;
 }
 
-export interface TelegramConfig {
-  botToken: string;
-  botUsername: string;
-}
-
 export interface ProviderAvailability {
   google: boolean;
-  telegram: boolean;
-  telegramBotUsername: string | null;
 }
 
 function envValue(env: EnvLike, key: string): string | null {
@@ -41,25 +34,12 @@ export function googleConfig(env: EnvLike = process.env): GoogleConfig | null {
   return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
 
-/** Telegram Login Widget включён только при токене и имени бота. */
-export function telegramConfig(env: EnvLike = process.env): TelegramConfig | null {
-  const botToken = envValue(env, 'TELEGRAM_BOT_TOKEN');
-  const botUsername = envValue(env, 'TELEGRAM_BOT_USERNAME');
-  return botToken && botUsername ? { botToken, botUsername } : null;
-}
-
 /** Что показывать в UI (GET /api/auth/providers). */
 export function providerAvailability(env: EnvLike = process.env): ProviderAvailability {
-  const google = googleConfig(env);
-  const telegram = telegramConfig(env);
-  return {
-    google: google !== null,
-    telegram: telegram !== null,
-    telegramBotUsername: telegram?.botUsername ?? null,
-  };
+  return { google: googleConfig(env) !== null };
 }
 
 /** Человеческое имя провайдера для списка привязок. */
 export function providerLabel(provider: ExternalProviderId): string {
-  return provider === 'google' ? 'Google' : 'Telegram';
+  return provider === 'google' ? 'Google' : provider;
 }

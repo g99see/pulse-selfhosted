@@ -105,6 +105,20 @@ export class MailService {
     }
   }
 
+  /** Письмо со ссылкой сброса или установки пароля (v3 §7), ссылка живёт 30 минут. */
+  async sendPasswordReset(to: string, link: string): Promise<void> {
+    await this.transport.send({
+      to,
+      subject: 'Пульс: сброс пароля',
+      text:
+        `Здравствуйте!\n\nЧтобы задать новый пароль в «Пульсе», откройте ссылку:\n${link}\n\n` +
+        `Ссылка действует 30 минут. Если вы не запрашивали сброс, просто проигнорируйте письмо.`,
+      html: `<p>Здравствуйте!</p><p>Чтобы задать новый пароль в «Пульсе», откройте ссылку:</p><p><a href="${link}">${link}</a></p><p>Ссылка действует 30 минут.</p>`,
+      kind: 'password-reset',
+      link,
+    });
+  }
+
   /** Уведомление по email (ТЗ §3.6, канал email): чек-ины, отчёты, реакции. */
   async sendNotification(
     to: string,
@@ -126,6 +140,14 @@ export class MailService {
     if (this.transport instanceof InMemoryMailTransport) {
       this.transport.clear();
     }
+  }
+
+  /** Токен последней ссылки сброса пароля для адреса (dev/e2e). */
+  lastPasswordResetTokenFor(to: string): string | undefined {
+    const mail = [...this.outbox()]
+      .reverse()
+      .find((m) => m.to === to && m.kind === 'password-reset');
+    return mail?.link ? /token=([A-Za-z0-9_-]+)/.exec(mail.link)?.[1] : undefined;
   }
 
   lastVerificationTokenFor(to: string): string | undefined {

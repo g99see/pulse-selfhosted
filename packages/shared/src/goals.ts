@@ -7,11 +7,6 @@
  * (загрузка файлов не поддерживается).
  */
 import { z } from 'zod';
-import { ProfileVisibilitySchema, type ProfileVisibility } from './auth';
-
-/** Приватность цели (ТЗ §3.7, §7): от неё зависит показ карточки в профиле. */
-export const GoalVisibilitySchema = ProfileVisibilitySchema;
-export type GoalVisibility = ProfileVisibility;
 
 /** Вехи прогресса цели (ТЗ сценарий 2: на 50% выдаётся достижение). */
 export const GOAL_MILESTONES = [25, 50, 75, 100] as const;
@@ -66,7 +61,6 @@ export const GoalCreateSchema = z.object({
   savedAmount: nonNegativeSchema.default(0),
   deadline: dateSchema.optional(),
   image: GoalImageSchema.optional(),
-  visibility: GoalVisibilitySchema.default('private'),
   accountId: z.string().min(1).optional(),
 });
 export type GoalCreateInput = z.infer<typeof GoalCreateSchema>;
@@ -78,7 +72,6 @@ export const GoalUpdateSchema = z.object({
   savedAmount: nonNegativeSchema.optional(),
   deadline: dateSchema.nullable().optional(),
   image: GoalImageSchema.nullable().optional(),
-  visibility: GoalVisibilitySchema.optional(),
   accountId: z.string().min(1).nullable().optional(),
 });
 export type GoalUpdateInput = z.infer<typeof GoalUpdateSchema>;
@@ -213,7 +206,6 @@ export interface GoalDto {
   percent: number;
   deadline: string | null;
   image: string | null;
-  visibility: GoalVisibility;
   accountId: string | null;
   currency: string;
   /** Нужный взнос в месяц до срока (null — срока нет). */
@@ -242,25 +234,4 @@ export interface GoalDepositResult {
 
 export interface GoalsListResponse {
   goals: GoalDto[];
-}
-
-/* ----- Публичный виджет цели (ТЗ §4, P3) ----- */
-
-/**
- * Виджет прогресса цели для блога или портфолио. Публичный и анонимный:
- * суммы по умолчанию скрыты, показываются только проценты и вехи.
- */
-export interface GoalWidgetDto {
-  id: string;
-  title: string;
-  percent: number;
-  image: string | null;
-  milestones: GoalMilestone[];
-  deadline: string | null;
-  /** Никнейм владельца — подпись виджета. */
-  nickname: string;
-}
-
-export interface GoalWidgetResponse {
-  widget: GoalWidgetDto;
 }

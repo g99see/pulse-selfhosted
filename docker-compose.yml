@@ -63,20 +63,15 @@ services:
       # Discord-бот: токен и ID приложения из Discord Developer Portal.
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
       DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:-}
+      # Привязка одним нажатием (ТЗ §6): client_secret и публичный redirect URI.
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_OAUTH_REDIRECT_URI: ${DISCORD_OAUTH_REDIRECT_URI:-}
       RATES_PROVIDER: ${RATES_PROVIDER:-}
       APP_VERSION: ${APP_VERSION:-0.3.0}
-      # HTML-страница профиля (ТЗ §3.8): публичный домен песочницы нужен API,
-      # чтобы строить ссылку для iframe и CSP frame-ancestors основного домена.
       DOMAIN: ${DOMAIN:-localhost}
-      SANDBOX_DOMAIN: ${SANDBOX_DOMAIN:-usercontent.localhost}
-      # Режим http в локальной сети: полный origin песочницы (например
-      # http://192.168.1.50:8080) и флаг Secure для cookie. Пусто — выводится
-      # из SANDBOX_DOMAIN (https) и схемы PUBLIC_ORIGIN.
-      SANDBOX_ORIGIN: ${SANDBOX_ORIGIN:-}
+      # Флаг Secure для cookie в режиме http; пусто — по схеме PUBLIC_ORIGIN.
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
       COOKIE_SECURE: ${COOKIE_SECURE:-}
-      # Антивирус: host:port clamd. Пусто — заглушка noop с логом.
-      CLAMAV_HOST: ${CLAMAV_HOST:-}
       # Открытый API/вебхуки (Фаза 4, блок E): разрешить доставку вебхуков на
       # приватные адреса (127.0.0.1, 10/8, 192.168/16 и т.п.). По умолчанию
       # запрещено — защита от SSRF. Включайте только для локальных интеграций.
@@ -112,9 +107,6 @@ services:
       args:
         # '/' — тот же origin, что и сайт (работает по любому адресу установки).
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost}
-        NEXT_PUBLIC_SANDBOX_URL: ${SANDBOX_ORIGIN:-}
-        # Основной + дополнительные origin-ы песочницы; браузер выбирает по протоколу/хосту.
-        NEXT_PUBLIC_SANDBOX_URLS: ${SANDBOX_ORIGIN:-} ${EXTRA_SANDBOX_ORIGINS:-}
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -183,16 +175,12 @@ services:
       # задайте 127.0.0.1, если 80/443 уже заняты другим сервисом (Tailscale и т.п.).
       - '${CADDY_BIND:-0.0.0.0}:${HTTP_PORT:-80}:80'
       - '${CADDY_BIND:-0.0.0.0}:${HTTPS_PORT:-443}:${HTTPS_PORT:-443}'
-      # Песочница в режиме http (Caddyfile.http); в режиме https порт никто не слушает.
-      - '${CADDY_BIND:-0.0.0.0}:${SANDBOX_HTTP_PORT:-8080}:8080'
       # Для Tailscale Serve (Caddyfile.http): только loopback, наружу не торчат.
       - '127.0.0.1:${TS_HTTP_PORT:-8081}:8081'
-      - '127.0.0.1:${TS_SANDBOX_PORT:-8082}:8082'
     environment:
       DOMAIN: ${DOMAIN:-localhost}
-      SANDBOX_DOMAIN: ${SANDBOX_DOMAIN:-usercontent.localhost}
       ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
-      # Публичный origin основного сайта — CSP frame-ancestors песочницы.
+      # Публичный origin основного сайта.
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
       EXTRA_ORIGINS: ${EXTRA_ORIGINS:-}
       # Caddy должен знать внешний порт HTTPS, иначе редирект с 80 ведёт на занятый 443.

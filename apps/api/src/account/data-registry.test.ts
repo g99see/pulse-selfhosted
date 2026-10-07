@@ -15,7 +15,8 @@ describe('isSecretColumn', () => {
     expect(isSecretColumn('password_hash')).toBe(true);
     expect(isSecretColumn('token_hash')).toBe(true);
     expect(isSecretColumn('code_hash')).toBe(true);
-    expect(isSecretColumn('two_fa_secret')).toBe(true);
+    // Любая колонка вида *secret* скрывается из выгрузки на всякий случай.
+    expect(isSecretColumn('client_secret')).toBe(true);
     expect(isSecretColumn('p256dh')).toBe(true);
     expect(isSecretColumn('auth')).toBe(true);
     expect(isSecretColumn('api_key_encrypted')).toBe(true);
@@ -60,8 +61,7 @@ describe('реестр выгрузки', () => {
         'sessions',
         'email_verification_tokens',
         'discord_link_codes',
-        'two_factor_backup_codes',
-        'two_factor_challenges',
+        'password_tokens',
       ]),
     );
     for (const entry of EXCLUDED_USER_TABLES) {
@@ -69,13 +69,12 @@ describe('реестр выгрузки', () => {
     }
   });
 
-  it('2FA: резервные коды и пропуски исключены как секреты, секрет на users скрыт', () => {
-    expect(uncoveredUserTables(['two_factor_backup_codes', 'two_factor_challenges'])).toEqual([]);
-    expect(coveredUserTables().has('two_factor_backup_codes')).toBe(true);
-    expect(coveredUserTables().has('two_factor_challenges')).toBe(true);
+  it('токены пароля исключены как секреты, хеш пароля на users скрыт', () => {
+    expect(uncoveredUserTables(['password_tokens'])).toEqual([]);
+    expect(coveredUserTables().has('password_tokens')).toBe(true);
 
     const users = EXPORT_TABLES.find((entry) => entry.table === 'users');
-    expect(users?.secretColumns).toContain('two_fa_secret');
+    expect(users?.secretColumns).toContain('password_hash');
   });
 
   it('coveredUserTables перечисляет выгрузку и исключения', () => {

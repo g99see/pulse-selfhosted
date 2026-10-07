@@ -20,11 +20,13 @@ export const RESERVED_NICKNAMES: readonly string[] = [
   'favicon',
   'health',
   'help',
+  'forgot-password',
   'login',
   'logout',
   'me',
   'onboarding',
   'register',
+  'reset-password',
   'robots',
   'sessions',
   'settings',
@@ -124,21 +126,108 @@ export const nicknameSchema = z
       }),
   );
 
-export const RegisterSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  nickname: nicknameSchema,
-  locale: LocaleSchema.default('ru'),
-});
+/** Пустая строка в необязательном поле почты — то же, что «не указана». */
+const optionalEmailSchema = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  emailSchema.optional(),
+);
+
+/**
+ * Регистрация (v3 §7.2): логин, пароль и повтор пароля; почта необязательна —
+ * нужна только для сброса пароля письмом. `passwordConfirm` сверяется, если передан
+ * (web всегда его шлёт; старые клиенты без поля продолжают работать).
+ */
+export const RegisterSchema = z
+  .object({
+    nickname: nicknameSchema,
+    password: passwordSchema,
+    passwordConfirm: z.string().max(128).optional(),
+    email: optionalEmailSchema,
+    locale: LocaleSchema.default('ru'),
+  })
+  .refine(
+    (value) => value.passwordConfirm === undefined || value.passwordConfirm === value.password,
+    {
+      path: ['passwordConfirm'],
+      message: 'Пароли не совпадают',
+    },
+  );
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type RegisterInputValues = z.input<typeof RegisterSchema>;
 
-export const LoginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, { message: 'Введите пароль' }).max(128),
+/**
+ * Вход: логин (nickname) ИЛИ почта + пароль. Поле `email` принимается как
+ * синоним `login` — так продолжают работать клиенты, входившие по почте.
+ */
+export const LoginSchema = z.preprocess(
+  (raw) => {
+    if (raw !== null && typeof raw === 'object') {
+      const value = raw as Record<string, unknown>;
+      if (value.login === undefined && value.email !== undefined) {
+        return { ...value, login: value.email };
+      }
+    }
+    return raw;
+  },
+  z.object({
+    login: z.string().trim().toLowerCase().min(1, { message: 'Введите логин или почту' }).max(254),
+    password: z.string().min(1, { message: 'Введите пароль' }).max(128),
+  }),
+);
+export type LoginInput = z.output<typeof LoginSchema>;
+export type LoginInputValues = { login: string; password: string };
+
+/** Ответ проверки доступности логина (`GET /auth/nickname-available`). */
+export interface NicknameAvailabilityResponse {
+  available: boolean;
+  /** invalid — не проходит формат или зарезервирован; taken — занят. */
+  reason: 'invalid' | 'taken' | null;
+}
+
+/** Оценка надёжности пароля 0–4 для индикатора на форме регистрации. */
+export function passwordStrength(password: string): 0 | 1 | 2 | 3 | 4 {
+  if (password.length === 0) return 0;
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password) && /[^A-Za-z0-9]/.test(password)) score += 1;
+  else if (/\d/.test(password) || /[^A-Za-z0-9]/.test(password)) score += 0.5;
+  // Короче минимума пароль не может быть «надёжным».
+  if (password.length < 8) return Math.min(1, Math.ceil(score)) as 0 | 1;
+  return Math.min(4, Math.max(1, Math.floor(score))) as 1 | 2 | 3 | 4;
+}
+
+/** Пароль по токену (сброс или установка): новый пароль и повтор. */
+export const PasswordTokenSchema = z
+  .object({
+    token: z.string().min(10).max(200),
+    password: passwordSchema,
+    passwordConfirm: z.string().max(128).optional(),
+    /** Только для токена установки: логин, если ещё не задан осмысленный. */
+    nickname: nicknameSchema.optional(),
+  })
+  .refine(
+    (value) => value.passwordConfirm === undefined || value.passwordConfirm === value.password,
+    {
+      path: ['passwordConfirm'],
+      message: 'Пароли не совпадают',
+    },
+  );
+export type PasswordTokenInput = z.infer<typeof PasswordTokenSchema>;
+
+/** Запрос письма со ссылкой сброса: логин или почта. */
+export const ForgotPasswordSchema = z.object({
+  login: z.string().trim().toLowerCase().min(1).max(254),
 });
-export type LoginInput = z.infer<typeof LoginSchema>;
-export type LoginInputValues = z.input<typeof LoginSchema>;
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
+
+/** Что за токеном пароля: нужно ли ещё задать логин (`GET /auth/password-token`). */
+export interface PasswordTokenInfo {
+  valid: boolean;
+  purpose: 'reset' | 'setup' | null;
+  nickname: string | null;
+}
 
 export const VerifyEmailSchema = z.object({
   token: z.string().min(10).max(200),
@@ -150,12 +239,9 @@ export const ResendVerificationSchema = z.object({
 });
 export type ResendVerificationInput = z.infer<typeof ResendVerificationSchema>;
 
-/** Шаги 2–4 онбординга (ТЗ §3.1): цели, расписание уведомлений, приватность. */
+/** Шаги 2–4 онбординга (ТЗ §3.1): цели, расписание уведомлений. */
 export const GoalKindSchema = z.enum(['money', 'health', 'habits']);
 export type GoalKind = z.infer<typeof GoalKindSchema>;
-
-export const ProfileVisibilitySchema = z.enum(['public', 'subscribers', 'private']);
-export type ProfileVisibility = z.infer<typeof ProfileVisibilitySchema>;
 
 export const AccountTypeSchema = z.enum(['card', 'cash', 'savings']);
 export type AccountType = z.infer<typeof AccountTypeSchema>;
@@ -174,12 +260,11 @@ export const OnboardingSchema = z.object({
   currency: currencySchema,
   // Шаг 2 — язык интерфейса.
   locale: LocaleSchema.default('ru'),
-  // Шаг 3 — цели, уведомления и приватность по умолчанию.
+  // Шаг 3 — цели и уведомления.
   goals: z.array(GoalKindSchema).min(1).max(3),
   notificationsEnabled: z.boolean().default(true),
   quietHoursStart: z.number().int().min(0).max(23).default(22),
   quietHoursEnd: z.number().int().min(0).max(23).default(8),
-  profileVisibility: ProfileVisibilitySchema.default('private'),
   // Шаг 4 — первый счёт (необязателен, можно настроить позже).
   firstAccount: FirstAccountSchema.optional(),
 });
@@ -189,7 +274,8 @@ export type OnboardingInputValues = z.input<typeof OnboardingSchema>;
 /** Пользователь в ответах API (без хеша пароля и служебных полей). */
 export interface PublicUser {
   id: string;
-  email: string;
+  /** null — почта не указана (необязательна). */
+  email: string | null;
   nickname: string;
   /** Роль (ТЗ §9 п.7): user | moderator | admin. */
   role: string;
@@ -199,7 +285,6 @@ export interface PublicUser {
   goals: string[];
   notificationsEnabled: boolean;
   quietHours: { start: number; end: number };
-  profileVisibility: string;
   emailVerified: boolean;
   onboardingStep: number;
   onboardingCompleted: boolean;
@@ -215,8 +300,8 @@ export interface MeResponse {
   user: PublicUser;
   onboardingCompleted: boolean;
   /**
-   * true — аккаунт создан через Telegram и технический email стоит заменить
-   * своим (ТЗ §3.1, §7). UI показывает мягкую подсказку.
+   * true — email технический (аккаунт создан через Google без подтверждённого
+   * адреса); UI показывает мягкую подсказку.
    */
   needsEmail?: boolean;
 }
@@ -240,3 +325,9 @@ export interface SessionSummary {
 export interface SessionsResponse {
   sessions: SessionSummary[];
 }
+
+/** Ответ входа: сессия выдана, отдаём пользователя. */
+export interface LoginResponse {
+  user: PublicUser;
+}
+export type LoginResult = LoginResponse;

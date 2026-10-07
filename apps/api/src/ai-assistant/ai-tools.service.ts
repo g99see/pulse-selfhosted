@@ -123,7 +123,6 @@ export const AI_TOOLS: AiTool[] = [
         targetAmount: { type: 'number' },
         savedAmount: { type: 'number' },
         deadline: { type: 'string', description: 'YYYY-MM-DD' },
-        visibility: { type: 'string', enum: ['public', 'subscribers', 'private'] },
         summary: { type: 'string' },
       },
       required: ['title', 'targetAmount'],
@@ -241,7 +240,6 @@ export class AiToolsService {
     };
     if (num(args.savedAmount) !== undefined) payload.savedAmount = num(args.savedAmount);
     if (str(args.deadline)) payload.deadline = str(args.deadline);
-    if (str(args.visibility)) payload.visibility = str(args.visibility);
 
     const summary = str(args.summary) ?? `Цель «${payload.title}» на ${payload.targetAmount}`;
     const proposal = await this.proposals.create({ userId, kind: 'goal', summary, payload });

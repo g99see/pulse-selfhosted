@@ -4,7 +4,7 @@
 # Автоустановщик «Пульса» одной командой (Debian/Ubuntu, root).
 #
 #   curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh \
-#     | sudo bash -s -- --domain puls.example.com --sandbox-domain usercontent.example.com --email me@example.com
+#     | sudo bash -s -- --domain puls.example.com --email me@example.com
 #
 #   sudo bash install.sh --http            # локальная сеть, http://<IP сервера>
 #
@@ -16,7 +16,6 @@ set -euo pipefail
 REPO_DEFAULT='https://github.com/g99see/pulse-selfhosted.git'
 
 DOMAIN=''
-SANDBOX_DOMAIN=''
 ACME_EMAIL=''
 HTTP_MODE=0
 HOST_IP=''
@@ -31,7 +30,6 @@ NO_ADMIN=0
 DRY_RUN=0
 SMTP_URL_OPT=''
 REGISTRATION=''
-SANDBOX_HTTP_PORT_OPT='8080'
 MODE_SET=0
 CRED_FILE='/root/puls-credentials.txt'
 LOG_FILE='/var/log/puls-install.log'
@@ -58,11 +56,10 @@ usage() {
 
 Режим HTTPS (домен, сертификаты Let's Encrypt через Caddy):
   --domain D             основной домен (DNS A/AAAA должен вести на сервер)
-  --sandbox-domain S     домен песочницы пользовательского HTML (по умолчанию usercontent.D)
   --email E              почта для Let's Encrypt
 
 Режим HTTP (локальная сеть, без домена):
-  --http                 основной сайт на :80, песочница на :8080
+  --http                 сайт на :80
   --host IP              адрес сервера (по умолчанию — основной IPv4)
 
 Общие опции:
@@ -76,7 +73,6 @@ usage() {
                          подтверждения не уходят, регистрация переводится в «invite»
   --registration MODE    режим регистрации: open | invite | closed
                          (по умолчанию: open при SMTP, invite без SMTP)
-  --sandbox-port N       порт песочницы в режиме HTTP (по умолчанию 8080)
   -y, --non-interactive  не задавать вопросов
   --dry-run              только показать план, ничего не менять (root не нужен)
   -h, --help             эта справка
@@ -90,7 +86,6 @@ need_val() { [ "$#" -ge 2 ] && [ -n "$2" ] || die "Опция $1 требует 
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --domain) need_val "$@"; DOMAIN="$2"; MODE_SET=1; shift 2 ;;
-    --sandbox-domain) need_val "$@"; SANDBOX_DOMAIN="$2"; shift 2 ;;
     --email) need_val "$@"; ACME_EMAIL="$2"; shift 2 ;;
     --http) HTTP_MODE=1; MODE_SET=1; shift ;;
     --host) need_val "$@"; HOST_IP="$2"; shift 2 ;;
@@ -101,7 +96,6 @@ while [ "$#" -gt 0 ]; do
     --admin-nickname) need_val "$@"; ADMIN_NICK="$2"; shift 2 ;;
     --smtp-url) need_val "$@"; SMTP_URL_OPT="$2"; shift 2 ;;
     --registration) need_val "$@"; REGISTRATION="$2"; shift 2 ;;
-    --sandbox-port) need_val "$@"; SANDBOX_HTTP_PORT_OPT="$2"; shift 2 ;;
     --non-interactive|-y) NON_INTERACTIVE=1; shift ;;
     --no-admin) NO_ADMIN=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
@@ -111,7 +105,6 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$REGISTRATION" in ''|open|invite|closed) ;; *) die "--registration: open | invite | closed" ;; esac
-[[ "$SANDBOX_HTTP_PORT_OPT" =~ ^[0-9]+$ ]] || die '--sandbox-port должен быть числом'
 # Те же правила, что у API (packages/shared/src/auth.ts): 3–32 символа, латиница,
 # цифры, дефис, подчёркивание; служебные имена зарезервированы.
 ADMIN_NICK=$(printf '%s' "$ADMIN_NICK" | tr '[:upper:]' '[:lower:]')
@@ -152,7 +145,6 @@ if [ "$MODE_SET" = 0 ]; then
       HOST_IP=${HOST_IP:-$(sed -n 's#^PUBLIC_ORIGIN=http://\([^:/]*\).*#\1#p' "$INSTALL_DIR/.env" | head -n1)}
     else
       DOMAIN=$(sed -n 's/^DOMAIN=//p' "$INSTALL_DIR/.env" | head -n1)
-      SANDBOX_DOMAIN=${SANDBOX_DOMAIN:-$(sed -n 's/^SANDBOX_DOMAIN=//p' "$INSTALL_DIR/.env" | head -n1)}
       ACME_EMAIL=${ACME_EMAIL:-$(sed -n 's/^ACME_EMAIL=//p' "$INSTALL_DIR/.env" | head -n1)}
     fi
     MODE_SET=1
@@ -181,28 +173,22 @@ if [ "$HTTP_MODE" = 1 ]; then
   fi
   [ -n "$HOST_IP" ] || die 'Не удалось определить адрес сервера: укажите --host IP'
   PUBLIC_ORIGIN="http://${HOST_IP}"
-  SANDBOX_ORIGIN="http://${HOST_IP}:${SANDBOX_HTTP_PORT_OPT}"
   CADDYFILE='Caddyfile.http'
   COOKIE_SECURE='false'
   DOMAIN_ENV='localhost'
-  SANDBOX_DOMAIN_ENV='usercontent.localhost'
   ACME_EMAIL=${ACME_EMAIL:-admin@example.com}
-  PORTS=(80 "$SANDBOX_HTTP_PORT_OPT")
+  PORTS=(80)
   MAIN_URL="$PUBLIC_ORIGIN"
 else
   if [ -z "$DOMAIN" ]; then DOMAIN=$(ask 'Основной домен (например puls.example.com)' ''); fi
   [ -n "$DOMAIN" ] || die 'Для режима HTTPS нужен --domain (или используйте --http)'
   [[ "$DOMAIN" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] || die "Некорректный домен: $DOMAIN"
-  if [ -z "$SANDBOX_DOMAIN" ]; then SANDBOX_DOMAIN=$(ask 'Домен песочницы' "usercontent.${DOMAIN}"); fi
-  [ "$SANDBOX_DOMAIN" != "$DOMAIN" ] || die 'Домен песочницы должен отличаться от основного (изоляция cookie)'
   if [ -z "$ACME_EMAIL" ]; then ACME_EMAIL=$(ask 'Почта для Let'"'"'s Encrypt' "${ADMIN_EMAIL}"); fi
   [ -n "$ACME_EMAIL" ] || die 'Для режима HTTPS нужен --email (почта для Let'"'"'s Encrypt)'
   PUBLIC_ORIGIN="https://${DOMAIN}"
-  SANDBOX_ORIGIN=''
   CADDYFILE='Caddyfile'
   COOKIE_SECURE='true'
   DOMAIN_ENV="$DOMAIN"
-  SANDBOX_DOMAIN_ENV="$SANDBOX_DOMAIN"
   PORTS=(80 443)
   MAIN_URL="$PUBLIC_ORIGIN"
 fi
@@ -220,10 +206,7 @@ if [ "$DRY_RUN" = 1 ]; then
   info "Каталог:          $INSTALL_DIR"
   info "Репозиторий:      $REPO (ветка $BRANCH)"
   info "Адрес сайта:      $MAIN_URL"
-  if [ "$HTTP_MODE" = 1 ]; then
-    info "Адрес песочницы:  $SANDBOX_ORIGIN"
-  else
-    info "Домен песочницы:  $SANDBOX_DOMAIN"
+  if [ "$HTTP_MODE" != 1 ]; then
     info "Почта ACME:       $ACME_EMAIL"
   fi
   info "Порты (проверка): ${PORTS[*]}"
@@ -346,15 +329,12 @@ else
   set_env APP_ENCRYPTION_KEY "$(openssl rand -base64 32)"
   set_env NODE_ENV production
   set_env DOMAIN "$DOMAIN_ENV"
-  set_env SANDBOX_DOMAIN "$SANDBOX_DOMAIN_ENV"
   set_env ACME_EMAIL "$ACME_EMAIL"
   set_env PUBLIC_ORIGIN "$PUBLIC_ORIGIN"
   # "/" — браузер ходит в API на том же origin (работает по LAN и по Tailscale).
   set_env PUBLIC_API_URL "/"
   set_env NEXT_PUBLIC_API_URL "/"
   set_env CORS_ORIGIN "$PUBLIC_ORIGIN"
-  set_env SANDBOX_ORIGIN "$SANDBOX_ORIGIN"
-  set_env SANDBOX_HTTP_PORT "$SANDBOX_HTTP_PORT_OPT"
   set_env COOKIE_SECURE "$COOKIE_SECURE"
   set_env CADDYFILE "$CADDYFILE"
   set_env SMTP_URL "$SMTP_URL_OPT"
@@ -367,8 +347,7 @@ CADDYFILE=$(get_env CADDYFILE); CADDYFILE=${CADDYFILE:-Caddyfile}
 if [ "$CADDYFILE" = 'Caddyfile.http' ]; then
   HTTP_MODE=1
   PUBLIC_ORIGIN=$(get_env PUBLIC_ORIGIN)
-  SANDBOX_ORIGIN=$(get_env SANDBOX_ORIGIN)
-  SP=$(get_env SANDBOX_HTTP_PORT); PORTS=(80 "${SP:-8080}")
+  PORTS=(80)
 else
   HTTP_MODE=0
   PUBLIC_ORIGIN=$(get_env PUBLIC_ORIGIN)
@@ -519,11 +498,9 @@ echo
 step 'Готово'
 info "Сайт:           $MAIN_URL"
 if [ "$HTTP_MODE" = 1 ]; then
-  info "Песочница HTML: $SANDBOX_ORIGIN (порт ${PORTS[1]} должен быть доступен браузерам клиентов)"
   info 'Режим http: без шифрования, только для доверенной локальной сети.'
 else
-  info "Песочница HTML: https://$(get_env SANDBOX_DOMAIN) (оба DNS-имени должны вести на этот сервер;"
-  info '                сертификат Let'"'"'s Encrypt выпускается при первом обращении, до минуты)'
+  info 'Сертификат Let'"'"'s Encrypt выпускается при первом обращении, до минуты'
 fi
 case "$ADMIN_STATE" in
   created) info "Администратор:  $ADMIN_EMAIL, пароль — в $CRED_FILE (chmod 600)" ;;

@@ -5,12 +5,12 @@
  * разрешений на уведомления не запрашиваем: всё уходит в мессенджеры.
  */
 import type {
+  BotConnectLinkResponse,
   ChannelSettingsUpdateInput,
   DiscordStatusResponse,
   NotificationChannel,
   NotificationChannelStatus,
   NotificationDeliveryDto,
-  TelegramLinkCodeResponse,
 } from '@puls/shared';
 import { authFetch } from './auth-client';
 
@@ -28,9 +28,12 @@ export const notificationsApi = {
     authFetch<{ deliveries: NotificationDeliveryDto[] }>('/api/notifications/deliveries'),
 };
 
-/** Привязка канала: код, отвязка. Статусы Telegram и Discord различаются, поэтому не общие. */
+/**
+ * Привязка канала: ссылка-подключение, отвязка. Статусы Telegram и Discord
+ * различаются, поэтому не общие.
+ */
 export const discordApi = {
   status: () => authFetch<DiscordStatusResponse>('/api/discord/status'),
-  linkCode: () => authFetch<TelegramLinkCodeResponse>('/api/discord/link-code', { method: 'POST' }),
+  connect: () => authFetch<BotConnectLinkResponse>('/api/discord/connect', { method: 'POST' }),
   unlink: () => authFetch<void>('/api/discord/link', { method: 'DELETE' }),
 };

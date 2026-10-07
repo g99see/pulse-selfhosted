@@ -4,8 +4,9 @@
  * — вход по существующей привязке (provider, subject);
  * — привязка к существующему пользователю, только если Google подтвердил email;
  * — иначе создание пользователя с нейтральным никнеймом и passwordHash = null;
- * — Telegram без email получает технический адрес tg-<id>@telegram.invalid;
  * — отвязка запрещена, если это единственный способ входа.
+ * Вход через Telegram удалён (v3 §7.3); строки provider = telegram остались в БД
+ * только как признак «пользователь входил через Telegram и пароля не задал».
  */
 import { Injectable } from '@nestjs/common';
 import { Prisma, type ExternalIdentity, type User } from '@prisma/client';
@@ -15,27 +16,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SessionService, type SessionContext } from '../session.service';
 import type { GoogleIdTokenClaims } from './google.tokens';
 import { uniqueNickname } from './nickname';
-import type { TelegramVerifiedUser } from './telegram';
 
-export const TELEGRAM_EMAIL_DOMAIN = 'telegram.invalid';
-export const GOOGLE_EMAIL_DOMAIN = 'google.invalid';
-
-/** Технический адрес Telegram-аккаунта: реального email у провайдера нет. */
-export function telegramPlaceholderEmail(subject: string): string {
-  return `tg-${subject}@${TELEGRAM_EMAIL_DOMAIN}`;
-}
-
-/** Технический адрес Google-аккаунта без подтверждённого email. */
-export function googlePlaceholderEmail(subject: string): string {
-  return `g-${subject}@${GOOGLE_EMAIL_DOMAIN}`;
-}
-
-/** true — email технический, UI предложит указать настоящий (ТЗ §3.1). */
-export function needsEmail(user: { email: string }): boolean {
-  return (
-    user.email.endsWith(`@${TELEGRAM_EMAIL_DOMAIN}`) ||
-    user.email.endsWith(`@${GOOGLE_EMAIL_DOMAIN}`)
-  );
+/** true — у пользователя нет почты (необязательна, нужна для сброса пароля письмом). */
+export function needsEmail(user: { email: string | null }): boolean {
+  return user.email === null;
 }
 
 export interface IssuedExternalSession {
@@ -65,14 +49,6 @@ export class ExternalAuthService {
     return this.issueSession(user, context);
   }
 
-  async loginWithTelegram(
-    verified: TelegramVerifiedUser,
-    context: SessionContext,
-  ): Promise<IssuedExternalSession> {
-    const user = await this.resolveTelegramUser(verified);
-    return this.issueSession(user, context);
-  }
-
   async linkGoogleIdentity(userId: string, claims: GoogleIdTokenClaims): Promise<void> {
     const verifiedEmail = verifiedGoogleEmail(claims);
     await this.attachIdentity(userId, 'google', claims.sub, verifiedEmail);
@@ -88,10 +64,6 @@ export class ExternalAuthService {
     }
   }
 
-  async linkTelegramIdentity(userId: string, verified: TelegramVerifiedUser): Promise<void> {
-    await this.attachIdentity(userId, 'telegram', verified.subject, null);
-  }
-
   async listIdentities(userId: string): Promise<IdentitiesSummary> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -100,7 +72,7 @@ export class ExternalAuthService {
     if (!user) throw httpError(401, 'unauthorized', 'Требуется вход');
 
     return {
-      email: user.email,
+      email: user.email ?? '',
       passwordSet: user.passwordHash !== null,
       identities: user.externalIdentities.map((identity) => toLinkedIdentity(identity)),
     };
@@ -126,34 +98,6 @@ export class ExternalAuthService {
     }
 
     await this.prisma.externalIdentity.delete({ where: { id: identity.id } });
-  }
-
-  private async resolveTelegramUser(verified: TelegramVerifiedUser): Promise<User> {
-    const existing = await this.prisma.externalIdentity.findUnique({
-      where: { provider_subject: { provider: 'telegram', subject: verified.subject } },
-      include: { user: true },
-    });
-    if (existing) return existing.user;
-
-    const nickname = await this.generateNickname();
-    const email = telegramPlaceholderEmail(verified.subject);
-
-    try {
-      return await this.prisma.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: { email, nickname, passwordHash: null, locale: 'ru' },
-        });
-        await tx.externalIdentity.create({
-          data: { userId: user.id, provider: 'telegram', subject: verified.subject, email: null },
-        });
-        return user;
-      });
-    } catch (error) {
-      // Гонка двух входов с одним Telegram-аккаунтом.
-      const raced = await this.findIdentity('telegram', verified.subject);
-      if (raced) return raced;
-      throw error;
-    }
   }
 
   private async resolveGoogleUser(claims: GoogleIdTokenClaims): Promise<User> {
@@ -195,7 +139,7 @@ export class ExternalAuthService {
       }
     }
 
-    const email = verifiedEmail ?? googlePlaceholderEmail(claims.sub);
+    const email = verifiedEmail;
     const nickname = await this.generateNickname();
 
     try {
@@ -218,7 +162,7 @@ export class ExternalAuthService {
       const raced = await this.findIdentity('google', claims.sub);
       if (raced) return raced;
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        const byEmail = await this.prisma.user.findUnique({ where: { email } });
+        const byEmail = email ? await this.prisma.user.findUnique({ where: { email } }) : null;
         if (byEmail) return byEmail;
       }
       throw error;

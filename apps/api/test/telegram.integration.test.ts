@@ -45,11 +45,21 @@ const fakeApi: TelegramApi = {
   async getUpdates(): Promise<unknown[]> {
     return [];
   },
+  async getMe(): Promise<{ id: string | null; username: string | null }> {
+    return { id: '1', username: 'pulse_test_bot' };
+  },
 };
 
 /** Последнее сообщение, отправленное в чат. */
 function lastSent(chatId: string): OutgoingMessage | undefined {
   return [...sent].reverse().find((message) => message.chatId === chatId);
+}
+
+/** Достаёт одноразовый токен из deep-link https://t.me/<bot>?start=<token>. */
+function tokenFromUrl(url: string): string {
+  const match = /[?&]start=([A-Za-z0-9_-]+)/.exec(url);
+  if (!match) throw new Error(`в ссылке нет токена: ${url}`);
+  return match[1]!;
 }
 
 function webhookUpdate(update: object, secret: string | null = 'test-secret') {
@@ -137,50 +147,64 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     return { client, userId: verified.body.user.id as string };
   }
 
-  /** Регистрация + привязка чата через код из настроек. */
+  /** Регистрация + привязка чата через ссылку-подключение из настроек. */
   async function signUpLinked(
     email: string,
     nickname: string,
     chatId: string,
   ): Promise<{ client: TestClient; userId: string }> {
     const account = await signUp(email, nickname);
-    const codeResponse = await account.client.post('/api/telegram/link-code');
-    expect(codeResponse.status).toBe(201);
+    const link = await account.client.post('/api/telegram/connect');
+    expect(link.status).toBe(201);
+    const token = tokenFromUrl(link.body.url as string);
     const start = await webhookUpdate({
       update_id: 1,
       message: {
         chat: { id: Number(chatId) },
         from: { username: nickname },
-        text: `/start ${codeResponse.body.code}`,
+        text: `/start ${token}`,
       },
     });
     expect(start.status).toBe(200);
     return account;
   }
 
-  describe('Состояние и код привязки', () => {
+  /** Прямая привязка чата в БД (минуя бота) — для проверки отвязки/блокировки. */
+  async function linkChatDirect(userId: string, chatId: string): Promise<void> {
+    await prisma.telegramLink.create({ data: { userId, chatId } });
+  }
+
+  describe('Состояние и ссылка привязки', () => {
     it('без сессии статус недоступен (401)', async () => {
       const anon = new TestClient(server);
       expect((await anon.get('/api/telegram/status')).status).toBe(401);
     });
 
-    it('статус включает бота и показывает отсутствие привязки', async () => {
+    it('статус включает бота, имя бота и отсутствие привязки', async () => {
       const { client } = await signUp('tg-status@example.com', 'tgstatususer');
       const response = await client.get('/api/telegram/status');
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({ enabled: true, mode: 'webhook', linked: false });
+      expect(response.body).toMatchObject({
+        enabled: true,
+        mode: 'webhook',
+        linked: false,
+        botUsername: 'pulse_test_bot',
+      });
     });
 
-    it('код привязки: TTL 10 минут, в БД только хеш', async () => {
+    it('ссылка подключения: deep-link, TTL 10 минут, в БД только хеш', async () => {
       const { client, userId } = await signUp('tg-code@example.com', 'tgcodeuser');
-      const response = await client.post('/api/telegram/link-code');
+      const response = await client.post('/api/telegram/connect');
       expect(response.status).toBe(201);
-      expect(response.body.code).toMatch(/^[A-Za-z0-9_-]{8,32}$/);
+      expect(response.body.url).toMatch(
+        /^https:\/\/t\.me\/pulse_test_bot\?start=[A-Za-z0-9_-]{16,64}$/,
+      );
       expect(response.body.ttlSeconds).toBe(600);
 
+      const token = tokenFromUrl(response.body.url as string);
       const stored = await prisma.telegramLinkCode.findFirst({ where: { userId } });
       expect(stored).not.toBeNull();
-      expect(stored?.codeHash).not.toBe(response.body.code);
+      expect(stored?.codeHash).not.toContain(token);
       expect(stored?.codeHash).toMatch(/^[0-9a-f]{64}$/);
       expect(stored?.usedAt).toBeNull();
       const ttl = (stored?.expiresAt.getTime() ?? 0) - Date.now();
@@ -188,12 +212,12 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       expect(ttl).toBeLessThanOrEqual(10 * 60 * 1000);
     });
 
-    it('ограничение частоты на запрос кода (429)', async () => {
+    it('ограничение частоты на запрос ссылки (429)', async () => {
       const { client } = await signUp('tg-flood@example.com', 'tgfloodusr');
       for (let attempt = 0; attempt < 5; attempt += 1) {
-        expect((await client.post('/api/telegram/link-code')).status).toBe(201);
+        expect((await client.post('/api/telegram/connect')).status).toBe(201);
       }
-      const blocked = await client.post('/api/telegram/link-code');
+      const blocked = await client.post('/api/telegram/connect');
       expect(blocked.status).toBe(429);
       expect(blocked.body.code).toBe('rate_limited');
     });
@@ -228,36 +252,54 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       expect(await prisma.checkIn.count()).toBe(0);
     });
 
-    it('/start с неверным кодом не привязывает чат', async () => {
+    it('/start с неверным токеном не привязывает чат', async () => {
       await signUp('tg-badcode@example.com', 'tgbadcodeus');
       const response = await webhookUpdate({
         update_id: 1,
-        message: { chat: { id: 777001 }, from: {}, text: '/start WRONGCODE' },
+        message: { chat: { id: 777001 }, from: {}, text: '/start WRONGCODE99' },
       });
       expect(response.status).toBe(200);
-      expect(lastSent('777001')?.text).toContain('Код не подошёл');
+      expect(lastSent('777001')?.text).toContain('не подошла');
+      expect(await prisma.telegramLink.count()).toBe(0);
+    });
+
+    it('/start с просроченным токеном сообщает об истечении', async () => {
+      const { client, userId } = await signUp('tg-expired@example.com', 'tgexpiredus');
+      const link = await client.post('/api/telegram/connect');
+      const token = tokenFromUrl(link.body.url as string);
+      await prisma.telegramLinkCode.updateMany({
+        where: { userId },
+        data: { expiresAt: new Date(Date.now() - 1000) },
+      });
+
+      await webhookUpdate({
+        update_id: 1,
+        message: { chat: { id: 777002 }, from: {}, text: `/start ${token}` },
+      });
+      expect(lastSent('777002')?.text).toContain('истекла');
       expect(await prisma.telegramLink.count()).toBe(0);
     });
   });
 
   describe('Привязка чата', () => {
-    it('/start <код> привязывает чат и включает Telegram-чек-ины', async () => {
+    it('/start <токен> привязывает чат и включает Telegram-чек-ины', async () => {
       const { client, userId } = await signUp('tg-link@example.com', 'tglinkuser');
-      const code = await client.post('/api/telegram/link-code');
+      const link = await client.post('/api/telegram/connect');
+      const token = tokenFromUrl(link.body.url as string);
 
       const response = await webhookUpdate({
         update_id: 1,
         message: {
           chat: { id: 555 },
           from: { username: 'tg_link_user' },
-          text: `/start ${code.body.code}`,
+          text: `/start ${token}`,
         },
       });
       expect(response.status).toBe(200);
       expect(lastSent('555')?.text).toContain('привязан');
 
-      const link = await prisma.telegramLink.findUnique({ where: { userId } });
-      expect(link).toMatchObject({ chatId: '555', username: 'tg_link_user' });
+      const linkRow = await prisma.telegramLink.findUnique({ where: { userId } });
+      expect(linkRow).toMatchObject({ chatId: '555', username: 'tg_link_user' });
 
       const storedCode = await prisma.telegramLinkCode.findFirst({ where: { userId } });
       expect(storedCode?.usedAt).not.toBeNull();
@@ -278,36 +320,51 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       expect(lastSent('555')?.text).toContain('уже привязан');
     });
 
-    it('код одноразовый: второй чат по нему не привяжется', async () => {
+    it('токен одноразовый: второй чат по нему не привяжется', async () => {
       const { client } = await signUp('tg-onetime@example.com', 'tgonetimeus');
-      const code = await client.post('/api/telegram/link-code');
+      const link = await client.post('/api/telegram/connect');
+      const token = tokenFromUrl(link.body.url as string);
 
       await webhookUpdate({
         update_id: 1,
-        message: { chat: { id: 801 }, from: {}, text: `/start ${code.body.code}` },
+        message: { chat: { id: 801 }, from: {}, text: `/start ${token}` },
       });
       await webhookUpdate({
         update_id: 2,
-        message: { chat: { id: 802 }, from: {}, text: `/start ${code.body.code}` },
+        message: { chat: { id: 802 }, from: {}, text: `/start ${token}` },
       });
 
-      expect(lastSent('802')?.text).toContain('Код не подошёл');
+      expect(lastSent('802')?.text).toContain('использована');
       expect(await prisma.telegramLink.count()).toBe(1);
     });
 
     it('чат, занятый другим аккаунтом, не перепривязывается', async () => {
       const alice = await signUpLinked('tg-alice@example.com', 'tgaliceuser', '900');
       const bob = await signUp('tg-bob@example.com', 'tgbobuser');
-      const code = await bob.client.post('/api/telegram/link-code');
+      const link = await bob.client.post('/api/telegram/connect');
+      const token = tokenFromUrl(link.body.url as string);
 
       await webhookUpdate({
         update_id: 3,
-        message: { chat: { id: 900 }, from: {}, text: `/start ${code.body.code}` },
+        message: { chat: { id: 900 }, from: {}, text: `/start ${token}` },
       });
       expect(lastSent('900')?.text).toContain('другому аккаунту');
 
-      const link = await prisma.telegramLink.findUnique({ where: { chatId: '900' } });
-      expect(link?.userId).toBe(alice.userId);
+      const linkRow = await prisma.telegramLink.findUnique({ where: { chatId: '900' } });
+      expect(linkRow?.userId).toBe(alice.userId);
+    });
+
+    it('сообщение в заблокированный чат снимает блокировку', async () => {
+      const { client, userId } = await signUp('tg-unblock@example.com', 'tgunblockus');
+      await linkChatDirect(userId, '920');
+      await prisma.telegramLink.update({ where: { userId }, data: { blockedAt: new Date() } });
+      expect((await client.get('/api/telegram/status')).body.blocked).toBe(true);
+
+      await webhookUpdate({
+        update_id: 1,
+        message: { chat: { id: 920 }, from: {}, text: '/help' },
+      });
+      expect((await client.get('/api/telegram/status')).body.blocked).toBe(false);
     });
 
     it('отвязка чата из настроек', async () => {
@@ -316,6 +373,37 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       expect(response.status).toBe(204);
       expect(await prisma.telegramLink.findUnique({ where: { userId } })).toBeNull();
       expect((await client.get('/api/telegram/status')).body.linked).toBe(false);
+    });
+  });
+
+  describe('Сброс и установка пароля из бота (v3 §7)', () => {
+    it('/password присылает привязанному пользователю одноразовую ссылку на 30 минут', async () => {
+      const { userId } = await signUpLinked('tg-pw@example.com', 'tgpwuser', '1204');
+      await webhookUpdate({
+        update_id: 3,
+        message: { chat: { id: 1204 }, from: {}, text: '/password' },
+      });
+      const text = lastSent('1204')?.text ?? '';
+      expect(text).toContain('/reset-password?token=');
+      expect(text).toContain('30 минут');
+      const stored = await prisma.passwordToken.findFirstOrThrow({ where: { userId } });
+      expect(stored.purpose).toBe('reset');
+    });
+
+    it('пользователь, входивший только через Telegram (без пароля), получает ссылку установки при первом сообщении', async () => {
+      const user = await prisma.user.create({
+        data: { nickname: 'tg-only-1', email: null },
+      });
+      await prisma.externalIdentity.create({
+        data: { userId: user.id, provider: 'telegram', subject: '1205' },
+      });
+      await webhookUpdate({
+        update_id: 4,
+        message: { chat: { id: 1205 }, from: {}, text: 'привет' },
+      });
+      expect(lastSent('1205')?.text).toContain('/reset-password?token=');
+      const stored = await prisma.passwordToken.findFirstOrThrow({ where: { userId: user.id } });
+      expect(stored.purpose).toBe('setup');
     });
   });
 

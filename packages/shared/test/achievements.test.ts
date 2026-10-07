@@ -3,14 +3,10 @@
 // Границы дня и переход на летнее время проверяются через часовой пояс.
 import { describe, expect, it } from 'vitest';
 import {
-  ACHIEVEMENT_CODES,
-  ACHIEVEMENTS,
   computeStreak,
-  evaluateAchievements,
   isBudgetMonthClosedWithinLimit,
   nextStreakMilestone,
   streakFromInstants,
-  type AchievementCode,
 } from '../src/achievements';
 
 describe('computeStreak (ТЗ §4, стрик чек-инов по дням)', () => {
@@ -143,72 +139,16 @@ describe('streakFromInstants (границы дня и переход на ле�
   });
 });
 
-describe('evaluateAchievements (ТЗ §4, условия бейджей)', () => {
-  const base = {
-    checkinsCount: 0,
-    transactionsCount: 0,
-    currentStreak: 0,
-    longestStreak: 0,
-    closedBudgetsCount: 0,
-  };
-
-  it('пустой контекст — нет достижений', () => {
-    expect(evaluateAchievements(base)).toEqual([]);
-  });
-
-  it('первый чек-ин и первая транзакция', () => {
-    const codes = evaluateAchievements({ ...base, checkinsCount: 1, transactionsCount: 1 });
-    expect(codes).toContain('first_checkin');
-    expect(codes).toContain('first_transaction');
-  });
-
-  it('бейджи за 7/30/100 дней по самому длинному стрику', () => {
-    expect(evaluateAchievements({ ...base, checkinsCount: 7, longestStreak: 7 })).toContain(
-      'checkin_streak_7',
-    );
-    expect(evaluateAchievements({ ...base, checkinsCount: 7, longestStreak: 7 })).not.toContain(
-      'checkin_streak_30',
-    );
-
-    const hundred = evaluateAchievements({ ...base, checkinsCount: 100, longestStreak: 100 });
-    expect(hundred).toEqual(
-      expect.arrayContaining([
-        'first_checkin',
-        'checkin_streak_7',
-        'checkin_streak_30',
-        'checkin_streak_100',
-      ]),
-    );
-  });
-
-  it('текущий стрик тоже учитывается, если он длиннее исторического', () => {
-    expect(evaluateAchievements({ ...base, checkinsCount: 7, currentStreak: 7 })).toContain(
-      'checkin_streak_7',
-    );
-  });
-
-  it('бейдж за первый закрытый месяц без превышения бюджета', () => {
-    expect(evaluateAchievements({ ...base, closedBudgetsCount: 1 })).toContain(
-      'first_budget_closed',
-    );
-  });
-
-  it('все коды из определения присутствуют в списке', () => {
-    const definitions = ACHIEVEMENTS.map((item) => item.code);
-    expect(definitions.sort()).toEqual([...ACHIEVEMENT_CODES].sort());
-  });
-});
-
 describe('nextStreakMilestone (ТЗ §4, прогресс до следующего бейджа)', () => {
   it('до 7 дней — ближайший бейдж 7', () => {
-    expect(nextStreakMilestone(3)).toEqual({ code: 'checkin_streak_7', threshold: 7 });
-    expect(nextStreakMilestone(0)).toEqual({ code: 'checkin_streak_7', threshold: 7 });
+    expect(nextStreakMilestone(3)).toEqual({ code: 'checkin_streak', threshold: 7 });
+    expect(nextStreakMilestone(0)).toEqual({ code: 'checkin_streak', threshold: 7 });
   });
 
   it('между порогами выбирает следующий', () => {
-    expect(nextStreakMilestone(7)).toEqual({ code: 'checkin_streak_30', threshold: 30 });
-    expect(nextStreakMilestone(29)).toEqual({ code: 'checkin_streak_30', threshold: 30 });
-    expect(nextStreakMilestone(30)).toEqual({ code: 'checkin_streak_100', threshold: 100 });
+    expect(nextStreakMilestone(7)).toEqual({ code: 'checkin_streak', threshold: 30 });
+    expect(nextStreakMilestone(29)).toEqual({ code: 'checkin_streak', threshold: 30 });
+    expect(nextStreakMilestone(30)).toEqual({ code: 'checkin_streak', threshold: 100 });
   });
 
   it('после 100 дней следующих порогов нет', () => {
@@ -229,22 +169,5 @@ describe('isBudgetMonthClosedWithinLimit (ТЗ §4, «месяц без прев
 
   it('текущий месяц ещё не закрыт', () => {
     expect(isBudgetMonthClosedWithinLimit(50_000, 10_000, '2026-10', '2026-10')).toBe(false);
-  });
-});
-
-describe('ACHIEVEMENT_CODES', () => {
-  it('содержит ожидаемые коды', () => {
-    const expected: AchievementCode[] = [
-      'first_checkin',
-      'checkin_streak_7',
-      'checkin_streak_30',
-      'checkin_streak_100',
-      'first_transaction',
-      'first_budget_closed',
-      'first_goal',
-      'goal_half',
-      'goal_complete',
-    ];
-    expect([...ACHIEVEMENT_CODES].sort()).toEqual(expected.sort());
   });
 });

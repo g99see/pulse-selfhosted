@@ -261,7 +261,7 @@ describe('Пульс v2 §7–§8 (интеграция с PostgreSQL)', () => {
       expect(response.status).toBe(200);
       expect(response.body.streak.current).toBe(1);
       expect(
-        response.body.achievements.find((item: { code: string }) => item.code === 'first_checkin')
+        response.body.achievements.find((item: { code: string }) => item.code === 'checkin_total')
           .earnedAt,
       ).not.toBeNull();
     });
@@ -428,13 +428,13 @@ describe('Пульс v2 §7–§8 (интеграция с PostgreSQL)', () => {
         id: string;
         name: string;
       }[];
-      // Автокатегория по ключевым словам работает по-русски: «обед» → «Еда».
+      // Автокатегория по ключевым словам работает по-русски: «обед» → «Кафе и рестораны».
       const csv = [
         'Date,Time,Title,Amount,Balance',
         '01.09.2026,10.00,Обед в кафе,"-200,00","800,00"',
         '02.09.2026,10.00,Ужин дома,"-150,00","650,00"',
       ].join('\n');
-      const food = categories.find((category) => category.name === 'Еда')!;
+      const food = categories.find((category) => category.name === 'Кафе и рестораны')!;
       expect(
         (
           await client.put('/api/finance/budgets', {

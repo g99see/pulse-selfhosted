@@ -3,11 +3,21 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import type { AccountDto, ImportColumnMapping, ImportColumn } from '@puls/shared';
+import type {
+  AccountDto,
+  CategoryDto,
+  Currency,
+  ImportColumnMapping,
+  ImportColumn,
+  UnmatchedTransactionDto,
+} from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { categoryLabel } from '@/lib/category-label';
 import { Alert, Card, IconBubble, PrimaryButton } from '@/components/ui';
-import { formatNumber } from '@/lib/format';
+import { Money } from '@/components/money';
+import { StoreDialog } from '@/components/store-dialog';
+import { StoreManager } from '@/components/store-manager';
+import { formatDate, formatNumber } from '@/lib/format';
 import { financeApi, notifyFinanceChanged } from '@/lib/finance-client';
 import {
   ImportFileError,
@@ -48,13 +58,29 @@ export default function ImportPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportCommitResponse | null>(null);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [unmatched, setUnmatched] = useState<UnmatchedTransactionDto[]>([]);
+  const [unmatchedCount, setUnmatchedCount] = useState(0);
+  const [attentionStore, setAttentionStore] = useState<UnmatchedTransactionDto | null>(null);
+  const [storeNotice, setStoreNotice] = useState<string | null>(null);
+
+  const loadAttention = useCallback(async (): Promise<void> => {
+    const [categoryList, queue] = await Promise.all([
+      financeApi.categories(),
+      financeApi.unmatched(50),
+    ]);
+    setCategories(categoryList.categories);
+    setUnmatched(queue.transactions);
+    setUnmatchedCount(queue.count);
+  }, []);
 
   useEffect(() => {
     void financeApi.accounts().then((response) => {
       setAccounts(response.accounts);
       setAccountId((current) => current || response.accounts[0]?.id || '');
     });
-  }, []);
+    void loadAttention();
+  }, [loadAttention]);
 
   const runPreview = useCallback(
     async (text: string, options: { mapping?: ImportColumnMapping; hasHeader?: boolean } = {}) => {
@@ -128,6 +154,7 @@ export default function ImportPage() {
       });
       setResult(response);
       notifyFinanceChanged();
+      void loadAttention();
       if (inputRef.current) inputRef.current.value = '';
       setPreview(null);
       setCsv(null);
@@ -253,6 +280,7 @@ export default function ImportPage() {
                     <th className="py-1 pr-3">{t('finance.import.col.amount')}</th>
                     <th className="py-1 pr-3">{t('finance.import.col.type')}</th>
                     <th className="py-1 pr-3">{t('finance.import.col.description')}</th>
+                    <th className="py-1 pr-3">{t('finance.import.col.merchant')}</th>
                     <th className="py-1 pr-3">{t('finance.import.col.category')}</th>
                     <th className="py-1">{t('finance.import.col.status')}</th>
                   </tr>
@@ -271,8 +299,13 @@ export default function ImportPage() {
                         {row.type ? t(`finance.type.${row.type}`) : '—'}
                       </td>
                       <td className="py-1 pr-3">{row.description || '—'}</td>
+                      <td className="py-1 pr-3">{row.merchantName || '—'}</td>
                       <td className="py-1 pr-3">
-                        {row.categoryName ? categoryLabel({ name: row.categoryName }, t) : '—'}
+                        {row.categoryId
+                          ? categoryLabel({ id: row.categoryId, name: row.categoryName ?? '' }, t)
+                          : row.categoryName
+                            ? categoryLabel({ name: row.categoryName }, t)
+                            : '—'}
                       </td>
                       <td className="py-1">{t(statusKey(row))}</td>
                     </tr>
@@ -329,6 +362,107 @@ export default function ImportPage() {
             balance: formatNumber(result.balance, locale, { maximumFractionDigits: 2 }),
           })}
         </div>
+      ) : null}
+
+      {storeNotice ? (
+        <p role="status" className="text-sm text-[var(--puls-finance-text)]">
+          {storeNotice}
+        </p>
+      ) : null}
+
+      <Card className="flex flex-col gap-3" data-testid="attention">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-heading text-lg font-bold">{t('finance.import.attention.title')}</h2>
+          {unmatchedCount > 0 ? (
+            <span data-testid="attention-count" className="text-sm text-[var(--puls-ink-muted)]">
+              {t('finance.import.attention.count', { count: unmatchedCount })}
+            </span>
+          ) : null}
+        </div>
+        <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.import.attention.hint')}</p>
+        <ul className="flex flex-col gap-2" data-testid="attention-list">
+          {unmatched.map((transaction) => {
+            const suggestionCategory = transaction.suggestion?.categoryId
+              ? (categories.find(
+                  (category) => category.id === transaction.suggestion?.categoryId,
+                ) ?? null)
+              : null;
+            return (
+              <li
+                key={transaction.id}
+                data-testid="attention-item"
+                className="flex flex-col gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate font-medium">
+                    {transaction.description || transaction.accountName}
+                  </span>
+                  <span className="truncate text-xs text-[var(--puls-ink-muted)]">
+                    {formatDate(`${transaction.date}T12:00:00`, locale, {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                    {` · ${transaction.accountName}`}
+                  </span>
+                  <span className="truncate text-xs text-[var(--puls-ink-muted)]">
+                    {transaction.suggestion
+                      ? `${t('finance.import.attention.suggestion', {
+                          name: transaction.suggestion.name,
+                        })}${suggestionCategory ? ` · ${categoryLabel(suggestionCategory, t)}` : ''}`
+                      : t('finance.import.attention.noSuggestion')}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-3">
+                  <span
+                    className={`font-semibold [font-variant-numeric:tabular-nums] ${
+                      transaction.type === 'income'
+                        ? 'text-[var(--puls-finance-text)]'
+                        : 'text-[var(--puls-ink)]'
+                    }`}
+                  >
+                    {transaction.type === 'income' ? '+' : '−'}
+                    <Money value={transaction.amount} currency={transaction.currency as Currency} />
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="attention-add-store"
+                    onClick={() => setAttentionStore(transaction)}
+                    className="inline-flex h-11 items-center rounded-[var(--radius-chip)] bg-[var(--puls-primary-soft)] px-3 text-sm font-semibold text-[var(--puls-primary-text)]"
+                  >
+                    {t('finance.import.attention.addStore')}
+                  </button>
+                </span>
+              </li>
+            );
+          })}
+          {unmatched.length === 0 ? (
+            <li className="text-sm text-[var(--puls-ink-muted)]" data-testid="attention-empty">
+              {t('finance.import.attention.empty')}
+            </li>
+          ) : null}
+        </ul>
+      </Card>
+
+      <StoreManager categories={categories} />
+
+      {attentionStore ? (
+        <StoreDialog
+          categories={categories}
+          defaults={{
+            name: attentionStore.suggestion?.name ?? attentionStore.description ?? '',
+          }}
+          onClose={() => setAttentionStore(null)}
+          onSaved={(saved) => {
+            setAttentionStore(null);
+            setStoreNotice(
+              saved.created && saved.applied > 0
+                ? t('finance.stores.applied', { count: saved.applied })
+                : t('finance.stores.created'),
+            );
+            void loadAttention();
+            notifyFinanceChanged();
+          }}
+        />
       ) : null}
     </div>
   );

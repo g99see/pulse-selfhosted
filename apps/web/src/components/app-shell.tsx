@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import { canModerate, type PublicUser } from '@puls/shared';
+import type { PublicUser } from '@puls/shared';
 import { Icon, Logo, type IconName } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
 import { QuickAddSheet } from '@/components/quick-add-sheet';
@@ -52,20 +52,10 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
-    key: 'app.nav.group.community',
-    items: [
-      { key: 'app.nav.feed', href: '/feed', icon: 'feed' },
-      { key: 'app.nav.challenges', href: '/challenges', icon: 'flag', testId: 'nav-challenges' },
-      { key: 'app.nav.family', href: '/family', icon: 'users' },
-    ],
-  },
-  {
     key: 'app.nav.group.account',
     items: [
       { key: 'app.nav.profile', href: '/app/profile', icon: 'user' },
-      { key: 'app.nav.page', href: '/page-editor', icon: 'page' },
       { key: 'app.nav.settingsItem', href: '/settings', icon: 'settings' },
-      { key: 'app.nav.moderation', href: '/moderation', icon: 'shield' },
       { key: 'app.nav.adminAi', href: '/admin/ai', icon: 'bot', testId: 'nav-admin-ai' },
       {
         key: 'app.nav.adminMetrics',
@@ -144,10 +134,8 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
     }
   }
 
-  // Ссылку на модерацию видят только модератор и администратор (ТЗ §2, §3.8),
-  // админку AI — только админ. Раздел «AI» виден всегда: без ключа там форма подключения.
+  // Админку AI и метрики видит только админ. Раздел «AI» виден всегда: без ключа там форма подключения.
   function visible(item: NavItem): boolean {
-    if (item.key === 'app.nav.moderation') return canModerate(user.role);
     if (item.key === 'app.nav.adminAi' || item.key === 'app.nav.adminMetrics')
       return user.role === 'admin';
     return true;

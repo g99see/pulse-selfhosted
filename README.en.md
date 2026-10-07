@@ -48,15 +48,7 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 **Goals and achievements**
 
 - Savings goals with a forecast, milestones and contribution reminders
-- Achievements and streaks, challenges with friends, a time capsule
-- An embeddable public goal widget (iframe)
-
-**Community**
-
-- Public profile `/@nickname`, a feed, follows, reactions, comments
-- Your own HTML page in the profile, served from an isolated sandbox on a separate origin
-- Family mode: shared accounts and goals, while everyone keeps a private journal
-- Moderation and roles
+- Achievements and streaks, a time capsule
 
 **AI assistant with your own key**
 
@@ -66,9 +58,9 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 **Privacy and security**
 
 - Self-hosted, open source (AGPL), no mandatory cloud services
-- Cookie sessions, CSRF protection, Argon2, 2FA (TOTP), sign-in with Google and Telegram
+- Cookie sessions, CSRF protection, Argon2, sign-in with login or email and with Google
 - Secrets are encrypted with AES-256-GCM; "Quiet" mode hides all amounts (Alt+Q)
-- Telegram and Discord notifications, PWA, open API and webhooks (Home Assistant, n8n)
+- Telegram and Discord notifications, open API and webhooks (Home Assistant, n8n)
 
 The interface is available in English and Russian, with 15 base currencies (EUR, USD, GBP, RUB, UAH, KZT and more).
 More details in the [documentation](docs-site/index.md) (currently in Russian).
@@ -93,9 +85,9 @@ With options (download `install.sh` and run it locally, or pass them after `bash
 
 ```bash
 # Public server: HTTPS via Let's Encrypt
-sudo bash install.sh --domain example.com --sandbox-domain usercontent.example.com --email admin@example.com
+sudo bash install.sh --domain example.com --email admin@example.com
 
-# Home network: plain HTTP, sandbox on port 8080
+# Home network: plain HTTP
 sudo bash install.sh --http --host 192.168.1.50
 ```
 
@@ -169,7 +161,7 @@ packages/
   shared/     Zod schemas, mood scale, money formatting
 docker-compose.yml       postgres, valkey, api, web, caddy, backup
 docker-compose.dev.yml   dev override: postgres and valkey ports on the host
-Caddyfile                routing + sandbox for user HTML (HTTPS)
+Caddyfile                routing (HTTPS)
 Caddyfile.http           the same for plain HTTP on a LAN
 docs-site/               documentation (VitePress)
 docs/                    plan, phase notes, "soft wellbeing" redesign
@@ -186,4 +178,4 @@ Please report vulnerabilities privately, see [`SECURITY.md`](SECURITY.md).
 ## License
 
 **AGPL-3.0-or-later**, see [`LICENSE`](LICENSE). If you run a modified version as a public service, you must
-publish your changes. User content (HTML pages, texts) is not covered by the code license.
+publish your changes. User content (texts, notes) is not covered by the code license.

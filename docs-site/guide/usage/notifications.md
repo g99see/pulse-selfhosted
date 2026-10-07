@@ -9,11 +9,12 @@ Discord**. Браузер ничего не запрашивает: разреш
 
 | Канал | Что нужно | Как привязать |
 | --- | --- | --- |
-| Telegram | `TELEGRAM_BOT_TOKEN` | **Настройки → Уведомления → Telegram → «Привязать»**, код отправить боту: `/start КОД` |
-| Discord | `DISCORD_BOT_TOKEN`, `DISCORD_APPLICATION_ID` | **Настройки → Уведомления → Discord → «Привязать»**, код отправить боту в личные сообщения: `/link КОД` (или команда `/link` с полем `code`) |
+| Telegram | `TELEGRAM_BOT_TOKEN` | **Настройки → Уведомления → Telegram → «Подключить»** — откроется бот, нажмите Start; код вводить не нужно |
+| Discord | `DISCORD_BOT_TOKEN`, `DISCORD_APPLICATION_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_OAUTH_REDIRECT_URI` | **Настройки → Уведомления → Discord → «Подключить»** — подтвердите доступ в окне Discord |
 
 Каждый канал настраивается отдельно: включён ли он, расписание чек-инов, время итога дня, тихие
-часы, часовой пояс (по умолчанию — из профиля) и переключатели по типам. Пошаговое создание ботов —
+часы, часовой пояс (по умолчанию — из профиля) и переключатели по типам. Привязка выполняется
+одной кнопкой без ручного ввода кода, а экран обновляется сам. Пошаговое создание ботов —
 в [быстром старте](/guide/quick-start). Telegram-бот описан в разделе [Telegram-бот](./telegram).
 
 ## Типы уведомлений
@@ -90,8 +91,8 @@ Discord**. Браузер ничего не запрашивает: разреш
 | PUT | `/api/notifications/channels/:channel` | Частичное обновление (`telegram` или `discord`) |
 | GET | `/api/notifications/deliveries` | Последние 20 доставок |
 | GET | `/api/admin/notifications/metrics` | Счётчики outbox по статусам (только admin) |
-| GET / POST / DELETE | `/api/discord/status`, `/link-code`, `/link` | Привязка Discord |
-| GET / POST / DELETE | `/api/telegram/status`, `/link-code`, `/link` | Привязка Telegram |
+| GET / POST / DELETE | `/api/discord/status`, `/connect`, `/link` (+ GET `/callback`) | Привязка Discord одной кнопкой |
+| GET / POST / DELETE | `/api/telegram/status`, `/connect`, `/link` | Привязка Telegram одной кнопкой |
 
 ## Планировщик
 
@@ -101,12 +102,6 @@ Discord**. Браузер ничего не запрашивает: разреш
 - В продакшене тик идёт через **BullMQ** на Valkey; если `REDIS_URL` не задан или Valkey
   недоступен — таймер в процессе (API не падает).
 - `NOTIFICATIONS_SCHEDULER=off` выключает планировщик и воркер.
-
-## PWA
-
-Установка приложения и офлайн-страница работают через Serwist: service worker кеширует статику и
-отдаёт офлайн-страницу. Push-обработчиков в нём нет, а разрешение на уведомления браузер не
-запрашивает.
 
 ## См. также
 

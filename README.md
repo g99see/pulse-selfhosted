@@ -5,7 +5,7 @@
 **Русский** · [English](README.en.md)
 
 **Self-hosted трекер личных финансов, самочувствия и достижений.**  
-Деньги, настроение, привычки и цели — в одной спокойной ленте. Ваши данные остаются на вашем сервере.
+Деньги, настроение, привычки и цели — в одном спокойном месте. Ваши данные остаются на вашем сервере.
 
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![CI](https://github.com/g99see/pulse-selfhosted/actions/workflows/ci.yml/badge.svg)](https://github.com/g99see/pulse-selfhosted/actions/workflows/ci.yml)
@@ -48,15 +48,7 @@
 **Цели и достижения**
 
 - Цели накоплений с прогнозом, вехами и напоминаниями о взносах
-- Достижения и серии, челленджи с друзьями, капсула времени
-- Виджет публичной цели для встраивания через iframe
-
-**Сообщество**
-
-- Публичный профиль `/@nickname`, лента, подписки, реакции, комментарии
-- Своя HTML-страница в профиле — в изолированной песочнице на отдельном домене
-- Семейный режим: общие счета и цели, у каждого — приватный дневник
-- Модерация и роли
+- Достижения и серии, капсула времени
 
 **AI-помощник по своему ключу**
 
@@ -66,9 +58,9 @@
 **Приватность и безопасность**
 
 - Self-hosted, открытый код AGPL, без обязательных облачных сервисов
-- Cookie-сессии, CSRF, Argon2, 2FA (TOTP), вход через Google и Telegram
+- Cookie-сессии, CSRF, Argon2, вход по логину или почте и через Google
 - Секреты шифруются AES-256-GCM; режим «Тишина» скрывает суммы (Alt+Q)
-- Telegram- и Discord-уведомления, PWA, открытый API и вебхуки (Home Assistant, n8n)
+- Telegram- и Discord-уведомления, открытый API и вебхуки (Home Assistant, n8n)
 
 Подробный список — в [документации](docs-site/index.md).
 
@@ -92,9 +84,9 @@ curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scri
 
 ```bash
 # Публичный сервер: HTTPS через Let's Encrypt
-sudo bash install.sh --domain example.com --sandbox-domain usercontent.example.com --email admin@example.com
+sudo bash install.sh --domain example.com --email admin@example.com
 
-# Домашняя сеть: обычный HTTP, песочница на порту 8080
+# Домашняя сеть: обычный HTTP
 sudo bash install.sh --http --host 192.168.1.50
 ```
 
@@ -168,7 +160,7 @@ packages/
   shared/     Zod-схемы, шкала настроения, форматирование денег
 docker-compose.yml       postgres, valkey, api, web, caddy, backup
 docker-compose.dev.yml   dev-оверрайд: порты postgres и valkey на хост
-Caddyfile                маршрутизация + песочница пользовательского HTML
+Caddyfile                маршрутизация
 docs-site/               документация (VitePress)
 docs/                    план, описания фаз, редизайн «soft wellbeing»
 scripts/                 install, upgrade, backup, restore, demo
@@ -190,4 +182,4 @@ deploy/systemd/          пользовательские systemd-юниты
 ## Лицензия
 
 **AGPL-3.0-or-later** — см. [`LICENSE`](LICENSE). Если вы запускаете изменённую версию как публичный сервис,
-вы обязаны открыть свои изменения. Пользовательский контент (HTML-страницы, тексты) лицензией кода не покрывается.
+вы обязаны открыть свои изменения. Пользовательский контент (тексты, заметки) лицензией кода не покрывается.

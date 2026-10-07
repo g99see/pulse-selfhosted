@@ -26,15 +26,15 @@ describe('команды чек-ина (ТЗ v2 §4)', () => {
 });
 
 describe('parseCommand', () => {
-  it('разбирает /start с кодом привязки и без него', () => {
-    expect(parseCommand('/start')).toEqual({ kind: 'start', code: null });
-    expect(parseCommand('/start ABC123')).toEqual({ kind: 'start', code: 'ABC123' });
-    expect(parseCommand('  /start   abc-123  ')).toEqual({ kind: 'start', code: 'abc-123' });
+  it('разбирает /start с токеном привязки и без него', () => {
+    expect(parseCommand('/start')).toEqual({ kind: 'start', token: null });
+    expect(parseCommand('/start ABC12345')).toEqual({ kind: 'start', token: 'ABC12345' });
+    expect(parseCommand('  /start   abc-12345  ')).toEqual({ kind: 'start', token: 'abc-12345' });
   });
 
-  it('отбрасывает некорректный код привязки', () => {
-    expect(parseCommand('/start !!!!')).toEqual({ kind: 'start', code: null });
-    expect(parseCommand('/start a'.repeat(1))).toEqual({ kind: 'start', code: null });
+  it('отбрасывает некорректный токен привязки', () => {
+    expect(parseCommand('/start !!!!')).toEqual({ kind: 'start', token: null });
+    expect(parseCommand('/start a')).toEqual({ kind: 'start', token: null });
   });
 
   it('понимает команды с упоминанием бота', () => {

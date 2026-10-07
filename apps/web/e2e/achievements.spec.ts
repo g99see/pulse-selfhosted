@@ -44,10 +44,11 @@ async function signUpAndOnboard(
 
   await page.goto('/register');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Повторите пароль').fill(PASSWORD);
   await page.getByLabel('Никнейм').fill(nickname);
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL(/verify-email/);
+  await expect(page).toHaveURL(/onboarding/, { timeout: 20_000 });
 
   const token = await verificationTokenFor(request, email);
   await page.goto(`/verify-email?token=${token}`);
@@ -71,9 +72,9 @@ test('стрик на карточке и достижения: бейджи, с
   await page.goto('/achievements');
   await expect(page.getByTestId('achievements-page')).toBeVisible();
   await expect(page.getByTestId('achievements-streak')).toBeVisible();
-  await expect(page.getByTestId('achievements-group-checkins')).toBeVisible();
+  await expect(page.getByTestId('achievements-group-checkin')).toBeVisible();
   await expect(page.getByTestId('achievements-group-finance')).toBeVisible();
-  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute(
+  await expect(page.getByTestId('achievement-checkin_total')).toHaveAttribute(
     'data-earned',
     'false',
   );
@@ -87,9 +88,9 @@ test('стрик на карточке и достижения: бейджи, с
 
   // На экране достижений первый бейдж теперь получен.
   await page.goto('/achievements');
-  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute(
+  await expect(page.getByTestId('achievement-checkin_total')).toHaveAttribute(
     'data-earned',
     'true',
   );
-  await expect(page.getByTestId('achievement-first_checkin')).toContainText('Получено');
+  await expect(page.getByTestId('achievement-checkin_total')).toContainText('Получено');
 });

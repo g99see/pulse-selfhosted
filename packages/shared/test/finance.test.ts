@@ -6,13 +6,13 @@ import {
   AccountCreateSchema,
   BudgetUpsertSchema,
   CategoryCreateSchema,
-  SYSTEM_CATEGORIES,
   TransactionCreateSchema,
   TransferCreateSchema,
   budgetLevel,
   guessCategoryName,
   monthKey,
 } from '../src/finance';
+import { SYSTEM_CATEGORIES } from '../src/categories';
 
 describe('SYSTEM_CATEGORIES', () => {
   it('содержит базовые категории расходов и доходов', () => {

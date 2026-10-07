@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { SecretBoxService } from './secret-box';
 
-/** AES-256-GCM «сейф» секретов (ТЗ §6): TOTP, позже — AI-ключи и токены. */
+/** AES-256-GCM «сейф» секретов (ТЗ §6): AI-ключи и токены. */
 @Module({
   providers: [SecretBoxService],
   exports: [SecretBoxService],

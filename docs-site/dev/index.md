@@ -76,20 +76,19 @@ puls/
 ├── scripts/                      backup.sh, restore.sh, upgrade.sh, check-licenses.mjs
 ├── docker-compose.yml            postgres, valkey, api, web, backup, caddy
 ├── docker-compose.dev.yml        dev: порты 5432/6379 на хост
-├── Caddyfile                     маршрутизация + песочница
+├── Caddyfile                     маршрутизация
 ├── .env.example                  все переменные окружения
 └── .github/workflows/ci.yml
 ```
 
 `apps/api/src` — по Nest-модулю на область (`*.module.ts`, `*.controller.ts`,
 `*.service.ts`): `auth`, `account`, `finance`, `checkins`, `stats`, `insights`,
-`achievements`, `goals`, `notifications`, `telegram`, `profile`, `social`,
-`html-page`, `moderation`, `share`, `crypto`, `common`, `prisma`, `health`,
+`achievements`, `goals`, `notifications`, `telegram`, `crypto`, `common`, `prisma`, `health`,
 `setup`.
 
 `apps/web/src` — защищённые экраны в `app/(app)/…`, публичные маршруты в
-`app/login|register|verify-email|onboarding|setup|offline`, публичный профиль в
-`app/u/[nickname]`. Все тексты интерфейса — в `lib/i18n.ts` (ru/en).
+`app/login|register|verify-email|onboarding|setup`, приватная ссылка «Итог дня» в
+`app/d/[token]`. Все тексты интерфейса — в `lib/i18n.ts` (ru/en).
 
 ## См. также
 

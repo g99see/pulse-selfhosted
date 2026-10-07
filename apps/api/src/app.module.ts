@@ -8,24 +8,17 @@ import { ApiAccessModule } from './api-access/api-access.module';
 import { AuthModule } from './auth/auth.module';
 import { ExternalAuthModule } from './auth/external/external-auth.module';
 import { CapsulesModule } from './capsules/capsules.module';
-import { ChallengesModule } from './challenges/challenges.module';
 import { CheckinsModule } from './checkins/checkins.module';
-import { FamilyModule } from './family/family.module';
 import { FinanceModule } from './finance/finance.module';
 import { GoalsModule } from './goals/goals.module';
 import { HabitsModule } from './habits/habits.module';
 import { HealthModule } from './health/health.module';
-import { HtmlPageModule } from './html-page/html-page.module';
 import { InsightsModule } from './insights/insights.module';
-import { ModerationModule } from './moderation/moderation.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { ProfileModule } from './profile/profile.module';
 import { RecurringModule } from './finance/recurring.module';
 import { SetupModule } from './setup/setup.module';
-import { ShareModule } from './share/share.module';
-import { SocialModule } from './social/social.module';
 import { StatsModule } from './stats/stats.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { WrappedModule } from './wrapped/wrapped.module';
@@ -43,10 +36,8 @@ import { WidgetsModule } from './widgets/widgets.module';
     RecurringModule,
     GoalsModule,
     HabitsModule,
-    ChallengesModule,
     CheckinsModule,
     CapsulesModule,
-    FamilyModule,
     NotificationsModule,
     StatsModule,
     AccountModule,
@@ -54,11 +45,6 @@ import { WidgetsModule } from './widgets/widgets.module';
     TelegramModule,
     SetupModule,
     InsightsModule,
-    ProfileModule,
-    ModerationModule,
-    ShareModule,
-    HtmlPageModule,
-    SocialModule,
     ApiAccessModule,
     WidgetsModule,
     ObservabilityModule,

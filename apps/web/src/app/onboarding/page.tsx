@@ -10,7 +10,6 @@ import {
   type GoalKind,
   type Locale,
   type OnboardingInputValues,
-  type ProfileVisibility,
 } from '@puls/shared';
 import { AuthShell } from '@/components/auth-shell';
 import { type IconName } from '@/components/icons';
@@ -31,7 +30,6 @@ import { LOCALE_NAMES } from '@/lib/locale';
 
 const TOTAL_STEPS = 4;
 const GOALS: GoalKind[] = ['money', 'health', 'habits'];
-const VISIBILITIES: ProfileVisibility[] = ['private', 'subscribers', 'public'];
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const LOCALES: Locale[] = ['ru', 'en'];
 const STEP_ICONS: IconName[] = ['wallet', 'sparkle', 'target', 'home'];
@@ -74,7 +72,6 @@ export default function OnboardingPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [quietHoursStart, setQuietHoursStart] = useState(22);
   const [quietHoursEnd, setQuietHoursEnd] = useState(8);
-  const [profileVisibility, setProfileVisibility] = useState<ProfileVisibility>('private');
   const [accountName, setAccountName] = useState(() => t('auth.onboarding.accountNameDefault'));
   const [accountType, setAccountType] = useState<AccountType>('card');
   const [balance, setBalance] = useState('0');
@@ -125,7 +122,6 @@ export default function OnboardingPage() {
       notificationsEnabled,
       quietHoursStart,
       quietHoursEnd,
-      profileVisibility,
       ...(accountName.trim().length > 0
         ? {
             firstAccount: {
@@ -268,21 +264,6 @@ export default function OnboardingPage() {
                 ))}
               </Select>
             </div>
-
-            <Select
-              id="visibility"
-              label={t('auth.onboarding.visibility')}
-              value={profileVisibility}
-              onChange={(event) => setProfileVisibility(event.target.value as ProfileVisibility)}
-            >
-              {VISIBILITIES.map((visibility) => (
-                <option key={visibility} value={visibility}>
-                  {t(
-                    `auth.onboarding.visibility${visibility[0].toUpperCase()}${visibility.slice(1)}`,
-                  )}
-                </option>
-              ))}
-            </Select>
           </div>
         ) : null}
 

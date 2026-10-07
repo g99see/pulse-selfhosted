@@ -57,12 +57,15 @@ export class TelegramController {
     return this.telegram.status(req.user!.id);
   }
 
-  /** POST /api/telegram/link-code — одноразовый код привязки (TTL 10 минут). */
-  @Post('link-code')
+  /**
+   * POST /api/telegram/connect — одноразовая ссылка-подключение бота (ТЗ §6):
+   * deep-link на общего бота Pulse, TTL 10 минут, в БД только хеш токена.
+   */
+  @Post('connect')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(SessionGuard)
-  linkCode(@Req() req: AuthenticatedRequest) {
-    return this.telegram.createLinkCode(req.user!.id);
+  connect(@Req() req: AuthenticatedRequest) {
+    return this.telegram.connectLink(req.user!.id);
   }
 
   /** DELETE /api/telegram/link — отвязать чат. */

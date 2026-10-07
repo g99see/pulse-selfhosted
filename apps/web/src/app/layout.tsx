@@ -90,8 +90,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('meta.title', locale),
     description: t('meta.description', locale),
     applicationName: t('meta.applicationName', locale),
-    manifest: '/manifest.webmanifest',
-    // Иконки PWA (ТЗ §7): SVG + PNG 192/512, отдельно apple-touch-icon 180.
+    // Иконки и favicon: SVG + PNG 192/512, отдельно apple-touch-icon 180.
     icons: {
       icon: [
         { url: '/icons/icon.svg', type: 'image/svg+xml' },
@@ -100,14 +99,6 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
       apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
     },
-    // iOS 16.4+ умеет устанавливать PWA: нужны явные apple-метатеги.
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: 'default',
-      title: t('meta.applicationName', locale),
-    },
-    // Next отдаёт только `mobile-web-app-capable`, а Safari ждёт apple-вариант.
-    other: { 'apple-mobile-web-app-capable': 'yes' },
     formatDetection: { telephone: false },
   };
 }

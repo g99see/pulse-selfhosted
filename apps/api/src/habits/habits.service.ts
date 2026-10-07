@@ -20,6 +20,7 @@ import {
   type HabitUpdateInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 
 /** Календарная дата YYYY-MM-DD без времени. */
@@ -105,6 +106,7 @@ export class HabitsService {
         perWeek: input.cadence === 'daily' ? 1 : input.perWeek,
       },
     });
+    InternalEvents.emit('achievement.check', { userId, event: 'habit' });
     return toHabitDto(habit);
   }
 
@@ -159,6 +161,7 @@ export class HabitsService {
       update: { done: input.done },
     });
 
+    InternalEvents.emit('achievement.check', { userId, event: 'habit' });
     const stats = await this.statsFor(habit, todayKey);
     return {
       habit: toHabitDto(habit),

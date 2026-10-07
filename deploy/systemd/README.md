@@ -53,7 +53,6 @@ REDIS_URL=redis://ХОСТ:6379
 API_PORT=3001
 NEXT_PUBLIC_API_URL=http://localhost:3001
 API_INTERNAL_URL=http://localhost:3001
-NEXT_PUBLIC_SANDBOX_URL=http://localhost:3001
 CORS_ORIGIN=http://localhost:3000
 ```
 

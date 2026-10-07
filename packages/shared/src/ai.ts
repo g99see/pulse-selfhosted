@@ -6,7 +6,6 @@
  * в месяц) и личный ключ пользователя (приоритетнее).
  */
 import { z } from 'zod';
-import { GoalVisibilitySchema } from './goals';
 import { NotificationTypeSchema } from './notifications';
 
 export const AI_PROVIDERS = [
@@ -283,7 +282,6 @@ export const AiGoalProposalPayloadSchema = z.object({
     .trim()
     .refine((value) => !Number.isNaN(Date.parse(value)), { message: 'Некорректная дата' })
     .optional(),
-  visibility: GoalVisibilitySchema.optional(),
 });
 export type AiGoalProposalPayload = z.infer<typeof AiGoalProposalPayloadSchema>;
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Интеграционные тесты стриков и достижений (ТЗ §2, §4, P1) против реального
+// Интеграционные тесты стриков и достижений (ТЗ v2 §4) против реального
 // PostgreSQL. Запуск: pnpm --filter @puls/api test
 import { Prisma } from '@prisma/client';
 import type { INestApplication } from '@nestjs/common';
@@ -14,12 +14,26 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { TestClient } from './client';
 
 const PASSWORD = 'Secret12345';
+/** Скрытое достижение каталога — для проверки маскировки в API. */
+const HIDDEN_CODE = 'midnight_checkin';
+
+interface AchievementTierStatus {
+  level: string;
+  threshold: number;
+  earnedAt: string | null;
+}
 
 interface AchievementStatus {
   code: string;
+  group: string;
+  hidden: boolean;
   earned: boolean;
   earnedAt: string | null;
+  level: string | null;
+  value: number;
+  nextThreshold: number | null;
   progress: number;
+  tiers: AchievementTierStatus[];
 }
 
 interface StreakDto {
@@ -31,7 +45,7 @@ interface StreakDto {
   nextMilestone: { code: string; threshold: number } | null;
 }
 
-/** Момент ровно n суток назад от текущего (границы дней в UTC). */
+/** Момент ровно n суток назад от текущего. */
 function daysAgo(n: number): Date {
   return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 }
@@ -117,11 +131,11 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
     return response.body.achievements;
   }
 
-  function earnedCode(statuses: AchievementStatus[], code: string): AchievementStatus | undefined {
+  function byCode(statuses: AchievementStatus[], code: string): AchievementStatus | undefined {
     return statuses.find((item) => item.code === code);
   }
 
-  describe('Каталог и авторизация (ТЗ §4, §6)', () => {
+  describe('Каталог и авторизация (ТЗ §4)', () => {
     it('без сессии — 401', async () => {
       const anon = new TestClient(server);
       await anon.csrf();
@@ -129,18 +143,34 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       expect((await anon.get('/api/achievements/streak')).status).toBe(401);
     });
 
-    it('отдаёт все бейджи каталога, ещё не полученные', async () => {
+    it('отдаёт весь каталог (не меньше 150) с уровнями, ещё не полученный', async () => {
       const client = await signUp('catalog@example.com', 'cataloguser');
       const response = await client.get('/api/achievements');
 
       expect(response.status).toBe(200);
       const statuses = codes(response);
-      expect(statuses.length).toBeGreaterThanOrEqual(9);
+      expect(statuses.length).toBeGreaterThanOrEqual(150);
       for (const status of statuses) {
         expect(status.earned).toBe(false);
         expect(status.earnedAt).toBeNull();
+        expect(status.level).toBeNull();
+        expect(status.tiers.length).toBeGreaterThanOrEqual(1);
       }
       expect(response.body.streak.current).toBe(0);
+    });
+
+    it('скрытое достижение маскируется, пока не получено', async () => {
+      const client = await signUp('hidden@example.com', 'hiddenuser');
+      const response = await client.get('/api/achievements');
+      const hidden = byCode(codes(response), HIDDEN_CODE);
+
+      expect(hidden?.hidden).toBe(true);
+      expect(hidden?.earned).toBe(false);
+      // Маскировка: ни значения, ни порогов, ни прогресса наружу не отдаём.
+      expect(hidden?.value).toBe(0);
+      expect(hidden?.nextThreshold).toBeNull();
+      expect(hidden?.progress).toBe(0);
+      for (const tier of hidden?.tiers ?? []) expect(tier.threshold).toBe(0);
     });
   });
 
@@ -183,7 +213,6 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       const client = await signUp('streak-tz@example.com', 'streaktz');
       const userId = await userIdOf('streak-tz@example.com');
       await prisma.user.update({ where: { id: userId }, data: { timezone: 'Asia/Tokyo' } });
-      // 22:30 UTC = уже следующие сутки в Токио (+09:00).
       const now = new Date();
       const tokyoNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
       await prisma.checkIn.create({ data: { userId, mood: 4, occurredAt: tokyoNow } });
@@ -194,52 +223,54 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
     });
   });
 
-  describe('Условия бейджей (ТЗ §4)', () => {
-    it('первый чек-ин выдаётся после записи чек-ина', async () => {
+  describe('Выдача по событиям (ТЗ §4)', () => {
+    it('первый чек-ин выдаёт бронзу checkin_total сразу после записи', async () => {
       const client = await signUp('first-checkin@example.com', 'firstcheckin');
       const userId = await userIdOf('first-checkin@example.com');
 
       const created = await client.post('/api/checkins', { mood: 4 });
       expect(created.status).toBe(201);
 
-      // Выдача происходит сразу после записи чек-ина (явный вызов из сервиса).
       const earned = await prisma.userAchievement.findUnique({
-        where: { userId_code: { userId, code: 'first_checkin' } },
+        where: { userId_code_level: { userId, code: 'checkin_total', level: 'bronze' } },
       });
       expect(earned).not.toBeNull();
 
       const response = await client.get('/api/achievements');
-      expect(earnedCode(codes(response), 'first_checkin')?.earned).toBe(true);
+      const badge = byCode(codes(response), 'checkin_total');
+      expect(badge?.earned).toBe(true);
+      expect(badge?.level).toBe('bronze');
     });
 
-    it('ленивая проверка при чтении выдаёт бейдж за 7 дней подряд', async () => {
+    it('ленивая проверка при чтении выдаёт бронзу за 7 дней подряд', async () => {
       const client = await signUp('week@example.com', 'weekuser');
       const userId = await userIdOf('week@example.com');
       for (let day = 0; day < 7; day += 1) await addCheckIn(userId, daysAgo(day));
 
       const response = await client.get('/api/achievements');
-      const badge = earnedCode(codes(response), 'checkin_streak_7');
+      const badge = byCode(codes(response), 'checkin_streak');
       expect(badge?.earned).toBe(true);
+      expect(badge?.level).toBe('bronze');
       expect(badge?.earnedAt).not.toBeNull();
-      expect(badge?.progress).toBe(1);
       expect(response.body.streak.current).toBe(7);
     });
 
-    it('до 100 дней бейджи за 30 и 100 не выдаются, прогресс растёт', async () => {
+    it('до 30 и 100 дней старшие уровни не выдаются, прогресс растёт', async () => {
       const client = await signUp('week2@example.com', 'weekuser2');
       const userId = await userIdOf('week2@example.com');
       for (let day = 0; day < 10; day += 1) await addCheckIn(userId, daysAgo(day));
 
       const statuses = codes(await client.get('/api/achievements'));
-      expect(earnedCode(statuses, 'checkin_streak_7')?.earned).toBe(true);
-      expect(earnedCode(statuses, 'checkin_streak_30')?.earned).toBe(false);
-      expect(earnedCode(statuses, 'checkin_streak_100')?.earned).toBe(false);
-      const progress = earnedCode(statuses, 'checkin_streak_30')?.progress ?? 0;
-      expect(progress).toBeGreaterThan(0);
-      expect(progress).toBeLessThan(1);
+      const badge = byCode(statuses, 'checkin_streak');
+      expect(badge?.level).toBe('bronze');
+      expect(badge?.tiers.find((t) => t.level === 'silver')?.earnedAt).toBeNull();
+      expect(badge?.tiers.find((t) => t.level === 'gold')?.earnedAt).toBeNull();
+      expect(badge?.nextThreshold).toBe(30);
+      expect(badge?.progress).toBeGreaterThan(0);
+      expect(badge?.progress).toBeLessThan(1);
     });
 
-    it('первая транзакция выдаёт бейдж', async () => {
+    it('первая операция выдаёт бронзу transactions_total', async () => {
       const client = await signUp('transaction@example.com', 'txuser');
       const userId = await userIdOf('transaction@example.com');
       const account = await prisma.account.create({
@@ -257,10 +288,10 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       });
 
       const statuses = codes(await client.get('/api/achievements'));
-      expect(earnedCode(statuses, 'first_transaction')?.earned).toBe(true);
+      expect(byCode(statuses, 'transactions_total')?.earned).toBe(true);
     });
 
-    it('первый закрытый месяц без превышения бюджета выдаёт бейдж', async () => {
+    it('первый закрытый месяц без превышения бюджета выдаёт budget_closed', async () => {
       const client = await signUp('budget@example.com', 'budgetuser');
       const userId = await userIdOf('budget@example.com');
       const { monthKey, midDay } = previousMonth();
@@ -291,10 +322,10 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       });
 
       const statuses = codes(await client.get('/api/achievements'));
-      expect(earnedCode(statuses, 'first_budget_closed')?.earned).toBe(true);
+      expect(byCode(statuses, 'budget_closed')?.earned).toBe(true);
     });
 
-    it('превышение бюджета в прошлом месяце не выдаёт бейдж', async () => {
+    it('превышение бюджета в прошлом месяце не выдаёт budget_closed', async () => {
       const client = await signUp('budget-over@example.com', 'budgetover');
       const userId = await userIdOf('budget-over@example.com');
       const { monthKey, midDay } = previousMonth();
@@ -325,31 +356,34 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       });
 
       const statuses = codes(await client.get('/api/achievements'));
-      expect(earnedCode(statuses, 'first_budget_closed')?.earned).toBe(false);
+      expect(byCode(statuses, 'budget_closed')?.earned).toBe(false);
     });
   });
 
-  describe('award: публичный метод для других модулей (цели, ТЗ §4)', () => {
-    it('вручает бейдж по коду и он виден при чтении', async () => {
+  describe('grant: идемпотентная выдача уровня (ТЗ §4)', () => {
+    it('выдаёт уровень по коду и он виден при чтении', async () => {
       const client = await signUp('goal@example.com', 'goaluser');
       const userId = await userIdOf('goal@example.com');
 
-      const awarded = await achievements.award(userId, 'goal_half');
-      expect(awarded).toBe(true);
+      expect(await achievements.grant(userId, 'checkin_total', 'gold')).toBe(true);
 
       const statuses = codes(await client.get('/api/achievements'));
-      expect(earnedCode(statuses, 'goal_half')?.earned).toBe(true);
+      const badge = byCode(statuses, 'checkin_total');
+      expect(badge?.earned).toBe(true);
+      expect(badge?.level).toBe('gold');
     });
 
-    it('идемпотентен: повторная выдача не создаёт дубликат', async () => {
+    it('идемпотентен: повторная выдача уровня не создаёт дубликат', async () => {
       await signUp('idem@example.com', 'idemuser');
       const userId = await userIdOf('idem@example.com');
 
-      expect(await achievements.award(userId, 'goal_complete')).toBe(true);
-      expect(await achievements.award(userId, 'goal_complete')).toBe(false);
-      expect(await prisma.userAchievement.count({ where: { userId, code: 'goal_complete' } })).toBe(
-        1,
-      );
+      expect(await achievements.grant(userId, 'goals_completed', 'bronze')).toBe(true);
+      expect(await achievements.grant(userId, 'goals_completed', 'bronze')).toBe(false);
+      expect(
+        await prisma.userAchievement.count({
+          where: { userId, code: 'goals_completed', level: 'bronze' },
+        }),
+      ).toBe(1);
     });
 
     it('гонка двух вызовов: ровно одна выдача, без ошибок', async () => {
@@ -357,20 +391,53 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       const userId = await userIdOf('race@example.com');
 
       const results = await Promise.all([
-        achievements.award(userId, 'first_goal'),
-        achievements.award(userId, 'first_goal'),
+        achievements.grant(userId, 'goals_created', 'bronze'),
+        achievements.grant(userId, 'goals_created', 'bronze'),
       ]);
       expect([...results].sort()).toEqual([false, true]);
-      expect(await prisma.userAchievement.count({ where: { userId, code: 'first_goal' } })).toBe(1);
+      expect(await prisma.userAchievement.count({ where: { userId, code: 'goals_created' } })).toBe(
+        1,
+      );
     });
 
-    it('неизвестный код отклоняется', async () => {
+    it('уникальность по (пользователь, код, уровень): разные уровни — разные строки', async () => {
+      await signUp('levels@example.com', 'levelsuser');
+      const userId = await userIdOf('levels@example.com');
+
+      expect(await achievements.grant(userId, 'checkin_streak', 'bronze')).toBe(true);
+      expect(await achievements.grant(userId, 'checkin_streak', 'silver')).toBe(true);
+      expect(await achievements.grant(userId, 'checkin_streak', 'silver')).toBe(false);
+      expect(
+        await prisma.userAchievement.count({ where: { userId, code: 'checkin_streak' } }),
+      ).toBe(2);
+    });
+
+    it('неизвестный код отклоняется без выдачи', async () => {
       await signUp('unknown@example.com', 'unknownuser');
       const userId = await userIdOf('unknown@example.com');
 
-      await expect(achievements.award(userId, 'does_not_exist' as never)).rejects.toMatchObject({
-        status: 400,
+      expect(await achievements.grant(userId, 'does_not_exist', 'bronze')).toBe(false);
+      expect(await prisma.userAchievement.count({ where: { userId } })).toBe(0);
+    });
+  });
+
+  describe('backfill: пересчёт существующих пользователей (ТЗ §4)', () => {
+    it('выдаёт заслуженные уровни всем без событий и без уведомлений', async () => {
+      await signUp('backfill@example.com', 'backfilluser');
+      const userId = await userIdOf('backfill@example.com');
+      for (let day = 0; day < 7; day += 1) await addCheckIn(userId, daysAgo(day));
+
+      // Данные есть, но без события/ленивого чтения достижения ещё не выданы.
+      expect(await prisma.userAchievement.count({ where: { userId } })).toBe(0);
+
+      const result = await achievements.backfillAll();
+      expect(result.users).toBeGreaterThanOrEqual(1);
+      expect(result.awarded).toBeGreaterThanOrEqual(1);
+
+      const stored = await prisma.userAchievement.findUnique({
+        where: { userId_code_level: { userId, code: 'checkin_streak', level: 'bronze' } },
       });
+      expect(stored).not.toBeNull();
     });
   });
 
@@ -380,12 +447,12 @@ describe('Achievements API (интеграция с PostgreSQL)', () => {
       const bob = await signUp('bob-ach@example.com', 'bobach');
       const aliceId = await userIdOf('alice-ach@example.com');
 
-      await achievements.award(aliceId, 'goal_complete');
+      await achievements.grant(aliceId, 'goals_completed', 'gold');
 
-      expect(earnedCode(codes(await alice.get('/api/achievements')), 'goal_complete')?.earned).toBe(
+      expect(byCode(codes(await alice.get('/api/achievements')), 'goals_completed')?.earned).toBe(
         true,
       );
-      expect(earnedCode(codes(await bob.get('/api/achievements')), 'goal_complete')?.earned).toBe(
+      expect(byCode(codes(await bob.get('/api/achievements')), 'goals_completed')?.earned).toBe(
         false,
       );
     });
