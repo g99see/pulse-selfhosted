@@ -16,11 +16,16 @@ import type {
   ExchangeRateCreateValues,
   ExchangeRateDto,
   FinanceOverviewResponse,
+  MerchantEntryWithSource,
   ReconciliationResponse,
   TransactionCreateValues,
   TransactionDto,
   TransactionKind,
   TransferCreateInput,
+  UnmatchedTransactionDto,
+  UserStoreCreateValues,
+  UserStoreDto,
+  UserStoreUpdateInput,
 } from '@puls/shared';
 import { authFetch } from './auth-client';
 
@@ -70,6 +75,39 @@ export const financeApi = {
 
   removeCategory: (id: string) =>
     authFetch<void>(`/api/finance/categories/${id}`, { method: 'DELETE' }),
+
+  mergeCategory: (id: string, targetId: string) =>
+    authFetch<CategoryDto>(`/api/finance/categories/${id}/merge`, {
+      method: 'POST',
+      body: JSON.stringify({ targetId }),
+    }),
+
+  /* ----- Магазины: общая база и личные (ТЗ v2 §9) ----- */
+
+  searchMerchants: (q: string) =>
+    authFetch<{ merchants: MerchantEntryWithSource[] }>(`/api/finance/merchants${query({ q })}`),
+
+  listStores: () => authFetch<{ stores: UserStoreDto[] }>('/api/finance/stores'),
+
+  createStore: (input: UserStoreCreateValues) =>
+    authFetch<{ store: UserStoreDto; applied: number }>('/api/finance/stores', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  updateStore: (id: string, input: UserStoreUpdateInput) =>
+    authFetch<UserStoreDto>(`/api/finance/stores/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
+
+  removeStore: (id: string) => authFetch<void>(`/api/finance/stores/${id}`, { method: 'DELETE' }),
+
+  /** Очередь «Требует внимания»: операции без категории. */
+  unmatched: (limit = 50) =>
+    authFetch<{ transactions: UnmatchedTransactionDto[]; count: number }>(
+      `/api/finance/unmatched${query({ limit })}`,
+    ),
 
   accounts: () => authFetch<AccountsResponse>('/api/finance/accounts'),
 

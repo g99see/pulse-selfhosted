@@ -20,6 +20,9 @@ import {
   BudgetUpsertSchema,
   CategoryCreateSchema,
   CategoryUpdateSchema,
+  MergeCategorySchema,
+  UserStoreCreateSchema,
+  UserStoreUpdateSchema,
   ExchangeRateCreateSchema,
   ExchangeRateFilterSchema,
   ImportCommitRequestSchema,
@@ -35,6 +38,9 @@ import {
   type BudgetUpsertInput,
   type CategoryCreateInput,
   type CategoryUpdateInput,
+  type MergeCategoryInput,
+  type UserStoreCreateInput,
+  type UserStoreUpdateInput,
   type ExchangeRateCreateInput,
   type ImportCommitRequest,
   type ImportPreviewRequest,
@@ -50,6 +56,7 @@ import { BudgetsService } from './budgets.service';
 import { CategoriesService } from './categories.service';
 import { ExchangeRatesService } from './rates.service';
 import { ImportService } from './import.service';
+import { MerchantsService } from './merchants.service';
 import { ReconciliationService } from './reconciliation.service';
 import { TransactionsService } from './transactions.service';
 
@@ -64,6 +71,7 @@ export class FinanceController {
     private readonly budgets: BudgetsService,
     private readonly rates: ExchangeRatesService,
     private readonly imports: ImportService,
+    private readonly merchants: MerchantsService,
     private readonly reconciliation: ReconciliationService,
   ) {}
 
@@ -121,6 +129,74 @@ export class FinanceController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeCategory(@Param('id') id: string, @Req() req: AuthenticatedRequest): Promise<void> {
     await this.categories.remove(req.user!.id, id);
+  }
+
+  /** Объединение своих категорий (ТЗ v2 §8): история переносится на целевую. */
+  @Post('categories/:id/merge')
+  @HttpCode(HttpStatus.OK)
+  mergeCategory(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(MergeCategorySchema)) body: MergeCategoryInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.categories.merge(req.user!.id, id, body.targetId);
+  }
+
+  /* ----- Справочник магазинов и очередь «Требует внимания» (ТЗ v2 §9) ----- */
+
+  /** Поиск в общей базе магазинов (подсказки в «Добавить магазин»). */
+  @Get('merchants')
+  async searchMerchants(
+    @Req() req: AuthenticatedRequest,
+    @Query('q') query?: string,
+  ): Promise<{ merchants: unknown[] }> {
+    return { merchants: this.merchants.search(query ?? '', 30) };
+  }
+
+  /** Личные магазины пользователя. */
+  @Get('stores')
+  async listStores(@Req() req: AuthenticatedRequest) {
+    return { stores: await this.merchants.listOwn(req.user!.id) };
+  }
+
+  /** Добавить магазин; `applyToSimilar` проставляет категорию похожим операциям. */
+  @Post('stores')
+  @HttpCode(HttpStatus.CREATED)
+  createStore(
+    @Body(new ZodValidationPipe(UserStoreCreateSchema)) body: UserStoreCreateInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.merchants.createOwn(req.user!.id, body);
+  }
+
+  @Put('stores/:id')
+  updateStore(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UserStoreUpdateSchema)) body: UserStoreUpdateInput,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.merchants.updateOwn(req.user!.id, id, body);
+  }
+
+  @Delete('stores/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeStore(@Param('id') id: string, @Req() req: AuthenticatedRequest): Promise<void> {
+    await this.merchants.removeOwn(req.user!.id, id);
+  }
+
+  /** Очередь «Требует внимания»: операции без категории (ТЗ v2 §9). */
+  @Get('unmatched')
+  async unmatched(
+    @Req() req: AuthenticatedRequest,
+    @Query('limit') limit?: string,
+  ): Promise<{ transactions: unknown[]; count: number }> {
+    const parsed = Number(limit);
+    const take = Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 200) : 50;
+    const [transactions, count] = await Promise.all([
+      this.merchants.unmatched(req.user!.id, take),
+      this.merchants.unmatchedCount(req.user!.id),
+    ]);
+    return { transactions, count };
   }
 
   /* ----- Счета ----- */

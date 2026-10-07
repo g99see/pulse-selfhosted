@@ -32,6 +32,13 @@ export type ImportColumnMapping = Partial<Record<ImportColumn, number>>;
 
 export type ImportRowType = 'expense' | 'income';
 
+/** Результат распознавания магазина для строки выписки (ТЗ v2 §9). */
+export interface ImportRecognition {
+  categoryId: string | null;
+  categoryName: string | null;
+  merchantName: string | null;
+}
+
 export interface ImportPreviewRow {
   /** Номер строки в файле (1-based, включая заголовок). */
   rowNumber: number;
@@ -41,6 +48,10 @@ export interface ImportPreviewRow {
   type: ImportRowType | null;
   description: string;
   categoryName: string | null;
+  /** id распознанной категории (ТЗ v2 §9) либо null. */
+  categoryId: string | null;
+  /** Название распознанного магазина либо null. */
+  merchantName: string | null;
   duplicate: boolean;
   /** Время операции «HH:MM» (колонка времени или время внутри даты), если есть. */
   time: string | null;
@@ -462,6 +473,11 @@ export interface BuildImportPreviewOptions {
   existingKeys?: ReadonlySet<string> | ReadonlyMap<string, number>;
   /** ID банка уже импортированных операций: строка с таким ID — дубль независимо от остальных полей. */
   existingExternalIds?: ReadonlySet<string>;
+  /**
+   * Распознавание магазина по описанию (ТЗ v2 §9). Если задано, категория и
+   * магазин берутся отсюда; иначе — устаревший подбор по ключевым словам.
+   */
+  recognize?: (description: string, kind: ImportRowType | null) => ImportRecognition | null;
 }
 
 function existingCount(
@@ -520,6 +536,10 @@ export function buildImportPreview(
     if (explicitType && amount !== null) type = explicitType;
 
     const description = cell(row, mapping.description).slice(0, 500);
+    const recognition =
+      description && options.recognize ? options.recognize(description, type) : null;
+    const legacyCategoryName =
+      options.recognize !== undefined ? null : description ? guessCategoryName(description) : null;
     const time =
       (mapping.time !== undefined ? parseImportTime(cell(row, mapping.time)) : null) ??
       (mapping.date !== undefined ? timeInsideDate(cell(row, mapping.date)) : null);
@@ -547,7 +567,9 @@ export function buildImportPreview(
       amount,
       type,
       description,
-      categoryName: description ? guessCategoryName(description) : null,
+      categoryName: recognition ? recognition.categoryName : legacyCategoryName,
+      categoryId: recognition?.categoryId ?? null,
+      merchantName: recognition?.merchantName ?? null,
       duplicate,
       time,
       balance,
