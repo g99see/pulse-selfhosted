@@ -13,6 +13,12 @@ export interface OutgoingMessage {
   buttons?: InlineButton[][];
 }
 
+/** Идентификация общего бота Pulse из Telegram (getMe) для deep-link. */
+export interface TelegramBotInfo {
+  id: string | null;
+  username: string | null;
+}
+
 export interface TelegramApi {
   /** Отправляет сообщение в чат; кнопки — inline-клавиатура. */
   sendMessage(message: OutgoingMessage): Promise<void>;
@@ -22,6 +28,8 @@ export interface TelegramApi {
   setCommands(commands: { command: string; description: string }[]): Promise<void>;
   /** Забирает апдейты (режим long polling для разработки). */
   getUpdates(offset: number, timeoutSeconds: number): Promise<unknown[]>;
+  /** getMe: имя общего бота для сборки deep-link (ТЗ §6). */
+  getMe(): Promise<TelegramBotInfo>;
 }
 
 /** Заглушка, когда бот выключен: ничего не делает и не падает. */
@@ -40,6 +48,10 @@ export class NullTelegramApi implements TelegramApi {
 
   async getUpdates(): Promise<unknown[]> {
     return [];
+  }
+
+  async getMe(): Promise<TelegramBotInfo> {
+    return { id: null, username: null };
   }
 }
 
@@ -77,6 +89,11 @@ export class GrammyTelegramApi implements TelegramApi {
       timeout: timeoutSeconds,
       allowed_updates: ['message', 'callback_query'],
     })) as unknown[];
+  }
+
+  async getMe(): Promise<TelegramBotInfo> {
+    const me = await this.bot.api.getMe();
+    return { id: String(me.id), username: me.username ?? null };
   }
 }
 

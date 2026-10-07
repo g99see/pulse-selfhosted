@@ -63,6 +63,9 @@ services:
       # Discord-бот: токен и ID приложения из Discord Developer Portal.
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
       DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:-}
+      # Привязка одним нажатием (ТЗ §6): client_secret и публичный redirect URI.
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_OAUTH_REDIRECT_URI: ${DISCORD_OAUTH_REDIRECT_URI:-}
       RATES_PROVIDER: ${RATES_PROVIDER:-}
       APP_VERSION: ${APP_VERSION:-0.3.0}
       DOMAIN: ${DOMAIN:-localhost}

@@ -12,10 +12,11 @@ import {
   parseQuickTransaction,
   type Mood,
 } from '@puls/shared';
+import { LINK_TOKEN_PATTERN } from './link-token';
 
 /** Намерение пользователя по тексту сообщения. */
 export type TelegramCommand =
-  | { kind: 'start'; code: string | null }
+  | { kind: 'start'; token: string | null }
   | { kind: 'checkin' }
   /** `/checkin 4 энергия 3 …` — быстрая форма одной строкой. */
   | { kind: 'checkin-line'; text: string }
@@ -43,9 +44,6 @@ export interface InlineButton {
   text: string;
   callbackData: string;
 }
-
-/** Символы одноразового кода привязки: латиница, цифры, дефис и подчёркивание. */
-export const LINK_CODE_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
 
 /**
  * Аргументы `/spent`: «12 кофе», «12.5 такси» или «кофе 12» → «кофе 12».
@@ -88,7 +86,7 @@ export function parseCommand(raw: string): TelegramCommand {
         const candidate = rest[0];
         return {
           kind: 'start',
-          code: candidate && LINK_CODE_PATTERN.test(candidate) ? candidate : null,
+          token: candidate && LINK_TOKEN_PATTERN.test(candidate) ? candidate : null,
         };
       }
       case 'checkin': {
