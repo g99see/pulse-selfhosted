@@ -157,17 +157,17 @@ describe('Share card API (интеграция с PostgreSQL)', () => {
 
     it('карточка достижения отдаётся только за полученный бейдж', async () => {
       const client = await signUp('share-badge@example.com', 'sharebadge');
-      const notEarned = await getSvg(client, '/api/share/card?type=achievement&id=goal_half');
+      const notEarned = await getSvg(client, '/api/share/card?type=achievement&id=goal_progress');
       expect(notEarned.status).toBe(404);
 
       const user = await prisma.user.findUniqueOrThrow({
         where: { email: 'share-badge@example.com' },
       });
-      await prisma.userAchievement.create({ data: { userId: user.id, code: 'goal_half' } });
+      await prisma.userAchievement.create({ data: { userId: user.id, code: 'goal_progress' } });
 
-      const earned = await getSvg(client, '/api/share/card?type=achievement&id=goal_half');
+      const earned = await getSvg(client, '/api/share/card?type=achievement&id=goal_progress');
       expect(earned.status).toBe(200);
-      expect(earned.svg).toContain('Половина пути');
+      expect(earned.svg).toContain('Путь к цели');
     });
 
     it('карточка среднего настроения формируется без данных', async () => {

@@ -16,8 +16,8 @@ import {
 } from '../src/achievement-catalog';
 
 describe('каталог достижений', () => {
-  it('не меньше 60 достижений, у многих три уровня', () => {
-    expect(ACHIEVEMENT_CATALOG.length).toBeGreaterThanOrEqual(60);
+  it('не меньше 150 достижений, у многих три уровня', () => {
+    expect(ACHIEVEMENT_CATALOG.length).toBeGreaterThanOrEqual(150);
     expect(ACHIEVEMENT_CATALOG.filter((a) => a.tiers.length === 3).length).toBeGreaterThan(30);
   });
 

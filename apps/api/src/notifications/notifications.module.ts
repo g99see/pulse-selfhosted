@@ -6,6 +6,7 @@ import { FinanceModule } from '../finance/finance.module';
 import { RolesGuard } from '../moderation/roles.guard';
 import { StatsModule } from '../stats/stats.module';
 import { TelegramModule } from '../telegram/telegram.module';
+import { AchievementAlerts } from './achievement-alerts';
 import { BudgetAlerts } from './budget-alerts';
 import { NotificationDispatcher } from './dispatcher';
 import { NotificationsAdminController, NotificationsController } from './notifications.controller';
@@ -25,6 +26,7 @@ import { NotificationsScheduler } from './scheduler';
     NotificationsScheduler,
     BudgetAlerts,
     ReconciliationAlerts,
+    AchievementAlerts,
     RolesGuard,
   ],
   exports: [NotificationsService, OutboxService, NotificationDispatcher, NotificationsScheduler],

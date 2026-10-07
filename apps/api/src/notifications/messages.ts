@@ -5,7 +5,9 @@
  * Для чек-инов в Telegram к сообщению добавляются кнопки 1–5 (kind = checkin).
  */
 import {
+  achievementTitle,
   budgetLevel,
+  type AchievementLevel,
   formatMoney,
   isCurrency,
   localParts,
@@ -240,4 +242,34 @@ export function buildReconciliationMismatch(info: ReconciliationMismatchInfo): N
     body: `Счёт «${info.accountName}»: расхождение ${info.difference}. Проверьте операции.`,
     url: '/app/finance',
   };
+}
+
+export interface AchievementEarnedInfo {
+  code: string;
+  level: AchievementLevel;
+  locale: 'ru' | 'en';
+}
+
+const LEVEL_LABELS: Record<'ru' | 'en', Record<AchievementLevel, string>> = {
+  ru: { bronze: 'бронза', silver: 'серебро', gold: 'золото' },
+  en: { bronze: 'bronze', silver: 'silver', gold: 'gold' },
+};
+
+/** Уведомление о полученном уровне достижения (v3 §4): только мессенджеры, без web push. */
+export function buildAchievementEarned(info: AchievementEarnedInfo): NotificationMessage {
+  const title = achievementTitle(info.code, info.locale);
+  const level = LEVEL_LABELS[info.locale][info.level];
+  return info.locale === 'en'
+    ? {
+        type: 'achievement',
+        title: 'New achievement',
+        body: `“${title}” — ${level}. Well done!`,
+        url: '/achievements',
+      }
+    : {
+        type: 'achievement',
+        title: 'Новое достижение',
+        body: `«${title}» — ${level}. Так держать!`,
+        url: '/achievements',
+      };
 }

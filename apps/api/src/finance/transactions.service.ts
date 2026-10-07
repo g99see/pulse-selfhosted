@@ -14,6 +14,7 @@ import {
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
 import { DomainEvents } from '../api-access/domain-events';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from './accounts.service';
 import { CategoriesService } from './categories.service';
@@ -170,6 +171,7 @@ export class TransactionsService {
     });
 
     const created = toTransactionDto(transaction, user.currency);
+    InternalEvents.emit('achievement.check', { userId, event: 'transaction' });
     // Событие для вебхуков (ТЗ §4): сигнатуру create не меняет.
     DomainEvents.emit('transaction.created', userId, {
       id: created.id,

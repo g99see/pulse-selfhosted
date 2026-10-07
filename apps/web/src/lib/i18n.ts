@@ -3,7 +3,7 @@
  * Все тексты интерфейса в одном месте (ТЗ §6: ru/en на старте, архитектура
  * i18n для добавления языков). Компоненты берут строки только отсюда.
  */
-import type { Locale } from '@puls/shared';
+import { achievementMessages, type Locale } from '@puls/shared';
 
 export const DEFAULT_LOCALE: Locale = 'ru';
 
@@ -1131,14 +1131,25 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'moderation.back': 'На главную',
 
     'achievements.title': 'Достижения',
-    'achievements.subtitle': 'Бейджи за серии чек-инов, первый бюджет и цели.',
+    'achievements.subtitle': 'Награды за чек-ины, финансы, привычки и особые события.',
     'achievements.earned': 'Получено',
     'achievements.locked': 'Ещё не получено',
     'achievements.progress': '{current} из {target}',
+    'achievements.next': 'До «{title}»: {progress}/{target}',
     'achievements.error': 'Не удалось загрузить достижения.',
-    'achievements.group.checkins': 'Чек-ины',
+    'achievements.group.checkin': 'Чек-ины',
     'achievements.group.finance': 'Финансы',
-    'achievements.group.goals': 'Цели',
+    'achievements.group.activity': 'Активность',
+    'achievements.group.special': 'Особые',
+    'achievements.level.bronze': 'Бронза',
+    'achievements.level.silver': 'Серебро',
+    'achievements.level.gold': 'Золото',
+    'achievements.rarity.common': 'Обычное',
+    'achievements.rarity.rare': 'Редкое',
+    'achievements.rarity.epic': 'Эпическое',
+    'achievements.rarity.legendary': 'Легендарное',
+    'achievements.hidden.title': '???',
+    'achievements.hidden.description': 'Секретное достижение — откроется, когда вы его получите.',
     'achievements.streak.title': 'Серия чек-инов',
     'achievements.streak.one': '1 день подряд',
     'achievements.streak.current': '{days} дней подряд',
@@ -1147,24 +1158,6 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'achievements.streak.todayDone': 'Сегодня отмечено',
     'achievements.streak.todayPending': 'Сегодня ещё не отмечено',
     'achievements.streak.next': 'До «{title}» осталось {days}',
-    'achievements.first_checkin.title': 'Первый шаг',
-    'achievements.first_checkin.description': 'Первый чек-ин самочувствия.',
-    'achievements.streak_7.title': 'Неделя в ритме',
-    'achievements.streak_7.description': '7 дней чек-инов подряд.',
-    'achievements.streak_30.title': 'Месяц привычки',
-    'achievements.streak_30.description': '30 дней чек-инов подряд.',
-    'achievements.streak_100.title': 'Сто дней',
-    'achievements.streak_100.description': '100 дней чек-инов подряд.',
-    'achievements.first_transaction.title': 'Первая запись',
-    'achievements.first_transaction.description': 'Первая транзакция в дневнике.',
-    'achievements.first_budget_closed.title': 'В рамках бюджета',
-    'achievements.first_budget_closed.description': 'Месяц закрыт без превышения бюджета.',
-    'achievements.first_goal.title': 'Первый ориентир',
-    'achievements.first_goal.description': 'Создана первая цель.',
-    'achievements.goal_half.title': 'Половина пути',
-    'achievements.goal_half.description': 'Накоплена половина цели.',
-    'achievements.goal_complete.title': 'Цель достигнута',
-    'achievements.goal_complete.description': 'Цель накопления выполнена.',
     'checkin.card.streak': 'Серия: {days}',
 
     'share.button': 'Поделиться результатом',
@@ -2592,14 +2585,25 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'moderation.back': 'Home',
 
     'achievements.title': 'Achievements',
-    'achievements.subtitle': 'Badges for check-in streaks, your first budget and goals.',
+    'achievements.subtitle': 'Rewards for check-ins, finance, habits and special events.',
     'achievements.earned': 'Earned',
     'achievements.locked': 'Not earned yet',
     'achievements.progress': '{current} of {target}',
+    'achievements.next': 'To “{title}”: {progress}/{target}',
     'achievements.error': 'Could not load your achievements.',
-    'achievements.group.checkins': 'Check-ins',
+    'achievements.group.checkin': 'Check-ins',
     'achievements.group.finance': 'Finance',
-    'achievements.group.goals': 'Goals',
+    'achievements.group.activity': 'Activity',
+    'achievements.group.special': 'Special',
+    'achievements.level.bronze': 'Bronze',
+    'achievements.level.silver': 'Silver',
+    'achievements.level.gold': 'Gold',
+    'achievements.rarity.common': 'Common',
+    'achievements.rarity.rare': 'Rare',
+    'achievements.rarity.epic': 'Epic',
+    'achievements.rarity.legendary': 'Legendary',
+    'achievements.hidden.title': '???',
+    'achievements.hidden.description': 'A secret achievement — it reveals itself once you earn it.',
     'achievements.streak.title': 'Check-in streak',
     'achievements.streak.one': '1 day in a row',
     'achievements.streak.current': '{days} days in a row',
@@ -2608,24 +2612,6 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'achievements.streak.todayDone': 'Marked today',
     'achievements.streak.todayPending': 'Not marked today yet',
     'achievements.streak.next': '{days} left to “{title}”',
-    'achievements.first_checkin.title': 'First step',
-    'achievements.first_checkin.description': 'Your first wellbeing check-in.',
-    'achievements.streak_7.title': 'A week in rhythm',
-    'achievements.streak_7.description': '7 check-in days in a row.',
-    'achievements.streak_30.title': 'A month of habit',
-    'achievements.streak_30.description': '30 check-in days in a row.',
-    'achievements.streak_100.title': 'One hundred days',
-    'achievements.streak_100.description': '100 check-in days in a row.',
-    'achievements.first_transaction.title': 'First entry',
-    'achievements.first_transaction.description': 'Your first transaction logged.',
-    'achievements.first_budget_closed.title': 'Within budget',
-    'achievements.first_budget_closed.description': 'A month closed without exceeding the budget.',
-    'achievements.first_goal.title': 'First milestone',
-    'achievements.first_goal.description': 'Your first savings goal created.',
-    'achievements.goal_half.title': 'Halfway there',
-    'achievements.goal_half.description': 'Half of the goal saved.',
-    'achievements.goal_complete.title': 'Goal reached',
-    'achievements.goal_complete.description': 'The savings goal is complete.',
     'checkin.card.streak': 'Streak: {days}',
 
     'share.button': 'Share your result',
@@ -2930,6 +2916,13 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'app.nav.settingsItem': 'Settings',
   },
 };
+
+/**
+ * Тексты каталога достижений (ключи achievements.<code>.title|description)
+ * подмешиваем в словарь из @puls/shared — каталог остаётся источником правды.
+ */
+Object.assign(MESSAGES.ru, achievementMessages('ru'));
+Object.assign(MESSAGES.en, achievementMessages('en'));
 
 /** Перевод по ключу с подстановкой {placeholders}. */
 export function t(

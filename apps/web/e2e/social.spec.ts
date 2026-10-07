@@ -69,7 +69,7 @@ async function signUpAndOnboard(
 test('лента: пост о достижении, реакция и комментарий', async ({ page, request }) => {
   await signUpAndOnboard(page, request);
 
-  // Чек-ин даёт достижение first_checkin и пост в ленту.
+  // Чек-ин даёт достижение checkin_total и пост в ленту.
   await page.getByTestId('mood-4').click();
   await expect(page.getByTestId('checkin-card-saved')).toBeVisible({ timeout: 15_000 });
 
