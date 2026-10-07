@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, type Budget, type Category } from '@prisma/client';
 import { budgetLevel, type BudgetDto, type BudgetUpsertInput } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoriesService } from './categories.service';
 
@@ -78,6 +79,7 @@ export class BudgetsService {
       include: { category: true },
     });
 
+    InternalEvents.emit('achievement.check', { userId, event: 'budget' });
     const spent =
       (await this.spentByCategory(userId, [input.categoryId], input.month)).get(input.categoryId) ??
       0;

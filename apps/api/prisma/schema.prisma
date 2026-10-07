@@ -441,6 +441,10 @@ model InstanceSettings {
   aiModel             String? @map("ai_model")
   aiMonthlyTokenLimit Int?    @map("ai_monthly_token_limit")
 
+  /// Отпечаток каталога достижений, по которому уже выполнен тихий пересчёт
+  /// (backfill) всех пользователей; при изменении каталога пересчёт повторяется.
+  achievementsCatalogHash String? @map("achievements_catalog_hash")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -593,12 +597,13 @@ model RecurringPayment {
   @@map("recurring_payments")
 }
 
-/// Каталог достижений (ТЗ §2, §4): код бейджа и JSON-условие выдачи.
-/// Заполняется сервисом достижений при старте приложения (идемпотентно).
+/// Каталог достижений (ТЗ §2, §4; v3 §4): зеркало декларативного каталога из
+/// @puls/shared (код, группа, метрика, уровни). Заполняется сервисом достижений
+/// при старте приложения (идемпотентно); источник истины — файл каталога.
 model Achievement {
   id        String   @id @default(cuid())
   code      String   @unique
-  /// Условие выдачи: { kind, threshold, group } (ТЗ §4).
+  /// Условие выдачи: { group, metric, rarity, hidden, tiers: [{ level, threshold }] }.
   condition Json     @default("{}")
   /// Порядок отображения в сетке достижений.
   position  Int      @default(0)
@@ -607,16 +612,19 @@ model Achievement {
   @@map("achievements")
 }
 
-/// Полученное пользователем достижение (ТЗ §4). Пара (user_id, code)
-/// уникальна — выдача идемпотентна и защищена от гонки на уровне БД.
+/// Полученный уровень достижения (v3 §4): одна строка на (пользователь, код,
+/// уровень bronze|silver|gold) с датой получения. Тройка уникальна — выдача
+/// идемпотентна и защищена от гонки на уровне БД (INSERT … ON CONFLICT DO NOTHING).
 model UserAchievement {
   id       String   @id @default(cuid())
   userId   String   @map("user_id")
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   code     String
+  /// bronze | silver | gold.
+  level    String   @default("bronze")
   earnedAt DateTime @default(now()) @map("earned_at")
 
-  @@unique([userId, code])
+  @@unique([userId, code, level])
   @@index([userId, earnedAt])
   @@map("user_achievements")
 }

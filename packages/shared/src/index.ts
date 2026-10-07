@@ -23,6 +23,7 @@ export * from './notifications';
 export * from './telegram';
 export * from './recurring';
 export * from './account';
+export * from './achievement-catalog';
 export * from './achievements';
 export * from './external-auth';
 export * from './goals';

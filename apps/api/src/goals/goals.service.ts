@@ -17,6 +17,7 @@ import {
   type GoalUpdateInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
+import { InternalEvents } from '../common/internal-events';
 import { PrismaService } from '../prisma/prisma.service';
 import { DomainEvents } from '../api-access/domain-events';
 
@@ -130,6 +131,7 @@ export class GoalsService {
       },
       include: { deposits: true },
     });
+    InternalEvents.emit('achievement.check', { userId, event: 'goal' });
     const dto = toGoalDto(goal);
     return dto;
   }
@@ -203,6 +205,7 @@ export class GoalsService {
       return { deposit: created, updated: next };
     });
 
+    InternalEvents.emit('achievement.check', { userId, event: 'goal' });
     const dto = toGoalDto(updated);
     const milestone: GoalMilestoneEvent = {
       percent: dto.percent,

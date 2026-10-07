@@ -4,11 +4,11 @@ import { AuthModule } from '../auth/auth.module';
 import { AchievementsController } from './achievements.controller';
 import { AchievementsService } from './achievements.service';
 
-/** Модуль достижений и стриков (ТЗ §2, §4). Экспортирует сервис для целей. */
+/** Модуль достижений и стриков (ТЗ v2 §4). Экспортирует сервис для событийных хуков. */
 @Module({
   imports: [AuthModule],
   controllers: [AchievementsController],
-  providers: [AchievementsService],
+  providers: [AchievementsService, RolesGuard],
   exports: [AchievementsService],
 })
 export class AchievementsModule {}

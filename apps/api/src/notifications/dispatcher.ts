@@ -15,12 +15,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StatsService } from '../stats/stats.service';
 import { channelTimezone, toChannelConfig, type DueDelivery } from './due';
 import {
+  buildAchievementEarned,
   buildBudgetAlert,
   buildCapsuleOpenedNotification,
   buildDailySummary,
   buildMessage,
   buildReconciliationMismatch,
   buildRecurringReminder,
+  type AchievementEarnedInfo,
   type BudgetAlertInfo,
   type CapsuleOpenedInfo,
   type NotificationMessage,
@@ -130,6 +132,19 @@ export class NotificationDispatcher implements DeliveryDispatcher {
   async notifyCapsuleOpened(userId: string, info: CapsuleOpenedInfo): Promise<boolean> {
     const channels = await this.activeChannels(userId);
     const message = buildCapsuleOpenedNotification(info);
+    for (const { config, timezone } of channels) {
+      await this.outbox.enqueue(userId, config.channel, message, {
+        timezone,
+        quietHours: config.quietHours,
+      });
+    }
+    return channels.length > 0;
+  }
+
+  /** Новый уровень достижения (v3 §4): тип вне переключателей — в любой активный канал. */
+  async notifyAchievementEarned(userId: string, info: AchievementEarnedInfo): Promise<boolean> {
+    const channels = await this.activeChannels(userId);
+    const message = buildAchievementEarned(info);
     for (const { config, timezone } of channels) {
       await this.outbox.enqueue(userId, config.channel, message, {
         timezone,

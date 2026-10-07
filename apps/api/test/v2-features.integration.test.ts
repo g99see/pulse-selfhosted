@@ -261,7 +261,7 @@ describe('Пульс v2 §7–§8 (интеграция с PostgreSQL)', () => {
       expect(response.status).toBe(200);
       expect(response.body.streak.current).toBe(1);
       expect(
-        response.body.achievements.find((item: { code: string }) => item.code === 'first_checkin')
+        response.body.achievements.find((item: { code: string }) => item.code === 'checkin_total')
           .earnedAt,
       ).not.toBeNull();
     });

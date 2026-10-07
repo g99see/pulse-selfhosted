@@ -72,9 +72,9 @@ test('стрик на карточке и достижения: бейджи, с
   await page.goto('/achievements');
   await expect(page.getByTestId('achievements-page')).toBeVisible();
   await expect(page.getByTestId('achievements-streak')).toBeVisible();
-  await expect(page.getByTestId('achievements-group-checkins')).toBeVisible();
+  await expect(page.getByTestId('achievements-group-checkin')).toBeVisible();
   await expect(page.getByTestId('achievements-group-finance')).toBeVisible();
-  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute(
+  await expect(page.getByTestId('achievement-checkin_total')).toHaveAttribute(
     'data-earned',
     'false',
   );
@@ -88,9 +88,9 @@ test('стрик на карточке и достижения: бейджи, с
 
   // На экране достижений первый бейдж теперь получен.
   await page.goto('/achievements');
-  await expect(page.getByTestId('achievement-first_checkin')).toHaveAttribute(
+  await expect(page.getByTestId('achievement-checkin_total')).toHaveAttribute(
     'data-earned',
     'true',
   );
-  await expect(page.getByTestId('achievement-first_checkin')).toContainText('Получено');
+  await expect(page.getByTestId('achievement-checkin_total')).toContainText('Получено');
 });

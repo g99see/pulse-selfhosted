@@ -300,6 +300,8 @@ export class ImportService {
       };
     });
 
+    InternalEvents.emit('achievement.check', { userId, event: 'import' });
+
     if (outcome.additions.length > 0) {
       InternalEvents.emit('import.expenses', { userId, additions: outcome.additions });
     }

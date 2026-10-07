@@ -96,7 +96,7 @@ export class CheckinsService {
     });
 
     // Ленивая проверка достижений сразу после записи (ТЗ §4): сбой не ломает чек-ин.
-    await this.achievements.evaluate(userId).catch(() => undefined);
+    await this.achievements.onEvent(userId, 'checkin');
 
     // Событие для вебхуков (ТЗ §4): одна строка, сигнатуру create не меняет.
     DomainEvents.emit('checkin.created', userId, {
