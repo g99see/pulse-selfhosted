@@ -40,3 +40,5 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+apps/web/public/sw.js
+apps/web/public/swe-worker*.js
