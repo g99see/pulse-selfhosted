@@ -1,7 +1,7 @@
 {
   "name": "@puls/web",
   "version": "0.3.0",
-  "description": "Веб-клиент и PWA «Пульса» (Next.js 15, App Router).",
+  "description": "Веб-клиент «Пульса» (Next.js 15, App Router).",
   "license": "AGPL-3.0-or-later",
   "private": true,
   "scripts": {
