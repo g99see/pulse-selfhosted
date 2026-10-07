@@ -232,6 +232,42 @@ describe('Каталог категорий и магазинов (интегр�
       expect((await client.get('/api/finance/unmatched')).body.count).toBe(0);
     });
 
+    it('recategorize разбирает уже загруженные операции без категории, ручные не трогает', async () => {
+      const client = await signUp('recat@example.com', 'recatuser');
+      const account = await createAccount(client);
+      const user = await prisma.user.findFirstOrThrow({ where: { nickname: 'recatuser' } });
+      const categories = await categoriesOf(client);
+      const manual = categories.find((category) => category.key === 'transport')!;
+      const base = {
+        userId: user.id,
+        accountId: account.id,
+        type: 'expense' as const,
+        amount: 100,
+        amountBase: 100,
+        date: new Date('2026-10-01'),
+      };
+      await prisma.transaction.createMany({
+        data: [
+          { ...base, comment: 'Netto', categoryId: null },
+          { ...base, comment: 'Rejsekort', categoryId: null },
+          { ...base, comment: 'Netto', categoryId: manual.id },
+          { ...base, comment: 'qwertyuiop zzz', categoryId: null },
+        ],
+      });
+
+      const response = await client.post('/api/finance/recategorize', {});
+      expect(response.status).toBe(200);
+      expect(response.body.categorized).toBe(2);
+
+      const rows = await prisma.transaction.findMany({ where: { userId: user.id } });
+      expect(rows.filter((row) => row.categoryId === null).map((row) => row.comment)).toEqual([
+        'qwertyuiop zzz',
+      ]);
+      expect(
+        rows.find((row) => row.comment === 'Netto' && row.categoryId === manual.id),
+      ).toBeTruthy();
+    });
+
     it('личный магазин приоритетнее общей базы', async () => {
       const client = await signUp('priority@example.com', 'priorityuser');
       const account = await createAccount(client);

@@ -6329,6 +6329,174 @@
       "defaultCategory": "other_income",
       "country": "GLOBAL",
       "region": "Global"
+    },
+    {
+      "id": "tempel-bar",
+      "name": "Tempel Bar",
+      "aliases": ["tempel bar"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "DK",
+      "region": "Other"
+    },
+    {
+      "id": "ukrainian-beer-bar",
+      "name": "Ukrainian Beer Bar",
+      "aliases": ["ukrainian beer bar"],
+      "patterns": [],
+      "defaultCategory": "restaurants",
+      "country": "DK",
+      "region": "Other"
+    },
+    {
+      "id": "generic-bar",
+      "name": "Бар (общий)",
+      "aliases": [],
+      "patterns": ["\\bbar\\b", "\\bbodega\\b", "\\bpub\\b", "\\bcafe\\b", "\\bcaf[eé]\\b"],
+      "defaultCategory": "restaurants",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "generic-restaurant",
+      "name": "Ресторан (общий)",
+      "aliases": [],
+      "patterns": [
+        "\\brestaurant\\b",
+        "\\bristorante\\b",
+        "\\bpizzeria\\b",
+        "\\bgrill\\b",
+        "\\bsushi\\b",
+        "\\bkebab\\b"
+      ],
+      "defaultCategory": "restaurants",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "generic-kiosk",
+      "name": "Киоск (общий)",
+      "aliases": [],
+      "patterns": ["\\bkiosk\\b", "\\bkbh kiosk\\b", "\\bcorner\\b"],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Other"
+    },
+    {
+      "id": "generic-supermarket",
+      "name": "Супермаркет (общий)",
+      "aliases": [],
+      "patterns": [
+        "super[- ]?market",
+        "\\blivs\\b",
+        "\\bfensmarked\\b",
+        "f[øo]devare",
+        "\\bgrocery\\b",
+        "\\bmini ?market\\b",
+        "\\bsuper singh\\b"
+      ],
+      "defaultCategory": "groceries",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "kommune",
+      "name": "Муниципалитет (общий)",
+      "aliases": [],
+      "patterns": ["kommun", "ydelses", "benhavns kommu", "\\?benhavns kommu"],
+      "defaultCategory": "taxes_fees",
+      "country": "DK",
+      "region": "Other"
+    },
+    {
+      "id": "pool-hall",
+      "name": "Бильярд (общий)",
+      "aliases": [],
+      "patterns": ["pool hall", "billiard", "bowling"],
+      "defaultCategory": "entertainment",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "paygamemoney",
+      "name": "payGamemoney",
+      "aliases": ["paygamemoney", "funpay"],
+      "patterns": ["^tap\\*funpay"],
+      "defaultCategory": "games",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "keyify",
+      "name": "Keyify",
+      "aliases": ["keyify shop"],
+      "patterns": ["keyify"],
+      "defaultCategory": "games",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "touch-skins",
+      "name": "Touch Skins",
+      "aliases": ["touch skins"],
+      "patterns": ["touch skins"],
+      "defaultCategory": "games",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "stop-spild",
+      "name": "Stop Spild Lokalt",
+      "aliases": ["stop spild lokalt", "stop spild"],
+      "patterns": [],
+      "defaultCategory": "groceries",
+      "country": "DK",
+      "region": "Other"
+    },
+    {
+      "id": "elektronik",
+      "name": "Электроника (общий)",
+      "aliases": [],
+      "patterns": ["elektronik", "electronic"],
+      "defaultCategory": "electronics",
+      "country": "INT",
+      "region": "Other"
+    },
+    {
+      "id": "barcelona-bus",
+      "name": "Barcelona Bus",
+      "aliases": ["barcelona bus"],
+      "patterns": ["barcelona bus"],
+      "defaultCategory": "public_transport",
+      "country": "ES",
+      "region": "Other"
+    },
+    {
+      "id": "sj-skane",
+      "name": "Skånetrafiken",
+      "aliases": ["ska stn"],
+      "patterns": ["^ska stn", "skanetrafik"],
+      "defaultCategory": "public_transport",
+      "country": "SE",
+      "region": "Other"
+    },
+    {
+      "id": "airport-bcn",
+      "name": "Aeropuerto BCN",
+      "aliases": [],
+      "patterns": ["aer bcn", "\\baer\\b.*\\bt[12]\\b"],
+      "defaultCategory": "travel",
+      "country": "ES",
+      "region": "Other"
+    },
+    {
+      "id": "hering",
+      "name": "Hering Sanikonzept",
+      "aliases": ["hering sanikonzept"],
+      "patterns": ["hering sanikonzept"],
+      "defaultCategory": "home_goods",
+      "country": "DE",
+      "region": "Other"
     }
   ]
 }

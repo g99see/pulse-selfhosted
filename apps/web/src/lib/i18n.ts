@@ -476,6 +476,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.import.attention.suggestion': 'Похоже на «{name}»',
     'finance.import.attention.noSuggestion': 'Магазин не распознан',
     'finance.import.attention.addStore': 'Добавить магазин',
+    'finance.import.attention.autoButton': 'Разобрать автоматически',
+    'finance.import.attention.auto': 'Разобрано автоматически: {count}',
     'finance.import.col.merchant': 'Магазин',
 
     'finance.category.system.sys-food': 'Еда',
@@ -1638,6 +1640,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.import.attention.suggestion': 'Looks like “{name}”',
     'finance.import.attention.noSuggestion': 'Store not recognized',
     'finance.import.attention.addStore': 'Add store',
+    'finance.import.attention.autoButton': 'Categorize automatically',
+    'finance.import.attention.auto': 'Categorized automatically: {count}',
     'finance.import.col.merchant': 'Merchant',
 
     'finance.category.system.sys-food': 'Food',

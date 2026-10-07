@@ -199,6 +199,13 @@ export class FinanceController {
     return { transactions, count };
   }
 
+  /** Разобрать по категориям все операции без категории (справочник магазинов + алиасы). */
+  @Post('recategorize')
+  @HttpCode(HttpStatus.OK)
+  recategorize(@Req() req: AuthenticatedRequest) {
+    return this.imports.recategorize(req.user!.id);
+  }
+
   /* ----- Счета ----- */
 
   @Get('accounts')

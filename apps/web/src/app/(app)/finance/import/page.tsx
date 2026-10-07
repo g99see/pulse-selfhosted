@@ -373,11 +373,29 @@ export default function ImportPage() {
       <Card className="flex flex-col gap-3" data-testid="attention">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-heading text-lg font-bold">{t('finance.import.attention.title')}</h2>
-          {unmatchedCount > 0 ? (
-            <span data-testid="attention-count" className="text-sm text-[var(--puls-ink-muted)]">
-              {t('finance.import.attention.count', { count: unmatchedCount })}
-            </span>
-          ) : null}
+          <span className="flex items-center gap-3">
+            {unmatchedCount > 0 ? (
+              <span data-testid="attention-count" className="text-sm text-[var(--puls-ink-muted)]">
+                {t('finance.import.attention.count', { count: unmatchedCount })}
+              </span>
+            ) : null}
+            {unmatchedCount > 0 ? (
+              <button
+                type="button"
+                data-testid="recategorize"
+                className="min-h-11 rounded-[var(--radius-tile)] px-3 text-sm font-semibold text-[var(--puls-primary-text)] underline"
+                onClick={() => {
+                  void financeApi.recategorize().then((done) => {
+                    setStoreNotice(t('finance.import.attention.auto', { count: done.categorized }));
+                    void loadAttention();
+                    notifyFinanceChanged();
+                  });
+                }}
+              >
+                {t('finance.import.attention.autoButton')}
+              </button>
+            ) : null}
+          </span>
         </div>
         <p className="text-xs text-[var(--puls-ink-muted)]">{t('finance.import.attention.hint')}</p>
         <ul className="flex flex-col gap-2" data-testid="attention-list">

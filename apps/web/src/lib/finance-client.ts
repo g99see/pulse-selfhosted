@@ -109,6 +109,12 @@ export const financeApi = {
       `/api/finance/unmatched${query({ limit })}`,
     ),
 
+  /** Разобрать по категориям все операции без категории. */
+  recategorize: () =>
+    authFetch<{ checked: number; categorized: number }>('/api/finance/recategorize', {
+      method: 'POST',
+    }),
+
   accounts: () => authFetch<AccountsResponse>('/api/finance/accounts'),
 
   createAccount: (input: AccountCreateValues) =>
