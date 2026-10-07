@@ -26,10 +26,11 @@ test('настройки уведомлений: Telegram и Discord без за
 
   await page.goto('/register');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Повторите пароль').fill(PASSWORD);
   await page.getByLabel('Никнейм').fill(`nt${unique}`);
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL(/verify-email/);
+  await expect(page).toHaveURL(/onboarding/, { timeout: 20_000 });
 
   const outbox = await request.get(`${API_URL}/api/auth/dev/outbox`);
   const body = (await outbox.json()) as {

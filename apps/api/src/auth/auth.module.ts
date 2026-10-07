@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { CryptoModule } from '../crypto/crypto.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { CsrfGuard } from './csrf.guard';
@@ -10,10 +9,9 @@ import { PasswordService } from './password.service';
 import { RateLimitService } from './rate-limit.service';
 import { SessionGuard } from './session.guard';
 import { SessionService } from './session.service';
-import { TwoFactorService } from './two-factor.service';
+import { PasswordResetService } from './password-reset.service';
 
 @Module({
-  imports: [CryptoModule],
   controllers: [AuthController],
   providers: [
     AuthService,
@@ -21,7 +19,7 @@ import { TwoFactorService } from './two-factor.service';
     PasswordService,
     MailService,
     RateLimitService,
-    TwoFactorService,
+    PasswordResetService,
     SessionGuard,
     // CSRF проверяется глобально для всех мутирующих запросов (ТЗ §6).
     { provide: APP_GUARD, useClass: CsrfGuard },
@@ -33,7 +31,7 @@ import { TwoFactorService } from './two-factor.service';
     PasswordService,
     SessionGuard,
     RateLimitService,
-    TwoFactorService,
+    PasswordResetService,
   ],
 })
 export class AuthModule {}

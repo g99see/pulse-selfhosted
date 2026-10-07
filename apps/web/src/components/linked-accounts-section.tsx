@@ -79,6 +79,9 @@ export function LinkedAccountsSection() {
         </div>
 
         {error ? <Alert>{error}</Alert> : null}
+        {data && !data.passwordSet ? (
+          <Alert>{t('settings.accounts.setPasswordBanner')}</Alert>
+        ) : null}
 
         {data ? (
           <ul className="flex flex-col gap-3">

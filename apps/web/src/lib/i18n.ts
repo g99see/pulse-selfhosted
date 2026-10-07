@@ -129,6 +129,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
 
     'settings.accounts.title': 'Способы входа',
     'settings.accounts.hint': 'Привяжите Google, чтобы входить без пароля.',
+    'settings.accounts.setPasswordBanner':
+      'У аккаунта не задан пароль — войти по логину и паролю не получится. Отправьте боту «/password» (Telegram или Discord), чтобы установить логин и пароль.',
     'settings.accounts.provider.google': 'Google',
     'settings.accounts.password': 'Пароль',
     'settings.accounts.passwordSet': 'Задан',
@@ -1582,6 +1584,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
 
     'settings.accounts.title': 'Sign-in methods',
     'settings.accounts.hint': 'Link Google to sign in without a password.',
+    'settings.accounts.setPasswordBanner':
+      'This account has no password, so signing in with a login and password will not work. Send "/password" to the bot (Telegram or Discord) to set a login and password.',
     'settings.accounts.provider.google': 'Google',
     'settings.accounts.password': 'Password',
     'settings.accounts.passwordSet': 'Set',

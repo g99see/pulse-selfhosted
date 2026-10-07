@@ -92,4 +92,17 @@ export class SessionService {
     });
     return result.count > 0;
   }
+
+  /** «Выйти из всех сессий»: отзывает активные сессии, кроме `exceptSessionId`. */
+  async revokeAll(userId: string, exceptSessionId?: string): Promise<number> {
+    const result = await this.prisma.session.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+        ...(exceptSessionId ? { id: { not: exceptSessionId } } : {}),
+      },
+      data: { revokedAt: new Date() },
+    });
+    return result.count;
+  }
 }

@@ -26,6 +26,8 @@ export type TelegramCommand =
   | { kind: 'spent'; text: string | null }
   | { kind: 'help' }
   | { kind: 'unlink' }
+  /** `/password` — ссылка сброса или установки пароля (v3 §7). */
+  | { kind: 'password' }
   | { kind: 'quick'; text: string }
   | { kind: 'unknown' };
 
@@ -67,6 +69,7 @@ export const BOT_COMMANDS: { command: string; description: string }[] = [
   { command: 'spent', description: 'Записать трату: /spent 12 кофе' },
   { command: 'today', description: 'Траты и настроение за сегодня' },
   { command: 'help', description: 'Справка по командам' },
+  { command: 'password', description: 'Ссылка для смены или установки пароля' },
   { command: 'unlink', description: 'Отвязать чат' },
 ];
 
@@ -102,6 +105,8 @@ export function parseCommand(raw: string): TelegramCommand {
         return { kind: 'help' };
       case 'unlink':
         return { kind: 'unlink' };
+      case 'password':
+        return { kind: 'password' };
       default:
         return { kind: 'unknown' };
     }

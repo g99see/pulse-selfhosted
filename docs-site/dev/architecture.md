@@ -31,10 +31,10 @@
 
 ## Данные
 
-Prisma-модели (36): `User Session EmailVerificationToken Account CheckIn Category
+Prisma-модели (35): `User Session EmailVerificationToken Account CheckIn Category
 Transaction Budget NotificationRule DailyStat DiscordLink NotificationDelivery TelegramLink
-TelegramLinkCode ExternalIdentity InstanceSettings TwoFactorBackupCode
-TwoFactorChallenge ExchangeRate Goal GoalDeposit Insight RecurringPayment
+TelegramLinkCode ExternalIdentity InstanceSettings PasswordToken
+ExchangeRate Goal GoalDeposit Insight RecurringPayment
 Achievement UserAchievement Follow Post Reaction Comment Profile ProfileCard
 Report ModerationAction ContentFlag HtmlPage HtmlPageVersion`.
 

@@ -12,7 +12,7 @@
 | Переменная | Назначение | По умолчанию |
 | --- | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | Токен бота от @BotFather. Без него бот выключен | — (пусто) |
-| `TELEGRAM_BOT_USERNAME` | Имя бота для виджета входа (без `@`) | — (пусто) |
+| `TELEGRAM_BOT_USERNAME` | Имя бота (без `@`) для ссылки на бота | — (пусто) |
 | `TELEGRAM_WEBHOOK_SECRET` | Секрет вебхука, сверяется с `X-Telegram-Bot-Api-Secret-Token` | — (пусто, вебхук отвечает `503`) |
 | `TELEGRAM_MODE` | `webhook` (прод) или `polling` (разработка) | `webhook` |
 | `TELEGRAM_API_FAKE` | `1` — клиент Telegram подменяется заглушкой (e2e, отладка) | — |
@@ -109,4 +109,4 @@ unit-тестами.
 
 - [Уведомления](./notifications) — расписание и тихие часы.
 - [Настройка (.env)](/guide/configuration) — переменные `TELEGRAM_*`.
-- [Безопасность и 2FA](./security-2fa) — вход через Telegram.
+- [Безопасность](/security/) — сессии, CSRF, шифрование.

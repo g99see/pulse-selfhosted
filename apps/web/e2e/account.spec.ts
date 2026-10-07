@@ -44,10 +44,11 @@ test('экспорт данных и удаление аккаунта из на
   // Регистрация → подтверждение email → онбординг.
   await page.goto('/register');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Повторите пароль').fill(PASSWORD);
   await page.getByLabel('Никнейм').fill(nickname);
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL(/verify-email/);
+  await expect(page).toHaveURL(/onboarding/, { timeout: 20_000 });
 
   const token = await verificationTokenFor(request, email);
   await page.goto(`/verify-email?token=${token}`);
@@ -103,15 +104,15 @@ test('экспорт данных и удаление аккаунта из на
   await page.getByTestId('delete-account-open').click();
   await expect(page.getByTestId('delete-account-modal')).toBeVisible();
 
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
   await page.getByLabel('Никнейм для подтверждения').fill(nickname);
   await page.getByTestId('delete-account-confirm').click();
 
   // После удаления — вход не действует.
   await expect(page).toHaveURL(/login/, { timeout: 20_000 });
 
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: false }).fill(PASSWORD);
+  await page.getByLabel('Логин или почта').fill(email);
+  await page.getByLabel('Пароль', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Войти' }).click();
   await expect(page.getByRole('alert')).toBeVisible();
 });

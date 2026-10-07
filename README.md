@@ -66,7 +66,7 @@
 **Приватность и безопасность**
 
 - Self-hosted, открытый код AGPL, без обязательных облачных сервисов
-- Cookie-сессии, CSRF, Argon2, 2FA (TOTP), вход через Google и Telegram
+- Cookie-сессии, CSRF, Argon2, вход по логину или почте и через Google
 - Секреты шифруются AES-256-GCM; режим «Тишина» скрывает суммы (Alt+Q)
 - Telegram- и Discord-уведомления, PWA, открытый API и вебхуки (Home Assistant, n8n)
 

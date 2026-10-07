@@ -52,7 +52,7 @@ export default defineConfig({
             { text: 'Режим «Тишина»', link: '/guide/usage/quiet-mode' },
             { text: 'Голосовой чек-ин', link: '/guide/usage/voice-checkin' },
             { text: 'Виджет цели', link: '/guide/usage/goal-widget' },
-            { text: 'Безопасность и 2FA', link: '/guide/usage/security-2fa' },
+            { text: 'Безопасность', link: '/security/' },
             { text: 'Профиль и лента', link: '/guide/usage/profile-social' },
             { text: 'HTML-страница и шаблоны', link: '/guide/usage/html-page' },
           ],

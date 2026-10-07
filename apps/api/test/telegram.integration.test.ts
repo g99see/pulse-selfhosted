@@ -319,6 +319,37 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
     });
   });
 
+  describe('Сброс и установка пароля из бота (v3 §7)', () => {
+    it('/password присылает привязанному пользователю одноразовую ссылку на 30 минут', async () => {
+      const { userId } = await signUpLinked('tg-pw@example.com', 'tgpwuser', '1204');
+      await webhookUpdate({
+        update_id: 3,
+        message: { chat: { id: 1204 }, from: {}, text: '/password' },
+      });
+      const text = lastSent('1204')?.text ?? '';
+      expect(text).toContain('/reset-password?token=');
+      expect(text).toContain('30 минут');
+      const stored = await prisma.passwordToken.findFirstOrThrow({ where: { userId } });
+      expect(stored.purpose).toBe('reset');
+    });
+
+    it('пользователь, входивший только через Telegram (без пароля), получает ссылку установки при первом сообщении', async () => {
+      const user = await prisma.user.create({
+        data: { nickname: 'tg-only-1', email: null },
+      });
+      await prisma.externalIdentity.create({
+        data: { userId: user.id, provider: 'telegram', subject: '1205' },
+      });
+      await webhookUpdate({
+        update_id: 4,
+        message: { chat: { id: 1205 }, from: {}, text: 'привет' },
+      });
+      expect(lastSent('1205')?.text).toContain('/reset-password?token=');
+      const stored = await prisma.passwordToken.findFirstOrThrow({ where: { userId: user.id } });
+      expect(stored.purpose).toBe('setup');
+    });
+  });
+
   describe('Чек-ины из чата', () => {
     const cb = (chat: number, data: string, id = `cb-${data}`) => ({
       update_id: 100,

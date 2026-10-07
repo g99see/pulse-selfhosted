@@ -58,7 +58,7 @@ BullMQ/Valkey с таймерным фолбэком. Захват идёт че
   Это сознательное решение — выгрузка идёт по колонкам. Владелец читает письмо
   расшифрованным через `GET /api/capsules/:id` после открытия.
 - Пока не задан `APP_ENCRYPTION_KEY` и окружение production, капсулы недоступны
-  (`503 capsules_unavailable`) — как и 2FA.
+  (`503 capsules_unavailable`).
 
 ## API
 
