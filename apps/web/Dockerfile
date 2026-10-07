@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Контекст сборки — корень монорепо (Next.js standalone в pnpm-воркспейсе).
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
