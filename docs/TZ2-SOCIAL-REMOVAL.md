@@ -48,3 +48,16 @@ e2e-спеки: `social`, `profile`, `share`, `moderation`, `html-page`, `family
 
 ## PWA (§5)
 Удалены `app/manifest.ts`, `src/sw.ts` (Serwist), `/offline`, `InstallPrompt`, зависимости `@serwist/next` и `serwist`, правила `public/sw.js` в `.gitignore`, ссылка на манифест и apple-web-app метатеги в `layout.tsx`. Иконки и favicon оставлены. `serviceWorkers: 'block'` в playwright оставлен (безвреден).
+
+## Проверка полноты (завершающий проход)
+Повторный греп по API/web/shared/prisma/docs/ботам Telegram и Discord не нашёл активных сущностей соцсети, соцпрофилей, шаринга, лент, PWA (манифест, service worker, кнопка установки). Найденное и исправленное:
+
+- `packages/shared/src/goals.ts`: удалены неиспользуемые DTO публичного виджета цели `GoalWidgetDto` / `GoalWidgetResponse` (остаток виджета цели).
+- `apps/web/package.json`: из описания убрано «и PWA».
+- `docs-site/admin/index.md`: убрана ссылка на `docs/PHASE3-MODERATION.md` (модерация удалена).
+
+Осознанно **оставлены** внутренние проектные документы `docs/PHASE*.md`, `docs/PLAN.md` и `docs/FEATURE-AUDIT-V2.md` — это архив/снимки по фазам (в них описаны и другие удаляемые блоки, напр. 2FA и Google-вход, которые относятся к своим подпунктам ТЗ-2). Пользовательская документация (`docs-site`, README, CHANGELOG, SECURITY) уже очищена.
+
+Миграция `20261007100000_remove_social` затрагивает только соцсущности и соцполя; таблицы чек-инов, финансов, достижений, привычек, капсул и инсайтов не трогаются. `data-registry.ts` актуален: удалённых соцтаблиц в нём нет, интеграционный тест покрытия зелёный. Достижений, зависящих от соцфункций (типа «пригласи друга»), в каталоге `ACHIEVEMENTS` не было и нет.
+
+Гейты на завершающем проходе: `pnpm --filter @puls/shared build && pnpm -r typecheck && pnpm lint && pnpm format:check` — зелёные; `@puls/shared` 381 тест, `@puls/web` 109, `@puls/api` 62 файла / 608 тестов — зелёные.
