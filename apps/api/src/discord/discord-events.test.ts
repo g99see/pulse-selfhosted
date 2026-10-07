@@ -59,8 +59,9 @@ describe('parseInteractionCreate', () => {
 });
 
 describe('parseLinkText', () => {
-  it('понимает /link и link', () => {
+  it('понимает /start, /link и вариант без слэша', () => {
     expect(parseLinkText('/link abc12345')).toEqual({ kind: 'link', code: 'abc12345' });
+    expect(parseLinkText('/start abc12345')).toEqual({ kind: 'link', code: 'abc12345' });
     expect(parseLinkText('  LINK abc12345 ')).toEqual({ kind: 'link', code: 'abc12345' });
   });
 

@@ -104,9 +104,11 @@
 
 | Переменная | По умолчанию | Назначение |
 | --- | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | пусто | Токен Telegram-бота (см. ниже, «Внешние входы») |
+| `TELEGRAM_BOT_TOKEN` | пусто | Токен общего бота Pulse (см. ниже, «Внешние входы») |
 | `DISCORD_BOT_TOKEN` | пусто | Токен Discord-бота. Без него Discord-канал выключен |
-| `DISCORD_APPLICATION_ID` | пусто | Application ID — нужен, чтобы зарегистрировать команду `/link` |
+| `DISCORD_APPLICATION_ID` | пусто | Application ID — для OAuth-ссылки привязки и регистрации команды `/link` |
+| `DISCORD_CLIENT_SECRET` | пусто | Client secret приложения (OAuth2 → General) — обмен кода привязки |
+| `DISCORD_OAUTH_REDIRECT_URI` | пусто | Публичный redirect URI (OAuth2 → Redirects), напр. `https://домен/api/discord/callback`. Без `DISCORD_CLIENT_SECRET` и этого URI кнопка «Подключить Discord» отвечает `503` |
 | `DISCORD_API_FAKE` | — | `1` — сеть Discord подменяется заглушкой (тесты, отладка) |
 | `NOTIFICATIONS_SCHEDULER` | `on` | `off` — выключить планировщик и воркер отправки |
 | `NOTIFICATIONS_TICK_MS` | `60000` | Период проверки расписания, мс |

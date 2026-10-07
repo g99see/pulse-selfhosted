@@ -89,10 +89,14 @@ export function parseInteractionCreate(data: unknown): IncomingDiscordEvent | nu
   };
 }
 
-/** Текст личного сообщения → код привязки: «/link CODE», «link CODE» или просто «CODE». */
+/**
+ * Текст личного сообщения → токен привязки: «/start TOKEN», «/link TOKEN» или
+ * без слэша. Пользователю не нужно вводить код вручную из настроек — токен
+ * приходит из deep-link, но запасной путь остаётся (ТЗ §6).
+ */
 export function parseLinkText(raw: string): { kind: 'link'; code: string } | { kind: 'other' } {
   const text = raw.trim();
-  const match = /^\/?link\s+([A-Za-z0-9_-]{4,32})$/i.exec(text);
+  const match = /^\/?(?:start|link)\s+([A-Za-z0-9_-]{8,64})$/i.exec(text);
   if (match) return { kind: 'link', code: match[1]! };
   return { kind: 'other' };
 }
