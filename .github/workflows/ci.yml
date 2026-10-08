@@ -103,7 +103,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: next-build
           path: apps/web/.next
@@ -181,7 +181,7 @@ jobs:
       - run: pnpm --filter @puls/web build
       - run: pnpm --filter @puls/web exec playwright install --with-deps chromium
       - run: pnpm e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
