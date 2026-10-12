@@ -76,6 +76,13 @@ const FONT_VARIABLES = [
 ].join(' ');
 
 export const viewport: Viewport = {
+  // width/initialScale Next выводит по умолчанию, но задаём явно: контракт mobile-first
+  // (ТЗ §8) должен быть виден в коде, а не подразумеваться фреймворком.
+  width: 'device-width',
+  initialScale: 1,
+  // Без viewport-fit=cover env(safe-area-inset-*) на iPhone всегда 0 — нижняя
+  // навигация и шторки уезжают под домашний индикатор (ТЗ §8, mobile-first).
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#EEF3EF' },
     { media: '(prefers-color-scheme: dark)', color: '#0C1411' },

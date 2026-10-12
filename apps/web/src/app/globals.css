@@ -158,6 +158,16 @@ h1 {
     height: 1.375rem;
   }
 
+  /* iOS Safari зумит всю страницу, если у поля font-size < 16px (ТЗ §8, mobile-first).
+     Поля с явным text-base не трогаем, «сырым» input/select/textarea задаём 1rem. */
+  :where(
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='hidden']),
+    select,
+    textarea
+  ) {
+    font-size: 1rem;
+  }
+
   :where(
     button,
     select,

@@ -140,7 +140,7 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
         data-testid="quick-add-sheet"
         onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => void submit(event)}
-        className="puls-sheet-in flex max-h-[92vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-[28px] bg-[var(--puls-surface)] p-5 pb-8 shadow-lg sm:rounded-[28px] sm:pb-6"
+        className="puls-sheet-in flex max-h-[92dvh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-[28px] bg-[var(--puls-surface)] p-5 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-lg sm:rounded-[28px] sm:pb-6"
       >
         <div
           className="mx-auto h-1.5 w-10 rounded-full bg-[var(--puls-line-strong)] sm:hidden"
