@@ -182,7 +182,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   );
 
   return (
-    <div className="puls-backdrop min-h-screen md:flex">
+    <div className="puls-backdrop min-h-dvh md:flex">
       {/* Десктоп: боковое меню с логотипом, «Добавить» и группами разделов. */}
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:overflow-y-auto md:px-4 md:py-5">
         <Link href="/app" className="mb-5 flex items-center gap-2.5 px-3">
@@ -203,9 +203,9 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
         </nav>
       </aside>
 
-      <div className="min-w-0 flex-1 pb-32 md:pb-0">
-        <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 pt-6 pb-4 md:px-8">
-          <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1 pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-0">
+        <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1.25rem,env(safe-area-inset-right))] pb-4 pl-[max(1.25rem,env(safe-area-inset-left))] md:px-8 md:pt-6">
+          <div className="flex min-w-0 items-center gap-3">
             <Link
               href="/app"
               className="flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
@@ -213,15 +213,18 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
             >
               <Logo size={36} />
             </Link>
-            <div>
-              <p className="text-sm text-[var(--puls-ink-muted)]">
+            <div className="min-w-0">
+              <p className="truncate text-sm text-[var(--puls-ink-muted)]">
                 {t(`app.greeting.${greeting}`)}
               </p>
-              <p className="font-heading text-base font-bold">@{user.nickname}</p>
+              <p className="truncate font-heading text-base font-bold">@{user.nickname}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <QuietModeToggle className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-primary-soft)]" />
+          <div className="flex shrink-0 items-center gap-2">
+            <QuietModeToggle
+              labelClassName="hidden sm:inline"
+              className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--puls-surface)] px-3.5 text-sm font-medium shadow-sm transition-colors duration-150 hover:bg-[var(--puls-primary-soft)]"
+            />
             {/* Настройки всегда в шапке: на невысоких экранах пункт внизу бокового меню уходит за край. */}
             <Link
               href="/settings"
@@ -246,7 +249,10 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
           </div>
         </header>
 
-        <main id="content" className="mx-auto w-full max-w-5xl px-5 pb-12 md:px-8">
+        <main
+          id="content"
+          className="mx-auto w-full max-w-5xl pb-12 pr-[max(1.25rem,env(safe-area-inset-right))] pl-[max(1.25rem,env(safe-area-inset-left))] md:px-8"
+        >
           {children}
         </main>
       </div>
@@ -309,7 +315,7 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
             role="dialog"
             aria-modal="true"
             aria-label={t('app.nav.moreTitle')}
-            className="puls-sheet-in absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[28px] border-t-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-bg)] px-4 pt-3 pb-8"
+            className="puls-sheet-in absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[28px] border-t-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-bg)] px-4 pt-3 pb-[max(2rem,env(safe-area-inset-bottom))]"
           >
             <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-[var(--puls-line-strong)]" />
             <div className="flex items-center justify-between px-3">

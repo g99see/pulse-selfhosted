@@ -14,10 +14,16 @@ import { toggleQuietMode, useQuietMode } from '@/lib/use-quiet-mode';
 export interface QuietModeToggleProps {
   className?: string;
   testId?: string;
+  /** Класс подписи: в шапке на телефоне прячем текст, оставляя только иконку. */
+  labelClassName?: string;
 }
 
 /** Кнопка «Тишина»: скрывает или возвращает суммы. */
-export function QuietModeToggle({ className, testId = 'quiet-toggle' }: QuietModeToggleProps) {
+export function QuietModeToggle({
+  className,
+  testId = 'quiet-toggle',
+  labelClassName,
+}: QuietModeToggleProps) {
   const { t } = useT();
   const quiet = useQuietMode();
 
@@ -35,7 +41,11 @@ export function QuietModeToggle({ className, testId = 'quiet-toggle' }: QuietMod
       }
     >
       <Icon name={quiet ? 'eyeOff' : 'eye'} size={18} />{' '}
-      <span className={quiet ? 'font-semibold text-[var(--puls-primary-text)]' : undefined}>
+      <span
+        className={[labelClassName, quiet ? 'font-semibold text-[var(--puls-primary-text)]' : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
         {t('quiet.label')}
       </span>
     </button>
