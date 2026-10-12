@@ -5,7 +5,7 @@
  * Суммы передаются как числа, в БД хранятся как Decimal(14,2).
  */
 import { z } from 'zod';
-import { isCurrency } from './money';
+import { isCurrency, type TransactionType } from './money';
 import { AccountTypeSchema, type AccountType } from './auth';
 
 export const TRANSACTION_KINDS = ['expense', 'income', 'transfer'] as const;
@@ -194,6 +194,36 @@ export const QuickTransactionSchema = z.object({
   accountId: z.string().min(1).optional(),
 });
 export type QuickTransactionInput = z.infer<typeof QuickTransactionSchema>;
+
+/**
+ * Быстрый ввод через публичный API (ТЗ §4, iPhone/Shortcuts): текст разбирает
+ * общий парсер, явные поля (type/amount/categoryId/comment/currency) его
+ * перекрывают — это нужно для OCR- и Share-Sheet-сценариев.
+ */
+export const QuickTransactionPublicSchema = z
+  .object({
+    text: z.string().trim().min(1, { message: 'Введите текст' }).max(200),
+    date: dateSchema.optional(),
+    accountId: z.string().min(1).nullish(),
+    source: z.string().trim().max(40).optional(),
+    type: z.enum(['expense', 'income']).optional(),
+    amount: amountSchema.optional(),
+    categoryId: z.string().min(1).nullish(),
+    comment: z.string().trim().max(500).optional(),
+    currency: currencyCodeSchema.optional(),
+  })
+  .strict();
+export type QuickTransactionPublicInput = z.infer<typeof QuickTransactionPublicSchema>;
+
+/** Ответ быстрого ввода: duplicate=true — запрос повторён, баланс не менялся. */
+export interface QuickTransactionResponse {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  categoryName: string | null;
+  currency: string;
+  duplicate: boolean;
+}
 
 export const TransactionFilterSchema = z.object({
   from: dateSchema.optional(),

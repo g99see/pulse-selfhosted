@@ -296,6 +296,9 @@ model Transaction {
   importHash        String?   @map("import_hash")
   /// Идентификатор операции в банке (колонка «Transaction ID»): при наличии — ключ идемпотентности импорта.
   externalId        String?   @map("external_id")
+  /// Ключ идемпотентности быстрого ввода (ТЗ §4): заголовок Idempotency-Key
+  /// или sha256(userId|text|date). Повторный запрос не создаёт вторую операцию.
+  idempotencyKey    String?   @map("idempotency_key")
   /// Время операции по выписке «HH:MM» (колонка date хранит только день).
   bankTime          String?   @map("bank_time")
   /// Остаток на счёте по данным банка после этой операции (колонка «Balance»).
@@ -304,6 +307,7 @@ model Transaction {
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
   @@unique([userId, importHash])
+  @@unique([userId, idempotencyKey])
   @@index([accountId, externalId])
   @@index([userId, date])
   @@index([accountId])

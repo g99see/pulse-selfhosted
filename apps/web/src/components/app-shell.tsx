@@ -38,6 +38,7 @@ const GROUPS: NavGroup[] = [
     key: 'app.nav.group.money',
     items: [
       { key: 'app.nav.finance', href: '/finance', icon: 'wallet' },
+      { key: 'app.nav.quick', href: '/quick', icon: 'pulse', testId: 'nav-quick' },
       { key: 'app.nav.goals', href: '/goals', icon: 'target' },
       { key: 'app.nav.stats', href: '/stats', icon: 'chart' },
     ],
