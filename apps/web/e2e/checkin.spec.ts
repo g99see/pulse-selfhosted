@@ -6,6 +6,25 @@ import { expect, test } from '@playwright/test';
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:3001';
 const PASSWORD = 'Secret12345';
 
+/**
+ * Часовой пояс Etc/GMT±X, в котором сейчас утро (04:00–12:00). Вопрос о сне
+ * задаётся только утром, поэтому браузер и онбординг ставим в утренний пояс.
+ */
+const MORNING_TIMEZONE = (() => {
+  const utcHour = new Date().getUTCHours();
+  for (const offset of [
+    0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 9, -9, 10, -10, 11, -11, 12,
+  ]) {
+    const local = (utcHour + offset + 24) % 24;
+    if (local < 4 || local >= 12) continue;
+    if (offset === 0) return 'Etc/GMT';
+    return offset > 0 ? `Etc/GMT-${offset}` : `Etc/GMT+${-offset}`;
+  }
+  return 'UTC';
+})();
+
+test.use({ timezoneId: MORNING_TIMEZONE });
+
 interface SentMail {
   to: string;
   subject: string;
