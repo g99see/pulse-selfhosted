@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   CHECKIN_TAG_SUGGESTIONS,
   DEFAULT_CHECKIN_SCHEDULE,
+  isMorningForSleep,
   MOOD_COLORS,
   MOOD_EMOJI,
   extractVoiceTags,
@@ -60,6 +61,17 @@ export default function CheckInPage() {
   const [timesPerDay, setTimesPerDay] = useState(DEFAULT_CHECKIN_SCHEDULE.timesPerDay);
   const [times, setTimes] = useState<string[]>(DEFAULT_CHECKIN_SCHEDULE.times);
   const [scheduleSaved, setScheduleSaved] = useState(false);
+
+  /**
+   * Вопрос о сне — только утром (04:00–12:00 по локальному времени пользователя).
+   * Считаем на клиенте (в эффекте), чтобы не расходиться с серверным рендером.
+   */
+  const [morning, setMorning] = useState(false);
+
+  useEffect(() => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    setMorning(isMorningForSleep(new Date(), timezone));
+  }, []);
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -151,7 +163,7 @@ export default function CheckInPage() {
         mood,
         energy: energy ?? undefined,
         stress: stress ?? undefined,
-        sleepHours: numberOrUndefined(sleepHours),
+        sleepHours: morning ? numberOrUndefined(sleepHours) : undefined,
         water: numberOrUndefined(water),
         steps: numberOrUndefined(steps),
         tags,
@@ -242,17 +254,19 @@ export default function CheckInPage() {
               />
 
               <div className="flex flex-wrap gap-3">
-                <label htmlFor="checkin-sleep" className="flex flex-1 flex-col gap-1">
-                  <span className="text-sm font-medium">{t('checkin.sleep')}</span>
-                  <input
-                    id="checkin-sleep"
-                    data-testid="checkin-sleep"
-                    inputMode="decimal"
-                    value={sleepHours}
-                    onChange={(event) => setSleepHours(event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-                  />
-                </label>
+                {morning ? (
+                  <label htmlFor="checkin-sleep" className="flex flex-1 flex-col gap-1">
+                    <span className="text-sm font-medium">{t('checkin.sleep')}</span>
+                    <input
+                      id="checkin-sleep"
+                      data-testid="checkin-sleep"
+                      inputMode="decimal"
+                      value={sleepHours}
+                      onChange={(event) => setSleepHours(event.target.value)}
+                      className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                    />
+                  </label>
+                ) : null}
                 <label htmlFor="checkin-water" className="flex flex-1 flex-col gap-1">
                   <span className="text-sm font-medium">{t('checkin.water')}</span>
                   <input

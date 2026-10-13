@@ -30,6 +30,13 @@ export const CHECKIN_DIALOG_STEPS = [
 ] as const;
 export type CheckInDialogStep = (typeof CHECKIN_DIALOG_STEPS)[number];
 
+/** Шаги для конкретного диалога: вечером/днём шага сна нет. */
+export function checkinDialogSteps(includeSleep: boolean): CheckInDialogStep[] {
+  return includeSleep
+    ? [...CHECKIN_DIALOG_STEPS]
+    : CHECKIN_DIALOG_STEPS.filter((s) => s !== 'sleep');
+}
+
 /** Сколько живёт черновик без ответов, минут. */
 export const CHECKIN_DRAFT_TTL_MINUTES = 30;
 
@@ -56,6 +63,11 @@ export interface CheckInDraftData {
   tags: string[];
   note?: string;
   slot?: CheckInSlot;
+  /**
+   * Задавать ли вопрос о сне. true — утренний чек-ин (сон за прошедшую ночь),
+   * false — днём/вечером шага нет. undefined — старый черновик: считаем утром.
+   */
+  includeSleep?: boolean;
 }
 
 export interface CheckInDialogState {
@@ -128,9 +140,11 @@ export function isCheckinAction(action: string): boolean {
 export function startCheckinDialog(options: {
   mood?: number;
   slot?: CheckInSlot;
+  includeSleep?: boolean;
 }): CheckInDialogState {
   const data: CheckInDraftData = { tags: [] };
   if (options.slot) data.slot = options.slot;
+  if (options.includeSleep !== undefined) data.includeSleep = options.includeSleep;
   if (options.mood !== undefined && parseMoodArg(String(options.mood)) !== null) {
     data.mood = options.mood;
     return { step: 'energy', data };
@@ -151,10 +165,11 @@ const skipRow = (step: CheckInDialogStep): DialogButton[] => [
 /** Описание шага по текущему состоянию (выбранные теги помечаются ✓). */
 export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
   const step = state.step;
+  const steps = checkinDialogSteps(state.data.includeSleep !== false);
   const base = {
     step,
-    index: CHECKIN_DIALOG_STEPS.indexOf(step) + 1,
-    total: CHECKIN_DIALOG_STEPS.length,
+    index: steps.indexOf(step) + 1,
+    total: steps.length,
     question: CHECKIN_DIALOG_QUESTIONS[step],
   };
 
@@ -236,13 +251,14 @@ function cancelButton(): DialogButton {
   return { label: CHECKIN_DIALOG_LABELS.cancel, action: checkinAction('cancel', '1') };
 }
 
-function nextStep(step: CheckInDialogStep): CheckInDialogStep | null {
-  const index = CHECKIN_DIALOG_STEPS.indexOf(step);
-  return CHECKIN_DIALOG_STEPS[index + 1] ?? null;
+function nextStep(state: CheckInDialogState): CheckInDialogStep | null {
+  const steps = checkinDialogSteps(state.data.includeSleep !== false);
+  const index = steps.indexOf(state.step);
+  return steps[index + 1] ?? null;
 }
 
 function advance(state: CheckInDialogState, data: CheckInDraftData): DialogResult {
-  const step = nextStep(state.step);
+  const step = nextStep(state);
   if (step === null) return finish(data);
   const next: CheckInDialogState = { step, data };
   return { kind: 'prompt', state: next, prompt: describeCheckinStep(next) };

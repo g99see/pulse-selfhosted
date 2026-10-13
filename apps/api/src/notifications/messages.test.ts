@@ -28,6 +28,20 @@ describe('buildMessage', () => {
     ).toContain('прошёл день');
   });
 
+  it('вечерние и ночные шаблоны не упоминают сон (вопрос о сне — только утром)', () => {
+    const SLEEP_WORDS = /сон|спал|спится|поспать|недосып/;
+    for (const hour of [17, 18, 21, 22, 23, 0, 3, 4]) {
+      const greeting = checkinGreeting({
+        now: new Date(`2026-10-01T${String(hour).padStart(2, '0')}:30:00Z`),
+        timezone: 'UTC',
+      });
+      const text = `${greeting.title} ${greeting.body}`.toLowerCase();
+      if (hour >= 17 || hour < 5) {
+        expect(text).not.toMatch(SLEEP_WORDS);
+      }
+    }
+  });
+
   it('собирает сообщение для каждого типа', () => {
     for (const type of NOTIFICATION_TYPES) {
       const message = buildMessage(type, { now: new Date(), timezone: 'UTC' });

@@ -50,7 +50,7 @@ export function checkinGreeting(context: NotificationBuildContext): {
   if (hour >= 17 && hour < 23) {
     return { title: 'Как прошёл день?', body: 'Вечерний чек-ин: настроение и пара слов о дне.' };
   }
-  return { title: 'Как вы?', body: 'Можно отметить настроение, если не спится.' };
+  return { title: 'Как вы?', body: 'Можно отметить настроение и записать пару слов о дне.' };
 }
 
 /** Сообщение по типу уведомления (ТЗ §3.6). */

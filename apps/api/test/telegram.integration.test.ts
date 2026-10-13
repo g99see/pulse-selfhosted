@@ -408,6 +408,28 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
   });
 
   describe('Чек-ины из чата', () => {
+    /** Пояс Etc/GMT±X, в котором сейчас локальный час подходит под условие. */
+    function zoneWhere(predicate: (localHour: number) => boolean): string {
+      const utcHour = new Date().getUTCHours();
+      const offsets = [
+        0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 9, -9, 10, -10, 11, -11, 12,
+      ];
+      for (const offset of offsets) {
+        if (!predicate((utcHour + offset + 24) % 24)) continue;
+        if (offset === 0) return 'Etc/GMT';
+        return offset > 0 ? `Etc/GMT-${offset}` : `Etc/GMT+${-offset}`;
+      }
+      throw new Error('не нашёл часовой пояс под условие');
+    }
+
+    /** Сон спрашивают только утром — ставим пользователю утренний пояс. */
+    async function asMorning(userId: string): Promise<void> {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { timezone: zoneWhere((hour) => hour >= 4 && hour < 12) },
+      });
+    }
+
     const cb = (chat: number, data: string, id = `cb-${data}`) => ({
       update_id: 100,
       callback_query: {
@@ -428,6 +450,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
         'tgcheckinusr',
         '1001',
       );
+      await asMorning(userId);
 
       await webhookUpdate(text(1001, '/checkin'));
       expect(
@@ -511,6 +534,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
 
     it('кнопка настроения из напоминания запускает диалог с готовым настроением', async () => {
       const { userId } = await signUpLinked('tg-remind@example.com', 'tgremindusr', '1003');
+      await asMorning(userId);
       await webhookUpdate(cb(1003, 'ci:mood:5'));
       expect(lastSent('1003')?.text).toContain('Шаг 2/8');
       const draft = await prisma.checkInDraft.findFirst({ where: { userId } });
@@ -525,6 +549,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
 
     it('быстрая форма /checkin одной строкой и /mood 4', async () => {
       const { userId } = await signUpLinked('tg-line@example.com', 'tglineuser', '1004');
+      await asMorning(userId);
       await webhookUpdate(text(1004, '/checkin 4 энергия 3 стресс 2 сон 7.5 #спорт заметка'));
       expect(lastSent('1004')?.text).toContain('Чек-ин сохранён');
 

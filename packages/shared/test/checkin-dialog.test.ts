@@ -178,3 +178,38 @@ describe('диалог чек-ина', () => {
     ]);
   });
 });
+
+describe('вопрос о сне только утром', () => {
+  it('includeSleep=true — шаг сна есть, всего 8 шагов', () => {
+    const state = startCheckinDialog({ includeSleep: true });
+    expect(state.data.includeSleep).toBe(true);
+    expect(state.step).toBe('mood');
+    expect(describeCheckinStep(state).total).toBe(8);
+  });
+
+  it('includeSleep=false — шага сна нет, всего 7 шагов', () => {
+    let state = startCheckinDialog({ includeSleep: false });
+    expect(state.data.includeSleep).toBe(false);
+    expect(describeCheckinStep(state).total).toBe(7);
+
+    state = stateOf(act(state, 'ci:mood:4'));
+    expect(state.step).toBe('energy');
+    state = stateOf(act(state, 'ci:energy:3'));
+    state = stateOf(act(state, 'ci:stress:2'));
+    // сна в последовательности нет — сразу вода
+    expect(state.step).toBe('water');
+    expect(describeCheckinStep(state)).toMatchObject({ index: 4, total: 7 });
+
+    // Шаг сна недостижим: кнопка «сон» на другом шаге игнорируется.
+    const slept = act(
+      { step: 'water', data: { mood: 3, tags: [], includeSleep: false } },
+      'ci:sleep:7',
+    );
+    expect(slept.kind).toBe('ignored');
+  });
+
+  it('без includeSleep (старый черновик) сон остаётся — данные не теряются', () => {
+    const state: CheckInDialogState = { step: 'stress', data: { mood: 3, tags: [] } };
+    expect(stateOf(act(state, 'ci:stress:2')).step).toBe('sleep');
+  });
+});
