@@ -92,6 +92,24 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
     return response.body as CheckInDto;
   }
 
+  /** Часовой пояс Etc/GMT±X, в котором сейчас локальный час подходит под условие. */
+  function zoneWhere(predicate: (localHour: number) => boolean): string {
+    const utcHour = new Date().getUTCHours();
+    const offsets = [
+      0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 9, -9, 10, -10, 11, -11, 12,
+    ];
+    for (const offset of offsets) {
+      if (!predicate((utcHour + offset + 24) % 24)) continue;
+      if (offset === 0) return 'Etc/GMT';
+      return offset > 0 ? `Etc/GMT-${offset}` : `Etc/GMT+${-offset}`;
+    }
+    throw new Error('не нашёл часовой пояс под условие');
+  }
+
+  async function setTimezone(email: string, timezone: string): Promise<void> {
+    await prisma.user.update({ where: { email }, data: { timezone } });
+  }
+
   describe('Быстрый ответ настроением (ТЗ §3.3, §5 сценарий 1)', () => {
     it('принимает настроение одним ответом и ставит время сейчас', async () => {
       const client = await signUp('mood@example.com', 'mooduser');
@@ -122,6 +140,11 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
   describe('Расширенный чек-ин (ТЗ §3.3)', () => {
     it('сохраняет энергию, стресс, сон, воду, шаги, теги и заметку', async () => {
       const client = await signUp('extended@example.com', 'extendeduser');
+      // Сон принимается только утром — ставим пояс, где сейчас 04:00–12:00.
+      await setTimezone(
+        'extended@example.com',
+        zoneWhere((hour) => hour >= 4 && hour < 12),
+      );
       const dto = await createCheckIn(client, {
         mood: 3,
         energy: 2,
@@ -296,6 +319,28 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
         expect(response.status).toBe(400);
         expect(response.body.code).toBe('validation_error');
       }
+    });
+  });
+
+  describe('Сон — только утром (локальное 04:00–12:00, ТЗ §3.3)', () => {
+    const isMorningHour = (hour: number) => hour >= 4 && hour < 12;
+
+    it('утром поле сна сохраняется', async () => {
+      const client = await signUp('sleep-am@example.com', 'sleepam');
+      await setTimezone('sleep-am@example.com', zoneWhere(isMorningHour));
+      const dto = await createCheckIn(client, { mood: 3, sleepHours: 7.5 });
+      expect(dto.sleepHours).toBe(7.5);
+    });
+
+    it('днём/вечером поле сна тихо игнорируется, без ошибки', async () => {
+      const client = await signUp('sleep-pm@example.com', 'sleeppm');
+      await setTimezone(
+        'sleep-pm@example.com',
+        zoneWhere((hour) => !isMorningHour(hour)),
+      );
+      const dto = await createCheckIn(client, { mood: 3, sleepHours: 7.5 });
+      expect(dto.sleepHours).toBeNull();
+      expect(dto.mood).toBe(3);
     });
   });
 
