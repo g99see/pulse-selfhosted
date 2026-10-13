@@ -20,6 +20,37 @@ export const CHECKIN_TAG_SUGGESTIONS = ['работа', 'спорт', 'ссор�
 /** Пропущенный чек-ин можно заполнить задним числом в течение 24 часов (ТЗ §3.3). */
 export const CHECKIN_BACKDATE_HOURS = 24;
 
+/* ----- Вопрос о сне — только утром ----- */
+
+/**
+ * Утро для вопроса о сне: локальное время пользователя 04:00–12:00.
+ * День/вечер и глубокая ночь вопрос о сне не задают — данные за прошлые дни не трогаются.
+ */
+export const SLEEP_MORNING_START_HOUR = 4;
+export const SLEEP_MORNING_END_HOUR = 12; // не включительно
+
+/**
+ * Сейчас «утро» для вопроса о сне? Считается по локальному часу в поясе
+ * пользователя; неизвестный пояс не роняет вызов (падаем на UTC).
+ */
+export function isMorningForSleep(date: Date, timeZone: string): boolean {
+  let hour: number;
+  try {
+    const raw = new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      hour: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(date)
+      .find((part) => part.type === 'hour')?.value;
+    hour = Number(raw);
+  } catch {
+    hour = date.getUTCHours();
+  }
+  if (!Number.isFinite(hour)) hour = date.getUTCHours();
+  return hour >= SLEEP_MORNING_START_HOUR && hour < SLEEP_MORNING_END_HOUR;
+}
+
 /** Момент чек-ина: ISO-строка (для заполнения задним числом). */
 const occurredAtSchema = z
   .string()
