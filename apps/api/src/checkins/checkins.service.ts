@@ -4,6 +4,7 @@ import type { CheckIn } from '@prisma/client';
 import {
   DEFAULT_CHECKIN_SCHEDULE,
   checkinGoalProgress,
+  isMorningForSleep,
   weekStartKey,
   zonedDayBounds,
   addDays,
@@ -76,7 +77,15 @@ export class CheckinsService {
   ) {}
 
   async create(userId: string, input: CheckInInput): Promise<CheckInDto> {
-    const occurredAt = resolveOccurredAt(input.occurredAt, new Date());
+    const now = new Date();
+    const occurredAt = resolveOccurredAt(input.occurredAt, now);
+    // Вопрос о сне — только утром (04:00–12:00 по локальному времени пользователя).
+    // Вне окна присланное поле сна тихо игнорируется (не 500), данные за день не ломаются.
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { timezone: true },
+    });
+    const morning = isMorningForSleep(occurredAt, user?.timezone ?? 'UTC');
 
     const created = await this.prisma.checkIn.create({
       data: {
@@ -84,7 +93,7 @@ export class CheckinsService {
         mood: input.mood,
         energy: input.energy ?? null,
         stress: input.stress ?? null,
-        sleepHours: input.sleepHours ?? null,
+        sleepHours: morning ? (input.sleepHours ?? null) : null,
         water: input.water ?? null,
         steps: input.steps ?? null,
         tags: input.tags ?? [],
@@ -175,13 +184,26 @@ export class CheckinsService {
   }
 
   async update(userId: string, id: string, input: CheckInUpdateInput): Promise<CheckInDto> {
-    await this.get(userId, id);
+    const existing = await this.get(userId, id);
 
     const data: import('@prisma/client').Prisma.CheckInUpdateInput = {};
     if (input.mood !== undefined) data.mood = input.mood;
     if (input.energy !== undefined) data.energy = input.energy;
     if (input.stress !== undefined) data.stress = input.stress;
-    if (input.sleepHours !== undefined) data.sleepHours = input.sleepHours;
+    if (input.sleepHours !== undefined) {
+      // Правку сна принимаем только для утреннего чек-ина; вне окна — игнорируем.
+      const moment =
+        input.occurredAt !== undefined
+          ? resolveOccurredAt(input.occurredAt, new Date())
+          : new Date(existing.occurredAt);
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { timezone: true },
+      });
+      data.sleepHours = isMorningForSleep(moment, user?.timezone ?? 'UTC')
+        ? input.sleepHours
+        : null;
+    }
     if (input.water !== undefined) data.water = input.water;
     if (input.steps !== undefined) data.steps = input.steps;
     if (input.tags !== undefined) data.tags = input.tags;

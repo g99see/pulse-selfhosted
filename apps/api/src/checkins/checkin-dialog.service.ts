@@ -9,6 +9,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   CHECKIN_DRAFT_TTL_MINUTES,
+  isMorningForSleep,
   parseCheckinLine,
   startCheckinDialog,
   stepCheckinDialog,
@@ -17,6 +18,7 @@ import {
   type CheckInDialogStep,
   type CheckInDraftData,
   type CheckInDto,
+  type CheckInInput,
   type CheckInLineResult,
   type CheckInSlot,
   type DialogEvent,
@@ -80,9 +82,12 @@ export class CheckinDialogService {
       where: { id: userId },
       select: { timezone: true },
     });
+    const timezone = user?.timezone ?? 'UTC';
+    const now = new Date();
     const state = startCheckinDialog({
       mood: options.mood,
-      slot: slotForUserHour(new Date(), user?.timezone ?? 'UTC'),
+      slot: slotForUserHour(now, timezone),
+      includeSleep: isMorningForSleep(now, timezone),
     });
     await this.save(userId, channel, state);
     return describeCheckinStep(state);
@@ -133,9 +138,14 @@ export class CheckinDialogService {
       where: { id: userId },
       select: { timezone: true },
     });
+    const timezone = user?.timezone ?? 'UTC';
+    const now = new Date();
+    // Вопрос о сне есть только утром: вне окна 04:00–12:00 поле сна игнорируется, без ошибки.
+    const input: CheckInInput = { ...parsed.input };
+    if (!isMorningForSleep(now, timezone)) delete input.sleepHours;
     const checkIn = await this.checkins.create(userId, {
-      ...parsed.input,
-      slot: slotForUserHour(new Date(), user?.timezone ?? 'UTC'),
+      ...input,
+      slot: slotForUserHour(now, timezone),
     });
     return { ok: true, checkIn };
   }
