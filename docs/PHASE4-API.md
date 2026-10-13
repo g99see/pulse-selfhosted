@@ -22,10 +22,8 @@ SHA-256 (`token_hash`), а в списке — `prefix` (первые 12 сим�
 | DELETE | `/api/api-tokens/:id` | cookie-сессия | Отозвать токен (`revoked_at`) |
 
 Тело создания: `{ "name": "Home Assistant", "scopes": ["read"], "expiresAt": null }`
-(`scopes`: `read` | `write` | `transactions:quick`; `expiresAt` — ISO-дата или
-`null`). Ответ содержит `token` — единственный раз. В интерфейсе настроек есть
-пресет **«iPhone / Ярлыки»** — имя `iPhone / Ярлыки` и область
-`transactions:quick`.
+(`scopes`: `read` | `write`; `expiresAt` — ISO-дата или `null`). Ответ содержит
+`token` — единственный раз.
 
 ## Публичный API `/api/v1/*`
 
@@ -41,12 +39,9 @@ Bearer-запросов **не нужны** (токен не привязан к
 | GET | `/api/v1/checkins` | read | Список чек-инов (`from`, `to`, `limit`) |
 | POST | `/api/v1/checkins` | write | Создать чек-ин |
 | GET | `/api/v1/stats/day` | read | Дашборд дня (`date=YYYY-MM-DD`) |
-| POST | `/api/v1/transactions/quick` | transactions:quick | Быстрый ввод траты текстом (iPhone/Shortcuts) |
 
-Области: `write` **включает** всё (и чтение, и быстрый ввод); `read` даёт только
-чтение и записывать не может — 403 `insufficient_scope`; `transactions:quick`
-даёт **только** быстрый ввод и на любом другом маршруте `/api/v1` отвечает 403.
-Отозванный или просроченный токен — 401 `unauthorized`.
+Области: `write` **включает** чтение; `read` записывать не может — 403
+`insufficient_scope`. Отозванный или просроченный токен — 401 `unauthorized`.
 Частота ограничена на токен: по умолчанию 120 запросов в минуту → 429
 `rate_limited` с `retryAfterSeconds`.
 
@@ -66,44 +61,7 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/
 # Чек-ин настроения
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"mood":4}' http://localhost:3001/api/v1/checkins
-
-# Быстрый ввод траты (iPhone/Shortcuts): текст разбирает общий парсер
-curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{"text":"кофе 250","date":"2026-10-13","source":"shortcut"}' \
-  "https://your-host.your-tailnet.ts.net/api/v1/transactions/quick"
 ```
-
-## Быстрый ввод траты (ТЗ §4, docs/MONEY-INPUT.md)
-
-`POST /api/v1/transactions/quick` — канал ввода «в момент покупки» из
-iPhone-шортката. Тело:
-
-```json
-{ "text": "кофе 250", "date": "2026-10-13", "accountId": null, "source": "shortcut" }
-```
-
-`text` разбирает `parseQuickTransaction` («кофе 250» → расход 250, категория
-«Еда»; «зарплата +80000» → доход). Явные поля `type`, `amount`, `categoryId`,
-`comment`, `currency` перекрывают разобранное — для OCR- и Share-Sheet-сценариев.
-Счёт по умолчанию — первый (самый ранний) счёт пользователя.
-
-**Идемпотентность.** Заголовок `Idempotency-Key` обязателен для шорткатов; без
-него сервер считает `sha256(userId | text | date)` в окне суток. Уникальный
-индекс `(user_id, idempotency_key)` (миграция `20261013120000_quick_idempotency`);
-повторный запрос возвращает ту же операцию и **не меняет баланс** — это защищает
-от ретраев шортката после таймаута.
-
-**Ответ:** `{ "id": "clx…", "type": "expense", "amount": 250, "categoryName": "Еда", "currency": "RUB", "duplicate": false }`.
-
-**`?format=text`** — вместо JSON отдаёт `text/plain` короткую фразу
-`Записал: кофе 250 ₽`, чтобы Siri проговорила результат без разбора JSON.
-
-Ошибки — единый формат `{ code, message }`: `unauthorized`, `insufficient_scope`,
-`validation_error`, `rate_limited`.
-
-Пошаговая сборка шортката, Siri, Share Sheet и автоматизация Apple Pay —
-`docs/SHORTCUTS-IPHONE.md`.
 
 ## Вебхуки
 
@@ -235,7 +193,4 @@ pnpm --filter @puls/web exec playwright test e2e/api-access.spec.ts
 
 Интеграционные тесты поднимают локальный http-сервер на `127.0.0.1`, проверяют
 корректность подписи, повтор доставки при 500, переход в `failed` после пяти
-неудач, SSRF-отказ и изоляцию данных владельца токена. Они же покрывают быстрый
-ввод: область `transactions:quick` (403 на остальных маршрутах), идемпотентность
-по `Idempotency-Key` и по `sha256(userId|text|date)` (дубль не меняет баланс),
-перекрытие явными полями и `?format=text`.
+неудач, SSRF-отказ и изоляцию данных владельца токена.

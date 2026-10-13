@@ -56,10 +56,12 @@ export class ApiTokenGuard implements CanActivate {
         context.getClass(),
       ]) ?? [];
     const scopes = record.scopes as ApiScope[];
-    // Область write — супер-область: даёт и чтение, и быстрый ввод.
-    // Область read даёт только чтение; transactions:quick — только быстрый ввод.
-    const missing = required.filter(
-      (scope) => !(scopes.includes(scope) || scopes.includes('write')),
+    // Область write включает чтение: держателю полного токена не нужно
+    // отдельно просить read. Область read записи не даёт (403).
+    const missing = required.filter((scope) =>
+      scope === 'read'
+        ? !(scopes.includes('read') || scopes.includes('write'))
+        : !scopes.includes(scope),
     );
     if (missing.length > 0) {
       throw httpError(

@@ -9,12 +9,8 @@ import { z } from 'zod';
 /** Префикс личного токена: по нему токен узнаётся в заголовке. */
 export const API_TOKEN_PREFIX = 'puls_';
 
-/**
- * Области доступа токена (ТЗ §4): read — только чтение, write — и запись,
- * transactions:quick — только быстрый ввод траты текстом (iPhone/Shortcuts).
- * Область write включает все остальные; read — только чтение.
- */
-export const API_SCOPES = ['read', 'write', 'transactions:quick'] as const;
+/** Области доступа токена (ТЗ §4): read — только чтение, write — и запись. */
+export const API_SCOPES = ['read', 'write'] as const;
 export type ApiScope = (typeof API_SCOPES)[number];
 
 /** События, на которые можно подписаться (ТЗ §4). */

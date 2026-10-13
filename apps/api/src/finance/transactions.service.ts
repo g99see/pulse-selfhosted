@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
@@ -8,8 +7,6 @@ import {
   parseQuickTransaction,
   roundRate,
   type Currency,
-  type QuickTransactionPublicInput,
-  type QuickTransactionResponse,
   type TransactionCreateInput,
   type TransactionDto,
   type TransactionFilter,
@@ -57,23 +54,6 @@ export function toTransactionDto(
     comment: transaction.comment,
     transferAccountId: transaction.transferAccountId,
     createdAt: transaction.createdAt.toISOString(),
-  };
-}
-
-/** Краткий ответ быстрого ввода (ТЗ §4): без деталей, с флагом повторного запроса. */
-export function quickResponse(
-  transaction: TransactionWithRelations | TransactionDto,
-  duplicate: boolean,
-): QuickTransactionResponse {
-  const categoryName =
-    'categoryName' in transaction ? transaction.categoryName : (transaction.category?.name ?? null);
-  return {
-    id: transaction.id,
-    type: transaction.type === 'income' ? 'income' : 'expense',
-    amount: Number(transaction.amount),
-    categoryName: categoryName ?? null,
-    currency: transaction.currency,
-    duplicate,
   };
 }
 
@@ -138,11 +118,7 @@ export class TransactionsService {
     return transactions.map((transaction) => toTransactionDto(transaction, user.currency));
   }
 
-  async create(
-    userId: string,
-    input: TransactionCreateInput,
-    options: { idempotencyKey?: string } = {},
-  ): Promise<TransactionDto> {
+  async create(userId: string, input: TransactionCreateInput): Promise<TransactionDto> {
     const account = await this.accounts.resolveOwned(userId, input.accountId);
     if (input.categoryId) {
       await this.categories.resolveOwned(userId, input.categoryId);
@@ -182,7 +158,6 @@ export class TransactionsService {
           amountBase,
           date,
           comment: input.comment ?? null,
-          idempotencyKey: options.idempotencyKey ?? null,
         },
         include: withRelations,
       });
@@ -246,93 +221,6 @@ export class TransactionsService {
       amount: parsed.amount,
       comment: parsed.title,
     });
-  }
-
-  /**
-   * Быстрый ввод через публичный API (ТЗ §4, docs/MONEY-INPUT.md, iPhone/Shortcuts):
-   * текст разбирает общий парсер, явные поля его перекрывают. Идемпотентность —
-   * заголовок Idempotency-Key либо sha256(userId|text|date) в окне суток.
-   * Повторный запрос возвращает ту же операцию с duplicate=true и не меняет баланс.
-   */
-  async quickPublic(
-    userId: string,
-    input: QuickTransactionPublicInput,
-    idempotencyKey?: string | null,
-  ): Promise<QuickTransactionResponse> {
-    const parsed = parseQuickTransaction(input.text, input.type ?? 'expense');
-    const amount = input.amount ?? parsed?.amount;
-    if (amount === undefined || amount === null) {
-      throw httpError(400, 'validation_error', 'Не удалось разобрать сумму и описание');
-    }
-    const title = (input.comment ?? parsed?.title ?? input.text).trim();
-    const type = input.type ?? parsed?.type ?? 'expense';
-
-    const dateKey = dayKeyOf(toDateOnly(input.date));
-    const explicitKey = idempotencyKey?.trim();
-    const key =
-      explicitKey && explicitKey.length > 0
-        ? explicitKey
-        : createHash('sha256').update(`${userId}|${input.text}|${dateKey}`).digest('hex');
-
-    // Повтор (ретрай Shortcuts после таймаута) — та же операция, баланс не трогаем.
-    const existing = await this.prisma.transaction.findFirst({
-      where: { userId, idempotencyKey: key },
-      include: withRelations,
-    });
-    if (existing) return quickResponse(existing, true);
-
-    let accountId = input.accountId ?? undefined;
-    if (!accountId) {
-      const first = await this.prisma.account.findFirst({
-        where: { userId },
-        orderBy: { createdAt: 'asc' },
-      });
-      if (!first) {
-        throw httpError(400, 'no_account', 'Сначала создайте счёт');
-      }
-      accountId = first.id;
-    }
-
-    let categoryId = input.categoryId ?? undefined;
-    if (categoryId) {
-      await this.categories.resolveOwned(userId, categoryId);
-    } else {
-      const guess = guessCategoryName(title);
-      if (guess) {
-        const category = await this.prisma.category.findFirst({
-          where: { name: guess, OR: [{ userId }, { userId: null }] },
-          orderBy: { isSystem: 'desc' },
-        });
-        categoryId = category?.id;
-      }
-    }
-
-    try {
-      const created = await this.create(
-        userId,
-        {
-          accountId,
-          categoryId,
-          type,
-          amount,
-          comment: title,
-          currency: input.currency,
-          date: input.date,
-        },
-        { idempotencyKey: key },
-      );
-      return quickResponse(created, false);
-    } catch (error) {
-      // Гонка: параллельный запрос успел создать операцию с тем же ключом.
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        const duplicate = await this.prisma.transaction.findFirst({
-          where: { userId, idempotencyKey: key },
-          include: withRelations,
-        });
-        if (duplicate) return quickResponse(duplicate, true);
-      }
-      throw error;
-    }
   }
 
   /** Перевод между счетами (ТЗ §3.2) — не считается расходом. */

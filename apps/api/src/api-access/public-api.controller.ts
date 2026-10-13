@@ -3,27 +3,20 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Post,
   Query,
   Req,
-  Res,
   UseGuards,
 } from '@nestjs/common';
-import type { Response } from 'express';
 import {
   CheckInFilterSchema,
   CheckInInputSchema,
-  QuickTransactionPublicSchema,
   StatsDayQuerySchema,
   TransactionCreateSchema,
   TransactionFilterSchema,
-  parseQuickTransaction,
   type CheckInInput,
-  type QuickTransactionPublicInput,
-  type QuickTransactionResponse,
   type TransactionCreateInput,
 } from '@puls/shared';
 import { httpError } from '../common/http-error';
@@ -88,29 +81,6 @@ export class PublicApiController {
     return this.transactions.create(req.user!.id, body);
   }
 
-  /**
-   * Быстрый ввод траты текстом (ТЗ §4, docs/MONEY-INPUT.md) для iPhone/Shortcuts:
-   * отдельная область transactions:quick, идемпотентность по Idempotency-Key.
-   * `?format=text` отдаёт короткую фразу для Siri вместо JSON.
-   */
-  @Post('transactions/quick')
-  @RequireApiScopes('transactions:quick')
-  @HttpCode(HttpStatus.CREATED)
-  async quickTransaction(
-    @Body(new ZodValidationPipe(QuickTransactionPublicSchema)) body: QuickTransactionPublicInput,
-    @Headers('idempotency-key') idempotencyKey: string | undefined,
-    @Query('format') format: string | undefined,
-    @Req() req: AuthenticatedRequest,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<QuickTransactionResponse | string> {
-    const result = await this.transactions.quickPublic(req.user!.id, body, idempotencyKey);
-    if (format === 'text') {
-      res.type('text/plain; charset=utf-8');
-      return quickReceiptText(result, body);
-    }
-    return result;
-  }
-
   @Get('checkins')
   @RequireApiScopes('read')
   async listCheckins(@Req() req: AuthenticatedRequest, @Query() query: Record<string, unknown>) {
@@ -140,27 +110,4 @@ export class PublicApiController {
     }
     return this.stats.day(req.user!.id, parsed.data.date);
   }
-}
-
-/** Знаки валют для короткой фразы (Siri читает её вслух). */
-const CURRENCY_SIGNS: Record<string, string> = { RUB: '₽', USD: '$', EUR: '€' };
-
-/** Сумма без лишних нулей: 250 → «250», 12.5 → «12.50». */
-function shortAmount(amount: number): string {
-  return Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
-}
-
-/**
- * Короткая фраза подтверждения для `?format=text` (iPhone/Shortcuts): Siri
- * проговаривает её напрямую, без разбора JSON. Пример: «Записал: кофе 250 ₽».
- */
-export function quickReceiptText(
-  result: QuickTransactionResponse,
-  input: QuickTransactionPublicInput,
-): string {
-  const parsed = parseQuickTransaction(input.text);
-  const label = (input.comment ?? parsed?.title ?? input.text).trim();
-  const sign = CURRENCY_SIGNS[result.currency] ?? result.currency;
-  const prefix = result.duplicate ? 'Уже записано' : 'Записал';
-  return `${prefix}: ${label} ${shortAmount(result.amount)} ${sign}`;
 }

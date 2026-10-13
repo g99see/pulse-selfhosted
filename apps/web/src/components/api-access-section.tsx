@@ -20,9 +20,6 @@ function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
 
-/** Область быстрого ввода — единственная в пресете «iPhone / Ярлыки». */
-const QUICK_SCOPE: ApiScope = 'transactions:quick';
-
 /**
  * Секция «Открытый API и вебхуки» (ТЗ §4, P2) на экране настроек: создание
  * личных токенов с однократным показом, отзыв, а также подписки на события с
@@ -46,13 +43,6 @@ export function ApiAccessSection() {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [copiedHeaders, setCopiedHeaders] = useState(false);
-  /** Публичный адрес сервера для шортката: тот, по которому открыт кабинет. */
-  const [baseUrl, setBaseUrl] = useState('');
-
-  useEffect(() => {
-    setBaseUrl(window.location.origin);
-  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -157,32 +147,6 @@ export function ApiAccessSection() {
     }
   }
 
-  /** Пресет «iPhone / Ярлыки»: имя токена и единственная область быстрого ввода. */
-  function applyIphonePreset(): void {
-    setTokenName(t('settings.apiAccess.preset.name'));
-    setScopes([QUICK_SCOPE]);
-  }
-
-  /** Готовый блок «URL и заголовки» для действия Get Contents of URL (без секретов). */
-  function headersText(): string {
-    return [
-      `URL: ${baseUrl}/api/v1/transactions/quick`,
-      'Method: POST',
-      'Content-Type: application/json',
-      `Authorization: Bearer ${t('settings.apiAccess.headersToken')}`,
-      'Idempotency-Key: <UUID>',
-    ].join('\n');
-  }
-
-  async function copyHeaders(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(headersText());
-      setCopiedHeaders(true);
-    } catch {
-      setCopiedHeaders(false);
-    }
-  }
-
   return (
     <Card>
       <div data-testid="api-access-section" className="flex flex-col gap-6">
@@ -208,20 +172,9 @@ export function ApiAccessSection() {
             onChange={(event) => setTokenName(event.target.value)}
           />
 
-          <div className="flex flex-wrap gap-2">
-            <GhostButton
-              type="button"
-              data-testid="api-token-preset-iphone"
-              className="min-h-11"
-              onClick={applyIphonePreset}
-            >
-              📱 {t('settings.apiAccess.preset.iphone')}
-            </GhostButton>
-          </div>
-
           <fieldset className="flex flex-wrap gap-4">
             {API_SCOPES.map((scope) => (
-              <label key={scope} className="flex min-h-11 items-center gap-2 text-sm">
+              <label key={scope} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   data-testid={`api-scope-${scope}`}
@@ -232,12 +185,6 @@ export function ApiAccessSection() {
               </label>
             ))}
           </fieldset>
-
-          {scopes.includes(QUICK_SCOPE) ? (
-            <p data-testid="api-quick-hint" className="text-sm text-[var(--puls-ink-muted)]">
-              {t('settings.apiAccess.quickHint')}
-            </p>
-          ) : null}
 
           <div className="flex flex-wrap gap-3">
             <PrimaryButton
@@ -268,28 +215,6 @@ export function ApiAccessSection() {
               </GhostButton>
             </div>
           ) : null}
-
-          {/* URL и заголовки для действия «Get Contents of URL» в Shortcuts (без секретов). */}
-          <div className="flex flex-col gap-2 rounded-[var(--radius-tile)] bg-[var(--puls-surface-2)] p-4">
-            <p className="text-sm font-semibold">{t('settings.apiAccess.headersTitle')}</p>
-            <p className="text-sm text-[var(--puls-ink-muted)]">
-              {t('settings.apiAccess.headersHint')}
-            </p>
-            <pre
-              data-testid="api-quick-headers"
-              className="overflow-x-auto whitespace-pre-wrap break-all rounded-[var(--radius-tile)] bg-[var(--puls-surface)] p-3 font-mono text-xs"
-            >
-              {headersText()}
-            </pre>
-            <GhostButton
-              type="button"
-              data-testid="api-quick-headers-copy"
-              className="min-h-11 self-start"
-              onClick={() => void copyHeaders()}
-            >
-              {copiedHeaders ? t('settings.apiAccess.copied') : t('settings.apiAccess.copyHeaders')}
-            </GhostButton>
-          </div>
 
           {tokens.length === 0 ? (
             <p data-testid="api-tokens-empty" className="text-sm text-[var(--puls-ink-muted)]">
