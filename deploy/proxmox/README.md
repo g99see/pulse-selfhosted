@@ -10,7 +10,7 @@ One-line install of Pulse into an unprivileged Proxmox VE LXC container.
 ### Одной командой (на хосте Proxmox VE, от root)
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/deploy/proxmox/puls-lxc.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/deploy/proxmox/puls-lxc.sh)"
 ```
 
 Скрипт спросит подтверждение (если есть терминал) и проверит, что вы на хосте PVE.
@@ -125,7 +125,7 @@ pct exec <CTID> -- bash -c 'cd /opt/puls && docker compose up -d caddy'
 ### One-liner (on the Proxmox VE host, as root)
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/deploy/proxmox/puls-lxc.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/deploy/proxmox/puls-lxc.sh)"
 ```
 
 ### What it does

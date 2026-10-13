@@ -69,7 +69,7 @@
 **Proxmox VE (LXC) — рекомендуется.** На хосте Proxmox от root:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/deploy/proxmox/puls-lxc.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/deploy/proxmox/puls-lxc.sh)"
 ```
 
 Скрипт создаёт непривилегированный LXC (Debian 12/13, `nesting=1,keyctl=1`), ставит Docker,
@@ -79,7 +79,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/
 **Docker Compose — альтернатива** (Debian 12/13 и Ubuntu 22.04/24.04, а также в готовом LXC):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash
 ```
 
 Установщик:

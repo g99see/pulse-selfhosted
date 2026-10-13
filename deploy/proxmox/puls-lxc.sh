@@ -3,7 +3,7 @@
 #
 # «Пульс» — установщик в LXC-контейнер Proxmox VE (запускать НА хосте PVE, root).
 #
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/deploy/proxmox/puls-lxc.sh)"
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/deploy/proxmox/puls-lxc.sh)"
 #
 # Скрипт создаёт НЕпривилегированный LXC (Debian 12/13, features nesting=1,keyctl=1 —
 # обязательны для Docker), ставит Docker + Compose, кладёт исходники «Пульса»,
@@ -33,7 +33,7 @@ CT_PASSWORD="${CT_PASSWORD:-}"         # пароль root в контейнер
 SSH_PUBKEY="${SSH_PUBKEY:-}"           # открытый ключ root (файл или строка)
 TEMPLATE="${TEMPLATE:-}"               # шаблон pveam (пусто — авто)
 REPO_URL="${REPO_URL:-https://github.com/g99see/pulse-selfhosted.git}"
-REPO_BRANCH="${REPO_BRANCH:-main}"
+REPO_BRANCH="${REPO_BRANCH:-master}"
 SOURCE_TARBALL="${SOURCE_TARBALL:-}"   # локальный .tar.gz исходников (GitHub недоступен)
 APP_DIR="${APP_DIR:-/opt/puls}"
 TS_SERVE="${TS_SERVE:-0}"              # 1 — включить tailscale serve (HTTPS)
@@ -57,7 +57,7 @@ usage() {
   cat <<'EOF'
 «Пульс» в LXC Proxmox VE. Запускать на хосте PVE от root.
 
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/deploy/proxmox/puls-lxc.sh)"
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/deploy/proxmox/puls-lxc.sh)"
 
 Опции:
   --ctid ID            ID контейнера (по умолчанию — следующий свободный)
@@ -74,7 +74,7 @@ usage() {
   --ssh-key FILE|STR   открытый SSH-ключ root
   --template NAME      шаблон pveam (авто: debian-13-standard)
   --repo URL           git-репозиторий (https://github.com/g99see/pulse-selfhosted.git)
-  --branch NAME        ветка (main)
+  --branch NAME        ветка (master)
   --tarball PATH       локальный .tar.gz исходников вместо git clone
                        (когда GitHub недоступен; также SOURCE_TARBALL)
   --dir PATH           каталог установки внутри контейнера (/opt/puls)
