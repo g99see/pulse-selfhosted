@@ -71,7 +71,7 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"text":"кофе 250","date":"2026-10-13","source":"shortcut"}' \
-  "https://your-host.your-tailnet.ts.net/api/v1/transactions/quick"
+  "https://puls.tailXXXX.ts.net/api/v1/transactions/quick"
 ```
 
 ## Быстрый ввод траты (ТЗ §4, docs/MONEY-INPUT.md)

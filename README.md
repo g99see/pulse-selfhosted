@@ -64,12 +64,22 @@
 
 Подробный список — в [документации](docs-site/index.md).
 
-## Установка одной командой
+## Установка
 
-Поддерживаются Debian 12/13 и Ubuntu 22.04/24.04 (работает и в Proxmox LXC с `nesting=1,keyctl=1`).
+**Proxmox VE (LXC) — рекомендуется.** На хосте Proxmox от root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/deploy/proxmox/puls-lxc.sh)"
+```
+
+Скрипт создаёт непривилегированный LXC (Debian 12/13, `nesting=1,keyctl=1`), ставит Docker,
+раскладывает «Пульс», генерирует `.env` и поднимает стек. Полное руководство, опции, Tailscale
+и диагностика — [`deploy/proxmox/README.md`](deploy/proxmox/README.md).
+
+**Docker Compose — альтернатива** (Debian 12/13 и Ubuntu 22.04/24.04, а также в готовом LXC):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/main/scripts/install.sh | sudo bash
 ```
 
 Установщик:

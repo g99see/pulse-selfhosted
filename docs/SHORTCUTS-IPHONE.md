@@ -23,7 +23,7 @@
 2. **Узнайте базовый URL** (`BASE_URL`) — адрес, по которому сервер доступен с
    телефона **по HTTPS**. iOS Shortcuts отказывается работать с `http://`,
    поэтому варианты: домен через Caddy (`https://puls.example.com`) либо
-   Tailscale Serve (`https://your-host.your-tailnet.ts.net` — сертификат валидный,
+   Tailscale Serve (`https://puls.tailXXXX.ts.net` — сертификат валидный,
    доступ только внутри tailnet, на iPhone должен быть подключён Tailscale).
    `http://localhost:3001` с телефона не годится.
 3. **Проверьте доступ** — откройте `{BASE_URL}/api/v1/me` в Safari на iPhone
@@ -166,7 +166,7 @@
 диагностики. `Idempotency-Key` — свежий UUID:
 
 ```bash
-BASE_URL=https://your-host.your-tailnet.ts.net
+BASE_URL=https://puls.tailXXXX.ts.net
 TOKEN=puls_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 curl -s -X POST \
