@@ -65,9 +65,19 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 The interface is available in English and Russian, with 15 base currencies (EUR, USD, GBP, RUB, UAH, KZT and more).
 More details in the [documentation](docs-site/index.md) (currently in Russian).
 
-## One-command install
+## Install
 
-Supported: Debian 12/13 and Ubuntu 22.04/24.04 (also works in a Proxmox LXC with `nesting=1,keyctl=1`).
+**Proxmox VE (LXC) — recommended.** On the Proxmox host, as root:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/deploy/proxmox/puls-lxc.sh)"
+```
+
+It creates an unprivileged LXC (Debian 12/13, `nesting=1,keyctl=1`), installs Docker, deploys
+Pulse, generates `.env` and brings the stack up. Full guide, options, Tailscale and troubleshooting:
+[`deploy/proxmox/README.md`](deploy/proxmox/README.md).
+
+**Docker Compose — alternative** (Debian 12/13 and Ubuntu 22.04/24.04, or an existing LXC):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/g99see/pulse-selfhosted/master/scripts/install.sh | sudo bash

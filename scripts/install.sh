@@ -22,6 +22,10 @@ HOST_IP=''
 INSTALL_DIR='/opt/puls'
 REPO="$REPO_DEFAULT"
 BRANCH='master'
+# Локальный архив исходников (необязательно). Когда GitHub недоступен (напр.
+# установка из LXC-скрипта Proxmox через scp), распаковывается в INSTALL_DIR
+# вместо git clone. Принимает .tar.gz/.tgz/.tar (git archive HEAD).
+TARBALL="${SOURCE_TARBALL:-}"
 ADMIN_EMAIL=''
 # 'admin' зарезервирован схемой nicknameSchema (RESERVED_NICKNAMES) — API отклонит его.
 ADMIN_NICK='owner'
@@ -66,6 +70,8 @@ usage() {
   --dir PATH             каталог установки (по умолчанию /opt/puls)
   --repo URL             git-репозиторий (по умолчанию GitHub g99see/pulse-selfhosted)
   --branch NAME          ветка (по умолчанию master)
+  --tarball PATH         локальный архив исходников (.tar.gz) вместо git clone;
+                         также переменная окружения SOURCE_TARBALL
   --admin-email E        почта первого администратора
   --admin-nickname N     ник администратора (по умолчанию owner; admin зарезервирован)
   --no-admin             не создавать администратора (пройдёте мастер в браузере)
@@ -92,6 +98,7 @@ while [ "$#" -gt 0 ]; do
     --dir) need_val "$@"; INSTALL_DIR="$2"; shift 2 ;;
     --repo) need_val "$@"; REPO="$2"; shift 2 ;;
     --branch) need_val "$@"; BRANCH="$2"; shift 2 ;;
+    --tarball) need_val "$@"; TARBALL="$2"; shift 2 ;;
     --admin-email) need_val "$@"; ADMIN_EMAIL="$2"; shift 2 ;;
     --admin-nickname) need_val "$@"; ADMIN_NICK="$2"; shift 2 ;;
     --smtp-url) need_val "$@"; SMTP_URL_OPT="$2"; shift 2 ;;
@@ -286,7 +293,20 @@ docker info >/dev/null 2>&1 || die 'Демон Docker не отвечает. В 
 
 # ---------- код ----------
 step "Получаю код в $INSTALL_DIR"
-if [ -d "$INSTALL_DIR/.git" ]; then
+if [ -n "$TARBALL" ]; then
+  # Локальный архив вместо git clone (GitHub недоступен; ставит LXC-скрипт Proxmox).
+  [ -f "$TARBALL" ] || die "Архив не найден: $TARBALL"
+  mkdir -p "$INSTALL_DIR"
+  tmp=$(mktemp -d)
+  tar -xzf "$TARBALL" -C "$tmp" >>"$LOG_FILE" 2>&1 || die "Не удалось распаковать архив $TARBALL. См. $LOG_FILE"
+  # git archive HEAD кладёт файлы в корень; --prefix=<dir>/ даёт один верхний каталог.
+  entries=$(find "$tmp" -mindepth 1 -maxdepth 1 | wc -l)
+  only=$(find "$tmp" -mindepth 1 -maxdepth 1 | head -n1)
+  if [ "$entries" = 1 ] && [ -d "$only" ]; then src="$only"; else src="$tmp"; fi
+  cp -a "$src"/. "$INSTALL_DIR"/
+  rm -rf "$tmp"
+  info "Распакован локальный архив: $TARBALL"
+elif [ -d "$INSTALL_DIR/.git" ]; then
   git -C "$INSTALL_DIR" fetch --quiet origin "$BRANCH" >>"$LOG_FILE" 2>&1 || warn 'git fetch не удался'
   git -C "$INSTALL_DIR" checkout --quiet "$BRANCH" >>"$LOG_FILE" 2>&1 || true
   git -C "$INSTALL_DIR" pull --ff-only --quiet >>"$LOG_FILE" 2>&1 \
