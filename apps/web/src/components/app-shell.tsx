@@ -185,7 +185,8 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
     <div className="puls-backdrop min-h-dvh md:flex">
       {/* Десктоп: боковое меню с логотипом, «Добавить» и группами разделов. */}
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:overflow-y-auto md:px-4 md:py-5">
-        <Link href="/app" className="mb-5 flex items-center gap-2.5 px-3">
+        {/* Логотип: тап-таргет не меньше 44px по высоте (QA-2 D9). */}
+        <Link href="/app" className="mb-5 flex min-h-11 items-center gap-2.5 px-3">
           <Logo size={34} />
           <span className="font-display text-lg">{t('brand.name')}</span>
         </Link>

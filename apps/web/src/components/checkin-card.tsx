@@ -103,7 +103,7 @@ export function CheckInCard() {
             {t('checkin.card.question')}
           </h2>
           {checkIns.length > 0 ? (
-            <span className="text-xs text-[var(--puls-wellbeing-text)]">
+            <span className="text-caption text-[var(--puls-wellbeing-text)]">
               {t('checkin.card.today', { count: checkIns.length })}
             </span>
           ) : null}
@@ -129,6 +129,7 @@ export function CheckInCard() {
           onChange={(mood) => void answer(mood)}
           disabled={busy}
           size="lg"
+          mode="actions"
         />
 
         {saved ? (
