@@ -105,9 +105,8 @@ test('чек-ин отвечается за пару кликов с главн�
   );
 
   // Фаза 0: расширенный блок закрыт по умолчанию, вода и шаги утром не спрашиваются.
-  await expect(page.getByTestId('checkin-extended-block')).not.toHaveAttribute('open', '');
+  await expect(page.getByTestId('checkin-day-summary')).toBeHidden();
   await page.getByTestId('checkin-extended').click();
-  await expect(page.getByTestId('checkin-extended-block')).toHaveAttribute('open', '');
   await expect(page.getByTestId('checkin-day-summary')).toBeVisible();
   await expect(page.getByTestId('checkin-water')).toHaveCount(0);
   await expect(page.getByTestId('checkin-steps')).toHaveCount(0);
