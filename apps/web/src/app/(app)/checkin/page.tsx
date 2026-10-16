@@ -300,10 +300,7 @@ export default function CheckInPage() {
 
           {/* Расширенный блок закрыт по умолчанию: прогрессивное раскрытие (Фаза 0, §2.2). */}
           <details className="flex flex-col gap-3" data-testid="checkin-extended-block">
-            <summary
-              data-testid="checkin-extended"
-              className="cursor-pointer text-sm font-medium"
-            >
+            <summary data-testid="checkin-extended" className="cursor-pointer text-sm font-medium">
               {t('checkin.extended')}
             </summary>
             <div className="mt-3 flex flex-col gap-4">

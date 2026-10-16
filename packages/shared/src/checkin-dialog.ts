@@ -40,7 +40,10 @@ export const CHECKIN_HABIT_STEPS = ['water', 'steps'] as const;
  * утром и днём (Фаза 0). Без явного `includeHabits` (старый черновик) воду и
  * шаги оставляем — иначе ответы, уже собранные в черновике, потерялись бы.
  */
-export function checkinDialogSteps(includeSleep: boolean, includeHabits = true): CheckInDialogStep[] {
+export function checkinDialogSteps(
+  includeSleep: boolean,
+  includeHabits = true,
+): CheckInDialogStep[] {
   return CHECKIN_DIALOG_STEPS.filter(
     (step) =>
       (step !== 'sleep' || includeSleep) &&
@@ -129,7 +132,9 @@ export const CHECKIN_DIALOG_MOOD_QUESTIONS = {
 
 /** Вопрос о настроении для слота: вечером — про день, утром/днём — про момент. */
 export function checkinMoodQuestion(slot?: CheckInSlot): string {
-  return slot === 'evening' ? CHECKIN_DIALOG_MOOD_QUESTIONS.daily : CHECKIN_DIALOG_MOOD_QUESTIONS.momentary;
+  return slot === 'evening'
+    ? CHECKIN_DIALOG_MOOD_QUESTIONS.daily
+    : CHECKIN_DIALOG_MOOD_QUESTIONS.momentary;
 }
 
 export const CHECKIN_DIALOG_QUESTIONS: Record<CheckInDialogStep, string> = {
@@ -204,7 +209,8 @@ export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
     step,
     index: steps.indexOf(step) + 1,
     total: steps.length,
-    question: step === 'mood' ? checkinMoodQuestion(state.data.slot) : CHECKIN_DIALOG_QUESTIONS[step],
+    question:
+      step === 'mood' ? checkinMoodQuestion(state.data.slot) : CHECKIN_DIALOG_QUESTIONS[step],
   };
 
   switch (step) {

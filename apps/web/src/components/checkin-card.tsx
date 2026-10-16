@@ -3,7 +3,13 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { slotForUserHour, type CheckInDto, type CheckInSlot, type Mood, type StreakDto } from '@puls/shared';
+import {
+  slotForUserHour,
+  type CheckInDto,
+  type CheckInSlot,
+  type Mood,
+  type StreakDto,
+} from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
 import { HabitsToday } from '@/components/habits-today';

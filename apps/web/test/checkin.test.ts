@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import {
-  checkinQuestionKey,
-  nearestScheduledTime,
-  slotForHour,
-} from '../src/lib/checkin';
+import { checkinQuestionKey, nearestScheduledTime, slotForHour } from '../src/lib/checkin';
 
 describe('checkinQuestionKey (Фаза 0, §2.1) — вопрос по слоту', () => {
   it('вечером спрашивает про день, утром и днём — про момент', () => {

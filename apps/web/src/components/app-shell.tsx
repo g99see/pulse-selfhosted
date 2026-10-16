@@ -42,7 +42,12 @@ const GROUPS: NavGroup[] = [
     items: [
       { key: 'app.nav.checkin', href: '/checkin', icon: 'heart', testId: 'nav-checkin' },
       { key: 'app.nav.habits', href: '/habits', icon: 'check', testId: 'nav-habits' },
-      { key: 'app.nav.achievements', href: '/achievements', icon: 'trophy', testId: 'nav-achievements' },
+      {
+        key: 'app.nav.achievements',
+        href: '/achievements',
+        icon: 'trophy',
+        testId: 'nav-achievements',
+      },
       { key: 'app.nav.insights', href: '/insights', icon: 'sparkle', testId: 'nav-insights' },
       { key: 'app.nav.capsules', href: '/capsules', icon: 'capsule', testId: 'nav-capsules' },
     ],
