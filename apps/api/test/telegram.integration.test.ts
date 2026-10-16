@@ -540,7 +540,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       expect(sleepButtons).toEqual(['4', '5', '6', '7', '8', '9+']);
       await webhookUpdate(text(1006, '7,5'));
       // Воды и шагов в утреннем диалоге нет — сразу теги.
-      expect(lastSent('1006')?.text).toContain('Шаг 4/6');
+      expect(lastSent('1006')?.text).toContain('Шаг 5/6');
       expect(lastSent('1006')?.text).toContain('теги');
       await webhookUpdate(cb(1006, 'ci:tags:done'));
       await webhookUpdate(cb(1006, 'ci:note:skip'));
