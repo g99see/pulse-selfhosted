@@ -513,6 +513,15 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.category.color.teal': 'Бирюзовый',
     'finance.category.color.lavender': 'Лавандовый',
 
+    'error.boundary.title': 'Что-то пошло не так',
+    'error.boundary.text':
+      'Не удалось показать страницу. Попробуйте ещё раз — ваши данные сохранены.',
+    'error.boundary.digest': 'Код ошибки: {digest}',
+    'error.unavailable.title': 'Сервис недоступен',
+    'error.unavailable.text':
+      'Пульс не может связаться с сервером. Проверьте соединение и повторите попытку.',
+    'error.unavailable.reload': 'Обновить страницу',
+
     'checkin.title': 'Чек-ины',
     'checkin.goal.title': 'Цель по чек-инам',
     'checkin.goal.none': 'Цель не задана: выберите, сколько чек-инов в неделю вам подходит.',
@@ -550,8 +559,15 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'checkin.scale.hint': 'Оцените по шкале от 1 до 5',
     'checkin.scale.option': 'Значение {value}',
     'checkin.save': 'Сохранить чек-ин',
+    'checkin.saving': 'Сохраняем…',
     'checkin.saved': 'Записал!',
     'checkin.noMood': 'Сначала выберите настроение.',
+    'checkin.backdate.label': 'Заполнить задним числом',
+    'checkin.backdate.hint':
+      'Можно указать время в пределах последних 24 часов. Пояс: {tz}. Сейчас: {now}.',
+    'checkin.backdate.now': 'Сейчас',
+    'checkin.backdate.invalid': 'Выберите время в пределах последних 24 часов.',
+    'checkin.history.loading': 'Загружаем чек-ины…',
     'checkin.history': 'Мои чек-ины',
     'checkin.history.empty': 'Пока нет чек-инов — ответьте на первый.',
     'checkin.history.more': 'Показать ещё',
@@ -1677,6 +1693,13 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'finance.category.color.teal': 'Teal',
     'finance.category.color.lavender': 'Lavender',
 
+    'error.boundary.title': 'Something went wrong',
+    'error.boundary.text': 'The page could not be displayed. Try again — your data is saved.',
+    'error.boundary.digest': 'Error code: {digest}',
+    'error.unavailable.title': 'Service unavailable',
+    'error.unavailable.text': 'Puls cannot reach the server. Check your connection and try again.',
+    'error.unavailable.reload': 'Reload the page',
+
     'checkin.title': 'Check-ins',
     'checkin.goal.title': 'Check-in goal',
     'checkin.goal.none': 'No goal yet: pick how many check-ins a week suit you.',
@@ -1714,8 +1737,15 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'checkin.scale.hint': 'Rate from 1 to 5',
     'checkin.scale.option': 'Value {value}',
     'checkin.save': 'Save check-in',
+    'checkin.saving': 'Saving…',
     'checkin.saved': 'Saved!',
     'checkin.noMood': 'Pick a mood first.',
+    'checkin.backdate.label': 'Back-fill the check-in',
+    'checkin.backdate.hint':
+      'You can pick a time within the last 24 hours. Timezone: {tz}. Now: {now}.',
+    'checkin.backdate.now': 'Now',
+    'checkin.backdate.invalid': 'Pick a time within the last 24 hours.',
+    'checkin.history.loading': 'Loading check-ins…',
     'checkin.history': 'My check-ins',
     'checkin.history.empty': 'No check-ins yet — answer the first one.',
     'checkin.history.more': 'Show more',
