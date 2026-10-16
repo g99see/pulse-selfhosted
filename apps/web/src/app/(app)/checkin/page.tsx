@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CHECKIN_TAG_SUGGESTIONS,
   DEFAULT_CHECKIN_SCHEDULE,
@@ -14,6 +14,7 @@ import {
   type Mood,
 } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
+import { CheckinBackdateField } from '@/components/checkin-backdate';
 import { CheckinGoalCard } from '@/components/checkin-goal-card';
 import { HabitsToday } from '@/components/habits-today';
 import { MetricScale, MoodScale } from '@/components/mood-scale';
@@ -58,6 +59,14 @@ export default function CheckInPage() {
   const [saved, setSaved] = useState(false);
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE);
 
+  /** Ошибка «нет настроения» (QA-2 D3): показывается у самой шкалы, а не в шапке страницы. */
+  const [moodError, setMoodError] = useState<string | null>(null);
+  /** Ошибка отправки (QA-2 D3): показывается рядом с кнопкой сохранения. */
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  /** Заполнение задним числом (QA-2 D4): ISO-момент или null = «сейчас». */
+  const [occurredAt, setOccurredAt] = useState<string | null>(null);
+  const moodBlockRef = useRef<HTMLDivElement | null>(null);
+
   const [timesPerDay, setTimesPerDay] = useState(DEFAULT_CHECKIN_SCHEDULE.timesPerDay);
   const [times, setTimes] = useState<string[]>(DEFAULT_CHECKIN_SCHEDULE.times);
   const [scheduleSaved, setScheduleSaved] = useState(false);
@@ -96,6 +105,16 @@ export default function CheckInPage() {
   }, [reload]);
 
   /**
+   * Ошибка «нет настроения»: прокручиваем к шкале и ставим фокус на неё
+   * (QA-2 D3) — раньше сообщение рисовалось в шапке, за пределами экрана.
+   */
+  useEffect(() => {
+    if (!moodError) return;
+    moodBlockRef.current?.scrollIntoView({ block: 'center' });
+    moodBlockRef.current?.querySelector<HTMLButtonElement>('[role="radio"]')?.focus();
+  }, [moodError]);
+
+  /**
    * Подпись тега на языке интерфейса. Хранятся канонические значения
    * (CHECKIN_TAG_SUGGESTIONS, на них опираются рекомендации), переводится только
    * отображение; свои теги пользователя показываются как есть.
@@ -104,6 +123,13 @@ export default function CheckInPage() {
     const key = `checkin.tag.${tag}`;
     const label = t(key);
     return label === key ? tag : label;
+  }
+
+  /** Выбор настроения: снимает ошибку валидации (D3) и прежний статус (D6). */
+  function chooseMood(next: Mood): void {
+    setMood(next);
+    setMoodError(null);
+    setSaved(false);
   }
 
   function toggleTag(tag: string): void {
@@ -152,15 +178,20 @@ export default function CheckInPage() {
   async function submit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
     if (!mood) {
-      setError(t('checkin.noMood'));
+      // Ошибку показываем у шкалы и подводим к ней фокус (QA-2 D3).
+      setMoodError(t('checkin.noMood'));
+      setSubmitError(null);
       return;
     }
 
     setBusy(true);
     setError(null);
+    setSubmitError(null);
     try {
       await checkinApi.create({
         mood,
+        // Заполнение задним числом (QA-2 D4): сервер принимает момент чек-ина.
+        occurredAt: occurredAt ?? undefined,
         energy: energy ?? undefined,
         stress: stress ?? undefined,
         sleepHours: morning ? numberOrUndefined(sleepHours) : undefined,
@@ -183,9 +214,11 @@ export default function CheckInPage() {
       setSuggestedTags([]);
       setNote('');
       setDaySummary('');
+      setOccurredAt(null);
+      setMoodError(null);
       await reload();
     } catch {
-      setError(t('auth.error.generic'));
+      setSubmitError(t('auth.error.generic'));
     } finally {
       setBusy(false);
     }
@@ -221,10 +254,29 @@ export default function CheckInPage() {
         <form
           className="flex min-w-0 flex-col gap-5 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm sm:p-6"
           onSubmit={(event) => void submit(event)}
+          onChange={() => setSaved(false)}
+          onClick={() => setSaved(false)}
         >
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" ref={moodBlockRef}>
             <h2 className="text-lg font-bold">{t('checkin.card.question')}</h2>
-            <MoodScale value={mood} onChange={setMood} disabled={busy} size="lg" />
+            <MoodScale
+              value={mood}
+              onChange={chooseMood}
+              disabled={busy}
+              size="lg"
+              describedBy={moodError ? 'checkin-mood-error' : undefined}
+              invalid={Boolean(moodError)}
+            />
+            {moodError ? (
+              <p
+                id="checkin-mood-error"
+                role="alert"
+                data-testid="checkin-mood-error"
+                className="text-sm font-medium text-[var(--puls-warning-text)]"
+              >
+                {moodError}
+              </p>
+            ) : null}
           </div>
 
           <details className="flex flex-col gap-3" open>
@@ -232,6 +284,7 @@ export default function CheckInPage() {
               {t('checkin.extended')}
             </summary>
             <div className="mt-3 flex flex-col gap-4">
+              <CheckinBackdateField value={occurredAt} onChange={setOccurredAt} disabled={busy} />
               <MetricScale
                 value={energy}
                 onChange={setEnergy}
@@ -372,13 +425,31 @@ export default function CheckInPage() {
             </div>
           </details>
 
+          {submitError ? (
+            <p
+              role="alert"
+              data-testid="checkin-submit-error"
+              className="text-sm font-medium text-[var(--puls-warning-text)]"
+            >
+              {submitError}
+            </p>
+          ) : null}
+
           <button
             type="submit"
             data-testid="checkin-save"
             disabled={busy}
-            className="h-12 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
+            aria-busy={busy}
+            className="flex h-12 items-center justify-center gap-2 rounded-[var(--radius-button)] bg-[var(--puls-primary)] px-6 font-semibold text-[var(--puls-on-primary)] disabled:opacity-50"
           >
-            {t('checkin.save')}
+            {busy ? (
+              <span
+                aria-hidden="true"
+                data-testid="checkin-save-spinner"
+                className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+              />
+            ) : null}
+            {busy ? t('checkin.saving') : t('checkin.save')}
           </button>
 
           {saved ? (
@@ -466,8 +537,26 @@ export default function CheckInPage() {
         </aside>
       </div>
 
-      <section className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm sm:p-6">
+      <section
+        className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-[var(--puls-surface)] p-5 shadow-sm sm:p-6"
+        aria-busy={loading}
+      >
         <h2 className="text-lg font-bold">{t('checkin.history')}</h2>
+
+        {/* Скелетон истории (QA-2 D5): при задержке API секция не выглядит пустой. */}
+        {loading && history.length === 0 ? (
+          <div data-testid="checkin-history-loading" role="status" className="flex flex-col gap-2">
+            <span className="sr-only">{t('checkin.history.loading')}</span>
+            {[0, 1, 2].map((row) => (
+              <span
+                key={row}
+                aria-hidden="true"
+                className="h-14 animate-pulse rounded-[18px] bg-[var(--puls-surface-2)]"
+              />
+            ))}
+          </div>
+        ) : null}
+
         <ul className="flex flex-col gap-2" data-testid="checkin-history">
           {history.slice(0, visibleCount).map((item) => (
             <li
