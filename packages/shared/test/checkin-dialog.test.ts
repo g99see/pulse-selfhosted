@@ -217,12 +217,12 @@ describe('вопрос о воде и шагах только вечером (Ф
 
 describe('вопрос о настроении зависит от слота (Фаза 0, §2.1)', () => {
   it('утром и днём — «прямо сейчас», вечером — «как прошёл день»', () => {
-    expect(describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'morning' } }).question).toContain(
-      'прямо сейчас',
-    );
-    expect(describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'day' } }).question).toContain(
-      'прямо сейчас',
-    );
+    expect(
+      describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'morning' } }).question,
+    ).toContain('прямо сейчас');
+    expect(
+      describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'day' } }).question,
+    ).toContain('прямо сейчас');
     expect(
       describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'evening' } }).question,
     ).toBe('Как прошёл день?');
