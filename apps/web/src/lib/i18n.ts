@@ -936,19 +936,20 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'insights.text.budgetExceeded': 'Бюджет на {category} превышен: {percent}% от лимита.',
     'insights.text.budgetSuggestion': 'Поставьте бюджет на {category}: {amount} в неделю.',
     'insights.text.sleepSpend':
-      'В дни с недосыпом (меньше 6 часов) вы тратите на {percent}% больше — таких дней было {days}.',
+      'Похоже, в дни с недосыпом (меньше 6 часов) траты на {percent}% выше — таких дней было {days}.',
     'insights.text.energySpend':
-      'В дни с низкой энергией вы тратите на {percent}% больше — таких дней было {days}.',
+      'Похоже, в дни с низкой энергией траты на {percent}% выше — таких дней было {days}.',
     'insights.text.moodSpend':
-      'В дни с плохим настроением вы тратите на {percent}% больше — таких дней было {days}.',
+      'Похоже, в дни с плохим настроением траты на {percent}% выше — таких дней было {days}.',
     'insights.correlations.title': 'Самочувствие и траты',
     'insights.correlations.hint':
       'Сравнение средних трат за день за 60 дней. Это наблюдение, а не причина.',
     'insights.correlations.sleep': 'Сон меньше 6 часов',
     'insights.correlations.energy': 'Энергия ниже 3',
     'insights.correlations.mood': 'Настроение ниже 3',
-    'insights.correlations.diff': '{percent}% к обычным дням ({bad} против {good} в день)',
-    'insights.correlations.notEnough': 'Мало данных: нужно хотя бы {min} дня в каждой группе.',
+    'insights.correlations.diff': '{percent}% к обычным дням ({bad} против {good} в день).',
+    'insights.correlations.notEnough':
+      'Мало данных: нужно хотя бы {min} дней с данными в каждой группе.',
     'insights.text.wellbeingConcern':
       'Уже {days} дней подряд настроение на самом низком уровне. Вы не одни — поддержка рядом.',
     'insights.support.title': 'Службы поддержки',
@@ -2101,17 +2102,20 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'insights.text.budgetExceeded': 'The {category} budget is exceeded: {percent}% of the limit.',
     'insights.text.budgetSuggestion': 'Set a budget for {category}: {amount} per week.',
     'insights.text.sleepSpend':
-      'On days after short sleep (under 6 hours) you spend {percent}% more — {days} such days.',
-    'insights.text.energySpend': 'On low-energy days you spend {percent}% more — {days} such days.',
-    'insights.text.moodSpend': 'On low-mood days you spend {percent}% more — {days} such days.',
+      'It looks like on days after short sleep (under 6 hours) you spend {percent}% more — {days} such days.',
+    'insights.text.energySpend':
+      'It looks like on low-energy days you spend {percent}% more — {days} such days.',
+    'insights.text.moodSpend':
+      'It looks like on low-mood days you spend {percent}% more — {days} such days.',
     'insights.correlations.title': 'Wellbeing and spending',
     'insights.correlations.hint':
       'Average daily spending over 60 days. An observation, not a cause.',
     'insights.correlations.sleep': 'Sleep under 6 hours',
     'insights.correlations.energy': 'Energy below 3',
     'insights.correlations.mood': 'Mood below 3',
-    'insights.correlations.diff': '{percent}% vs usual days ({bad} vs {good} per day)',
-    'insights.correlations.notEnough': 'Not enough data: at least {min} days in each group needed.',
+    'insights.correlations.diff': '{percent}% vs usual days ({bad} vs {good} per day).',
+    'insights.correlations.notEnough':
+      'Not enough data: at least {min} days with data in each group needed.',
     'insights.text.wellbeingConcern':
       'Your mood has been at its lowest for {days} days in a row. You are not alone — support is nearby.',
     'insights.support.title': 'Support services',
