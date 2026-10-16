@@ -386,7 +386,7 @@ test.describe('QA-2 D2 — экраны ошибок вместо «Application 
 
     // Ломаем вызов, который страница чек-ина делает при монтировании.
     await page.addInitScript(() => {
-      Object.defineProperty(Intl.DateTimeFormat.prototype, 'resolvedOptions', {
+      Object.defineProperty(Intl.DateTimeFormat.prototype, 'formatToParts', {
         configurable: true,
         value: () => {
           throw new Error('e2e-boom');

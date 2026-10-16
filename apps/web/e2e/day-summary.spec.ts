@@ -52,7 +52,12 @@ test('итог дня по ссылке: создать, открыть без �
   await anonPage.goto(url);
   await expect(anonPage.getByTestId('day-summary-public')).toContainText('Потрачено');
 
+  // Ждём ответ API на отзыв, иначе под нагрузкой гость откроет ссылку раньше.
+  const revoked = page.waitForResponse(
+    (r) => r.url().includes('/day-summary-link') && r.request().method() === 'DELETE',
+  );
   await page.getByTestId('day-summary-revoke').click();
+  await revoked;
   await anonPage.goto(url);
   await expect(anonPage.getByTestId('day-summary-public')).toContainText('недействительна');
   await anonymous.close();

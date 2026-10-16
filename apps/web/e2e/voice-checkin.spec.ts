@@ -149,6 +149,8 @@ test('без Web Speech API кнопка микрофона скрыта с по
   await signUpAndOnboard(page, request);
 
   await page.goto('/checkin');
+  // Фаза 0: расширенный блок свёрнут по умолчанию — раскрываем.
+  await page.getByTestId('checkin-extended-block').locator('summary').click();
   await expect(page.getByTestId('checkin-note-voice-unsupported')).toBeVisible();
   await expect(page.getByTestId('checkin-note-voice')).toHaveCount(0);
 });
