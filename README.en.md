@@ -34,6 +34,8 @@ Money, mood, habits and goals in one calm feed. Your data stays on your server.
 
 **Finance**
 
+> **TODO: переделать** — the finance module is being demoted to an optional module and will be reworked under a separate spec; see `docs/REWORK-CHECKIN-CORE.md`, §5 and §7 (phase 3). Behaviour is unchanged.
+
 - Accounts, transactions, budgets, custom categories, quick entry like "lunch 12.50"
 - Recurring payments, multiple currencies with exchange rates, CSV bank statement import
 - Daily, weekly and monthly stats, plus a "Year in review"

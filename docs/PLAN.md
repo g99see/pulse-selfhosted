@@ -1,5 +1,7 @@
 # План проекта «Пульс» (по ТЗ из ~/Downloads)
 
+> **TODO: переделать** — модуль финансов понижается до дополнительного и будет переработан отдельным ТЗ; см. `docs/REWORK-CHECKIN-CORE.md`, §5 и §7 (фаза 3). Поведение не изменилось.
+
 Стек: pnpm-монорепо; apps/web (Next.js 15), apps/api (NestJS + Prisma + PostgreSQL 16 + Valkey/BullMQ), packages/shared (Zod-схемы). Лицензия AGPL-3.0-or-later.
 
 ## Фаза 0. Окружение и каркас
