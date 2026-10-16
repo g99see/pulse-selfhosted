@@ -146,7 +146,13 @@ export function lowEnergyStreakCandidates(
   let streak = 0;
   for (let index = days.length - 1; index >= 0; index -= 1) {
     const energy = days[index]?.energy ?? null;
-    if (energy !== null && energy < threshold) streak += 1;
+    if (energy === null) {
+      // Дни без отметки: сегодня ещё может быть не заполнено — не рвём серию из-за
+      // пустого хвоста, но разрыв внутри уже начатой серии её завершает.
+      if (streak === 0) continue;
+      break;
+    }
+    if (energy < threshold) streak += 1;
     else break;
   }
 
@@ -309,7 +315,14 @@ export function wellbeingConcernCandidates(
 
   let streak = 0;
   for (let index = days.length - 1; index >= 0; index -= 1) {
-    if (days[index]?.mood === moodValue) streak += 1;
+    const mood = days[index]?.mood ?? null;
+    if (mood === null) {
+      // Сегодняшний день может быть ещё не заполнен: пустой хвост не обнуляет
+      // серию, но пропуск внутри начатой серии её завершает.
+      if (streak === 0) continue;
+      break;
+    }
+    if (mood === moodValue) streak += 1;
     else break;
   }
 
@@ -352,6 +365,18 @@ export function insightTypePenalty(useful: number, notUseful: number): number {
   return Math.max(0.1, Math.round(score * 100) / 100);
 }
 
+/**
+ * Типы, которые нельзя скрывать или понижать оценками. Сигнал заботы
+ * `wellbeing_concern` показывается всегда, когда для него есть данные: оценка
+ * «не полезно» не должна убирать ни карточку заботы, ни справочник поддержки.
+ */
+export const PROTECTED_INSIGHT_TYPES: readonly InsightType[] = ['wellbeing_concern'];
+
+/** Защищённый тип: оценок «полезно / не полезно» для него не существует. */
+export function isProtectedInsightType(type: InsightType): boolean {
+  return PROTECTED_INSIGHT_TYPES.includes(type);
+}
+
 /** Типы, которые пора реже показывать: два и более «не полезно» без одобрений. */
 export function hiddenInsightTypes(
   stats: readonly TypeFeedbackStat[],
@@ -359,6 +384,7 @@ export function hiddenInsightTypes(
 ): InsightType[] {
   const minNotUseful = options.minNotUseful ?? 2;
   return stats
+    .filter((stat) => !isProtectedInsightType(stat.type))
     .filter((stat) => stat.notUseful >= minNotUseful && stat.notUseful > stat.useful)
     .map((stat) => stat.type);
 }
@@ -399,7 +425,11 @@ export function rankInsights(
     .filter((candidate) => !hidden.has(candidate.type))
     .map((candidate) => {
       const stat = byType.get(candidate.type);
-      const penalty = stat ? insightTypePenalty(stat.useful, stat.notUseful) : 1;
+      // Оценки понижают вес только обычных типов: сигнал заботы не гнём.
+      const penalty =
+        stat && !isProtectedInsightType(candidate.type)
+          ? insightTypePenalty(stat.useful, stat.notUseful)
+          : 1;
       return { candidate, score: candidate.weight * penalty };
     })
     .sort((left, right) => right.score - left.score)

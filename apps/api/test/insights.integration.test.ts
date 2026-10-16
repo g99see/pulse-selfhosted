@@ -309,6 +309,46 @@ describe('Insights API (интеграция с PostgreSQL)', () => {
       const feed = (await client.get('/api/insights')).body as FeedBody;
       expect(feed.insights.some((item) => item.type === 'wellbeing_concern')).toBe(false);
     });
+
+    it('оценка «не полезно» не скрывает сигнал заботы и телефоны поддержки', async () => {
+      const client = await signUp('care-fb@example.com', 'carefbuser');
+      await createAccount(client);
+      const user = await userByEmail('care-fb@example.com');
+      await prisma.user.update({ where: { id: user.id }, data: { timezone: 'Europe/Moscow' } });
+
+      const today = todayKeyInTimezone('Europe/Moscow');
+      for (const day of daysEnding(today, 6))
+        await addCheckIn('care-fb@example.com', day, { mood: 1 });
+
+      const feed = (await client.get('/api/insights')).body as FeedBody;
+      const concern = feed.insights.find((item) => item.type === 'wellbeing_concern');
+      expect(concern).toBeTruthy();
+
+      // Два «не полезно» по сигналу заботы — ровно тот порог, что прячет обычные типы.
+      await client.post(`/api/insights/${concern!.id}/feedback`, { feedback: 'not_useful' });
+      const seeded = await prisma.insight.create({
+        data: {
+          userId: user.id,
+          type: 'wellbeing_concern',
+          textKey: 'insights.text.wellbeingConcern',
+          params: { days: 6 },
+          source: 'rule',
+          periodKey: 'seed-concern',
+        },
+      });
+      await client.post(`/api/insights/${seeded.id}/feedback`, { feedback: 'not_useful' });
+
+      expect(await insights.hiddenTypes(user.id)).not.toContain('wellbeing_concern');
+
+      // Свежая генерация сигнал не прячет, и поддержка остаётся на месте.
+      const generated = await insights.generate(user.id);
+      expect(generated.map((item) => item.type)).toContain('wellbeing_concern');
+
+      const after = (await client.get('/api/insights')).body as FeedBody;
+      expect(after.insights.some((item) => item.type === 'wellbeing_concern')).toBe(true);
+      expect(after.country).toBe('RU');
+      expect(after.support.map((resource) => resource.country)).toEqual(['RU', 'INT']);
+    });
   });
 
   describe('Оценка «полезно / не полезно» (ТЗ §3.5)', () => {

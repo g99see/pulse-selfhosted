@@ -11,11 +11,13 @@ import {
   ACHIEVEMENT_CATALOG,
   ACHIEVEMENT_METRICS,
   achievementByCode,
+  computeStreak,
+  dayKeyInTimezone,
   metricsForEvent,
   nextStreakMilestone,
   progressFor,
   reachedTiers,
-  streakFromInstants,
+  todayKeyInTimezone,
   type AchievementEvent,
   type AchievementLevel,
   type AchievementMetric,
@@ -28,8 +30,6 @@ import { InternalEvents, type InternalEventMap } from '../common/internal-events
 import { PrismaService } from '../prisma/prisma.service';
 import { METRICS, MetricData } from './metrics';
 
-/** Глубина выборки чек-инов для плашки стрика — покрывает порог в 100 дней. */
-const STREAK_WINDOW_DAYS = 370;
 /** Сколько пользователей пересчитывается за одну пачку при backfill. */
 const BACKFILL_BATCH = 100;
 const INSTANCE_SETTINGS_ID = 'instance';
@@ -293,16 +293,19 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy, OnApp
       select: { timezone: true },
     });
     const timezone = user?.timezone ?? 'UTC';
-    const since = new Date(Date.now() - STREAK_WINDOW_DAYS * 24 * 60 * 60 * 1000);
     const checkIns = await this.prisma.checkIn.findMany({
-      where: { userId, occurredAt: { gte: since } },
+      where: { userId },
       select: { occurredAt: true },
     });
 
-    const result = streakFromInstants(
-      checkIns.map((checkIn) => checkIn.occurredAt),
-      timezone,
-    );
+    const todayKey = todayKeyInTimezone(timezone);
+    // Самую длинную серию считаем по всем чек-инам: окно в 370 дней занижало
+    // рекорд (400 дней → 371), плашка показывала «мёртвый» максимум. Будущие
+    // даты не учитываем.
+    const dayKeys = checkIns
+      .map((checkIn) => dayKeyInTimezone(checkIn.occurredAt, timezone))
+      .filter((day) => day <= todayKey);
+    const result = computeStreak(dayKeys, todayKey);
 
     return {
       current: result.current,
@@ -310,7 +313,8 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy, OnApp
       checkedToday: result.checkedToday,
       todayKey: result.todayKey,
       lastDayKey: result.lastDayKey,
-      nextMilestone: nextStreakMilestone(Math.max(result.current, result.longest)),
+      // Прогресс до следующего бейджа — от текущей серии, а не от рекорда.
+      nextMilestone: nextStreakMilestone(result.current),
     };
   }
 }

@@ -174,14 +174,14 @@ describe('Пульс v2 §7–§8 (интеграция с PostgreSQL)', () => {
 
     it('эндпоинт отдаёт значимую корреляцию по сну, остальные без данных', async () => {
       const { client, userId } = await signUp('cor@example.com', 'coruser');
-      await seedDays(userId, 1500, 1000, 12);
+      await seedDays(userId, 1500, 1000, 14);
       const response = await client.get('/api/insights/correlations');
       expect(response.status).toBe(200);
       expect(response.body.windowDays).toBe(60);
       const sleep = response.body.correlations.find(
         (item: { metric: string }) => item.metric === 'sleep',
       );
-      expect(sleep).toMatchObject({ badDays: 6, goodDays: 6, diffPercent: 50, significant: true });
+      expect(sleep).toMatchObject({ badDays: 7, goodDays: 7, diffPercent: 50, significant: true });
       const energy = response.body.correlations.find(
         (item: { metric: string }) => item.metric === 'energy',
       );
@@ -190,7 +190,7 @@ describe('Пульс v2 §7–§8 (интеграция с PostgreSQL)', () => {
 
     it('правило попадает в ленту инсайтов только при достаточной выборке', async () => {
       const rich = await signUp('cor2@example.com', 'coruser2');
-      await seedDays(rich.userId, 1500, 1000, 12);
+      await seedDays(rich.userId, 1500, 1000, 14);
       const feed = await rich.client.get('/api/insights');
       const types = feed.body.insights.map((item: { type: string }) => item.type);
       expect(types).toContain('sleep_spend');

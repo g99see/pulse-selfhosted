@@ -13,7 +13,12 @@ export type CorrelationMetric = (typeof CORRELATION_METRICS)[number];
 /** Окно анализа, дней. */
 export const CORRELATION_WINDOW_DAYS = 60;
 /** Минимум дней с данными в каждой группе («плохие» и «обычные»). */
-export const CORRELATION_MIN_SAMPLES = 4;
+export const CORRELATION_MIN_SAMPLES = 7;
+/**
+ * Минимум дней с данными суммарно. Небольшая выборка на 4+4 днях давала
+ * «значимый» вывод от одной импульсной покупки — такой вывод не показываем.
+ */
+export const CORRELATION_MIN_TOTAL_DAYS = 14;
 /** Минимальная разница средних трат, %, чтобы считать её заметной. */
 export const CORRELATION_MIN_DIFF_PERCENT = 15;
 
@@ -59,17 +64,26 @@ function metricValue(day: CorrelationDay, metric: CorrelationMetric): number | n
   return day.avgMood;
 }
 
-function mean(values: readonly number[]): number | null {
+/**
+ * Медиана — устойчива к одной импульсной покупке, которая искажала среднее и
+ * рождала вывод вида «+900% на 4 днях».
+ */
+function median(values: readonly number[]): number | null {
   if (values.length === 0) return null;
-  return roundMoney(values.reduce((total, value) => total + value, 0) / values.length);
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  const value =
+    sorted.length % 2 === 1 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
+  return roundMoney(value);
 }
 
-/** Сравнивает средние траты в «плохие» и «обычные» дни по каждой метрике. */
+/** Сравнивает траты в «плохие» и «обычные» дни по каждой метрике. */
 export function computeCorrelations(
   days: readonly CorrelationDay[],
-  options: { minSamples?: number; minDiffPercent?: number } = {},
+  options: { minSamples?: number; minDiffPercent?: number; minTotalDays?: number } = {},
 ): CorrelationDto[] {
   const minSamples = options.minSamples ?? CORRELATION_MIN_SAMPLES;
+  const minTotal = options.minTotalDays ?? CORRELATION_MIN_TOTAL_DAYS;
   const minDiff = options.minDiffPercent ?? CORRELATION_MIN_DIFF_PERCENT;
 
   return CORRELATION_METRICS.map((metric) => {
@@ -81,9 +95,12 @@ export function computeCorrelations(
       (value < CORRELATION_BAD_BELOW[metric] ? bad : good).push(day.spent);
     }
 
-    const badAverage = mean(bad);
-    const goodAverage = mean(good);
-    const enough = bad.length >= minSamples && good.length >= minSamples;
+    const badAverage = median(bad);
+    const goodAverage = median(good);
+    // Нужна выборка в каждой группе И достаточно дней суммарно: иначе вывод —
+    // случайность, а не наблюдение.
+    const enough =
+      bad.length >= minSamples && good.length >= minSamples && bad.length + good.length >= minTotal;
     // База сравнения нулевая — процент не определён.
     const diffPercent =
       badAverage !== null && goodAverage !== null && goodAverage > 0

@@ -188,9 +188,11 @@ export type MetricFn = (data: MetricData) => Promise<number>;
 
 const distinct = (values: Iterable<string>): number => new Set(values).size;
 
-/** Самая длинная серия подряд идущих дней среди ключей. */
+/** Самая длинная серия подряд идущих дней среди ключей (будущие дни не считаем). */
 async function longestStreak(data: MetricData, days: Iterable<string>): Promise<number> {
-  return computeStreak([...days], await data.todayKey()).longest;
+  const today = await data.todayKey();
+  const keys = [...days].filter((day) => day <= today);
+  return computeStreak(keys, today).longest;
 }
 
 /** День недели (0 — воскресенье) для ключа дня YYYY-MM-DD. */
