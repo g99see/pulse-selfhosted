@@ -99,7 +99,12 @@ export class InsightsService {
       take: limit,
     });
     const insights = rows.map(toInsightDto);
-    const hasConcern = insights.some((insight) => insight.type === 'wellbeing_concern');
+    // Сигнал заботы нельзя терять: оценка «не полезно» и вытеснение из свежей
+    // ленты не должны убирать карточку заботы и справочник поддержки. Смотрим
+    // сохранённый wellbeing_concern напрямую, а не только по обрезанной ленте.
+    const hasConcern =
+      insights.some((insight) => insight.type === 'wellbeing_concern') ||
+      (await this.prisma.insight.count({ where: { userId, type: 'wellbeing_concern' } })) > 0;
 
     return {
       insights,
@@ -192,7 +197,7 @@ export class InsightsService {
     return feedbackStatsFromRows(rows);
   }
 
-  /** Скрытые типы инсайтов (частые «не полезно»). */
+  /** Скрытые типы инсайтов (частые «не полезно»). Сигнал заботы сюда не попадает. */
   async hiddenTypes(userId: string): Promise<InsightType[]> {
     return hiddenInsightTypes(await this.feedbackStats(userId));
   }

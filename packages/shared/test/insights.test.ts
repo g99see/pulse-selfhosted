@@ -109,6 +109,32 @@ describe('Три дня подряд низкой энергии (ТЗ §3.5)', 
       ]),
     ).toHaveLength(0);
   });
+
+  it('пустой сегодняшний день не обнуляет серию', () => {
+    const candidates = lowEnergyStreakCandidates([
+      { day: '2026-09-28', energy: 1 },
+      { day: '2026-09-29', energy: 1 },
+      { day: '2026-09-30', energy: 1 },
+      { day: '2026-10-01', energy: null },
+    ]);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].params.days).toBe(3);
+  });
+
+  it('пропуск внутри серии её завершает, даже если сегодня пусто', () => {
+    const candidates = lowEnergyStreakCandidates([
+      { day: '2026-09-28', energy: 1 },
+      { day: '2026-09-29', energy: 1 },
+      { day: '2026-09-30', energy: 1 },
+      { day: '2026-10-01', energy: null },
+      { day: '2026-10-02', energy: 1 },
+      { day: '2026-10-03', energy: 1 },
+      { day: '2026-10-04', energy: 1 },
+      { day: '2026-10-05', energy: null },
+    ]);
+    // Считается серия после последнего разрыва (3 дня), а не все 6 дней с данными.
+    expect(candidates[0]?.params.days).toBe(3);
+  });
 });
 
 describe('Настроение выше в дни со спортом (ТЗ §3.5)', () => {
@@ -229,6 +255,23 @@ describe('Мягкое предложение помощи (ТЗ §3.5)', () => 
       ]),
     ).toHaveLength(0);
   });
+
+  it('сегодняшний день без отметки не обнуляет сигнал заботы', () => {
+    const days = [
+      '2026-09-26',
+      '2026-09-27',
+      '2026-09-28',
+      '2026-09-29',
+      '2026-09-30',
+      '2026-10-01',
+      '2026-10-02',
+    ];
+    const candidates = wellbeingConcernCandidates([
+      ...days.slice(0, 6).map((day) => ({ day, mood: 1 })),
+      { day: '2026-10-02', mood: null },
+    ]);
+    expect(candidates[0]?.params.days).toBe(6);
+  });
 });
 
 describe('Оценка «полезно / не полезно» (ТЗ §3.5)', () => {
@@ -246,6 +289,41 @@ describe('Оценка «полезно / не полезно» (ТЗ §3.5)', (
         { type: 'category_spend_up', useful: 3, notUseful: 3 },
       ]),
     ).toEqual(['low_energy_streak']);
+  });
+
+  it('никогда не скрывает сигнал заботы, сколько бы «не полезно» ни ставили', () => {
+    expect(
+      hiddenInsightTypes([
+        { type: 'wellbeing_concern', useful: 0, notUseful: 9 },
+        { type: 'low_energy_streak', useful: 0, notUseful: 2 },
+      ]),
+    ).toEqual(['low_energy_streak']);
+  });
+
+  it('не понижает вес сигнала заботы и не выбрасывает его из отбора', () => {
+    const concern: InsightCandidate = {
+      type: 'wellbeing_concern',
+      textKey: 'insights.text.wellbeingConcern',
+      params: { days: 6 },
+      weight: 1000,
+    };
+    const noise: InsightCandidate = {
+      type: 'mood_with_sport',
+      textKey: 'insights.text.moodWithSport',
+      params: {},
+      weight: 2000,
+    };
+    const stats = [
+      { type: 'wellbeing_concern' as const, useful: 0, notUseful: 5 },
+      { type: 'mood_with_sport' as const, useful: 0, notUseful: 5 },
+    ];
+
+    expect(rankInsights([concern, noise], stats).map((item) => item.type)).toEqual([
+      'wellbeing_concern',
+    ]);
+
+    const weekly = selectWeeklyInsights([concern, noise], stats);
+    expect(weekly.insights.map((item) => item.type)).toContain('wellbeing_concern');
   });
 
   it('сортирует кандидатов с учётом оценки', () => {
