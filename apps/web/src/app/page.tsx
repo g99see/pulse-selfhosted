@@ -26,11 +26,21 @@ const DEMO_EXAMPLE = {
 const DEMO_BY_LOCALE = { ru: DEMO_EXAMPLE, en: DEMO_EXAMPLE } as const;
 const DEMO_MOODS = [3, 4, 4, 5, 2, 3, 4];
 
-const FEATURES: Array<{ key: string; icon: IconName; tone: Exclude<Tone, 'neutral'> }> = [
-  { key: 'money', icon: 'wallet', tone: 'finance' },
+/**
+ * Возможности лендинга (Фаза 0, §5): чек-ин первым, деньги — последними и с
+ * пометкой «дополнительный модуль · TODO: переделать».
+ */
+const FEATURES: Array<{
+  key: string;
+  icon: IconName;
+  tone: Exclude<Tone, 'neutral'>;
+  /** Ключ i18n видимой пометки модуля (Фаза 0, §5). */
+  noteKey?: string;
+}> = [
   { key: 'checkin', icon: 'heart', tone: 'wellbeing' },
   { key: 'goals', icon: 'target', tone: 'primary' },
   { key: 'privacy', icon: 'shield', tone: 'finance' },
+  { key: 'money', icon: 'wallet', tone: 'finance', noteKey: 'landing.feature.money.note' },
 ];
 
 /** Лендинг (docs/REDESIGN.md): герой, превью «Сегодня» на демо-данных, возможности, оформление. */
@@ -150,6 +160,14 @@ export default async function LandingPage() {
                 <p className="text-sm text-[var(--puls-ink-muted)]">
                   {t(`landing.feature.${feature.key}.text`, locale)}
                 </p>
+                {feature.noteKey ? (
+                  <p
+                    data-testid={`landing-feature-${feature.key}-note`}
+                    className="text-xs font-semibold text-[var(--puls-ink-muted)]"
+                  >
+                    {t(feature.noteKey, locale)}
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>

@@ -26,41 +26,39 @@ interface NavItem {
 
 interface NavGroup {
   key: string;
+  /** Ключ i18n видимой пометки рядом с заголовком группы (Фаза 0, §5). */
+  badgeKey?: string;
   items: NavItem[];
 }
 
-/** Разделы кабинета по смыслу (docs/REDESIGN.md): день, деньги, самочувствие, люди, аккаунт. */
+/**
+ * Разделы кабинета по смыслу (Фаза 0, §5): «Самочувствие» — первая группа,
+ * «Деньги» — внизу и с пометкой «TODO: переделать». Финансы не прячем и не
+ * удаляем — только понижаем в иерархии.
+ */
 const GROUPS: NavGroup[] = [
-  {
-    key: 'app.nav.group.today',
-    items: [
-      { key: 'app.nav.home', href: '/app', icon: 'home' },
-      { key: 'app.nav.insights', href: '/insights', icon: 'sparkle' },
-      { key: 'app.nav.ai', href: '/ai', icon: 'bot', testId: 'nav-ai' },
-    ],
-  },
-  {
-    key: 'app.nav.group.money',
-    items: [
-      { key: 'app.nav.finance', href: '/finance', icon: 'wallet' },
-      { key: 'app.nav.goals', href: '/goals', icon: 'target' },
-      { key: 'app.nav.stats', href: '/stats', icon: 'chart' },
-    ],
-  },
   {
     key: 'app.nav.group.wellbeing',
     items: [
-      { key: 'app.nav.checkin', href: '/checkin', icon: 'heart' },
-      { key: 'app.nav.habits', href: '/habits', icon: 'check' },
-      { key: 'app.nav.achievements', href: '/achievements', icon: 'trophy' },
+      { key: 'app.nav.checkin', href: '/checkin', icon: 'heart', testId: 'nav-checkin' },
+      { key: 'app.nav.habits', href: '/habits', icon: 'check', testId: 'nav-habits' },
+      { key: 'app.nav.achievements', href: '/achievements', icon: 'trophy', testId: 'nav-achievements' },
+      { key: 'app.nav.insights', href: '/insights', icon: 'sparkle', testId: 'nav-insights' },
       { key: 'app.nav.capsules', href: '/capsules', icon: 'capsule', testId: 'nav-capsules' },
+    ],
+  },
+  {
+    key: 'app.nav.group.today',
+    items: [
+      { key: 'app.nav.home', href: '/app', icon: 'home', testId: 'nav-home' },
+      { key: 'app.nav.ai', href: '/ai', icon: 'bot', testId: 'nav-ai' },
     ],
   },
   {
     key: 'app.nav.group.account',
     items: [
-      { key: 'app.nav.profile', href: '/app/profile', icon: 'user' },
-      { key: 'app.nav.settingsItem', href: '/settings', icon: 'settings' },
+      { key: 'app.nav.profile', href: '/app/profile', icon: 'user', testId: 'nav-profile' },
+      { key: 'app.nav.settingsItem', href: '/settings', icon: 'settings', testId: 'nav-settings' },
       { key: 'app.nav.adminAi', href: '/admin/ai', icon: 'bot', testId: 'nav-admin-ai' },
       {
         key: 'app.nav.adminMetrics',
@@ -70,14 +68,23 @@ const GROUPS: NavGroup[] = [
       },
     ],
   },
+  {
+    key: 'app.nav.group.money',
+    badgeKey: 'app.nav.todoFinance',
+    items: [
+      { key: 'app.nav.finance', href: '/finance', icon: 'wallet', testId: 'nav-finance' },
+      { key: 'app.nav.goals', href: '/goals', icon: 'target', testId: 'nav-goals' },
+      { key: 'app.nav.stats', href: '/stats', icon: 'chart', testId: 'nav-stats' },
+    ],
+  },
 ];
 
 /** Событие «открыть быстрый ввод»: его шлют кнопки на экранах, шторкой владеет каркас. */
 export const QUICK_ADD_EVENT = 'puls:quick-add';
 
 const TAB_HOME: NavItem = { key: 'app.nav.home', href: '/app', icon: 'home' };
-const TAB_FINANCE: NavItem = { key: 'app.nav.finance', href: '/finance', icon: 'wallet' };
 const TAB_CHECKIN: NavItem = { key: 'app.nav.checkin', href: '/checkin', icon: 'heart' };
+const TAB_HABITS: NavItem = { key: 'app.nav.habits', href: '/habits', icon: 'check' };
 
 /** Активен ли пункт для текущего пути: точное совпадение или вложенный маршрут. */
 export function isNavActive(href: string, pathname: string): boolean {
@@ -184,14 +191,23 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const groupList = (compact: boolean) =>
     groups.map((group) => (
       <div key={group.key} className="flex flex-col gap-0.5">
-        <p className="px-3 pt-4 pb-1 text-xs font-semibold text-[var(--puls-ink-muted)]">
+        <p className="flex flex-wrap items-center gap-2 px-3 pt-4 pb-1 text-xs font-semibold text-[var(--puls-ink-muted)]">
           {t(group.key)}
+          {/* Видимая пометка «TODO: переделать» у понижённого блока (Фаза 0, §5). */}
+          {group.badgeKey ? (
+            <span
+              data-testid="nav-todo-finance"
+              className="text-caption rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-2 py-0.5 font-semibold tracking-wide text-[var(--puls-ink-muted)]"
+            >
+              {t(group.badgeKey)}
+            </span>
+          ) : null}
         </p>
         {group.items.map((item) => renderLink(item, compact))}
       </div>
     ));
 
-  const moreActive = ![TAB_HOME, TAB_FINANCE, TAB_CHECKIN].some((item) =>
+  const moreActive = ![TAB_HOME, TAB_CHECKIN, TAB_HABITS].some((item) =>
     isNavActive(item.href, pathname),
   );
 
@@ -284,9 +300,9 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
           label={t(TAB_HOME.key)}
         />
         <MobileTab
-          item={TAB_FINANCE}
-          active={isNavActive(TAB_FINANCE.href, pathname)}
-          label={t(TAB_FINANCE.key)}
+          item={TAB_CHECKIN}
+          active={isNavActive(TAB_CHECKIN.href, pathname)}
+          label={t(TAB_CHECKIN.key)}
         />
         <div className="flex justify-center">
           <button
@@ -300,12 +316,13 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
           </button>
         </div>
         <MobileTab
-          item={TAB_CHECKIN}
-          active={isNavActive(TAB_CHECKIN.href, pathname)}
-          label={t(TAB_CHECKIN.key)}
+          item={TAB_HABITS}
+          active={isNavActive(TAB_HABITS.href, pathname)}
+          label={t(TAB_HABITS.key)}
         />
         <button
           type="button"
+          data-testid="nav-more"
           onClick={() => setMoreOpen(true)}
           aria-expanded={moreOpen}
           aria-haspopup="dialog"

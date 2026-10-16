@@ -57,6 +57,13 @@ export function GoalsCard() {
         <div className="flex items-center gap-3">
           <IconBubble name="target" tone="finance" />
           <h2 className="font-heading text-lg font-bold">{t('goals.card.title')}</h2>
+          {/* Денежная карточка понижена и помечена (Фаза 0, §5). */}
+          <span
+            data-testid="goals-card-todo-finance"
+            className="text-caption self-center rounded-[var(--radius-chip)] border border-[var(--puls-line-strong)] px-2 py-0.5 font-semibold tracking-wide text-[var(--puls-ink-muted)]"
+          >
+            {t('app.nav.todoFinance')}
+          </span>
         </div>
         <Link
           href="/goals"
