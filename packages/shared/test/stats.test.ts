@@ -5,7 +5,10 @@ import {
   budgetRemaining,
   buildMoodCalendar,
   comparePeriods,
+  comparablePreviousRange,
   dayKeyInTimezone,
+  daysBetween,
+  elapsedPeriodRange,
   groupSpentByCategory,
   periodRange,
   periodRangeFromDay,
@@ -14,6 +17,7 @@ import {
   sumSpent,
   todayKeyInTimezone,
   zonedDayBounds,
+  type PeriodRange,
 } from '../src/stats';
 
 describe('dayKeyInTimezone (границы дней по часовому поясу, ТЗ §3.4)', () => {
@@ -208,6 +212,45 @@ describe('периоды отчётов (ТЗ §3.4)', () => {
       period: 'year',
       from: '2025-01-01',
       to: '2025-12-31',
+    });
+  });
+
+  it('daysBetween считает сутки между ключами дней', () => {
+    expect(daysBetween('2026-10-01', '2026-10-01')).toBe(0);
+    expect(daysBetween('2026-10-01', '2026-10-16')).toBe(15);
+    expect(daysBetween('2026-09-30', '2026-10-01')).toBe(1);
+  });
+
+  it('elapsedPeriodRange обрезает незаконченный период по сегодняшний день', () => {
+    const month: PeriodRange = { period: 'month', from: '2026-10-01', to: '2026-10-31' };
+    expect(elapsedPeriodRange(month, '2026-10-16')).toEqual({
+      period: 'month',
+      from: '2026-10-01',
+      to: '2026-10-16',
+    });
+    // Прошедший период не меняется.
+    expect(elapsedPeriodRange(month, '2026-11-05')).toEqual(month);
+  });
+
+  it('comparablePreviousRange режет прошлый период до той же длины, что прошла', () => {
+    const month: PeriodRange = { period: 'month', from: '2026-10-01', to: '2026-10-31' };
+    // От текущего месяца прошло 15 дней (01 → 16), значит и прошлый — 01 → 16.
+    expect(comparablePreviousRange(month, '2026-10-16')).toEqual({
+      period: 'month',
+      from: '2026-09-01',
+      to: '2026-09-16',
+    });
+    // Законченный период сравнивается целиком.
+    expect(comparablePreviousRange(month, '2026-11-05')).toEqual({
+      period: 'month',
+      from: '2026-09-01',
+      to: '2026-09-30',
+    });
+    const week: PeriodRange = { period: 'week', from: '2026-09-28', to: '2026-10-04' };
+    expect(comparablePreviousRange(week, '2026-10-01')).toEqual({
+      period: 'week',
+      from: '2026-09-21',
+      to: '2026-09-24',
     });
   });
 });

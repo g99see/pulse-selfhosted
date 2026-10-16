@@ -9,6 +9,7 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { MailService } from '../src/auth/mail.service';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { StatsService } from '../src/stats/stats.service';
 import { TestClient } from './client';
 
 const PASSWORD = 'Secret12345';
@@ -299,18 +300,48 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
       const account = await createAccount(client);
       const food = (await categoriesOf(client)).find((category) => category.name === 'Еда')!;
 
-      // Прошлый месяц: 1000 трат. Текущий: 1500 (+50%).
-      await addExpense(client, account.id, 1000, '2026-09-15', food.id);
-      await addExpense(client, account.id, 1500, '2026-10-15', food.id);
+      // Прошлый месяц: 1000 трат. Текущий: 1500 (+50%). Оба месяца завершены.
+      await addExpense(client, account.id, 1000, '2025-04-15', food.id);
+      await addExpense(client, account.id, 1500, '2025-05-15', food.id);
 
-      const report = (await client.get('/api/stats/report?period=month&date=2026-10-15'))
+      const report = (await client.get('/api/stats/report?period=month&date=2025-05-15'))
         .body as StatsReportResponse;
 
       expect(report.spent).toBe(1500);
       expect(report.comparison.spent).toEqual({ current: 1500, previous: 1000, change: 50 });
       expect(report.comparison.earned.change).toBe(0);
+      expect(report.previousFrom).toBe('2025-04-01');
+      expect(report.previousTo).toBe('2025-04-30');
+    });
+
+    it('незаконченный период сравнивает с такой же частью прошлого (как с как)', async () => {
+      const client = await signUp('partial@example.com', 'partialuser');
+      const account = await createAccount(client);
+      const food = (await categoriesOf(client)).find((category) => category.name === 'Еда')!;
+      const user = await userByEmail('partial@example.com');
+
+      // Прошлый месяц: трата в начале и крупная в середине (за пределами 10 дней).
+      await addExpense(client, account.id, 1000, '2026-09-01', food.id);
+      await addExpense(client, account.id, 2000, '2026-09-20', food.id);
+      // Текущий месяц: 1500 к 10-му числу.
+      await addExpense(client, account.id, 1500, '2026-10-10', food.id);
+
+      const stats = app.get(StatsService);
+      const report = await stats.report(
+        user.id,
+        'month',
+        '2026-10-10',
+        new Date('2026-10-10T12:00:00.000Z'),
+      );
+
+      expect(report.from).toBe('2026-10-01');
+      expect(report.to).toBe('2026-10-31');
+      // Прошлый период обрезан до тех же 10 дней — 20 сентября не учитывается.
       expect(report.previousFrom).toBe('2026-09-01');
-      expect(report.previousTo).toBe('2026-09-30');
+      expect(report.previousTo).toBe('2026-09-10');
+      expect(report.comparison.spent).toEqual({ current: 1500, previous: 1000, change: 50 });
+      // Ряд не заглядывает в будущее.
+      expect(report.series.at(-1)?.day).toBe('2026-10-10');
     });
 
     it('отчёт за год охватывает весь календарный год', async () => {
@@ -325,7 +356,12 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
       expect(report.from).toBe('2026-01-01');
       expect(report.to).toBe('2026-12-31');
       expect(report.spent).toBe(300);
-      expect(report.series).toHaveLength(365);
+      // Ряд за незаконченный год обрывается сегодняшним днём, а не будущими нулями.
+      const today = new Date().toISOString().slice(0, 10);
+      const yearEnd = '2026-12-31';
+      const expectedLast = yearEnd <= today ? yearEnd : today;
+      expect(report.series.at(-1)?.day).toBe(expectedLast);
+      expect(report.series.length).toBeLessThanOrEqual(365);
     });
   });
 

@@ -6,12 +6,13 @@ import {
   budgetRemaining,
   buildMoodCalendar,
   comparePeriods,
+  comparablePreviousRange,
   dayKeyInTimezone,
   daysInMonth,
+  elapsedPeriodRange,
   moodAverage,
   optionalAverage,
   periodRangeFromDay,
-  previousPeriodRange,
   roundMoney,
   todayKeyInTimezone,
   zonedDayBounds,
@@ -204,12 +205,21 @@ export class StatsService {
   }
 
   /** Отчёт за период (ТЗ §3.4): категории, доходы против расходов, сравнение. */
-  async report(userId: string, period: StatsPeriod, date?: string): Promise<StatsReportResponse> {
+  async report(
+    userId: string,
+    period: StatsPeriod,
+    date?: string,
+    now: Date = new Date(),
+  ): Promise<StatsReportResponse> {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
     const timezone = user.timezone;
 
-    const range = periodRangeFromDay(period, date ?? todayKeyInTimezone(timezone));
-    const previous = previousPeriodRange(range);
+    const range = periodRangeFromDay(period, date ?? todayKeyInTimezone(timezone, now));
+    // Незаконченный период сравниваем «как с как»: прошлый обрезаем до той же
+    // длины, что уже прошла от текущего (полный сентябрь vs 3 дня октября — нельзя).
+    const today = todayKeyInTimezone(timezone, now);
+    const previous = comparablePreviousRange(range, today);
+    const seriesRange = elapsedPeriodRange(range, today);
 
     await this.recomputeRange(userId, timezone, range.from, range.to);
     await this.recomputeRange(userId, timezone, previous.from, previous.to);
@@ -218,7 +228,7 @@ export class StatsService {
       this.periodTotals(userId, timezone, range),
       this.periodTotals(userId, timezone, previous),
       this.categoryBreakdown(userId, range),
-      this.series(userId, range),
+      this.series(userId, seriesRange),
     ]);
 
     return {

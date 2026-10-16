@@ -281,6 +281,31 @@ export function previousPeriodRange(range: PeriodRange): PeriodRange {
   return { period, from: `${year - 1}-01-01`, to: `${year - 1}-12-31` };
 }
 
+/** Число суток между ключами дней (b − a), целое. */
+export function daysBetween(from: string, to: string): number {
+  const start = Date.parse(`${from}T00:00:00.000Z`);
+  const end = Date.parse(`${to}T00:00:00.000Z`);
+  return Math.round((end - start) / 86_400_000);
+}
+
+/** Прошедшая часть периода на день «сегодня» — для рядов и сравнения. */
+export function elapsedPeriodRange(range: PeriodRange, todayKey: string): PeriodRange {
+  if (range.to <= todayKey) return range;
+  const to = todayKey > range.from ? todayKey : range.from;
+  return { period: range.period, from: range.from, to };
+}
+
+/**
+ * Прошлый период, обрезанный до той же длины, что уже прошла от текущего.
+ * Иначе «полный сентябрь против трёх дней октября» — сравнение не как с как.
+ */
+export function comparablePreviousRange(range: PeriodRange, todayKey: string): PeriodRange {
+  const previous = previousPeriodRange(range);
+  if (range.to <= todayKey) return previous;
+  const elapsed = Math.max(0, Math.min(daysBetween(range.from, todayKey), daysBetween(range.from, range.to)));
+  return { period: previous.period, from: previous.from, to: addDays(previous.from, elapsed) };
+}
+
 /**
  * Тепловая карта настроения за месяц (ТЗ §3.4): каждый день месяца со средним
  * значением; null — данных нет. Значения берутся по ключу дня.
