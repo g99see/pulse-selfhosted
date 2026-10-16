@@ -85,10 +85,7 @@ export function MoodScale({
       {MOOD_SCALE.map((mood, index) => {
         const active = value === mood;
         return (
-          <div
-            key={mood}
-            className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
-          >
+          <div key={mood} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
             <button
               ref={(element) => {
                 buttons.current[index] = element;

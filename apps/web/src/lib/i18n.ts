@@ -1737,7 +1737,8 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'checkin.energy': 'Energy',
     'checkin.stress': 'Stress',
     'checkin.sleep': 'Sleep hours',
-    'checkin.sleepIgnored': 'Sleep is only saved in the morning (04:00–12:00) — your hours were not stored.',
+    'checkin.sleepIgnored':
+      'Sleep is only saved in the morning (04:00–12:00) — your hours were not stored.',
     'checkin.water': 'Water, glasses',
     'checkin.steps': 'Steps',
     'checkin.tags': 'Tags',
