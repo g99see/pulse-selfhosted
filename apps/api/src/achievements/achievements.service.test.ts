@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { ACHIEVEMENT_CATALOG } from '@puls/shared';
 import { AchievementsService, catalogHash } from './achievements.service';
 import type { PrismaService } from '../prisma/prisma.service';
+import { DomainEvents } from '../api-access/domain-events';
+import { InternalEvents } from '../common/internal-events';
 
 const USER_ID = 'user-1';
 const NOW = new Date('2026-10-05T12:00:00.000Z');
@@ -138,6 +140,22 @@ describe('AchievementsService.evaluate (ТЗ §4)', () => {
 });
 
 describe('AchievementsService.list (ТЗ §4)', () => {
+  it('чтение списка не рассылает вебхуки и уведомления (GET без побочных эффектов)', async () => {
+    const { prisma } = makePrisma({
+      checkinRows: [{ mood: 3, occurredAt: NOW, tags: [], note: null, daySummary: null }],
+    });
+    const service = new AchievementsService(prisma);
+    const domain = vi.spyOn(DomainEvents, 'emit');
+    const internal = vi.spyOn(InternalEvents, 'emit');
+
+    await service.list(USER_ID);
+
+    expect(domain).not.toHaveBeenCalled();
+    expect(internal).not.toHaveBeenCalled();
+    domain.mockRestore();
+    internal.mockRestore();
+  });
+
   it('отдаёт весь каталог и маскирует скрытое достижение, пока не получено', async () => {
     const { prisma } = makePrisma();
     const service = new AchievementsService(prisma);

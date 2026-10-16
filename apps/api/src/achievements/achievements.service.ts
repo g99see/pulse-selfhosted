@@ -237,7 +237,8 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy, OnApp
 
   /** Список достижений с прогрессом и текущий стрик. */
   async list(userId: string): Promise<AchievementsResponse> {
-    const { values } = await this.run(userId, ACHIEVEMENT_METRICS, {});
+    // GET не должен слать вебхуки и уведомления: выдача тихая, рассылает onEvent.
+    const { values } = await this.run(userId, ACHIEVEMENT_METRICS, { silent: true });
     const [rows, streak] = await Promise.all([
       this.prisma.userAchievement.findMany({
         where: { userId },
