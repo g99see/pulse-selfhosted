@@ -28,17 +28,35 @@ describe('buildMessage', () => {
     ).toContain('прошёл день');
   });
 
-  it('вечерние и ночные шаблоны не упоминают сон (вопрос о сне — только утром)', () => {
+  it('единые границы «утра» 04:00–12:00 с окном сна', () => {
+    const titleAt = (hour: number) =>
+      checkinGreeting({
+        now: new Date(`2026-10-01T${String(hour).padStart(2, '0')}:30:00Z`),
+        timezone: 'UTC',
+      }).title;
+    // Утро (в т.ч. 04:00 и 11:59) — как в окне сна.
+    expect(titleAt(4)).toContain('утро');
+    expect(titleAt(8)).toContain('утро');
+    expect(titleAt(11)).toContain('утро');
+    // 12:00 — уже день, вечер с 18:00, ночь с 23:00.
+    expect(titleAt(12)).toContain('день');
+    expect(titleAt(17)).toContain('день');
+    expect(titleAt(18)).toContain('прошёл день');
+    expect(titleAt(22)).toContain('прошёл день');
+    expect(titleAt(23)).toContain('Как вы');
+    expect(titleAt(3)).toContain('Как вы');
+  });
+
+  it('вне утреннего окна шаблоны не упоминают сон (вопрос о сне — только утром)', () => {
     const SLEEP_WORDS = /сон|спал|спится|поспать|недосып/;
-    for (const hour of [17, 18, 21, 22, 23, 0, 3, 4]) {
+    // Единое окно: сон упоминается только с 04:00 до 12:00.
+    for (const hour of [12, 13, 17, 18, 21, 22, 23, 0, 1, 2, 3]) {
       const greeting = checkinGreeting({
         now: new Date(`2026-10-01T${String(hour).padStart(2, '0')}:30:00Z`),
         timezone: 'UTC',
       });
       const text = `${greeting.title} ${greeting.body}`.toLowerCase();
-      if (hour >= 17 || hour < 5) {
-        expect(text).not.toMatch(SLEEP_WORDS);
-      }
+      expect(text).not.toMatch(SLEEP_WORDS);
     }
   });
 

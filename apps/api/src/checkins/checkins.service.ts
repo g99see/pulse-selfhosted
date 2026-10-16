@@ -5,11 +5,11 @@ import {
   DEFAULT_CHECKIN_SCHEDULE,
   checkinGoalProgress,
   isMorningForSleep,
+  todayKeyInTimezone,
   weekStartKey,
   zonedDayBounds,
   addDays,
   type CheckinGoalDto,
-  dayBoundsInTimeZone,
   isWithinBackdateWindow,
   type CheckInDto,
   type CheckInFilter,
@@ -86,6 +86,10 @@ export class CheckinsService {
       select: { timezone: true },
     });
     const morning = isMorningForSleep(occurredAt, user?.timezone ?? 'UTC');
+    // Сон принимается только утром (04:00–12:00 по поясу профиля). Если клиент
+    // прислал часы вне окна — не пишем их и явно сообщаем об этом флагом,
+    // чтобы UI не терял введённое молча.
+    const sleepIgnored = !morning && input.sleepHours !== undefined;
 
     const created = await this.prisma.checkIn.create({
       data: {
@@ -114,7 +118,7 @@ export class CheckinsService {
       occurredAt: created.occurredAt.toISOString(),
     });
 
-    return toCheckInDto(created);
+    return { ...toCheckInDto(created), ...(sleepIgnored ? { sleepIgnored: true } : {}) };
   }
 
   /** Цель «N чек-инов в неделю» и прогресс по текущей неделе (пн–вс, пояс пользователя). */
@@ -123,7 +127,7 @@ export class CheckinsService {
       where: { id: userId },
       select: { timezone: true, checkinWeeklyGoal: true },
     });
-    const weekStart = weekStartKey(dayBoundsInTimeZone(now, user.timezone).dayKey);
+    const weekStart = weekStartKey(todayKeyInTimezone(user.timezone, now));
     const count = await this.prisma.checkIn.count({
       where: {
         userId,
@@ -165,7 +169,11 @@ export class CheckinsService {
       where: { id: userId },
       select: { timezone: true },
     });
-    const { start, end, dayKey } = dayBoundsInTimeZone(new Date(), user?.timezone ?? 'UTC');
+    // Тот же пояс, что у статистики и у слотов: начало суток и начало следующего
+    // дня считаются отдельно, поэтому дни перехода DST имеют правильные границы.
+    const timezone = user?.timezone ?? 'UTC';
+    const dayKey = todayKeyInTimezone(timezone, new Date());
+    const { start, end } = zonedDayBounds(dayKey, timezone);
 
     const checkIns = await this.prisma.checkIn.findMany({
       where: { userId, occurredAt: { gte: start, lt: end } },
@@ -187,11 +195,13 @@ export class CheckinsService {
     const existing = await this.get(userId, id);
 
     const data: import('@prisma/client').Prisma.CheckInUpdateInput = {};
+    let sleepIgnored = false;
     if (input.mood !== undefined) data.mood = input.mood;
     if (input.energy !== undefined) data.energy = input.energy;
     if (input.stress !== undefined) data.stress = input.stress;
     if (input.sleepHours !== undefined) {
-      // Правку сна принимаем только для утреннего чек-ина; вне окна — игнорируем.
+      // Правку сна принимаем только для утреннего чек-ина; вне окна — игнорируем,
+      // но сообщаем об этом флагом (иначе клиент не понимает, почему сна нет).
       const moment =
         input.occurredAt !== undefined
           ? resolveOccurredAt(input.occurredAt, new Date())
@@ -200,9 +210,12 @@ export class CheckinsService {
         where: { id: userId },
         select: { timezone: true },
       });
-      data.sleepHours = isMorningForSleep(moment, user?.timezone ?? 'UTC')
-        ? input.sleepHours
-        : null;
+      if (isMorningForSleep(moment, user?.timezone ?? 'UTC')) {
+        data.sleepHours = input.sleepHours;
+      } else {
+        data.sleepHours = null;
+        sleepIgnored = true;
+      }
     }
     if (input.water !== undefined) data.water = input.water;
     if (input.steps !== undefined) data.steps = input.steps;
@@ -214,7 +227,7 @@ export class CheckinsService {
       data.occurredAt = resolveOccurredAt(input.occurredAt, new Date());
 
     const updated = await this.prisma.checkIn.update({ where: { id }, data });
-    return toCheckInDto(updated);
+    return { ...toCheckInDto(updated), ...(sleepIgnored ? { sleepIgnored: true } : {}) };
   }
 
   async remove(userId: string, id: string): Promise<void> {
