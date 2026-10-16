@@ -37,7 +37,15 @@ function timezoneOffsetMs(timezone: string, instant: Date): number {
   return asUtc - instant.getTime();
 }
 
-/** UTC-момент локальной полуночи указанного дня (или другого часа) в поясе. */
+/**
+ * UTC-момент локального «настенного» времени (dayKey + hour:00) в поясе.
+ *
+ * Локальная полночь может не существовать: в зонах, где переход на летнее время
+ * происходит ровно в 00:00 (Atlantic/Azores, America/Havana, America/Santiago),
+ * наивная сходимость даёт момент из ПРЕДЫДУЩЕГО локального дня, и час вчерашних
+ * данных просачивался в сегодня. Проверяем результат по локальной дате и, если
+ * заданное время пропущено, берём первый существующий момент этого локального дня.
+ */
 function zonedTimeToUtc(dayKey: string, timezone: string, hour = 0): Date {
   const [year, month, day] = dayKey.split('-').map(Number);
   const target = Date.UTC(year, (month ?? 1) - 1, day ?? 1, hour, 0, 0, 0);
@@ -48,6 +56,18 @@ function zonedTimeToUtc(dayKey: string, timezone: string, hour = 0): Date {
     const next = target - offset;
     if (next === timestamp) break;
     timestamp = next;
+  }
+
+  // Два кандидата: сошедшийся момент и его «зеркало» по смещению. В обычный день
+  // они совпадают; в день пропущенной полуночи один лежит до перехода, другой —
+  // в первом существующем моменте суток. Берём самый ранний, попадающий в нужный
+  // локальный день.
+  const offset = timezoneOffsetMs(timezone, new Date(timestamp));
+  const candidates = [...new Set([timestamp, target - offset])].sort((a, b) => a - b);
+  for (const candidate of candidates) {
+    if (dayKeyInTimezone(new Date(candidate), timezone) === dayKey) {
+      return new Date(candidate);
+    }
   }
   return new Date(timestamp);
 }

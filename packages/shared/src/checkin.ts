@@ -5,6 +5,7 @@
  * напоминаний 1–6 раз в день. Схемы общие для API и web.
  */
 import { z } from 'zod';
+import { todayKeyInTimezone, zonedDayBounds } from './stats';
 
 /** Шкала 1–5: настроение, энергия, стресс (ТЗ §3.3). */
 export const MoodSchema = z.number().int().min(1).max(5);
@@ -20,21 +21,24 @@ export const CHECKIN_TAG_SUGGESTIONS = ['работа', 'спорт', 'ссор�
 /** Пропущенный чек-ин можно заполнить задним числом в течение 24 часов (ТЗ §3.3). */
 export const CHECKIN_BACKDATE_HOURS = 24;
 
-/* ----- Вопрос о сне — только утром ----- */
+/* ----- Утро и провалы дня — одно определение на весь продукт ----- */
 
 /**
- * Утро для вопроса о сне: локальное время пользователя 04:00–12:00.
- * День/вечер и глубокая ночь вопрос о сне не задают — данные за прошлые дни не трогаются.
+ * Утро: локальное время пользователя 04:00–12:00. Единственный источник
+ * истины — вопрос о сне и слот `morning` используют один и тот же диапазон,
+ * поэтому они не могут разойтись (ТЗ §3.3).
  */
 export const SLEEP_MORNING_START_HOUR = 4;
 export const SLEEP_MORNING_END_HOUR = 12; // не включительно
 
+/** Конец дневного провала: 18:00; дальше (и глубокая ночь) — вечер. */
+export const CHECKIN_DAY_END_HOUR = 18;
+
 /**
- * Сейчас «утро» для вопроса о сне? Считается по локальному часу в поясе
- * пользователя; неизвестный пояс не роняет вызов (падаем на UTC).
+ * Локальный час (0–23) момента в часовом поясе пользователя. Неизвестный пояс
+ * не роняет вызов — падаем на UTC.
  */
-export function isMorningForSleep(date: Date, timeZone: string): boolean {
-  let hour: number;
+export function localHourInTimeZone(date: Date, timeZone: string): number {
   try {
     const raw = new Intl.DateTimeFormat('en-GB', {
       timeZone,
@@ -43,12 +47,42 @@ export function isMorningForSleep(date: Date, timeZone: string): boolean {
     })
       .formatToParts(date)
       .find((part) => part.type === 'hour')?.value;
-    hour = Number(raw);
+    const hour = Number(raw);
+    if (Number.isFinite(hour)) return hour === 24 ? 0 : hour;
   } catch {
-    hour = date.getUTCHours();
+    // Неизвестный пояс — считаем по UTC.
   }
-  if (!Number.isFinite(hour)) hour = date.getUTCHours();
+  return date.getUTCHours();
+}
+
+/** Час попадает в утреннее окно 04:00–12:00 (не включительно). */
+export function isMorningHour(hour: number): boolean {
   return hour >= SLEEP_MORNING_START_HOUR && hour < SLEEP_MORNING_END_HOUR;
+}
+
+/**
+ * Сейчас «утро» для вопроса о сне? Считается по локальному часу в поясе
+ * пользователя; неизвестный пояс не роняет вызов (падаем на UTC).
+ */
+export function isMorningForSleep(date: Date, timeZone: string): boolean {
+  return isMorningHour(localHourInTimeZone(date, timeZone));
+}
+
+/**
+ * Провал дня по локальному часу: утро 04:00–12:00, день 12:00–18:00,
+ * вечер 18:00–04:00 (включая глубокую ночь). Единственный слот-порог на
+ * весь продукт (вместо прежних `<12`, `5–11` и т.п.).
+ */
+export function slotForLocalHour(hour: number): CheckInSlot {
+  const normalized = ((Math.floor(hour) % 24) + 24) % 24;
+  if (isMorningHour(normalized)) return 'morning';
+  if (normalized >= SLEEP_MORNING_END_HOUR && normalized < CHECKIN_DAY_END_HOUR) return 'day';
+  return 'evening';
+}
+
+/** Провал дня по локальному времени пользователя (пояс профиля). */
+export function slotForUserHour(now: Date, timeZone: string): CheckInSlot {
+  return slotForLocalHour(localHourInTimeZone(now, timeZone));
 }
 
 /** Момент чек-ина: ISO-строка (для заполнения задним числом). */
@@ -141,6 +175,12 @@ export interface CheckInDto {
   slot: CheckInSlot | null;
   occurredAt: string;
   createdAt: string;
+  /**
+   * true — присланные часы сна не сохранены, потому что момент чек-ина вне
+   * утреннего окна 04:00–12:00 (пояс профиля). UI показывает подсказку вместо
+   * молчаливой потери данных. Поле есть только в ответе на создание/правку.
+   */
+  sleepIgnored?: boolean;
 }
 
 export interface CheckInScheduleDto {
@@ -158,41 +198,17 @@ export function isWithinBackdateWindow(occurredAt: Date, now: Date = new Date())
 
 /**
  * Границы календарных суток (полночь → полночь) и ключ дня YYYY-MM-DD
- * в часовом поясе пользователя. Время вне зоны (DST) считается по началу суток.
+ * в часовом поясе пользователя. Начало и начало следующего дня считаются
+ * независимо, каждое со своим смещением, поэтому сутки перехода на летнее/зимнее
+ * время имеют правильную длину 23/25 ч. Единственная реализация — `zonedDayBounds`
+ * (её же использует статистика), поэтому `/checkins/today` и `/stats/day`
+ * не могут разойтись.
  */
 export function dayBoundsInTimeZone(
   date: Date,
   timeZone: string,
 ): { start: Date; end: Date; dayKey: string } {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(date);
-
-  const value = (type: Intl.DateTimeFormatPartTypes): number => {
-    const part = parts.find((item) => item.type === type)?.value ?? '0';
-    const parsed = Number(part);
-    return type === 'hour' && parsed === 24 ? 0 : parsed;
-  };
-
-  const year = value('year');
-  const month = value('month');
-  const day = value('day');
-  const hour = value('hour');
-  const minute = value('minute');
-  const second = value('second');
-
-  const dayKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  // Смещение зоны относительно UTC на этот момент, с учётом летнего времени.
-  const offset = Date.UTC(year, month - 1, day, hour, minute, second) - date.getTime();
-  const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0) - offset);
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-
+  const dayKey = todayKeyInTimezone(timeZone, date);
+  const { start, end } = zonedDayBounds(dayKey, timeZone);
   return { start, end, dayKey };
 }

@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CheckInDto, Mood, StreakDto } from '@puls/shared';
+import { slotForUserHour, type CheckInDto, type Mood, type StreakDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
 import { HabitsToday } from '@/components/habits-today';
@@ -11,7 +11,7 @@ import { MoodScale } from '@/components/mood-scale';
 import { Card } from '@/components/ui';
 import { recentlyEarnedCodes } from '@/lib/achievements';
 import { achievementsApi } from '@/lib/achievements-client';
-import { slotForHour } from '@/lib/checkin';
+import { useUser } from '@/components/user-provider';
 import { CHECKIN_CHANGED_EVENT, checkinApi, notifyCheckInChanged } from '@/lib/checkin-client';
 
 const CELEBRATION_MS = 3000;
@@ -23,6 +23,8 @@ const CELEBRATION_MS = 3000;
  */
 export function CheckInCard() {
   const { t } = useT();
+  // Слот — по поясу профиля, как и серверный гейт сна (иначе часы сна теряются).
+  const timezone = useUser()?.timezone ?? 'UTC';
   const [checkIns, setCheckIns] = useState<CheckInDto[]>([]);
   const [streak, setStreak] = useState<StreakDto | null>(null);
   const [streakLoaded, setStreakLoaded] = useState(false);
@@ -80,7 +82,7 @@ export function CheckInCard() {
     setBusy(true);
     setError(null);
     try {
-      await checkinApi.quick(mood, slotForHour(new Date().getHours()));
+      await checkinApi.quick(mood, slotForUserHour(new Date(), timezone));
       setSaved(true);
       notifyCheckInChanged();
       await reload();

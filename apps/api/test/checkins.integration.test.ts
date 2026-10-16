@@ -5,6 +5,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Server } from 'node:http';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { todayKeyInTimezone } from '@puls/shared';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { MailService } from '../src/auth/mail.service';
@@ -27,6 +28,7 @@ interface CheckInDto {
   slot: string | null;
   occurredAt: string;
   createdAt: string;
+  sleepIgnored?: boolean;
 }
 
 function hoursAgo(hours: number): string {
@@ -239,6 +241,24 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
       expect(today.body.checkIns.map((item: CheckInDto) => item.id)).toContain(created.id);
     });
 
+    it('GET /today согласован со /stats/day по границам дня (единая реализация)', async () => {
+      const client = await signUp('todaytz@example.com', 'todaytzuser');
+      // Зона со сменой DST — граница дня должна совпадать у обоих эндпоинтов.
+      const timezone = 'Pacific/Auckland';
+      await setTimezone('todaytz@example.com', timezone);
+      const created = await createCheckIn(client, { mood: 4 });
+
+      const today = await client.get('/api/checkins/today');
+      expect(today.status).toBe(200);
+      expect(today.body.dayKey).toBe(todayKeyInTimezone(timezone, new Date()));
+      expect(today.body.checkIns.map((item: CheckInDto) => item.id)).toContain(created.id);
+
+      const stats = await client.get(`/api/stats/day?date=${today.body.dayKey}`);
+      expect(stats.status).toBe(200);
+      expect(stats.body.day).toBe(today.body.dayKey);
+      expect(stats.body.checkins).toBeGreaterThanOrEqual(1);
+    });
+
     it('чужой или несуществующий чек-ин → 404', async () => {
       const alice = await signUp('alice@example.com', 'alicecheck');
       const bob = await signUp('bob@example.com', 'bobcheck');
@@ -330,9 +350,10 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
       await setTimezone('sleep-am@example.com', zoneWhere(isMorningHour));
       const dto = await createCheckIn(client, { mood: 3, sleepHours: 7.5 });
       expect(dto.sleepHours).toBe(7.5);
+      expect(dto.sleepIgnored).toBeUndefined();
     });
 
-    it('днём/вечером поле сна тихо игнорируется, без ошибки', async () => {
+    it('днём/вечером поле сна тихо игнорируется, без ошибки, но с флагом sleepIgnored', async () => {
       const client = await signUp('sleep-pm@example.com', 'sleeppm');
       await setTimezone(
         'sleep-pm@example.com',
@@ -341,6 +362,18 @@ describe('CheckIn API (интеграция с PostgreSQL)', () => {
       const dto = await createCheckIn(client, { mood: 3, sleepHours: 7.5 });
       expect(dto.sleepHours).toBeNull();
       expect(dto.mood).toBe(3);
+      // Клиент должен узнать, что сон отброшен (а не потерять данные молча, ТЗ §3.3).
+      expect(dto.sleepIgnored).toBe(true);
+    });
+
+    it('без сна вне окна флаг не выставляется', async () => {
+      const client = await signUp('sleep-none@example.com', 'sleepnone');
+      await setTimezone(
+        'sleep-none@example.com',
+        zoneWhere((hour) => !isMorningHour(hour)),
+      );
+      const dto = await createCheckIn(client, { mood: 3 });
+      expect(dto.sleepIgnored).toBeUndefined();
     });
   });
 

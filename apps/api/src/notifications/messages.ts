@@ -8,9 +8,12 @@ import {
   achievementTitle,
   budgetLevel,
   type AchievementLevel,
+  CHECKIN_DAY_END_HOUR,
   formatMoney,
+  isMorningHour,
   isCurrency,
-  localParts,
+  localHourInTimeZone,
+  slotForLocalHour,
   type NotificationType,
   type StatsDayResponse,
 } from '@puls/shared';
@@ -31,23 +34,28 @@ export interface NotificationBuildContext {
   timezone: string;
 }
 
-/** Приветствие чек-ина по локальному времени суток (ТЗ §5, сценарий 1). */
+/**
+ * Приветствие чек-ина по локальному времени суток (ТЗ §5, сценарий 1).
+ * Границы совпадают с единым слотом: утро 04:00–12:00, день 12:00–18:00,
+ * вечер 18:00–23:00, ночь 23:00–04:00 — «утро» вопроса о сне и слот `morning`
+ * здесь одни и те же.
+ */
 export function checkinGreeting(context: NotificationBuildContext): {
   title: string;
   body: string;
 } {
-  const { hour } = localParts(context.now, context.timezone);
+  const hour = localHourInTimeZone(context.now, context.timezone);
 
-  if (hour >= 5 && hour < 11) {
+  if (isMorningHour(hour)) {
     return {
       title: 'Доброе утро! Как спалось?',
       body: 'Отметьте настроение — это займёт 5 секунд.',
     };
   }
-  if (hour >= 11 && hour < 17) {
+  if (slotForLocalHour(hour) === 'day') {
     return { title: 'Как проходит день?', body: 'Одно нажатие — и день записан.' };
   }
-  if (hour >= 17 && hour < 23) {
+  if (hour >= CHECKIN_DAY_END_HOUR && hour < 23) {
     return { title: 'Как прошёл день?', body: 'Вечерний чек-ин: настроение и пара слов о дне.' };
   }
   return { title: 'Как вы?', body: 'Можно отметить настроение и записать пару слов о дне.' };

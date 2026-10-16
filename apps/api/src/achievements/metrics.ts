@@ -10,6 +10,7 @@ import {
   computeStreak,
   dayKeyInTimezone,
   localParts,
+  slotForLocalHour,
   weekStartKey,
   type AchievementMetric,
 } from '@puls/shared';
@@ -351,15 +352,11 @@ const isFull = (c: Row<ReturnType<MetricData['checkins']>>): boolean =>
   c.water !== null &&
   c.steps !== null;
 
-/** Утро/вечер: явный слот, а без слота — по местному часу чек-ина. */
+/** Утро/вечер: явный слот, а без слота — по единому порогу слотов от местного часа. */
 const slotOf = (c: Row<ReturnType<MetricData['checkins']>>): 'morning' | 'evening' | 'day' =>
   c.slot === 'morning' || c.slot === 'evening' || c.slot === 'day'
     ? c.slot
-    : c.hour < 12
-      ? 'morning'
-      : c.hour >= 18
-        ? 'evening'
-        : 'day';
+    : slotForLocalHour(c.hour);
 
 /** Реестр метрик: полный набор ключей из каталога проверяется типом Record. */
 export const METRICS: Record<AchievementMetric, MetricFn> = {

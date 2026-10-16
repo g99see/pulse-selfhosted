@@ -2,8 +2,11 @@
 import { describe, expect, it } from 'vitest';
 import { nearestScheduledTime, slotForHour } from '../src/lib/checkin';
 
-describe('slotForHour (ТЗ §3.3)', () => {
-  it('делит день на утро, день и вечер', () => {
+describe('slotForHour (ТЗ §3.3) — единый слот из @puls/shared', () => {
+  it('делит день на утро, день и вечер (утро 04–12, день 12–18)', () => {
+    expect(slotForHour(0)).toBe('evening');
+    expect(slotForHour(3)).toBe('evening');
+    expect(slotForHour(4)).toBe('morning');
     expect(slotForHour(7)).toBe('morning');
     expect(slotForHour(11)).toBe('morning');
     expect(slotForHour(12)).toBe('day');

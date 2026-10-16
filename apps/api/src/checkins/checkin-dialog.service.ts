@@ -11,6 +11,7 @@ import {
   CHECKIN_DRAFT_TTL_MINUTES,
   isMorningForSleep,
   parseCheckinLine,
+  slotForUserHour,
   startCheckinDialog,
   stepCheckinDialog,
   describeCheckinStep,
@@ -20,12 +21,15 @@ import {
   type CheckInDto,
   type CheckInInput,
   type CheckInLineResult,
-  type CheckInSlot,
   type DialogEvent,
   type DialogPrompt,
 } from '@puls/shared';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckinsService } from './checkins.service';
+
+/** Ре-экспорт единого расчёта слота (для каналов) — реализация в @puls/shared. */
+export { slotForUserHour };
 
 export type DialogOutcome =
   /** Показать prompt (шаг сохранён). */
@@ -37,24 +41,6 @@ export type DialogOutcome =
   | { kind: 'cancelled' }
   /** Активного черновика нет (истёк или не начат). */
   | { kind: 'none' };
-
-/** Провал дня по локальному часу пользователя: утро до 12, день до 18, вечер после. */
-export function slotForUserHour(now: Date, timezone: string): CheckInSlot {
-  let hour = 12;
-  try {
-    hour =
-      Number(
-        new Intl.DateTimeFormat('en-GB', { timeZone: timezone, hour: '2-digit', hourCycle: 'h23' })
-          .formatToParts(now)
-          .find((part) => part.type === 'hour')?.value,
-      ) || 0;
-  } catch {
-    hour = now.getUTCHours();
-  }
-  if (hour < 12) return 'morning';
-  if (hour < 18) return 'day';
-  return 'evening';
-}
 
 @Injectable()
 export class CheckinDialogService {
