@@ -322,7 +322,10 @@ export function elapsedPeriodRange(range: PeriodRange, todayKey: string): Period
 export function comparablePreviousRange(range: PeriodRange, todayKey: string): PeriodRange {
   const previous = previousPeriodRange(range);
   if (range.to <= todayKey) return previous;
-  const elapsed = Math.max(0, Math.min(daysBetween(range.from, todayKey), daysBetween(range.from, range.to)));
+  const elapsed = Math.max(
+    0,
+    Math.min(daysBetween(range.from, todayKey), daysBetween(range.from, range.to)),
+  );
   return { period: previous.period, from: previous.from, to: addDays(previous.from, elapsed) };
 }
 
