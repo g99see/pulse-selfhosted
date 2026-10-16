@@ -135,6 +135,20 @@ describe('метрики чек-инов', () => {
     expect(await METRICS.checkin_streak_best(data)).toBe(3);
   });
 
+  it('checkin_streak_best не считает будущие дни', async () => {
+    const data = makeData({
+      checkins: async () => [
+        checkin('2026-10-01'),
+        checkin('2026-10-02'),
+        // Будущая дата не должна раздувать рекорд.
+        checkin('2026-10-06'),
+        checkin('2026-10-07'),
+        checkin('2026-10-08'),
+      ],
+    });
+    expect(await METRICS.checkin_streak_best(data)).toBe(2);
+  });
+
   it('checkin_water_days считает дни с 8+ стаканами', async () => {
     const data = makeData({
       checkins: async () => [
