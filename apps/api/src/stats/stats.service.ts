@@ -81,8 +81,8 @@ export class StatsService {
         select: { type: true, amountBase: true, date: true },
       }),
       this.prisma.checkIn.findMany({
-        where: { userId, createdAt: { gte: start, lt: endExclusive } },
-        select: { mood: true, energy: true, stress: true, sleepHours: true, createdAt: true },
+        where: { userId, occurredAt: { gte: start, lt: endExclusive } },
+        select: { mood: true, energy: true, stress: true, sleepHours: true, occurredAt: true },
       }),
     ]);
 
@@ -118,7 +118,9 @@ export class StatsService {
     }
 
     for (const checkIn of checkIns) {
-      const target = bucket(dayKeyInTimezone(checkIn.createdAt, timezone));
+      // День чек-ина определяет момент, к которому он относится (occurredAt),
+      // а не время записи: заполнение задним числом идёт в свой день (ТЗ §3.3).
+      const target = bucket(dayKeyInTimezone(checkIn.occurredAt, timezone));
       target.moods.push(checkIn.mood);
       target.energies.push(checkIn.energy);
       target.stresses.push(checkIn.stress);
@@ -260,7 +262,7 @@ export class StatsService {
         select: { date: true, avgMood: true },
       }),
       this.prisma.checkIn.findMany({
-        where: { userId, createdAt: { gte: start, lt: endExclusive } },
+        where: { userId, occurredAt: { gte: start, lt: endExclusive } },
         select: { mood: true },
       }),
     ]);
@@ -301,7 +303,7 @@ export class StatsService {
         select: { spent: true, earned: true },
       }),
       this.prisma.checkIn.findMany({
-        where: { userId, createdAt: { gte: start, lt: endExclusive } },
+        where: { userId, occurredAt: { gte: start, lt: endExclusive } },
         select: { mood: true, energy: true, stress: true, sleepHours: true },
       }),
     ]);

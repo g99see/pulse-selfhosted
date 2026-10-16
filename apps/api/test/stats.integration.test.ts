@@ -180,10 +180,35 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
     expect(response.status).toBe(201);
   }
 
-  async function addCheckIn(email: string, mood: number, createdAt: string): Promise<void> {
+  async function addCheckIn(email: string, mood: number, at: string): Promise<void> {
     const user = await userByEmail(email);
     await prisma.checkIn.create({
-      data: { userId: user.id, mood, createdAt: new Date(createdAt) },
+      data: { userId: user.id, mood, occurredAt: new Date(at), createdAt: new Date(at) },
+    });
+  }
+
+  /** Чек-ин задним числом: момент occurredAt не совпадает с моментом создания (ТЗ §3.3). */
+  async function addBackdatedCheckIn(
+    email: string,
+    mood: number,
+    occurredAt: string,
+    createdAt: string,
+  ): Promise<void> {
+    const user = await userByEmail(email);
+    await prisma.checkIn.create({
+      data: {
+        userId: user.id,
+        mood,
+        occurredAt: new Date(occurredAt),
+        createdAt: new Date(createdAt),
+      },
+    });
+  }
+
+  async function cachedDay(email: string, dayKey: string) {
+    const user = await userByEmail(email);
+    return prisma.dailyStat.findUnique({
+      where: { userId_date: { userId: user.id, date: new Date(`${dayKey}T00:00:00.000Z`) } },
     });
   }
 
@@ -467,6 +492,54 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
       expect((await client.del(`/api/finance/transactions/${id}`)).status).toBe(204);
       const report = await client.get('/api/stats/report?period=month&date=2026-10-11');
       expect(report.body.spent).toBe(0);
+    });
+  });
+
+  describe('Чек-ин задним числом относится к occurredAt, а не к дню создания (ТЗ §3.3, §3.4)', () => {
+    it('день, отчёт и тепловая карта считают чек-ин по occurredAt', async () => {
+      const client = await signUp('backfill@example.com', 'backfilluser');
+      await createAccount(client);
+      await setTimezone('backfill@example.com', 'Europe/Kyiv');
+
+      // 2026-10-15 19:00Z = 15 октября 22:00 по Киеву — «вчера», введено 16 октября.
+      await addBackdatedCheckIn(
+        'backfill@example.com',
+        1,
+        '2026-10-15T19:00:00.000Z',
+        '2026-10-16T09:00:00.000Z',
+      );
+      await addBackdatedCheckIn(
+        'backfill@example.com',
+        5,
+        '2026-10-16T12:00:00.000Z',
+        '2026-10-16T12:00:00.000Z',
+      );
+
+      const yesterday = (await client.get('/api/stats/day?date=2026-10-15'))
+        .body as StatsDayResponse;
+      expect(yesterday.checkins).toBe(1);
+      expect(yesterday.avgMood).toBe(1);
+
+      const today = (await client.get('/api/stats/day?date=2026-10-16')).body as StatsDayResponse;
+      expect(today.checkins).toBe(1);
+      expect(today.avgMood).toBe(5);
+
+      const report = (await client.get('/api/stats/report?period=day&date=2026-10-15'))
+        .body as StatsReportResponse;
+      expect(report.checkins).toBe(1);
+      expect(report.avgMood).toBe(1);
+
+      const calendar = (await client.get('/api/stats/mood-calendar?month=2026-10'))
+        .body as MoodCalendarResponse;
+      expect(calendar.days[14]).toEqual({ day: '2026-10-15', dayOfMonth: 15, mood: 1 });
+      expect(calendar.days[15]).toEqual({ day: '2026-10-16', dayOfMonth: 16, mood: 5 });
+      expect(calendar.average).toBe(3);
+      expect(calendar.best).toEqual({ day: '2026-10-16', mood: 5 });
+
+      // Кеш дня (DailyStat) тоже относит запись к дню occurredAt.
+      const cachedYesterday = await cachedDay('backfill@example.com', '2026-10-15');
+      expect(cachedYesterday?.checkinsCount).toBe(1);
+      expect(cachedYesterday?.avgMood).toBe(1);
     });
   });
 
