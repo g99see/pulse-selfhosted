@@ -179,6 +179,56 @@ describe('диалог чек-ина', () => {
   });
 });
 
+describe('вопрос о воде и шагах только вечером (Фаза 0)', () => {
+  it('includeHabits=false — шагов воды и шагов нет, всего 5 шагов', () => {
+    let state = startCheckinDialog({ includeSleep: false, includeHabits: false });
+    expect(state.data.includeHabits).toBe(false);
+    expect(describeCheckinStep(state).total).toBe(5);
+
+    state = stateOf(act(state, 'ci:mood:4'));
+    expect(state.step).toBe('energy');
+    state = stateOf(act(state, 'ci:energy:3'));
+    state = stateOf(act(state, 'ci:stress:2'));
+    // Воды и шагов в последовательности нет — сразу теги.
+    expect(state.step).toBe('tags');
+
+    // Кнопка «вода» с прошлого сообщения не оживляет пропущенный шаг.
+    const watered = act(
+      { step: 'tags', data: { mood: 3, tags: [], includeHabits: false } },
+      'ci:water:6',
+    );
+    expect(watered.kind).toBe('ignored');
+  });
+
+  it('includeHabits=true (вечер) — вода и шаги на месте, всего 7 шагов без сна', () => {
+    const state = startCheckinDialog({ slot: 'evening', includeSleep: false, includeHabits: true });
+    expect(describeCheckinStep(state).total).toBe(7);
+    expect(state.data.includeHabits).toBe(true);
+  });
+
+  it('без includeHabits (старый черновик) вода и шаги не теряются', () => {
+    const state: CheckInDialogState = {
+      step: 'stress',
+      data: { mood: 3, tags: [], includeSleep: false },
+    };
+    expect(stateOf(act(state, 'ci:stress:2')).step).toBe('water');
+  });
+});
+
+describe('вопрос о настроении зависит от слота (Фаза 0, §2.1)', () => {
+  it('утром и днём — «прямо сейчас», вечером — «как прошёл день»', () => {
+    expect(describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'morning' } }).question).toContain(
+      'прямо сейчас',
+    );
+    expect(describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'day' } }).question).toContain(
+      'прямо сейчас',
+    );
+    expect(
+      describeCheckinStep({ step: 'mood', data: { tags: [], slot: 'evening' } }).question,
+    ).toBe('Как прошёл день?');
+  });
+});
+
 describe('вопрос о сне только утром', () => {
   it('includeSleep=true — шаг сна есть, всего 8 шагов', () => {
     const state = startCheckinDialog({ includeSleep: true });

@@ -70,10 +70,13 @@ export class CheckinDialogService {
     });
     const timezone = user?.timezone ?? 'UTC';
     const now = new Date();
+    const slot = slotForUserHour(now, timezone);
     const state = startCheckinDialog({
       mood: options.mood,
-      slot: slotForUserHour(now, timezone),
+      slot,
       includeSleep: isMorningForSleep(now, timezone),
+      // Воду и шаги спрашиваем один раз в день, вечером (Фаза 0): утром и днём шага нет.
+      includeHabits: slot === 'evening',
     });
     await this.save(userId, channel, state);
     return describeCheckinStep(state);

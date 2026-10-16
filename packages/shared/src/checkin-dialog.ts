@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Многошаговый чек-ин как канально-независимый конечный автомат (ТЗ v2 §4):
- * настроение → энергия → стресс → сон → вода → шаги → теги → заметка. Логика чистая — без БД,
+ * настроение → энергия → стресс → (сон | вода → шаги) → теги → заметка.
+ * Вопрос о сне задаётся только утром, о воде и шагах — только вечером (Фаза 0),
+ * поэтому набор шагов зависит от слота. Логика чистая — без БД,
  * сети и форматирования под конкретный мессенджер. Канал (Telegram, Discord…)
  * лишь отрисовывает `prompt` кнопками и присылает события `action` / `text`;
  * состояние между сообщениями хранится в таблице CheckInDraft.
@@ -30,11 +32,20 @@ export const CHECKIN_DIALOG_STEPS = [
 ] as const;
 export type CheckInDialogStep = (typeof CHECKIN_DIALOG_STEPS)[number];
 
-/** Шаги для конкретного диалога: вечером/днём шага сна нет. */
-export function checkinDialogSteps(includeSleep: boolean): CheckInDialogStep[] {
-  return includeSleep
-    ? [...CHECKIN_DIALOG_STEPS]
-    : CHECKIN_DIALOG_STEPS.filter((s) => s !== 'sleep');
+/** Шаги, которые спрашивают про привычки дня. Фаза 0: воду и шаги спрашивают один раз в день, вечером. */
+export const CHECKIN_HABIT_STEPS = ['water', 'steps'] as const;
+
+/**
+ * Шаги для конкретного диалога: сна нет днём и вечером, воды и шагов нет
+ * утром и днём (Фаза 0). Без явного `includeHabits` (старый черновик) воду и
+ * шаги оставляем — иначе ответы, уже собранные в черновике, потерялись бы.
+ */
+export function checkinDialogSteps(includeSleep: boolean, includeHabits = true): CheckInDialogStep[] {
+  return CHECKIN_DIALOG_STEPS.filter(
+    (step) =>
+      (step !== 'sleep' || includeSleep) &&
+      (!(CHECKIN_HABIT_STEPS as readonly string[]).includes(step) || includeHabits),
+  );
 }
 
 /** Сколько живёт черновик без ответов, минут. */
@@ -68,6 +79,11 @@ export interface CheckInDraftData {
    * false — днём/вечером шага нет. undefined — старый черновик: считаем утром.
    */
   includeSleep?: boolean;
+  /**
+   * Спрашивать ли воду и шаги. true — вечерний чек-ин (один раз в день, Фаза 0),
+   * false — утром и днём шагов нет. undefined — старый черновик: шаги оставляем.
+   */
+  includeHabits?: boolean;
 }
 
 export interface CheckInDialogState {
@@ -105,8 +121,19 @@ export type DialogResult =
   /** Пользователь отменил диалог. */
   | { kind: 'cancelled' };
 
+/** Вопрос о настроении по слоту (Фаза 0, §2.1): днём спрашиваем про «прямо сейчас», вечером — про день. */
+export const CHECKIN_DIALOG_MOOD_QUESTIONS = {
+  momentary: 'Как ты чувствуешь себя прямо сейчас?',
+  daily: 'Как прошёл день?',
+} as const;
+
+/** Вопрос о настроении для слота: вечером — про день, утром/днём — про момент. */
+export function checkinMoodQuestion(slot?: CheckInSlot): string {
+  return slot === 'evening' ? CHECKIN_DIALOG_MOOD_QUESTIONS.daily : CHECKIN_DIALOG_MOOD_QUESTIONS.momentary;
+}
+
 export const CHECKIN_DIALOG_QUESTIONS: Record<CheckInDialogStep, string> = {
-  mood: 'Как ты себя чувствуешь?',
+  mood: CHECKIN_DIALOG_MOOD_QUESTIONS.momentary,
   energy: 'Сколько энергии? (1 — совсем нет, 5 — полно)',
   stress: 'Уровень стресса? (1 — спокойно, 5 — на пределе)',
   sleep: 'Сколько часов ты спал(а)? Выбери кнопку или напиши число, например 7.5',
@@ -141,10 +168,12 @@ export function startCheckinDialog(options: {
   mood?: number;
   slot?: CheckInSlot;
   includeSleep?: boolean;
+  includeHabits?: boolean;
 }): CheckInDialogState {
   const data: CheckInDraftData = { tags: [] };
   if (options.slot) data.slot = options.slot;
   if (options.includeSleep !== undefined) data.includeSleep = options.includeSleep;
+  if (options.includeHabits !== undefined) data.includeHabits = options.includeHabits;
   if (options.mood !== undefined && parseMoodArg(String(options.mood)) !== null) {
     data.mood = options.mood;
     return { step: 'energy', data };
@@ -162,15 +191,20 @@ const skipRow = (step: CheckInDialogStep): DialogButton[] => [
   { label: CHECKIN_DIALOG_LABELS.skip, action: checkinAction(step, 'skip') },
 ];
 
+/** Шаги текущего диалога по накопленным данным. */
+function stepsFor(data: CheckInDraftData): CheckInDialogStep[] {
+  return checkinDialogSteps(data.includeSleep !== false, data.includeHabits !== false);
+}
+
 /** Описание шага по текущему состоянию (выбранные теги помечаются ✓). */
 export function describeCheckinStep(state: CheckInDialogState): DialogPrompt {
   const step = state.step;
-  const steps = checkinDialogSteps(state.data.includeSleep !== false);
+  const steps = stepsFor(state.data);
   const base = {
     step,
     index: steps.indexOf(step) + 1,
     total: steps.length,
-    question: CHECKIN_DIALOG_QUESTIONS[step],
+    question: step === 'mood' ? checkinMoodQuestion(state.data.slot) : CHECKIN_DIALOG_QUESTIONS[step],
   };
 
   switch (step) {
@@ -252,7 +286,7 @@ function cancelButton(): DialogButton {
 }
 
 function nextStep(state: CheckInDialogState): CheckInDialogStep | null {
-  const steps = checkinDialogSteps(state.data.includeSleep !== false);
+  const steps = stepsFor(state.data);
   const index = steps.indexOf(state.step);
   return steps[index + 1] ?? null;
 }

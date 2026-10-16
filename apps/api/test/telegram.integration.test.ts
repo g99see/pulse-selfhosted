@@ -430,6 +430,14 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       });
     }
 
+    /** Воду и шаги спрашивают только вечером (Фаза 0) — ставим вечерний пояс. */
+    async function asEvening(userId: string): Promise<void> {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { timezone: zoneWhere((hour) => hour >= 18 || hour < 4) },
+      });
+    }
+
     const cb = (chat: number, data: string, id = `cb-${data}`) => ({
       update_id: 100,
       callback_query: {
@@ -444,39 +452,42 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       message: { chat: { id: chat }, from: {}, text: value },
     });
 
-    it('/checkin: пошаговый диалог сохраняет ВСЕ поля одной записью, статистика дня их показывает', async () => {
+    it('/checkin вечером: вода и шаги — только тут, всё сохраняется одной записью', async () => {
       const { client, userId } = await signUpLinked(
         'tg-checkin@example.com',
         'tgcheckinusr',
         '1001',
       );
-      await asMorning(userId);
+      await asEvening(userId);
 
       await webhookUpdate(text(1001, '/checkin'));
       expect(
         (lastSent('1001')?.buttons?.flat() ?? []).map((button) => button.callbackData),
       ).toEqual(expect.arrayContaining(['ci:mood:1', 'ci:mood:5']));
-      expect(lastSent('1001')?.text).toContain('Шаг 1/8');
+      // Фаза 0: вечером спрашивают про день, вопроса о сне нет — всего 7 шагов.
+      expect(lastSent('1001')?.text).toContain('Как прошёл день?');
+      expect(lastSent('1001')?.text).toContain('Шаг 1/7');
       expect(await prisma.checkInDraft.count({ where: { userId } })).toBe(1);
 
       await webhookUpdate(cb(1001, 'ci:mood:4'));
       await webhookUpdate(cb(1001, 'ci:energy:3'));
       await webhookUpdate(cb(1001, 'ci:stress:2'));
-      const sleepButtons = lastSent('1001')?.buttons?.[0]?.map((button) => button.text);
-      expect(sleepButtons).toEqual(['4', '5', '6', '7', '8', '9+']);
-      await webhookUpdate(text(1001, '7,5'));
+      // Сна вечером нет — сразу вода (Фаза 0).
+      const waterButtons = lastSent('1001')?.buttons?.[0]?.map((button) => button.text);
+      expect(waterButtons).toEqual(['2', '4', '6', '8', '10']);
       await webhookUpdate(cb(1001, 'ci:water:6'));
       await webhookUpdate(text(1001, '8400'));
       await webhookUpdate(cb(1001, 'ci:tag:1'));
       await webhookUpdate(text(1001, '#йога'));
       await webhookUpdate(cb(1001, 'ci:tags:done'));
-      expect(lastSent('1001')?.text).toContain('Шаг 8/8');
+      expect(lastSent('1001')?.text).toContain('Шаг 7/7');
       await webhookUpdate(text(1001, 'Хороший день'));
 
       const summary = lastSent('1001')?.text ?? '';
       expect(summary).toContain('Чек-ин сохранён');
       expect(summary).toContain('Энергия: 3/5');
-      expect(summary).toContain('Сон, ч: 7.5');
+      expect(summary).toContain('Вода: 6');
+      expect(summary).toContain('Шаги: 8400');
       expect(summary).toContain('#спорт #йога');
       expect(summary).toContain('Хороший день');
 
@@ -486,11 +497,12 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
         mood: 4,
         energy: 3,
         stress: 2,
-        sleepHours: 7.5,
+        sleepHours: null,
         water: 6,
         steps: 8400,
         tags: ['спорт', 'йога'],
         note: 'Хороший день',
+        slot: 'evening',
       });
       expect(await prisma.checkInDraft.count({ where: { userId } })).toBe(0);
 
@@ -500,12 +512,49 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
         avgMood: 4,
         avgEnergy: 3,
         avgStress: 2,
-        avgSleep: 7.5,
+        avgSleep: null,
         checkins: 1,
       });
 
       const history = await client.get('/api/checkins');
-      expect(history.body.checkIns[0]).toMatchObject({ energy: 3, stress: 2, sleepHours: 7.5 });
+      expect(history.body.checkIns[0]).toMatchObject({
+        energy: 3,
+        stress: 2,
+        water: 6,
+        steps: 8400,
+      });
+    });
+
+    it('/checkin утром: спрашивают сон, воды и шагов в диалоге нет (Фаза 0)', async () => {
+      const { userId } = await signUpLinked('tg-morning@example.com', 'tgmornusr', '1006');
+      await asMorning(userId);
+
+      await webhookUpdate(text(1006, '/checkin'));
+      expect(lastSent('1006')?.text).toContain('Как ты чувствуешь себя прямо сейчас?');
+      expect(lastSent('1006')?.text).toContain('Шаг 1/6');
+
+      await webhookUpdate(cb(1006, 'ci:mood:4'));
+      await webhookUpdate(cb(1006, 'ci:energy:3'));
+      await webhookUpdate(cb(1006, 'ci:stress:2'));
+      const sleepButtons = lastSent('1006')?.buttons?.[0]?.map((button) => button.text);
+      expect(sleepButtons).toEqual(['4', '5', '6', '7', '8', '9+']);
+      await webhookUpdate(text(1006, '7,5'));
+      // Воды и шагов в утреннем диалоге нет — сразу теги.
+      expect(lastSent('1006')?.text).toContain('Шаг 4/6');
+      expect(lastSent('1006')?.text).toContain('теги');
+      await webhookUpdate(cb(1006, 'ci:tags:done'));
+      await webhookUpdate(cb(1006, 'ci:note:skip'));
+
+      const [saved] = await prisma.checkIn.findMany({ where: { userId } });
+      expect(saved).toMatchObject({
+        mood: 4,
+        energy: 3,
+        stress: 2,
+        sleepHours: 7.5,
+        water: null,
+        steps: null,
+        slot: 'morning',
+      });
     });
 
     it('пропуск необязательных шагов сохраняет только настроение (старый формат остаётся валидным)', async () => {
@@ -536,7 +585,8 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
       const { userId } = await signUpLinked('tg-remind@example.com', 'tgremindusr', '1003');
       await asMorning(userId);
       await webhookUpdate(cb(1003, 'ci:mood:5'));
-      expect(lastSent('1003')?.text).toContain('Шаг 2/8');
+      // Утром вопроса о воде и шагах нет: всего 6 шагов (Фаза 0).
+      expect(lastSent('1003')?.text).toContain('Шаг 2/6');
       const draft = await prisma.checkInDraft.findFirst({ where: { userId } });
       expect(draft).toMatchObject({ channel: 'telegram', step: 'energy' });
       expect(draft?.expiresAt.getTime()).toBeGreaterThan(Date.now() + 29 * 60_000);
@@ -544,7 +594,7 @@ describe('Telegram-бот (ТЗ §3.6, §4)', () => {
 
       // Старые кнопки (mood:N) тоже запускают диалог.
       await webhookUpdate(cb(1003, 'mood:3', 'cb-legacy'));
-      expect(lastSent('1003')?.text).toContain('Шаг 2/8');
+      expect(lastSent('1003')?.text).toContain('Шаг 2/6');
     });
 
     it('быстрая форма /checkin одной строкой и /mood 4', async () => {
