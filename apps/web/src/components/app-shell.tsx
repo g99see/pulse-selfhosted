@@ -4,7 +4,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import type { PublicUser } from '@puls/shared';
+import {
+  CHECKIN_DAY_END_HOUR,
+  SLEEP_MORNING_END_HOUR,
+  SLEEP_MORNING_START_HOUR,
+  type PublicUser,
+} from '@puls/shared';
 import { Icon, Logo, type IconName } from '@/components/icons';
 import { useT } from '@/components/locale-provider';
 import { QuickAddSheet } from '@/components/quick-add-sheet';
@@ -92,9 +97,18 @@ export function AppShell({ user, children }: { user: PublicUser; children: React
   const [addOpen, setAddOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
+  // Приветствие — по единым границам слотов: ночь <04, утро 04–12, день 12–18, вечер ≥18.
   useEffect(() => {
     const hour = new Date().getHours();
-    setGreeting(hour < 5 ? 'night' : hour < 12 ? 'morning' : hour < 18 ? 'day' : 'evening');
+    setGreeting(
+      hour < SLEEP_MORNING_START_HOUR
+        ? 'night'
+        : hour < SLEEP_MORNING_END_HOUR
+          ? 'morning'
+          : hour < CHECKIN_DAY_END_HOUR
+            ? 'day'
+            : 'evening',
+    );
   }, []);
 
   // Если язык ещё не выбран в браузере, берём его из профиля пользователя (ТЗ §6).

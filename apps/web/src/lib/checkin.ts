@@ -3,13 +3,14 @@
  * Утилиты чек-инов для интерфейса (ТЗ §3.3): провал дня по часу ответа и
  * ближайшее время из расписания.
  */
-import type { CheckInSlot } from '@puls/shared';
+import { slotForLocalHour, type CheckInSlot } from '@puls/shared';
 
-/** Провал дня по часу ответа: утро до 12, день до 18, вечер после. */
+/**
+ * Провал дня по локальному часу ответа. Единое определение лежит в @puls/shared
+ * (`slotForLocalHour`): утро 04:00–12:00, день 12:00–18:00, вечер 18:00–04:00.
+ */
 export function slotForHour(hour: number): CheckInSlot {
-  if (hour < 12) return 'morning';
-  if (hour < 18) return 'day';
-  return 'evening';
+  return slotForLocalHour(hour);
 }
 
 /** Ближайшее время HH:MM из расписания к моменту `now`; null, если список пуст. */

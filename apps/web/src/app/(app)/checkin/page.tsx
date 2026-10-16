@@ -8,6 +8,7 @@ import {
   isMorningForSleep,
   MOOD_COLORS,
   MOOD_EMOJI,
+  slotForUserHour,
   extractVoiceTags,
   type CheckInDto,
   type CheckInSlot,
@@ -20,7 +21,7 @@ import { MetricScale, MoodScale } from '@/components/mood-scale';
 import { VoiceInputButton } from '@/components/voice-input-button';
 import { Badge, Card, EmptyState, IconBubble } from '@/components/ui';
 import { formatDate } from '@/lib/format';
-import { slotForHour } from '@/lib/checkin';
+import { useUser } from '@/components/user-provider';
 import { checkinApi, notifyCheckInChanged } from '@/lib/checkin-client';
 
 const SLOT_LABEL_KEYS: Record<CheckInSlot, string> = {
@@ -39,6 +40,9 @@ const TIME_SUGGESTIONS = ['09:00', '12:00', '15:00', '18:00', '20:00', '22:00'];
 /** Страница чек-инов (ТЗ §3.3, §8): шкала настроения, расширенный чек-ин, итог дня, расписание. */
 export default function CheckInPage() {
   const { t, locale } = useT();
+  // Пояс профиля (а не браузера): показ шага сна и слот должны совпадать с
+  // сервером, который гейтит сон по поясу профиля (ТЗ §3.3).
+  const timezone = useUser()?.timezone ?? 'UTC';
 
   const [mood, setMood] = useState<Mood | null>(null);
   const [energy, setEnergy] = useState<number | null>(null);
@@ -56,6 +60,7 @@ export default function CheckInPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [sleepIgnored, setSleepIgnored] = useState(false);
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE);
 
   const [timesPerDay, setTimesPerDay] = useState(DEFAULT_CHECKIN_SCHEDULE.timesPerDay);
@@ -63,15 +68,15 @@ export default function CheckInPage() {
   const [scheduleSaved, setScheduleSaved] = useState(false);
 
   /**
-   * Вопрос о сне — только утром (04:00–12:00 по локальному времени пользователя).
-   * Считаем на клиенте (в эффекте), чтобы не расходиться с серверным рендером.
+   * Вопрос о сне — только утром (04:00–12:00 по локальному времени ПОЛЬЗОВАТЕЛЯ,
+   * пояс профиля). Считаем на клиенте (в эффекте), чтобы не расходиться с
+   * серверным рендером и с серверным гейтом сна.
    */
   const [morning, setMorning] = useState(false);
 
   useEffect(() => {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     setMorning(isMorningForSleep(new Date(), timezone));
-  }, []);
+  }, [timezone]);
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -158,8 +163,9 @@ export default function CheckInPage() {
 
     setBusy(true);
     setError(null);
+    setSleepIgnored(false);
     try {
-      await checkinApi.create({
+      const created = await checkinApi.create({
         mood,
         energy: energy ?? undefined,
         stress: stress ?? undefined,
@@ -169,8 +175,11 @@ export default function CheckInPage() {
         tags,
         note: note.trim() || undefined,
         daySummary: daySummary.trim() || undefined,
-        slot: slotForHour(new Date().getHours()),
+        // Слот — по поясу профиля (а не браузера), как и серверный гейт сна.
+        slot: slotForUserHour(new Date(), timezone),
       });
+      // Сервер мог отбросить сон вне утреннего окна — говорим об этом, не молчим.
+      setSleepIgnored(created.sleepIgnored === true);
       setSaved(true);
       notifyCheckInChanged();
       setMood(null);
@@ -388,6 +397,16 @@ export default function CheckInPage() {
               className="text-sm text-[var(--puls-wellbeing-text)]"
             >
               {t('checkin.saved')}
+            </p>
+          ) : null}
+
+          {sleepIgnored ? (
+            <p
+              role="status"
+              data-testid="checkin-sleep-ignored"
+              className="text-sm text-[var(--puls-warning-text)]"
+            >
+              {t('checkin.sleepIgnored')}
             </p>
           ) : null}
         </form>

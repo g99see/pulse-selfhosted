@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import type { MeResponse } from '@puls/shared';
 import { AppShell } from '@/components/app-shell';
 import { LocaleProvider } from '@/components/locale-provider';
+import { UserProvider } from '@/components/user-provider';
 import { SERVER_API_URL } from '@/lib/api';
 import { LOCALE_COOKIE, resolveLocale } from '@/lib/locale';
 
@@ -39,7 +40,9 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
 
   return (
     <LocaleProvider initialLocale={initialLocale}>
-      <AppShell user={me.user}>{children}</AppShell>
+      <UserProvider user={me.user}>
+        <AppShell user={me.user}>{children}</AppShell>
+      </UserProvider>
     </LocaleProvider>
   );
 }
