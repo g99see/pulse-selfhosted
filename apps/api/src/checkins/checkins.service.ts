@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { CheckIn } from '@prisma/client';
 import {
   DEFAULT_CHECKIN_SCHEDULE,
   checkinGoalProgress,
+  dayKeyInTimezone,
   isMorningForSleep,
   weekStartKey,
   zonedDayBounds,
@@ -21,6 +22,7 @@ import {
 import { httpError } from '../common/http-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { StatsService } from '../stats/stats.service';
 import { DomainEvents } from '../api-access/domain-events';
 
 /** Допуск на расхождение часов клиента и сервера, мс. */
@@ -71,10 +73,43 @@ export function toCheckInDto(checkIn: CheckIn): CheckInDto {
 /** Чек-ины самочувствия (ТЗ §3.3): ответ настроением, расширенный чек-ин, расписание. */
 @Injectable()
 export class CheckinsService {
+  private readonly logger = new Logger(CheckinsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly achievements: AchievementsService,
+    private readonly stats: StatsService,
   ) {}
+
+  /** Часовой пояс пользователя: им определяются сутки чек-ина (ТЗ §3.3). */
+  private async timezoneOf(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { timezone: true },
+    });
+    return user?.timezone ?? 'UTC';
+  }
+
+  /**
+   * Пересчитывает дневной кеш DailyStat за дни, которых касается изменение
+   * чек-ина (ТЗ §3.4). День записи определяется occurredAt, поэтому правка
+   * момента может перенести чек-ин между сутками — затрагиваются оба дня.
+   * Сбой пересчёта не должен ломать саму запись чек-ина.
+   */
+  private async recomputeDays(
+    userId: string,
+    timezone: string,
+    instants: readonly Date[],
+  ): Promise<void> {
+    const days = new Set(instants.map((instant) => dayKeyInTimezone(instant, timezone)));
+    for (const day of days) {
+      try {
+        await this.stats.recomputeRange(userId, timezone, day, day);
+      } catch (error) {
+        this.logger.warn(`DailyStat за ${day} не пересчитан: ${String(error)}`);
+      }
+    }
+  }
 
   async create(userId: string, input: CheckInInput): Promise<CheckInDto> {
     const now = new Date();
@@ -106,6 +141,9 @@ export class CheckinsService {
 
     // Ленивая проверка достижений сразу после записи (ТЗ §4): сбой не ломает чек-ин.
     await this.achievements.onEvent(userId, 'checkin');
+
+    // Дневной кеш статистики сразу относит запись к её дню (ТЗ §3.4).
+    await this.recomputeDays(userId, user?.timezone ?? 'UTC', [created.occurredAt]);
 
     // Событие для вебхуков (ТЗ §4): одна строка, сигнатуру create не меняет.
     DomainEvents.emit('checkin.created', userId, {
@@ -214,12 +252,20 @@ export class CheckinsService {
       data.occurredAt = resolveOccurredAt(input.occurredAt, new Date());
 
     const updated = await this.prisma.checkIn.update({ where: { id }, data });
+    // Правка могла перенести чек-ин в другие сутки — пересчитываем оба дня.
+    await this.recomputeDays(userId, await this.timezoneOf(userId), [
+      new Date(existing.occurredAt),
+      updated.occurredAt,
+    ]);
     return toCheckInDto(updated);
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    await this.get(userId, id);
+    const existing = await this.get(userId, id);
     await this.prisma.checkIn.delete({ where: { id } });
+    await this.recomputeDays(userId, await this.timezoneOf(userId), [
+      new Date(existing.occurredAt),
+    ]);
   }
 
   /** Расписание напоминаний (ТЗ §3.3): только настройка и хранение. */

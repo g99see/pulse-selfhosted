@@ -2,13 +2,14 @@
 import { Module } from '@nestjs/common';
 import { AchievementsModule } from '../achievements/achievements.module';
 import { AuthModule } from '../auth/auth.module';
+import { StatsModule } from '../stats/stats.module';
 import { CheckinDialogService } from './checkin-dialog.service';
 import { CheckinsController } from './checkins.controller';
 import { CheckinsService } from './checkins.service';
 
 /** Модуль чек-инов (ТЗ §3.3): ответ настроением, расширенный чек-ин и расписание. */
 @Module({
-  imports: [AuthModule, AchievementsModule],
+  imports: [AuthModule, AchievementsModule, StatsModule],
   controllers: [CheckinsController],
   providers: [CheckinsService, CheckinDialogService],
   exports: [CheckinsService, CheckinDialogService],

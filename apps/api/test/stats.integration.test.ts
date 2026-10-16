@@ -541,6 +541,41 @@ describe('Stats API (интеграция с PostgreSQL)', () => {
       expect(cachedYesterday?.checkinsCount).toBe(1);
       expect(cachedYesterday?.avgMood).toBe(1);
     });
+
+    it('при переносе чек-ина правкой пересчитывает и старый, и новый день', async () => {
+      const client = await signUp('moveday@example.com', 'movedayuser');
+      await createAccount(client);
+      await setTimezone('moveday@example.com', 'UTC');
+
+      const now = new Date();
+      const todayKey = now.toISOString().slice(0, 10);
+      const midnight = new Date(`${todayKey}T00:00:00.000Z`);
+      const yesterdayKey = new Date(midnight.getTime() - 1).toISOString().slice(0, 10);
+
+      // Запись «вчера»: occurredAt — конец вчерашних суток, в пределах окна 24 ч.
+      const created = await client.post('/api/checkins', {
+        mood: 2,
+        occurredAt: new Date(midnight.getTime() - 1).toISOString(),
+      });
+      expect(created.status).toBe(201);
+      const id = (created.body as { id: string }).id;
+
+      expect((await cachedDay('moveday@example.com', yesterdayKey))!.checkinsCount).toBe(1);
+      expect((await cachedDay('moveday@example.com', todayKey))?.checkinsCount ?? 0).toBe(0);
+
+      // Переносим чек-ин на сегодня: старый день должен опустеть, новый — наполниться.
+      const moved = await client.put(`/api/checkins/${id}`, { occurredAt: now.toISOString() });
+      expect(moved.status).toBe(200);
+
+      expect((await cachedDay('moveday@example.com', yesterdayKey))?.checkinsCount ?? 0).toBe(0);
+      const today = await cachedDay('moveday@example.com', todayKey);
+      expect(today!.checkinsCount).toBe(1);
+      expect(today!.avgMood).toBe(2);
+
+      // Удаление также пересчитывает день чек-ина.
+      expect((await client.del(`/api/checkins/${id}`)).status).toBe(204);
+      expect((await cachedDay('moveday@example.com', todayKey))?.checkinsCount ?? 0).toBe(0);
+    });
   });
 
   describe('Изоляция данных и доступ (ТЗ §6)', () => {
