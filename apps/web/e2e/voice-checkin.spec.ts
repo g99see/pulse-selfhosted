@@ -101,6 +101,9 @@ test('голосовой чек-ин: диктовка заполняет зам
   await page.goto('/checkin');
   await expect(page.getByRole('heading', { name: 'Чек-ины', exact: true })).toBeVisible();
 
+  // Фаза 0: расширенный блок закрыт по умолчанию — раскрываем «Углубить».
+  await page.getByTestId('checkin-extended').click();
+
   // Диктовка в заметку: текст попадает в поле, теги предлагаются чипами.
   await page.getByTestId('checkin-note-voice').click();
   await expect(page.getByTestId('checkin-note')).toHaveValue(TRANSCRIPT, { timeout: 10_000 });

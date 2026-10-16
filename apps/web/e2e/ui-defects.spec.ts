@@ -168,6 +168,8 @@ test.describe('QA-2 D3/D4/D5/D6/D8 — страница чек-ина', () => {
   test('D4: заполнение задним числом в поясе профиля, окно 24 часа', async ({ page, request }) => {
     await signUpAndOnboard(page, request);
     await page.goto('/checkin');
+    // Фаза 0: расширенный блок закрыт по умолчанию — раскрываем «Углубить».
+    await page.getByTestId('checkin-extended').click();
 
     const field = page.getByTestId('checkin-occurred-at');
     await expect(field).toBeVisible();
@@ -210,6 +212,8 @@ test.describe('QA-2 D3/D4/D5/D6/D8 — страница чек-ина', () => {
   test('D4: поле не принимает время вне окна 24 часа', async ({ page, request }) => {
     await signUpAndOnboard(page, request);
     await page.goto('/checkin');
+    // Фаза 0: расширенный блок закрыт по умолчанию — раскрываем «Углубить».
+    await page.getByTestId('checkin-extended').click();
 
     const field = page.getByTestId('checkin-occurred-at');
     // 30 часов назад — вне окна.

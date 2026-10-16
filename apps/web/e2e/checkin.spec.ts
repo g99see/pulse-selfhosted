@@ -97,6 +97,20 @@ test('чек-ин отвечается за пару кликов с главн�
   await expect(page.getByRole('heading', { name: 'Чек-ины', exact: true })).toBeVisible();
   await expect(page.getByTestId('checkin-history').getByRole('listitem').first()).toBeVisible();
 
+  // Фаза 0: у шкалы есть словесные анкеры, а вопрос зависит от слота (тут утро).
+  await expect(page.getByTestId('mood-anchor-1')).toHaveText('тяжело');
+  await expect(page.getByTestId('mood-anchor-5')).toHaveText('отлично');
+  await expect(page.getByTestId('checkin-question')).toHaveText(
+    'Как ты чувствуешь себя прямо сейчас?',
+  );
+
+  // Фаза 0: расширенный блок закрыт по умолчанию, вода и шаги утром не спрашиваются.
+  await expect(page.getByTestId('checkin-day-summary')).toBeHidden();
+  await page.getByTestId('checkin-extended').click();
+  await expect(page.getByTestId('checkin-day-summary')).toBeVisible();
+  await expect(page.getByTestId('checkin-water')).toHaveCount(0);
+  await expect(page.getByTestId('checkin-steps')).toHaveCount(0);
+
   // Расширенный чек-ин: настроение, итог дня и сохранение.
   await page.getByTestId('mood-5').click();
   await page.getByTestId('checkin-day-summary').fill('Успел на тренировку');
@@ -112,4 +126,38 @@ test('чек-ин отвечается за пару кликов с главн�
   await page.getByTestId('checkin-times-per-day').selectOption('5');
   await page.getByTestId('checkin-schedule-save').click();
   await expect(page.getByTestId('checkin-schedule-saved')).toBeVisible({ timeout: 15_000 });
+});
+
+test('Фаза 0: деньги понижены и помечены, маршруты финансов работают', async ({
+  page,
+  request,
+}) => {
+  await signUpAndOnboard(page, request);
+
+  // Навигация: группа «Деньги» последняя и несёт видимую пометку «TODO: переделать».
+  const badge = page.getByTestId('nav-todo-finance');
+  await expect(badge).toBeVisible();
+  await expect(badge).toHaveText('TODO: переделать');
+
+  const checkinBox = await page.getByTestId('nav-checkin').boundingBox();
+  const financeBox = await page.getByTestId('nav-finance').boundingBox();
+  expect(checkinBox, 'пункт «Чек-ин» есть в меню').toBeTruthy();
+  expect(financeBox, 'пункт «Финансы» есть в меню').toBeTruthy();
+  expect(checkinBox!.y).toBeLessThan(financeBox!.y);
+
+  // Денежная карточка на главной помечена.
+  await expect(page.getByTestId('goals-card-todo-finance')).toBeVisible();
+
+  // Настройки: отдельная группа-модуль с пометкой.
+  await page.goto('/settings');
+  await expect(page.getByTestId('settings-todo-finance')).toHaveText('TODO: переделать');
+
+  // Финансы не удаляем: маршрут открывается как раньше.
+  await page.goto('/finance');
+  await expect(page.getByRole('heading', { name: 'Финансы' })).toBeVisible();
+
+  // Лендинг: деньги — последняя возможность, с пометкой про дополнительный модуль.
+  await page.goto('/');
+  await expect(page.getByTestId('landing-feature-money-note')).toContainText('TODO: переделать');
+  await expect(page.getByRole('heading', { name: 'Пульс — дневник самочувствия' })).toBeVisible();
 });
