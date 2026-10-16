@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { slotForUserHour, type CheckInDto, type Mood, type StreakDto } from '@puls/shared';
+import { slotForUserHour, type CheckInDto, type CheckInSlot, type Mood, type StreakDto } from '@puls/shared';
 import { useT } from '@/components/locale-provider';
 import { Confetti } from '@/components/confetti';
 import { HabitsToday } from '@/components/habits-today';
@@ -11,6 +11,7 @@ import { MoodScale } from '@/components/mood-scale';
 import { Card } from '@/components/ui';
 import { recentlyEarnedCodes } from '@/lib/achievements';
 import { achievementsApi } from '@/lib/achievements-client';
+import { checkinQuestionKey } from '@/lib/checkin';
 import { useUser } from '@/components/user-provider';
 import { CHECKIN_CHANGED_EVENT, checkinApi, notifyCheckInChanged } from '@/lib/checkin-client';
 
@@ -33,6 +34,15 @@ export function CheckInCard() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const celebrated = useRef(false);
+  /**
+   * Слот текущего момента (Фаза 0, §2.1): вопрос под шкалой зависит от слота.
+   * Считаем в эффекте — на сервере пояса ещё нет, и разметка не должна расходиться.
+   */
+  const [slot, setSlot] = useState<CheckInSlot | null>(null);
+
+  useEffect(() => {
+    setSlot(slotForUserHour(new Date(), timezone));
+  }, [timezone]);
 
   const reload = useCallback(async (): Promise<void> => {
     try {
@@ -101,8 +111,11 @@ export function CheckInCard() {
       {celebrate ? <Confetti /> : null}
       <div className="flex flex-col gap-4" data-testid="checkin-card">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="font-heading text-xl font-bold text-[var(--puls-ink)]">
-            {t('checkin.card.question')}
+          <h2
+            className="font-heading text-xl font-bold text-[var(--puls-ink)]"
+            data-testid="checkin-question"
+          >
+            {t(checkinQuestionKey(slot))}
           </h2>
           {checkIns.length > 0 ? (
             <span className="text-caption text-[var(--puls-wellbeing-text)]">

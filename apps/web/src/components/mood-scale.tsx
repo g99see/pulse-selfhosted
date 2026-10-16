@@ -35,11 +35,12 @@ export function MoodScale({
 }) {
   const { t } = useT();
   const buttons = useRef<Array<HTMLButtonElement | null>>([]);
-  // На узких экранах кружки сжимаются (aspect-square), чтобы пять лиц всегда помещались в строку.
+  // Колонка шкалы: кружок + словесный анкер. Ширина колонки сама сжимается на
+  // узких экранах, поэтому пять значений всегда помещаются в строку.
   const dimension =
     size === 'lg'
-      ? 'aspect-square w-[4.25rem] min-w-11 shrink text-2xl sm:text-3xl'
-      : 'aspect-square w-14 min-w-11 shrink text-2xl';
+      ? 'aspect-square w-full max-w-[4.25rem] min-w-11 text-2xl sm:text-3xl'
+      : 'aspect-square w-full max-w-14 min-w-11 text-2xl';
 
   const isGroup = mode === 'radiogroup';
   // Roving tabindex: в табуляции стоит выбранное значение, а если выбора нет — первое.
@@ -79,36 +80,48 @@ export function MoodScale({
       aria-describedby={describedBy}
       aria-invalid={isGroup && invalid ? true : undefined}
       data-testid="mood-scale"
-      className="flex items-center justify-between gap-2"
+      className="flex items-start justify-between gap-2"
     >
       {MOOD_SCALE.map((mood, index) => {
         const active = value === mood;
         return (
-          <button
+          <div
             key={mood}
-            ref={(element) => {
-              buttons.current[index] = element;
-            }}
-            type="button"
-            role={isGroup ? 'radio' : undefined}
-            aria-checked={isGroup ? active : undefined}
-            aria-label={t(`checkin.mood.${mood}`)}
-            data-testid={`mood-${mood}`}
-            disabled={disabled}
-            tabIndex={isGroup && index !== focusableIndex ? -1 : 0}
-            onClick={() => onChange(mood)}
-            onKeyDown={isGroup ? (event) => handleKeyDown(event, index) : undefined}
-            className={`flex ${dimension} items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--puls-wellbeing-text)] disabled:opacity-60`}
-            style={{
-              backgroundColor: `color-mix(in srgb, ${MOOD_COLORS[mood]} ${active ? 55 : 28}%, var(--puls-surface))`,
-              boxShadow: active
-                ? '0 0 0 3px var(--puls-surface), 0 0 0 5px var(--puls-wellbeing-text)'
-                : undefined,
-              transform: active ? 'scale(1.08)' : undefined,
-            }}
+            className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
           >
-            <span aria-hidden="true">{MOOD_EMOJI[mood]}</span>
-          </button>
+            <button
+              ref={(element) => {
+                buttons.current[index] = element;
+              }}
+              type="button"
+              role={isGroup ? 'radio' : undefined}
+              aria-checked={isGroup ? active : undefined}
+              aria-label={t(`checkin.mood.${mood}`)}
+              data-testid={`mood-${mood}`}
+              disabled={disabled}
+              tabIndex={isGroup && index !== focusableIndex ? -1 : 0}
+              onClick={() => onChange(mood)}
+              onKeyDown={isGroup ? (event) => handleKeyDown(event, index) : undefined}
+              className={`flex ${dimension} items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--puls-wellbeing-text)] disabled:opacity-60`}
+              style={{
+                backgroundColor: `color-mix(in srgb, ${MOOD_COLORS[mood]} ${active ? 55 : 28}%, var(--puls-surface))`,
+                boxShadow: active
+                  ? '0 0 0 3px var(--puls-surface), 0 0 0 5px var(--puls-wellbeing-text)'
+                  : undefined,
+                transform: active ? 'scale(1.08)' : undefined,
+              }}
+            >
+              <span aria-hidden="true">{MOOD_EMOJI[mood]}</span>
+            </button>
+            {/* Словесный анкер под эмодзи: смысл шкалы словами (Фаза 0, §2.1). */}
+            <span
+              aria-hidden="true"
+              data-testid={`mood-anchor-${mood}`}
+              className="text-caption text-center leading-tight text-wrap text-[var(--puls-ink-muted)]"
+            >
+              {t(`checkin.mood.${mood}`)}
+            </span>
+          </div>
         );
       })}
     </div>

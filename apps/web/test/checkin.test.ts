@@ -1,6 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { nearestScheduledTime, slotForHour } from '../src/lib/checkin';
+import {
+  checkinQuestionKey,
+  nearestScheduledTime,
+  slotForHour,
+} from '../src/lib/checkin';
+
+describe('checkinQuestionKey (Фаза 0, §2.1) — вопрос по слоту', () => {
+  it('вечером спрашивает про день, утром и днём — про момент', () => {
+    expect(checkinQuestionKey('evening')).toBe('checkin.question.daily');
+    expect(checkinQuestionKey('morning')).toBe('checkin.question.momentary');
+    expect(checkinQuestionKey('day')).toBe('checkin.question.momentary');
+  });
+
+  it('без слота (до гидратации) — вопрос про момент', () => {
+    expect(checkinQuestionKey(null)).toBe('checkin.question.momentary');
+  });
+});
 
 describe('slotForHour (ТЗ §3.3) — единый слот из @puls/shared', () => {
   it('делит день на утро, день и вечер (утро 04–12, день 12–18)', () => {

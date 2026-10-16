@@ -21,6 +21,7 @@ import { HabitsToday } from '@/components/habits-today';
 import { MetricScale, MoodScale } from '@/components/mood-scale';
 import { VoiceInputButton } from '@/components/voice-input-button';
 import { Badge, Card, EmptyState, IconBubble } from '@/components/ui';
+import { checkinQuestionKey } from '@/lib/checkin';
 import { formatDate } from '@/lib/format';
 import { useUser } from '@/components/user-provider';
 import { checkinApi, notifyCheckInChanged } from '@/lib/checkin-client';
@@ -82,9 +83,16 @@ export default function CheckInPage() {
    * серверным рендером и с серверным гейтом сна.
    */
   const [morning, setMorning] = useState(false);
+  /**
+   * Слот текущего момента (Фаза 0, §2.1–2.2): от него зависят вопрос о
+   * настроении и вода/шаги (один раз в день, вечером).
+   */
+  const [slot, setSlot] = useState<CheckInSlot | null>(null);
 
   useEffect(() => {
-    setMorning(isMorningForSleep(new Date(), timezone));
+    const now = new Date();
+    setMorning(isMorningForSleep(now, timezone));
+    setSlot(slotForUserHour(now, timezone));
   }, [timezone]);
 
   const reload = useCallback(async (): Promise<void> => {
@@ -267,7 +275,9 @@ export default function CheckInPage() {
           onClick={() => setSaved(false)}
         >
           <div className="flex flex-col gap-3" ref={moodBlockRef}>
-            <h2 className="text-lg font-bold">{t('checkin.card.question')}</h2>
+            <h2 className="text-lg font-bold" data-testid="checkin-question">
+              {t(checkinQuestionKey(slot))}
+            </h2>
             <MoodScale
               value={mood}
               onChange={chooseMood}
@@ -288,11 +298,16 @@ export default function CheckInPage() {
             ) : null}
           </div>
 
-          <details className="flex flex-col gap-3" open>
-            <summary className="cursor-pointer text-sm font-medium">
+          {/* Расширенный блок закрыт по умолчанию: прогрессивное раскрытие (Фаза 0, §2.2). */}
+          <details className="flex flex-col gap-3" data-testid="checkin-extended-block">
+            <summary
+              data-testid="checkin-extended"
+              className="cursor-pointer text-sm font-medium"
+            >
               {t('checkin.extended')}
             </summary>
             <div className="mt-3 flex flex-col gap-4">
+              <p className="text-sm text-[var(--puls-ink-muted)]">{t('checkin.extended.hint')}</p>
               <CheckinBackdateField value={occurredAt} onChange={setOccurredAt} disabled={busy} />
               <MetricScale
                 value={energy}
@@ -315,7 +330,7 @@ export default function CheckInPage() {
                 disabled={busy}
               />
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 empty:hidden" data-testid="checkin-habit-fields">
                 {morning ? (
                   <label htmlFor="checkin-sleep" className="flex flex-1 flex-col gap-1">
                     <span className="text-sm font-medium">{t('checkin.sleep')}</span>
@@ -329,28 +344,33 @@ export default function CheckInPage() {
                     />
                   </label>
                 ) : null}
-                <label htmlFor="checkin-water" className="flex flex-1 flex-col gap-1">
-                  <span className="text-sm font-medium">{t('checkin.water')}</span>
-                  <input
-                    id="checkin-water"
-                    data-testid="checkin-water"
-                    inputMode="numeric"
-                    value={water}
-                    onChange={(event) => setWater(event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-                  />
-                </label>
-                <label htmlFor="checkin-steps" className="flex flex-1 flex-col gap-1">
-                  <span className="text-sm font-medium">{t('checkin.steps')}</span>
-                  <input
-                    id="checkin-steps"
-                    data-testid="checkin-steps"
-                    inputMode="numeric"
-                    value={steps}
-                    onChange={(event) => setSteps(event.target.value)}
-                    className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
-                  />
-                </label>
+                {/* Воду и шаги спрашиваем один раз в день, вечером (Фаза 0, §2.2). */}
+                {slot === 'evening' ? (
+                  <>
+                    <label htmlFor="checkin-water" className="flex flex-1 flex-col gap-1">
+                      <span className="text-sm font-medium">{t('checkin.water')}</span>
+                      <input
+                        id="checkin-water"
+                        data-testid="checkin-water"
+                        inputMode="numeric"
+                        value={water}
+                        onChange={(event) => setWater(event.target.value)}
+                        className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                      />
+                    </label>
+                    <label htmlFor="checkin-steps" className="flex flex-1 flex-col gap-1">
+                      <span className="text-sm font-medium">{t('checkin.steps')}</span>
+                      <input
+                        id="checkin-steps"
+                        data-testid="checkin-steps"
+                        inputMode="numeric"
+                        value={steps}
+                        onChange={(event) => setSteps(event.target.value)}
+                        className="h-11 rounded-[var(--radius-button)] border-[1.5px] border-[var(--puls-line-strong)] bg-[var(--puls-surface-2)] px-3"
+                      />
+                    </label>
+                  </>
+                ) : null}
               </div>
 
               <fieldset className="flex flex-col gap-2">

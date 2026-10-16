@@ -13,6 +13,15 @@ export function slotForHour(hour: number): CheckInSlot {
   return slotForLocalHour(hour);
 }
 
+/**
+ * Ключ вопроса о настроении по слоту (Фаза 0, §2.1): вечером спрашиваем про
+ * день, утром и днём — про состояние прямо сейчас. Слот null (до гидратации)
+ * даёт вопрос «прямо сейчас».
+ */
+export function checkinQuestionKey(slot: CheckInSlot | null): string {
+  return slot === 'evening' ? 'checkin.question.daily' : 'checkin.question.momentary';
+}
+
 /** Ближайшее время HH:MM из расписания к моменту `now`; null, если список пуст. */
 export function nearestScheduledTime(times: readonly string[], now: Date): string | null {
   const target = now.getHours() * 60 + now.getMinutes();
